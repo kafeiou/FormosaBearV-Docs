@@ -46,6 +46,7 @@ import com.sismics.rest.exception.ForbiddenClientException;
 import com.sismics.rest.exception.ServerException;
 import com.sismics.rest.util.RestUtil;
 import com.sismics.rest.util.ValidationUtil;
+import com.sismics.util.HttpUtil;
 import com.sismics.util.JsonUtil;
 import com.sismics.util.context.ThreadLocalContext;
 import com.sismics.util.mime.MimeType;
@@ -735,15 +736,30 @@ public class FileResource extends BaseResource {
             com.sismics.docs.core.util.AuditLogUtil.create(file, AuditLogType.DOWNLOAD, user.getId());
         }
 
+        // Remap active MIME types to prevent stored XSS via inline rendering (CWE-79).
+        // Files detected as text/html, JS, SVG, or XHTML are served as opaque downloads
+        // instead of being rendered in the application's origin.
+        String servedMime = isActiveMime(mimeType) ? "application/octet-stream" : mimeType;
+        String dispositionType = isActiveMime(mimeType) ? "attachment" : "inline";
+
         String filename = file.getFullName(size != null ? "preview" : "data");
         String encodedFilename = filenameEncode(filename);
         String cleanAsciiFilename = filename.replaceAll("[^a-zA-Z0-9._-]", "_");
-        String disposition = "inline; filename=\"" + cleanAsciiFilename + "\"; filename*=UTF-8''" + encodedFilename;
+        String disposition = dispositionType + "; filename=\"" + cleanAsciiFilename + "\"; filename*=UTF-8''" + encodedFilename;
 
-        Response.ResponseBuilder builder = Response.ok(stream, mimeType)
-                .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache")
+        Response.ResponseBuilder builder = Response.ok(stream)
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
-                .header(HttpHeaders.EXPIRES, "0");                
+                .header(HttpHeaders.CONTENT_TYPE, servedMime)
+                .header("X-Content-Type-Options", "nosniff");
+        if (decrypt) {
+            // Cache real files
+            builder.header(HttpHeaders.CACHE_CONTROL, "private")
+                    .header(HttpHeaders.EXPIRES, HttpUtil.buildExpiresHeader(3_600_000L * 24L * 365L));
+        } else {
+            // Do not cache the temporary thumbnail
+            builder.header(HttpHeaders.CACHE_CONTROL, "no-store, must-revalidate")
+                    .header(HttpHeaders.EXPIRES, "0");
+        }
         return builder.build();
     }
 
@@ -980,5 +996,27 @@ public class FileResource extends BaseResource {
                 throw new ForbiddenClientException();
             }
         }
+    }
+
+    /**
+     * MIME types that must never be served inline, as they execute scripts
+     * in the browser's rendering engine (CWE-79 / stored XSS via MIME confusion).
+     */
+    private static final List<String> ACTIVE_MIME_PREFIXES = List.of(
+            "text/html",
+            "text/javascript",
+            "application/javascript",
+            "application/xhtml+xml",
+            "image/svg+xml"
+    );
+
+    /**
+     * Returns true if the given MIME type can execute scripts when rendered
+     * inline by a browser. Such files must be forced to download as
+     * application/octet-stream with Content-Disposition: attachment.
+     */
+    private static boolean isActiveMime(String mimeType) {
+        if (mimeType == null) return false;
+        return ACTIVE_MIME_PREFIXES.stream().anyMatch(mimeType::startsWith);
     }
 }
