@@ -1,7 +1,7 @@
 /*!
- * angular-translate - v2.16.0 - 2017-11-01
+ * angular-translate - v2.19.1 - 2024-01-21
  * 
- * Copyright (c) 2017 The angular-translate team, Pascal Precht; Licensed MIT
+ * Copyright (c) 2024 The angular-translate team, Pascal Precht; Licensed MIT
  */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -421,6 +421,7 @@ function $translate($STORAGE_KEY, $windowProvider, $translateSanitizationProvide
     $notFoundIndicatorRight,
     $postCompilingEnabled = false,
     $forceAsyncReloadEnabled = false,
+    $allowNamespaces = true,
     $nestedObjectDelimeter = '.',
     $isReady = false,
     $keepContent = false,
@@ -441,7 +442,29 @@ function $translate($STORAGE_KEY, $windowProvider, $translateSanitizationProvide
       bcp47 : function (tag) {
         var temp = (tag || '').split('_').join('-');
         var parts = temp.split('-');
-        return parts.length > 1 ? (parts[0].toLowerCase() + '-' + parts[1].toUpperCase()) : temp;
+
+        switch (parts.length) {
+          case 1: // language only
+            parts[0] = parts[0].toLowerCase();
+            break;
+          case 2: // language-script or language-region
+            parts[0] = parts[0].toLowerCase();
+            if (parts[1].length === 4) { // parts[1] is script
+              parts[1] = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+            } else { // parts[1] is region
+              parts[1] = parts[1].toUpperCase();
+            }
+            break;
+          case 3: // language-script-region
+            parts[0] = parts[0].toLowerCase();
+            parts[1] = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+            parts[2] = parts[2].toUpperCase();
+            break;
+          default:
+            return temp;
+        }
+
+        return parts.join('-');
       },
       'iso639-1' : function (tag) {
         var temp = (tag || '').split('_').join('-');
@@ -450,7 +473,7 @@ function $translate($STORAGE_KEY, $windowProvider, $translateSanitizationProvide
       }
     };
 
-  var version = '2.16.0';
+  var version = '2.19.1';
 
   // tries to determine the browsers language
   var getFirstBrowserLanguage = function () {
@@ -675,6 +698,27 @@ function $translate($STORAGE_KEY, $windowProvider, $translateSanitizationProvide
 
   /**
    * @ngdoc function
+   * @name pascalprecht.translate.$translateProvider#allowNamespaces
+   * @methodOf pascalprecht.translate.$translateProvider
+   *
+   * @description
+   * Let's you disable namespaces, if you don't need nested translation
+   * object files. Disabling namespaces can improve performance.
+   *
+   * Default value is `true`. Namespaces are enabled by default.
+   *
+   * @param {boolean} namespacesEnabled - namespaces are enabled or not
+   */
+  this.allowNamespaces = function (namespacesEnabled) {
+    if (namespacesEnabled === undefined) {
+      return $allowNamespaces;
+    }
+    $allowNamespaces = namespacesEnabled;
+    return this;
+  };
+
+  /**
+   * @ngdoc function
    * @name pascalprecht.translate.$translateProvider#nestedObjectDelimeter
    * @methodOf pascalprecht.translate.$translateProvider
    *
@@ -709,6 +753,9 @@ function $translate($STORAGE_KEY, $windowProvider, $translateSanitizationProvide
     }
     if (!result) {
       result = {};
+    }
+    if (!$allowNamespaces) {
+      return data;
     }
     for (key in data) {
       if (!Object.prototype.hasOwnProperty.call(data, key)) {
@@ -1210,9 +1257,12 @@ function $translate($STORAGE_KEY, $windowProvider, $translateSanitizationProvide
    *     en_US => en_US
    *     en-us => en_US
    * * BCP 47 (RFC 4646 & 4647)
+   *     EN => en
    *     en-US => en-US
    *     en_US => en-US
    *     en-us => en-US
+   *     sr-latn => sr-Latn
+   *     sr-latn-rs => sr-Latn-RS
    *
    * See also:
    * * http://en.wikipedia.org/wiki/IETF_language_tag
@@ -1505,6 +1555,8 @@ function $translate($STORAGE_KEY, $windowProvider, $translateSanitizationProvide
       // trim off any whitespace
       if (translationId) {
         translationId = trim.apply(translationId);
+      } else {
+        throw new TypeError('translationId must be a not empty string');
       }
 
       var promiseToWaitFor = (function () {
@@ -2117,6 +2169,20 @@ function $translate($STORAGE_KEY, $windowProvider, $translateSanitizationProvide
      */
     $translate.cloakClassName = function () {
       return $cloakClassName;
+    };
+
+    /**
+     * @ngdoc function
+     * @name pascalprecht.translate.$translate#allowNamespaces
+     * @methodOf pascalprecht.translate.$translate
+     *
+     * @description
+     * Returns if namespaces are enabled
+     *
+     * @return {boolean} allowNamespaces value
+     */
+    $translate.allowNamespaces = function () {
+      return $allowNamespaces;
     };
 
     /**
@@ -3072,7 +3138,7 @@ function translateDirective($translate, $interpolate, $compile, $parse, $rootSco
           }
 
           if (angular.equals(translationId , '') || !angular.isDefined(translationId)) {
-            var iElementText = trim.apply(iElement.text());
+            var iElementText = trim.apply(iElement.text()).replace(/\n/g, ' ');
 
             // Resolve translation id by inner html if required
             var interpolateMatches = iElementText.match(interpolateRegExp);
@@ -3495,7 +3561,7 @@ angular.module('pascalprecht.translate')
  *
  * @description
  * Translates given translation id either through attribute or DOM content.
- * Internally it uses `translate` filter to translate translation id. It possible to
+ * Internally it uses `translate` filter to translate translation id. It is possible to
  * pass an optional `translate-values` object literal as string into translation id.
  *
  * @param {string=} translate namespace name which could be either string or interpolated string.
@@ -3549,7 +3615,7 @@ function translateNamespaceDirective() {
     compile: function () {
       return {
         pre: function (scope, iElement, iAttrs) {
-          scope.translateNamespace = getTranslateNamespace(scope);
+          scope.translateNamespace = _getTranslateNamespace(scope);
 
           if (scope.translateNamespace && iAttrs.translateNamespace.charAt(0) === '.') {
             scope.translateNamespace += iAttrs.translateNamespace;
@@ -3568,13 +3634,13 @@ function translateNamespaceDirective() {
  * @param scope
  * @returns {string}
  */
-function getTranslateNamespace(scope) {
+function _getTranslateNamespace(scope) {
   'use strict';
   if (scope.translateNamespace) {
     return scope.translateNamespace;
   }
   if (scope.$parent) {
-    return getTranslateNamespace(scope.$parent);
+    return _getTranslateNamespace(scope.$parent);
   }
 }
 
@@ -3758,9 +3824,9 @@ return 'pascalprecht.translate';
 }));
 
 /*!
- * angular-translate - v2.16.0 - 2017-11-01
- *
- * Copyright (c) 2017 The angular-translate team, Pascal Precht; Licensed MIT
+ * angular-translate - v2.19.1 - 2024-01-21
+ * 
+ * Copyright (c) 2024 The angular-translate team, Pascal Precht; Licensed MIT
  */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -3778,94 +3844,94 @@ return 'pascalprecht.translate';
   }
 }(this, function () {
 
-  $translateStaticFilesLoader.$inject = ['$q', '$http'];
-  angular.module('pascalprecht.translate')
-  /**
-   * @ngdoc object
-   * @name pascalprecht.translate.$translateStaticFilesLoader
-   * @requires $q
-   * @requires $http
-   *
-   * @description
-   * Creates a loading function for a typical static file url pattern:
-   * "lang-en_US.json", "lang-de_DE.json", etc. Using this builder,
-   * the response of these urls must be an object of key-value pairs.
-   *
-   * @param {object} options Options object, which gets prefix, suffix, key, and fileMap
-   */
-    .factory('$translateStaticFilesLoader', $translateStaticFilesLoader);
+$translateStaticFilesLoader.$inject = ['$q', '$http'];
+angular.module('pascalprecht.translate')
+/**
+ * @ngdoc object
+ * @name pascalprecht.translate.$translateStaticFilesLoader
+ * @requires $q
+ * @requires $http
+ *
+ * @description
+ * Creates a loading function for a typical static file url pattern:
+ * "lang-en_US.json", "lang-de_DE.json", etc. Using this builder,
+ * the response of these urls must be an object of key-value pairs.
+ *
+ * @param {object} options Options object, which gets prefix, suffix, key, and fileMap
+ */
+.factory('$translateStaticFilesLoader', $translateStaticFilesLoader);
 
-  function $translateStaticFilesLoader($q, $http) {
+function $translateStaticFilesLoader($q, $http) {
 
-    'use strict';
+  'use strict';
 
-    return function (options) {
+  return function (options) {
 
-      if (!options || (!angular.isArray(options.files) && (!angular.isString(options.prefix) || !angular.isString(options.suffix)))) {
-        throw new Error('Couldn\'t load static files, no files and prefix or suffix specified!');
+    if (!options || (!angular.isArray(options.files) && (!angular.isString(options.prefix) || !angular.isString(options.suffix)))) {
+      throw new Error('Couldn\'t load static files, no files and prefix or suffix specified!');
+    }
+
+    if (!options.files) {
+      options.files = [{
+        prefix: options.prefix,
+        suffix: options.suffix
+      }];
+    }
+
+    var load = function (file) {
+      if (!file || (!angular.isString(file.prefix) || !angular.isString(file.suffix))) {
+        throw new Error('Couldn\'t load static file, no prefix or suffix specified!');
       }
 
-      if (!options.files) {
-        options.files = [{
-          prefix: options.prefix,
-          suffix: options.suffix
-        }];
+      var fileUrl = [
+        file.prefix,
+        options.key,
+        file.suffix
+      ].join('');
+
+      if (angular.isObject(options.fileMap) && options.fileMap[fileUrl]) {
+        fileUrl = options.fileMap[fileUrl];
       }
 
-      var load = function (file) {
-        if (!file || (!angular.isString(file.prefix) || !angular.isString(file.suffix))) {
-          throw new Error('Couldn\'t load static file, no prefix or suffix specified!');
-        }
-
-        var fileUrl = [
-          file.prefix,
-          options.key,
-          file.suffix
-        ].join('');
-
-        if (angular.isObject(options.fileMap) && options.fileMap[fileUrl]) {
-          fileUrl = options.fileMap[fileUrl];
-        }
-
-        return $http(angular.extend({
-          url: fileUrl,
-          method: 'GET'
-        }, options.$http))
-          .then(function(result) {
-            return result.data;
-          }, function () {
-            return $q.reject(options.key);
-          });
-      };
-
-      var promises = [],
-        length = options.files.length;
-
-      for (var i = 0; i < length; i++) {
-        promises.push(load({
-          prefix: options.files[i].prefix,
-          key: options.key,
-          suffix: options.files[i].suffix
-        }));
-      }
-
-      return $q.all(promises)
-        .then(function (data) {
-          var length = data.length,
-            mergedData = {};
-
-          for (var i = 0; i < length; i++) {
-            for (var key in data[i]) {
-              mergedData[key] = data[i][key];
-            }
-          }
-
-          return mergedData;
+      return $http(angular.extend({
+        url: fileUrl,
+        method: 'GET'
+      }, options.$http))
+        .then(function(result) {
+          return result.data;
+        }, function () {
+          return $q.reject(options.key);
         });
     };
-  }
 
-  $translateStaticFilesLoader.displayName = '$translateStaticFilesLoader';
-  return 'pascalprecht.translate';
+    var promises = [],
+        length = options.files.length;
+
+    for (var i = 0; i < length; i++) {
+      promises.push(load({
+        prefix: options.files[i].prefix,
+        key: options.key,
+        suffix: options.files[i].suffix
+      }));
+    }
+
+    return $q.all(promises)
+      .then(function (data) {
+        var length = data.length,
+            mergedData = {};
+
+        for (var i = 0; i < length; i++) {
+          for (var key in data[i]) {
+            mergedData[key] = data[i][key];
+          }
+        }
+
+        return mergedData;
+      });
+  };
+}
+
+$translateStaticFilesLoader.displayName = '$translateStaticFilesLoader';
+return 'pascalprecht.translate';
 
 }));

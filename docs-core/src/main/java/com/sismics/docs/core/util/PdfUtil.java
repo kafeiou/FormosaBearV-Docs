@@ -5,12 +5,14 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 import com.google.common.io.Resources;
 import com.lowagie.text.FontFactory;
+import com.lowagie.text.pdf.BaseFont;
 import com.sismics.docs.core.constant.Constants;
 import com.sismics.docs.core.dao.dto.DocumentDto;
 import com.sismics.docs.core.model.jpa.File;
 import com.sismics.docs.core.util.format.FormatHandler;
 import com.sismics.docs.core.util.format.FormatHandlerUtil;
 import com.sismics.docs.core.util.pdf.PdfPage;
+import fr.opensagres.xdocreport.itext.extension.font.IFontProvider;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -18,6 +20,9 @@ import org.apache.pdfbox.pdmodel.font.DocsPDType1Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +43,16 @@ public class PdfUtil {
      * Logger.
      */
     private static final Logger log = LoggerFactory.getLogger(PdfUtil.class);
+
+    /**
+     * Bundled Pan-CJK + Vietnamese + Latin font family name.
+     */
+    public static final String BUNDLED_CJK_FONT_FAMILY = "Noto Sans CJK TC";
+
+    /**
+     * Flag to ensure fonts are registered only once.
+     */
+    private static volatile boolean fontsRegistered = false;
 
     /**
      * Convert a document and its files to a merged PDF file.
@@ -119,19 +134,53 @@ public class PdfUtil {
     }
 
     /**
-     * Register fonts.
+     * Register bundled and system fonts for Java 2D (AWT) and iText PDF generation.
      */
-    public static void registerFonts() {
-        URL url = Resources.getResource("fonts/LiberationMono-Regular.ttf");
+    public static synchronized void registerFonts() {
+        if (fontsRegistered) {
+            return;
+        }
+        try {
+            registerBundledFont("fonts/LiberationMono-Regular.ttf", "sismics_docs_font_mono", ".ttf", "LiberationMono-Regular");
+            registerBundledFont("fonts/NotoSansCJKtc-Regular.otf", "teedy_ng_font_cjk", ".otf", BUNDLED_CJK_FONT_FAMILY);
+            FontFactory.registerDirectories();
+            fontsRegistered = true;
+        } catch (Exception e) {
+            log.error("Error loading bundled fonts", e);
+        }
+    }
+
+    private static void registerBundledFont(String resourcePath, String tempPrefix, String tempSuffix, String alias) throws Exception {
+        URL url = Resources.getResource(resourcePath);
         try (InputStream is = url.openStream()) {
-            Path file = Files.createTempFile("sismics_docs_font_mono", ".ttf");
+            Path file = Files.createTempFile(tempPrefix, tempSuffix);
+            file.toFile().deleteOnExit();
             try (OutputStream os = Files.newOutputStream(file)) {
                 ByteStreams.copy(is, os);
             }
-            FontFactory.register(file.toAbsolutePath().toString(), "LiberationMono-Regular");
-            FontFactory.registerDirectories();
-        } catch (IOException e) {
-            log.error("Error loading font", e);
+            Font awtFont = Font.createFont(Font.TRUETYPE_FONT, file.toFile());
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(awtFont);
+            FontFactory.register(file.toAbsolutePath().toString(), alias);
         }
+    }
+
+    /**
+     * Returns an iText font provider that falls back to the bundled Pan-CJK font.
+     *
+     * @return IFontProvider
+     */
+    public static IFontProvider getFontProvider() {
+        registerFonts();
+        return (String familyName, String encoding, float size, int style, Color color) -> {
+            try {
+                com.lowagie.text.Font font = FontFactory.getFont(familyName, BaseFont.IDENTITY_H, BaseFont.EMBEDDED, size, style, color);
+                if (font != null && font.getBaseFont() != null) {
+                    return font;
+                }
+            } catch (Exception e) {
+                // Ignore and fall back to bundled CJK font
+            }
+            return FontFactory.getFont(BUNDLED_CJK_FONT_FAMILY, BaseFont.IDENTITY_H, BaseFont.EMBEDDED, size, style, color);
+        };
     }
 }

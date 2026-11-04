@@ -16,8 +16,12 @@
        ngf-allow-dir="false">
     <div class="col-xs-6 col-sm-4 col-md-3 col-lg-2 text-center" ng-repeat="file in files">
       <div class="thumbnail" ng-class="{ 'thumbnail-checked': file.checked }" ng-if="file.id">
+        <div class="file-processing-indicator" ng-show="file.processing"
+             uib-tooltip="{{ 'document.view.content.file_processing_indicator' | translate }}">
+          <span class="fas fa-spin fa-circle-notch"></span>
+        </div>
         <a class="file-thumbnail" ng-click="openFile(file)">
-          <img ng-src="../api/file/{{ file.id }}/data?size=thumb" uib-tooltip="{{ file.mimetype }} | {{ file.size | filesize }}" tooltip-placement="top" />
+          <img ng-src="../api/file/{{ file.id }}/data?size=thumb&_t={{ file.thumbTimestamp || 0 }}" uib-tooltip="{{ file.mimetype }} | {{ file.size | filesize }}" tooltip-placement="top" />
         </a>
         <div class="file-info">
           <div class="v-align">
@@ -113,7 +117,3 @@
 </div>
 
 <div ui-view="file"></div>
-
-<a href class="feedback" ng-if="userInfo.base_functions.indexOf('ADMIN') != -1" ng-click="openFeedback()">
-  {{ 'document.default.feedback' | translate }}
-</a>

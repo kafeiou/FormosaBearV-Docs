@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.sismics.docs</groupId>
     <artifactId>docs-parent</artifactId>
-    <version>1.12-SNAPSHOT</version>
+    <version>2.01</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   
@@ -177,8 +177,8 @@
 
         <plugins>
           <plugin>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-maven-plugin</artifactId>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-maven-plugin</artifactId>
             <configuration>
               <systemProperties>
                 <systemProperty>
@@ -247,10 +247,10 @@
                     </exec>
                     <!-- grunt -->
                     <exec executable="cmd" dir="${project.basedir}/src/main/webapp" osfamily="windows" failonerror="true">
-                      <arg line="/c grunt --apiurl=api" />
+                      <arg line="/c npx grunt --apiurl=api" />
                     </exec>
-                    <exec executable="grunt" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
-                      <arg line="--apiurl=api" />
+                    <exec executable="npx" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
+                      <arg line="grunt --apiurl=api" />
                     </exec>
                   </target>
                 </configuration>

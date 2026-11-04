@@ -13,7 +13,7 @@ angular.module('docs').controller('Tag', function($scope,$rootScope, Restangular
       $scope.tags = data.tags;
       $scope.showAddTag = false;
       $rootScope.userInfo.groups.forEach(function(value){
-        if( value==='administrators')
+        if( value==='administrators' || value==='tag_editor')
             $scope.showAddTag = true;
       });     
     });

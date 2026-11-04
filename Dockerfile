@@ -1,21 +1,20 @@
-FROM ubuntu:22.04
-LABEL maintainer="b.gamard@sismics.com"
+FROM ubuntu:24.04
 
 # Run Debian in non interactive mode
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Configure env
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64/
-ENV JAVA_OPTIONS -Dfile.encoding=UTF-8 -Xmx1g
-ENV JETTY_VERSION 11.0.20
-ENV JETTY_HOME /opt/jetty
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64/
+ENV JAVA_OPTIONS="-Dfile.encoding=UTF-8 -Xmx1g"
+ENV JETTY_VERSION=12.1.14
+ENV JETTY_HOME=/opt/jetty
 
 # Install packages
-RUN apt-get update && && apt-get upgrade libgnutls30 -y -q && \
+RUN apt-get update && apt-get upgrade libgnutls30 -y -q && \
     apt-get -y -q --no-install-recommends install \
-    vim less procps unzip wget tzdata openjdk-11-jdk \
+    vim less procps unzip wget tzdata openjdk-21-jdk \
     ffmpeg \
     mediainfo \
     tesseract-ocr \
@@ -65,7 +64,7 @@ EXPOSE 8080
 # Install app
 RUN mkdir /app && \
     cd /app && \
-    java -jar /opt/jetty/start.jar --add-modules=server,http,webapp,deploy
+    java -jar /opt/jetty/start.jar --add-modules=server,http,ee10-webapp,ee10-deploy
 
 ADD docs.xml /app/webapps/docs.xml
 ADD docs-web/target/docs-web-*.war /app/webapps/docs.war

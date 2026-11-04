@@ -1,246 +1,145 @@
-<h3 align="center">
-  <img src="https://teedy.io/img/github-title.png" alt="Teedy" width=500 />
-</h3>
+# teedy-ng (v2.01)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
-[![Maven CI/CD](https://github.com/sismics/docs/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/sismics/docs/actions/workflows/build-deploy.yml)
 
-Teedy is an open source, lightweight document management system for individuals and businesses.
+**teedy-ng** is an open-source, lightweight document management system for individuals and businesses.
 
-<hr />
-<h2 align="center">
-  ✨ <a href="https://github.com/users/jendib/sponsorship">Sponsor this project if you use and appreciate it!</a> ✨
-</h2>
-<hr />
+> **Fork Notice**: This repository is forked from [https://github.com/fmaass/teedy-docs](https://github.com/fmaass/teedy-docs) (version `1.12`), modernized and maintained independently starting from version **`2.01`**.
 
-![New!](https://teedy.io/img/laptop-demo.png?20180301)
+## Key Upgrades in v2.01
 
-# Demo
+- **Java 21 (LTS)** runtime and compilation baseline
+- **Eclipse Jetty 12.1.14 (`ee10`)** & **Jakarta Servlet 6.0**
+- **Jersey 3.1.9** (Jakarta RESTful Web Services 3.1)
+- **H2 Database 2.3.232** with automatic legacy DDL transformation (`H2Dialect`)
+- **AngularJS 1.8.3** & **jQuery 3.7.1** with updated third-party frontend libraries
 
-A demo is available at [demo.teedy.io](https://demo.teedy.io)
+## Features
 
-- Guest login is enabled with read access on all documents
-- "admin" login with "admin" password
-- "demo" login with "password" password 
-
-# Features
-
-- Responsive user interface
-- Optical character recognition
-- LDAP authentication ![New!](https://www.sismics.com/public/img/new.png)
-- Support image, PDF, ODT, DOCX, PPTX files
-- Video file support
-- Flexible search engine with suggestions and highlighting
-- Full text search in all supported files
-- All [Dublin Core](http://dublincore.org/) metadata
-- Custom user-defined metadata ![New!](https://www.sismics.com/public/img/new.png)
-- Workflow system ![New!](https://www.sismics.com/public/img/new.png)
+- Responsive web user interface
+- Optical Character Recognition (OCR) via Tesseract
+- LDAP authentication
+- Support for image, PDF, ODT, DOCX, and PPTX files
+- Video file support and thumbnail extraction
+- Full-text search with suggestions and highlighting (Apache Lucene)
+- Dublin Core metadata and custom user-defined metadata
+- Document review workflow system
 - 256-bit AES encryption of stored files
-- File versioning ![New!](https://www.sismics.com/public/img/new.png)
-- Tag system with nesting
-- Import document from email (EML format)
-- Automatic inbox scanning and importing
-- User/group permission system
-- 2-factor authentication
-- Hierarchical groups
-- Audit log
-- Comments
-- Storage quota per user
-- Document sharing by URL
-- RESTful Web API
-- Webhooks to trigger external service
-- Fully featured Android client
-- [Bulk files importer](https://github.com/sismics/docs/tree/master/docs-importer) (single or scan mode)
-- Tested to one million documents
+- File versioning
+- Nested tag system
+- Document import from email (EML format) and automatic IMAP inbox scanning
+- User and hierarchical group permission system
+- Two-factor authentication (TOTP)
+- Audit log, comments, and per-user storage quotas
+- Document sharing via URL
+- RESTful Web API and outgoing Webhooks
 
-# Install with Docker
+## Running with Docker
 
-A preconfigured Docker image is available, including OCR and media conversion tools, listening on port 8080. If no PostgreSQL config is provided, the database is an embedded H2 database. The H2 embedded database should only be used for testing. For production usage use the provided PostgreSQL configuration (check the Docker Compose example)
+A `Dockerfile` is included to build a self-contained container image with OpenJDK 21, Jetty 12.1 (`ee10`), Tesseract OCR, `ffmpeg`, and `mediainfo`, listening on port `8080`.
 
-**The default admin password is "admin". Don't forget to change it before going to production.**
+If no PostgreSQL configuration is provided, an embedded H2 2.3 database is used (suitable for testing only; use PostgreSQL for production deployments).
 
-- Master branch, can be unstable. Not recommended for production use: `sismics/docs:latest`
-- Latest stable version: `sismics/docs:v1.11`
+- **Default admin credentials**: username `admin`, password `admin` (change immediately in production).
+- **Data volume**: mount a persistent volume to `/data`.
+- **Base URL**: configure `DOCS_BASE_URL` (e.g., `https://docs.example.com`) for external link generation.
 
-The data directory is `/data`. Don't forget to mount a volume on it.
+### Environment Variables
 
-To build external URL, the server is expecting a `DOCS_BASE_URL` environment variable (for example https://teedy.mycompany.com)
+- **General**
+  - `DOCS_BASE_URL`: Base URL used by the application when generating external links.
+  - `DOCS_GLOBAL_QUOTA`: Default storage quota (in bytes) applied to users.
+  - `DOCS_BCRYPT_WORK`: Work factor for bcrypt password hashing (`4` to `31`, default `10`).
+- **Admin Initialization**
+  - `DOCS_ADMIN_EMAIL_INIT`: Initial email address for the `admin` user.
+  - `DOCS_ADMIN_PASSWORD_INIT`: Initial bcrypt password hash for the `admin` user (escape `$` with `$$` in Docker Compose).
+- **Database**
+  - `DATABASE_URL`: JDBC connection string for Hibernate (e.g., `jdbc:postgresql://db:5432/teedy`).
+  - `DATABASE_USER`: Database username.
+  - `DATABASE_PASSWORD`: Database password.
+  - `DATABASE_POOL_SIZE`: Connection pool size (default `10`).
+- **Language**
+  - `DOCS_DEFAULT_LANGUAGE`: Default OCR/document language (`eng`, `fra`, `ita`, `deu`, `spa`, `por`, `pol`, `rus`, `ukr`, `ara`, `hin`, `chi_sim`, `chi_tra`, `jpn`, `tha`, `kor`, `nld`, `tur`, `heb`, `hun`, `fin`, `swe`, `lav`, `dan`).
+- **Email (SMTP)**
+  - `DOCS_SMTP_HOSTNAME`: SMTP server hostname.
+  - `DOCS_SMTP_PORT`: SMTP server port.
+  - `DOCS_SMTP_USERNAME`: SMTP username.
+  - `DOCS_SMTP_PASSWORD`: SMTP password.
 
-## Available environment variables
-
-- General
-  - `DOCS_BASE_URL`: The base url used by the application. Generated url's will be using this as base.
-  - `DOCS_GLOBAL_QUOTA`: Defines the default quota applying to all users.
-  - `DOCS_BCRYPT_WORK`: Defines the work factor which is used for password hashing. The default is `10`. This value may be `4...31` including `4` and `31`. The specified value will be used for all new users and users changing their password. Be aware that setting this factor to high can heavily impact login and user creation performance.
-
-- Admin
-  - `DOCS_ADMIN_EMAIL_INIT`: Defines the e-mail-address the admin user should have upon initialization.
-  - `DOCS_ADMIN_PASSWORD_INIT`: Defines the password the admin user should have upon initialization.  Needs to be a bcrypt hash.  **Be aware that `$` within the hash have to be escaped with a second `$`.**
-
-- Database
-  - `DATABASE_URL`: The jdbc connection string to be used by `hibernate`.
-  - `DATABASE_USER`: The user which should be used for the database connection.
-  - `DATABASE_PASSWORD`: The password to be used for the database connection.
-  - `DATABASE_POOL_SIZE`: The pool size to be used for the database connection.
-
-- Language
-  - `DOCS_DEFAULT_LANGUAGE`: The language which will be used as default. Currently supported values are:
-    - `eng`, `fra`, `ita`, `deu`, `spa`, `por`, `pol`, `rus`, `ukr`, `ara`, `hin`, `chi_sim`, `chi_tra`, `jpn`, `tha`, `kor`, `nld`, `tur`, `heb`, `hun`, `fin`, `swe`, `lav`, `dan`
-
-- E-Mail
-  - `DOCS_SMTP_HOSTNAME`: Hostname of the SMTP-Server to be used by Teedy.
-  - `DOCS_SMTP_PORT`: The port which should be used.
-  - `DOCS_SMTP_USERNAME`: The username to be used.
-  - `DOCS_SMTP_PASSWORD`: The password to be used.
-
-## Examples
-
-In the following examples some passwords are exposed in cleartext. This was done in order to keep the examples simple. We strongly encourage you to use variables with an `.env` file or other means to securely store your passwords.
-
-
-### Default, using PostgreSQL
+### Docker Compose Example (PostgreSQL)
 
 ```yaml
-version: '3'
 services:
-# Teedy Application
   teedy-server:
-    image: sismics/docs:v1.11
+    build: .
     restart: unless-stopped
     ports:
-      # Map internal port to host
-      - 8080:8080
+      - "8080:8080"
     environment:
-      # Base url to be used
       DOCS_BASE_URL: "https://docs.example.com"
-      # Set the admin email
       DOCS_ADMIN_EMAIL_INIT: "admin@example.com"
-      # Set the admin password (in this example: "superSecure")
       DOCS_ADMIN_PASSWORD_INIT: "$$2a$$05$$PcMNUbJvsk7QHFSfEIDaIOjk1VI9/E7IPjTKx.jkjPxkx2EOKSoPS"
-      # Setup the database connection. "teedy-db" is the hostname
-      # and "teedy" is the name of the database the application
-      # will connect to.
       DATABASE_URL: "jdbc:postgresql://teedy-db:5432/teedy"
       DATABASE_USER: "teedy_db_user"
       DATABASE_PASSWORD: "teedy_db_password"
       DATABASE_POOL_SIZE: "10"
     volumes:
       - ./docs/data:/data
-    networks:
-      - docker-internal
-      - internet
     depends_on:
       - teedy-db
 
-# DB for Teedy
   teedy-db:
-    image: postgres:13.1-alpine
+    image: postgres:16-alpine
     restart: unless-stopped
-    expose:
-      - 5432
     environment:
       POSTGRES_USER: "teedy_db_user"
       POSTGRES_PASSWORD: "teedy_db_password"
       POSTGRES_DB: "teedy"
     volumes:
       - ./docs/db:/var/lib/postgresql/data
-    networks:
-      - docker-internal
-
-networks:
-  # Network without internet access. The db does not need
-  # access to the host network.
-  docker-internal:
-    driver: bridge
-    internal: true
-  internet:
-    driver: bridge
 ```
 
-### Using the internal database (only for testing)
+## Building and Running from Source
 
-```yaml
-version: '3'
-services:
-# Teedy Application
-  teedy-server:
-    image: sismics/docs:v1.11
-    restart: unless-stopped
-    ports:
-      # Map internal port to host
-      - 8080:8080
-    environment:
-      # Base url to be used
-      DOCS_BASE_URL: "https://docs.example.com"
-      # Set the admin email
-      DOCS_ADMIN_EMAIL_INIT: "admin@example.com"
-      # Set the admin password (in this example: "superSecure")
-      DOCS_ADMIN_PASSWORD_INIT: "$$2a$$05$$PcMNUbJvsk7QHFSfEIDaIOjk1VI9/E7IPjTKx.jkjPxkx2EOKSoPS"
-    volumes:
-      - ./docs/data:/data
-```
+### Prerequisites
 
-# Manual installation
+- **JDK 21**
+- **Apache Maven 3.8+**
+- **Node.js & npm** (with `grunt-cli` for production frontend bundling)
+- **Tesseract 4+**, **ffmpeg**, and **mediainfo**
 
-## Requirements
+### Project Structure
 
-- Java 11
-- Tesseract 4 for OCR
-- ffmpeg for video thumbnails
-- mediainfo for video metadata extraction
-- A webapp server like [Jetty](http://eclipse.org/jetty/) or [Tomcat](http://tomcat.apache.org/)
+- `docs-core`: Persistence layer, JPA entities, DAOs, full-text indexing, and document processing services
+- `docs-web-common`: Shared JAX-RS filters, security providers, and REST utilities
+- `docs-web`: REST API resources and AngularJS 1.8.3 web application
 
-## Download
-
-The latest release is downloadable here: <https://github.com/sismics/docs/releases> in WAR format. 
-**The default admin password is "admin". Don't forget to change it before going to production.**
-
-## How to build Teedy from the sources
-
-Prerequisites: JDK 11, Maven 3, NPM, Grunt, Tesseract 4
-
-Teedy is organized in several Maven modules:
-
-- docs-core
-- docs-web
-- docs-web-common
-
-First off, clone the repository: `git clone git://github.com/sismics/docs.git`
-or download the sources from GitHub.
-
-### Launch the build
+### Build All Modules
 
 From the root directory:
 
-```console
-mvn clean -DskipTests install
+```bash
+mvn clean install -DskipTests
 ```
 
-### Run a stand-alone version
+### Run Development Server (Jetty 12.1 EE10)
 
 From the `docs-web` directory:
 
-```console
+```bash
 mvn jetty:run
 ```
 
-### Build a .war to deploy to your servlet container
+### Build Production WAR
 
 From the `docs-web` directory:
 
-```console
+```bash
 mvn -Pprod -DskipTests clean install
 ```
 
-You will get your deployable WAR in the `docs-web/target` directory.
+The deployable WAR archive (`docs-web-2.01.war`) will be generated in `docs-web/target/`.
 
-# Contributing
+## License
 
-All contributions are more than welcomed. Contributions may close an issue, fix a bug (reported or not reported), improve the existing code, add new feature, and so on.
-
-The `master` branch is the default and base branch for the project. It is used for development and all Pull Requests should go there.
-
-# License
-
-Teedy is released under the terms of the GPL license. See `COPYING` for more
-information or see <http://opensource.org/licenses/GPL-2.0>.
+Released under the terms of the GNU General Public License v2.0 (GPL-2.0). See `COPYING` for full license text.

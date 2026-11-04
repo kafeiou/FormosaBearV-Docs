@@ -11,7 +11,7 @@ angular.module('share',
 /**
  * Configuring modules.
  */
-.config(function($locationProvider, $stateProvider, $httpProvider, RestangularProvider, $translateProvider, tmhDynamicLocaleProvider) {
+.config(function($locationProvider, $stateProvider, $httpProvider, $qProvider, RestangularProvider, $translateProvider, tmhDynamicLocaleProvider) {
   $locationProvider.hashPrefix('');
 
   // Configuring UI Router
@@ -81,6 +81,9 @@ angular.module('share',
   } else {
     // Or else determine the language based on the user's browser
     $translateProvider.determinePreferredLanguage();
+    if (!$translateProvider.use()) {
+      $translateProvider.use('en');
+    }
   }
 
   // Configuring tmhDynamicLocale
@@ -127,6 +130,9 @@ angular.module('share',
     
     return angular.isObject(data) && String(data) !== '[object File]' ? param(data) : data;
   }];
+
+  // Silence unhandled rejections
+  $qProvider.errorOnUnhandledRejections(false);
 })
 
 /**

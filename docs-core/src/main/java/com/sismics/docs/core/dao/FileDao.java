@@ -155,7 +155,7 @@ public class FileDao {
         q.setParameter("id", file.getId());
         File fileDb = q.getSingleResult();
         String sDocumentId = fileDb.getDocumentId();
-        if( !sDocumentId.equals(file.getDocumentId())){
+        if (sDocumentId != null && !sDocumentId.equals(file.getDocumentId())) {
            em.createNativeQuery("update t_file set fil_iddoc_c='"+file.getDocumentId()+"' where fil_iddoc_c='"+sDocumentId+"'");
         }
         

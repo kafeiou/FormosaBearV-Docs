@@ -1,7 +1,9 @@
 package com.sismics.docs.core.util.format;
 
 import com.google.common.io.Closer;
+import com.lowagie.text.pdf.BaseFont;
 import com.sismics.docs.core.model.context.AppContext;
+import com.sismics.docs.core.util.PdfUtil;
 import com.sismics.util.mime.MimeType;
 import fr.opensagres.odfdom.converter.pdf.PdfConverter;
 import fr.opensagres.odfdom.converter.pdf.PdfOptions;
@@ -63,6 +65,8 @@ public class OdtFormatHandler implements FormatHandler {
                  OutputStream outputStream = Files.newOutputStream(temporaryPdfFile)) {
                 OdfTextDocument document = OdfTextDocument.loadDocument(inputStream);
                 PdfOptions options = PdfOptions.create();
+                options.fontEncoding(BaseFont.IDENTITY_H);
+                options.fontProvider(PdfUtil.getFontProvider());
                 PdfConverter.getInstance().convert(document, outputStream, options);
             }
         }

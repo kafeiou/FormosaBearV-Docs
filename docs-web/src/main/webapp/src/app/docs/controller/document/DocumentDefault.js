@@ -3,7 +3,51 @@
 /**
  * Document default controller.
  */
-angular.module('docs').controller('DocumentDefault', function ($scope, $rootScope, $state, Restangular, Upload, $translate, $uibModal, $dialog, User) {
+angular.module('docs').controller('DocumentDefault', function ($scope, $rootScope, $state, Restangular, Upload, $translate, $uibModal, $dialog, User, $interval) {
+  var processingPollTimer = null;
+
+  var stopProcessingPoll = function () {
+    if (processingPollTimer) {
+      $interval.cancel(processingPollTimer);
+      processingPollTimer = null;
+    }
+  };
+
+  var startProcessingPoll = function () {
+    if (processingPollTimer) {
+      return;
+    }
+    processingPollTimer = $interval(function () {
+      if (!$scope.files || !_.some($scope.files, { processing: true })) {
+        stopProcessingPoll();
+        return;
+      }
+      Restangular.one('file/list').get().then(function (data) {
+        var remoteMap = _.indexBy(data.files, 'id');
+        var stillProcessing = false;
+        _.each($scope.files, function (localFile) {
+          if (localFile.id && remoteMap[localFile.id]) {
+            var remoteFile = remoteMap[localFile.id];
+            if (localFile.processing && !remoteFile.processing) {
+              localFile.processing = false;
+              localFile.thumbTimestamp = new Date().getTime();
+            } else if (remoteFile.processing) {
+              localFile.processing = true;
+              stillProcessing = true;
+            }
+          }
+        });
+        if (!stillProcessing) {
+          stopProcessingPoll();
+        }
+      });
+    }, 1500);
+  };
+
+  $scope.$on('$destroy', function () {
+    stopProcessingPoll();
+  });
+
   // Load user audit log
   Restangular.one('auditlog').get().then(function (data) {
     $scope.logs = data.logs;
@@ -12,7 +56,14 @@ angular.module('docs').controller('DocumentDefault', function ($scope, $rootScop
   // Load unlinked files
   $scope.loadFiles = function () {
     Restangular.one('file/list').get().then(function (data) {
+      var now = new Date().getTime();
+      _.each(data.files, function (f) {
+        f.thumbTimestamp = now;
+      });
       $scope.files = data.files;
+      if (_.some($scope.files, { processing: true })) {
+        startProcessingPoll();
+      }
     });
   };
   $scope.loadFiles();
@@ -20,6 +71,7 @@ angular.module('docs').controller('DocumentDefault', function ($scope, $rootScop
   // File has been drag & dropped
   $scope.fileDropped = function (files) {
     if (files && files.length) {
+      $scope.files = $scope.files || [];
       // Adding files to the UI
       var newfiles = [];
       _.each(files, function (file) {
@@ -61,6 +113,9 @@ angular.module('docs').controller('DocumentDefault', function ($scope, $rootScop
           // Update local model with real data
           newfile.id = data.id;
           newfile.size = data.size;
+          newfile.processing = true;
+          newfile.thumbTimestamp = new Date().getTime();
+          startProcessingPoll();
           // New file uploaded, increase used quota
           $rootScope.userInfo.storage_current += data.size;
         })
@@ -108,29 +163,6 @@ angular.module('docs').controller('DocumentDefault', function ($scope, $rootScop
   // Add a document with checked files
   $scope.addDocument = function () {
     $state.go('document.add', { files: _.pluck($scope.checkedFiles(), 'id') });
-  };
-
-  // Open the feedback modal
-  $scope.openFeedback = function () {
-    $uibModal.open({
-      templateUrl: 'partial/docs/feedback.html',
-      controller: 'ModalFeedback'
-    }).result.then(function (content) {
-      if (content === null) {
-        return;
-      }
-
-      Restangular.withConfig(function (RestangularConfigurer) {
-        RestangularConfigurer.setBaseUrl('https://api.teedy.io');
-      }).one('api').post('feedback', {
-        content: content
-      }).then(function () {
-        var title = $translate.instant('feedback.sent_title');
-        var msg = $translate.instant('feedback.sent_message');
-        var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
-        $dialog.messageBox(title, msg, btns);
-      });
-    });
   };
 
   // Load active routes
