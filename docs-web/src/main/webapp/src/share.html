@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="share">
   <head>
-    <title ng-bind-template="{{ appName }}">Teedy</title>
+    <title ng-bind-template="{{ appName }}">teedy-ng</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -50,10 +50,10 @@
     <div class="navbar navbar-inverse" role="navigation">
       <div class="navbar-header">
         <a class="navbar-brand" href="#">
-          <span ng-if="appName == 'Teedy'">
-            <span style="color: #2aabd2;">teedy</span>
+          <span ng-if="appName == 'teedy-ng'">
+            <span style="color: #2aabd2;">teedy-ng</span>
           </span>
-          <span ng-if="appName != 'Teedy'" style="color: #888;">{{ appName }}</span>
+          <span ng-if="appName != 'teedy-ng'" style="color: #888;">{{ appName }}</span>
         </a>
       </div>
     </div>
@@ -95,7 +95,6 @@
               <li><a href ng-click="changeLanguage('zh_TW')" ng-class="{ 'bg-info': currentLang == 'zh_TW' }">繁體中文</a></li>
             </ul>
           </li>
-          <li translate="document.default.footer_sismics"></li>
           <li><a href="apidoc/">{{ 'document.default.api_documentation' | translate }}</a></li>
           <li>v{{ app.current_version }}</li>
         </ul>

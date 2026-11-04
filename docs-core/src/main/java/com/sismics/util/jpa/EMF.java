@@ -14,8 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -91,8 +89,8 @@ public final class EMF {
         if (Strings.isNullOrEmpty(databaseUrl)) {
             log.warn("Using an embedded H2 database. Only suitable for testing purpose, not for production!");
             props.put("hibernate.connection.driver_class", "org.h2.Driver");
-            props.put("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
-            props.put("hibernate.connection.url", "jdbc:h2:file:" + dbFile + ";CACHE_SIZE=65536;LOCK_TIMEOUT=10000");
+            props.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+            props.put("hibernate.connection.url", "jdbc:h2:file:" + dbFile + ";CACHE_SIZE=65536;LOCK_TIMEOUT=10000;MODE=LEGACY;NON_KEYWORDS=VALUE,USER");
             props.put("hibernate.connection.username", "sa");
         } else {
             props.put("hibernate.connection.driver_class", "org.postgresql.Driver");

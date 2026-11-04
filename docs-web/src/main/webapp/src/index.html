@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="docs">
   <head>
-    <title ng-bind-template="{{ pageTitle ? pageTitle : appName }}">Teedy</title>
+    <title ng-bind-template="{{ pageTitle ? pageTitle : appName }}">teedy-ng</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -126,10 +126,10 @@
         </button>
 
         <a class="navbar-brand" href="#">
-          <span ng-if="appName == 'Teedy'">
-            <span style="color: #2aabd2;">teedy</span>
+          <span ng-if="appName == 'teedy-ng'">
+            <span style="color: #2aabd2;">teedy-ng</span>
           </span>
-          <span ng-if="appName != 'Teedy'" style="color: #888;">{{ appName }}</span>
+          <span ng-if="appName != 'teedy-ng'" style="color: #888;">{{ appName }}</span>
         </a>
       </div>
 
@@ -211,7 +211,6 @@
               <li><a href ng-click="changeLanguage('sq_AL')" ng-class="{ 'bg-info': currentLang == 'sq_AL' }">Shqip</a></li>
             </ul>
           </li>
-          <li translate="document.default.footer_sismics"></li>
           <li><a href="apidoc/">{{ 'document.default.api_documentation' | translate }}</a></li>
           <li>v{{ app.current_version }}</li>
         </ul>

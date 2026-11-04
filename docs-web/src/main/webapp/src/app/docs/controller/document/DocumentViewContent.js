@@ -3,9 +3,53 @@
 /**
  * Document view content controller.
  */
-angular.module('docs').controller('DocumentViewContent', function ($scope, $rootScope, $stateParams, Restangular, $dialog, $state, Upload, $translate, $uibModal) {
+angular.module('docs').controller('DocumentViewContent', function ($scope, $rootScope, $stateParams, Restangular, $dialog, $state, Upload, $translate, $uibModal, $interval) {
   $scope.displayMode = _.isUndefined(localStorage.fileDisplayMode) ? 'grid' : localStorage.fileDisplayMode;
   $scope.openedFile = undefined;
+
+  var processingPollTimer = null;
+
+  var stopProcessingPoll = function () {
+    if (processingPollTimer) {
+      $interval.cancel(processingPollTimer);
+      processingPollTimer = null;
+    }
+  };
+
+  var startProcessingPoll = function () {
+    if (processingPollTimer) {
+      return;
+    }
+    processingPollTimer = $interval(function () {
+      if (!$scope.files || !_.some($scope.files, { processing: true })) {
+        stopProcessingPoll();
+        return;
+      }
+      Restangular.one('file/list').get({ id: $stateParams.id }).then(function (data) {
+        var remoteMap = _.indexBy(data.files, 'id');
+        var stillProcessing = false;
+        _.each($scope.files, function (localFile) {
+          if (localFile.id && remoteMap[localFile.id]) {
+            var remoteFile = remoteMap[localFile.id];
+            if (localFile.processing && !remoteFile.processing) {
+              localFile.processing = false;
+              localFile.thumbTimestamp = new Date().getTime();
+            } else if (remoteFile.processing) {
+              localFile.processing = true;
+              stillProcessing = true;
+            }
+          }
+        });
+        if (!stillProcessing) {
+          stopProcessingPoll();
+        }
+      });
+    }, 1500);
+  };
+
+  $scope.$on('$destroy', function () {
+    stopProcessingPoll();
+  });
 
   /**
    * Watch for display mode change.
@@ -45,7 +89,14 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
    */
   $scope.loadFiles = function () {
     Restangular.one('file/list').get({ id: $stateParams.id }).then(function (data) {
+      var now = new Date().getTime();
+      _.each(data.files, function (f) {
+        f.thumbTimestamp = now;
+      });
       $scope.files = data.files;
+      if (_.some($scope.files, { processing: true })) {
+        startProcessingPoll();
+      }
     });
   };
   $scope.loadFiles();
@@ -131,6 +182,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
     }
 
     if (files && files.length) {
+      $scope.files = $scope.files || [];
       // Sort by filename
       files = _.sortBy(files, 'name');
 
@@ -181,6 +233,9 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
       // Update local model with real data
       newfile.id = data.id;
       newfile.size = data.size;
+      newfile.processing = true;
+      newfile.thumbTimestamp = new Date().getTime();
+      startProcessingPoll();
 
       // New file uploaded, increase used quota
       $rootScope.userInfo.storage_current += data.size;
@@ -249,6 +304,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
   $scope.processFile = function (file) {
     Restangular.one('file/' + file.id).post('process').then(function () {
       file.processing = true;
+      startProcessingPoll();
     });
   };
 

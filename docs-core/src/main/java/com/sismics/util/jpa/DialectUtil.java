@@ -26,15 +26,47 @@ public class DialectUtil {
      */
     public static String transform(String sql) {
         if (sql.startsWith("!PGSQL!")) {
-            return EMF.isDriverH2() ? null : sql.substring(7);
-        }
-        if (sql.startsWith("!H2!")) {
-            return EMF.isDriverPostgresql() ? null : sql.substring(4);
+            if (EMF.isDriverH2()) {
+                return null;
+            }
+            sql = sql.substring(7);
+        } else if (sql.startsWith("!H2!")) {
+            if (EMF.isDriverPostgresql()) {
+                return null;
+            }
+            sql = sql.substring(4);
         }
 
         if (EMF.isDriverPostgresql()) {
             sql = transformToPostgresql(sql);
+        } else if (EMF.isDriverH2()) {
+            sql = transformToH2(sql);
         }
+        return sql;
+    }
+
+    /**
+     * Transform SQL from legacy HSQLDB/H2 1.x dialect to H2 2.x dialect.
+     *
+     * @param sql SQL to transform
+     * @return Transformed SQL
+     */
+    public static String transformToH2(String sql) {
+        if (sql.trim().equalsIgnoreCase("SET IGNORECASE TRUE;")) {
+            return null;
+        }
+        String lower = sql.trim().toLowerCase();
+        if (lower.startsWith("create ") || lower.startsWith("alter table ")) {
+            sql = sql.replaceAll("(?i)\\bvarchar\\(", "varchar_ignorecase(");
+        }
+        sql = sql.replaceAll("(cached|memory) table", "table");
+        sql = sql.replaceAll("datetime", "timestamp");
+        sql = sql.replaceAll("longvarchar", "clob");
+        sql = sql.replaceAll("bit default 1", "boolean default true");
+        sql = sql.replaceAll("bit default 0", "boolean default false");
+        sql = sql.replaceAll("bit not null default 1", "boolean not null default true");
+        sql = sql.replaceAll("bit not null default 0", "boolean not null default false");
+        sql = sql.replaceAll("bit not null", "boolean not null");
         return sql;
     }
 
