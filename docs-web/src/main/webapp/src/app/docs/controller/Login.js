@@ -30,10 +30,10 @@ angular.module('docs').controller('Login', function(Restangular, $scope, $rootSc
       if($stateParams.redirectState !== undefined && $stateParams.redirectParams !== undefined) {
         $state.go($stateParams.redirectState, JSON.parse($stateParams.redirectParams))
           .catch(function() {
-            $state.go('document.default');
+            $state.go('tag.default');
           });
       } else {
-        $state.go('document.default');
+        $state.go('tag.default');
       }
     }, function(data) {
       if (data.data.type === 'ValidationCodeRequired') {

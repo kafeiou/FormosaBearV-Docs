@@ -22,7 +22,10 @@ import jakarta.json.JsonObjectBuilder;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import java.text.MessageFormat;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -57,7 +60,9 @@ public class TagResource extends BaseResource {
         }
         
         TagDao tagDao = new TagDao();
-        List<TagDto> tagDtoList = tagDao.findByCriteria(new TagCriteria().setTargetIdList(getTargetIdList(null)), new SortCriteria(1, true));
+        List<String> targetIdList = getTargetIdList(null);
+        List<TagDto> tagDtoList = tagDao.findByCriteria(new TagCriteria().setTargetIdList(targetIdList), new SortCriteria(1, true));
+        Map<String, Set<String>> directDocsByTag = tagDao.getReadableDocumentIdsByTag(targetIdList);
 
         // Extract tag IDs
         Set<String> tagIdSet = Sets.newHashSet();
@@ -68,10 +73,31 @@ public class TagResource extends BaseResource {
         // Build the response
         JsonArrayBuilder items = Json.createArrayBuilder();
         for (TagDto tagDto : tagDtoList) {
+            Set<String> totalDocs = Sets.newHashSet();
+            Set<String> visitedTags = Sets.newHashSet();
+            Deque<String> stack = new ArrayDeque<>();
+            stack.push(tagDto.getId());
+            while (!stack.isEmpty()) {
+                String currentTagId = stack.pop();
+                if (!visitedTags.add(currentTagId)) {
+                    continue;
+                }
+                Set<String> directDocs = directDocsByTag.get(currentTagId);
+                if (directDocs != null) {
+                    totalDocs.addAll(directDocs);
+                }
+                for (TagDto childCandidate : tagDtoList) {
+                    if (currentTagId.equals(childCandidate.getParentId())) {
+                        stack.push(childCandidate.getId());
+                    }
+                }
+            }
+
             JsonObjectBuilder item = Json.createObjectBuilder()
                     .add("id", tagDto.getId())
                     .add("name", tagDto.getName())
-                    .add("color", tagDto.getColor());
+                    .add("color", tagDto.getColor())
+                    .add("document_count", totalDocs.size());
             if (tagIdSet.contains(tagDto.getParentId())) {
                 item.add("parent", tagDto.getParentId());
             }

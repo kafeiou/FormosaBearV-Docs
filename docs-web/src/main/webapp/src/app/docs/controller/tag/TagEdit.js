@@ -22,6 +22,7 @@ angular.module('docs').controller('TagEdit', function($scope, $stateParams, Rest
   $scope.edit = function() {
     // Update the server
     Restangular.one('tag', $scope.tag.id).post('', $scope.tag).then(function () {
+      $scope.loadTags();
     }, function (e) {
       if (e.data.type === 'CircularReference') {
         var title = $translate.instant('tag.edit.circular_reference_title');
@@ -47,7 +48,7 @@ angular.module('docs').controller('TagEdit', function($scope, $stateParams, Rest
       if (result === 'ok') {
         Restangular.one('tag', tag.id).remove().then(function() {
           $scope.loadTags();
-          $state.go('tag.default');
+          $state.go('tagadmin.default');
         });
       }
     });

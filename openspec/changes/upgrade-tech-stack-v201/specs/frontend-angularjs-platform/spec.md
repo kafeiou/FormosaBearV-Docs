@@ -35,3 +35,10 @@ flowchart LR
 #### Scenario: 瀏覽器回傳未知語系或請求被拒絕時開啟分享頁面
 - **WHEN** 使用者在未設定 `localStorage.overrideLang` 且瀏覽器語系無法解析的環境開啟 `share.html`
 - **THEN** 系統 MUST 自動退回使用預設英文 (`en`) 語系，且不會因未處理的 Promise Rejection 拋出主控台例外
+
+### Requirement: 頂部導覽列、可展開收合標籤樹與標籤檔案瀏覽
+前端主應用 SHALL 將頂部導覽列依序呈現為「標籤 (`#/tag`)」、「文件管理 (`#/document`)」、「標籤管理 (`#/tagadmin`)」、「帳號 & 群組 (`#/user`)」，其中「標籤管理」僅對具備管理權限（`administrators`、`tag_editor` 群組或 `ADMIN` 角色）之使用者顯示，且登入後預設首頁 SHALL 導向「標籤 (`#/tag`)」。左側標籤樹 SHALL 支援節點展開與收合；於「標籤」頁點選任一標籤時，右側 SHALL 列出該標籤關聯之文件卡片與附屬檔案縮圖，支援標籤內關鍵字篩選、排序、分頁及原頁彈出檔案預覽視窗。
+
+#### Scenario: 登入後於標籤頁展開分類並瀏覽關聯檔案
+- **WHEN** 使用者登入系統進入預設「標籤 (`#/tag`)」頁面並展開父標籤、點選任一標籤
+- **THEN** 右側 MUST 顯示該標籤關聯的文件與內部檔案清單，且點擊檔案時 MUST 直接於當前頁面彈出檔案預覽視窗 (`FileModalView`)，關閉後仍停留在原標籤頁

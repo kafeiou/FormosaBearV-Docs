@@ -29,6 +29,12 @@
   <div class="col-sm-6 col-xs-12 login-box">
     <div class="row">
       <div class="col-lg-offset-4 col-lg-4 col-xs-offset-1 col-xs-10">
+        <div class="text-right" style="margin-bottom: 10px;">
+          <button type="button" class="btn btn-default btn-xs" ng-click="toggleDarkMode($event)">
+            <span class="fas" ng-class="darkMode ? 'fa-sun' : 'fa-moon'"></span>
+            {{ (darkMode ? 'index.theme_light' : 'index.theme_dark') | translate }}
+          </button>
+        </div>
         <img src="img/title.png" class="img-responsive" />
 
         <form>

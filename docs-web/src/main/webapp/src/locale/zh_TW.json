@@ -29,13 +29,19 @@
   },
   "index": {
     "toggle_navigation": "切換顯示方式",
-    "nav_documents": "文件",
+    "nav_documents": "文件管理",
     "nav_tags": "標籤",
+    "nav_tag_management": "標籤管理",
     "nav_users_groups": "帳號 & 群組",
     "error_info": "{{ count }} 新錯誤",
     "logged_as": "以 {{ username }}登入",
     "nav_settings": "設置",
     "logout": "登出",
+    "theme_light": "淺色模式",
+    "theme_dark": "深色模式",
+    "font_decrease": "縮小字型 (A-)",
+    "font_reset": "重設為預設字型大小 (100%)",
+    "font_increase": "放大字型 (A+)",
     "global_quota_warning": "<strong>提醒！</ strong>儲存空間已經使用{{current | number: 0}} MB（{{percent | number: 1}}％）總計{{total | number: 0}} MB"
   },
   "document": {
@@ -224,6 +230,18 @@
   "tag": {
     "new_tag": "新增",
     "search": "搜尋",
+    "expand_all": "全部展開",
+    "collapse_all": "全部收合",
+    "browse": {
+      "tree_title": "標籤分類",
+      "welcome_title": "依標籤瀏覽文件與檔案",
+      "welcome_message": "請從左側點選標籤，以列出該標籤關聯的所有文件與檔案。",
+      "subtags": "子標籤",
+      "subtag_count": "下一層有 {{ count }} 個子目錄",
+      "filter_placeholder": "在此標籤內搜尋文件或檔案...",
+      "no_documents": "此標籤下尚無關聯文件",
+      "no_files_in_doc": "此文件尚無附屬檔案"
+    },
     "default": {
       "title": "標籤",
       "message_1": "<strong><span class=\"fas fa-tag\"></span>標籤</strong>是用來連結文件的標記.",
@@ -412,6 +430,13 @@
       "enable_guest_access": "啟用訪客權限",
       "disable_guest_access": "不啟用訪客權限",
       "title_theme": "佈景主題 <small>設定</small>",
+      "color_scheme": "外觀顯示模式",
+      "font_size": "字型大小設定",
+      "font_small": "小",
+      "font_normal": "標準",
+      "font_medium": "中",
+      "font_large": "大",
+      "font_xlarge": "特大",
       "title_general": "一般設定",
       "default_language": "新文件預設語言",
       "application_name": "名稱",
@@ -437,7 +462,30 @@
       "webhook_event": "事件",
       "webhook_url": "URL",
       "webhook_create_date": "建立日期",
-      "webhook_add": "新增webhook"
+      "webhook_add": "新增webhook",
+      "title_storage": "檔案儲存與管理設定",
+      "storage_path_label": "伺服器實體資料存放根目錄",
+      "title_file_encrypt": "檔案加密儲存 (file.encrypt)",
+      "file_encrypt_mode_encrypted": "啟用加密儲存",
+      "file_encrypt_mode_unencrypted": "不加密（原始檔案格式）",
+      "file_encrypt_locked_badge": "已永久鎖定（不可變更）",
+      "message_file_encrypt": "決定上傳至系統的檔案是否以 AES-256 加密存放於伺服器磁碟。注意：此設定屬於系統初始化一次性認定，一旦鎖定或已上傳任何檔案後即永久不可變更，以確保所有檔案格式一致。",
+      "lock_unencrypted_btn": "認定為：不加密儲存（推薦，保留原始檔案）並永久鎖定",
+      "lock_encrypted_btn": "認定為：啟用 AES-256 加密儲存並永久鎖定",
+      "file_encrypt_confirm_title": "確認永久鎖定檔案加密模式",
+      "file_encrypt_confirm_message": "您即將把檔案加密模式設定為「<strong>{{ mode }}</strong>」。<br/><span class='text-danger'>注意：一旦確認後此設定將永久鎖定，未來絕對無法再修改！</span>是否確定？",
+      "first_time_encrypt_title": "首次使用系統初始化：請認定檔案儲存加密模式",
+      "first_time_encrypt_message": "歡迎使用 FormosaBearV！在開始上傳檔案前，請先認定系統的<strong>檔案儲存模式 (file.encrypt)</strong>：<br/><br/>1. <strong>不加密儲存（推薦）</strong>：檔案以原始格式依使用者與文件分層存放於硬碟，方便直接備份與維護。<br/>2. <strong>啟用 AES-256 加密儲存</strong>：所有上傳檔案皆以金鑰加密存放，直接從硬碟無法讀取。<br/><br/><strong class='text-danger'>⚠️ 注意：此設定在認定（或上傳第一個檔案）後即永久鎖定，之後絕對無法變更！</strong>",
+      "title_file_delete": "刪除檔案時之磁碟處理模式 (file.delete)",
+      "file_delete_permanent": "直接從磁碟永久刪除",
+      "file_delete_recycle": "移至回收區目錄保留 (delete/storage)",
+      "message_file_delete": "控制使用者刪除檔案時，是否將伺服器硬碟上的實體檔案直接抹除，或搬移至 delete/storage 回收區目錄下保留。",
+      "enable_file_delete": "改為：直接從磁碟永久刪除",
+      "disable_file_delete": "改為：移至回收區目錄保留",
+      "title_file_duplicate": "允許重複檔案名稱上傳 (file.duplicate)",
+      "message_file_duplicate": "控制同一位使用者是否可以上傳相同檔案名稱的新檔案。",
+      "enable_file_duplicate": "啟用允許重複檔名",
+      "disable_file_duplicate": "禁止重複檔名上傳"
     },
     "metadata": {
       "title": "自訂屬性",
@@ -556,7 +604,11 @@
       "typeahead": "請輸入文件名稱"
     },
     "selecttag": {
-      "typeahead": "請輸入標籤"
+      "typeahead": "輸入關鍵字搜尋標籤，或點選右側展開標籤樹勾選...",
+      "browse_tree": "選擇標籤",
+      "hide_tree": "收合標籤樹",
+      "tree_hint": "直接點擊標籤即可勾選或取消，亦可在上方輸入框篩選",
+      "no_tags": "目前尚無任何標籤"
     },
     "datepicker": {
       "current": "今天",

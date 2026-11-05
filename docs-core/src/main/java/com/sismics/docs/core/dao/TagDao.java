@@ -222,5 +222,45 @@ public class TagDao {
 
         return tagDtoList;
     }
+
+    /**
+     * Returns a map of tag ID to the set of readable active document IDs directly linked to that tag.
+     *
+     * @param targetIdList List of security targets for ACL check
+     * @return Map of tagId to Set of documentId
+     */
+    public Map<String, Set<String>> getReadableDocumentIdsByTag(List<String> targetIdList) {
+        Map<String, Object> parameterMap = new HashMap<>();
+        StringBuilder sb = new StringBuilder("select distinct dt.DOT_IDTAG_C, dt.DOT_IDDOCUMENT_C ");
+        sb.append(" from T_DOCUMENT_TAG dt ");
+        sb.append(" join T_DOCUMENT d on d.DOC_ID_C = dt.DOT_IDDOCUMENT_C and d.DOC_DELETEDATE_D is null ");
+        sb.append(" join T_TAG t on t.TAG_ID_C = dt.DOT_IDTAG_C and t.TAG_DELETEDATE_D is null ");
+
+        List<String> criteriaList = new ArrayList<>();
+        criteriaList.add("dt.DOT_DELETEDATE_D is null");
+
+        if (targetIdList != null && !SecurityUtil.skipAclCheck(targetIdList)) {
+            sb.append(" left join T_ACL a on a.ACL_TARGETID_C in (:targetIdList) and a.ACL_SOURCEID_C = d.DOC_ID_C and a.ACL_PERM_C = 'READ' and a.ACL_DELETEDATE_D is null ");
+            sb.append(" left join T_DOCUMENT_TAG dta on dta.DOT_IDDOCUMENT_C = d.DOC_ID_C and dta.DOT_DELETEDATE_D is null ");
+            sb.append(" left join T_ACL a2 on a2.ACL_TARGETID_C in (:targetIdList) and a2.ACL_SOURCEID_C = dta.DOT_IDTAG_C and a2.ACL_PERM_C = 'READ' and a2.ACL_DELETEDATE_D is null ");
+            criteriaList.add("(a.ACL_ID_C is not null or a2.ACL_ID_C is not null)");
+            parameterMap.put("targetIdList", targetIdList);
+        }
+
+        sb.append(" where ");
+        sb.append(Joiner.on(" and ").join(criteriaList));
+
+        QueryParam queryParam = new QueryParam(sb.toString(), parameterMap);
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = QueryUtil.getNativeQuery(queryParam).getResultList();
+
+        Map<String, Set<String>> result = new HashMap<>();
+        for (Object[] row : rows) {
+            String tagId = (String) row[0];
+            String docId = (String) row[1];
+            result.computeIfAbsent(tagId, k -> new HashSet<>()).add(docId);
+        }
+        return result;
+    }
 }
 

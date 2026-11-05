@@ -31,6 +31,14 @@ public enum ConfigType {
     DEFAULT_LANGUAGE,
 
     /**
+     * File storage, deletion, duplication and encryption settings.
+     */
+    FILE_DELETE,
+    FILE_DUPLICATE,
+    FILE_ENCRYPT,
+    FILE_ENCRYPT_LOCKED,
+
+    /**
      * SMTP server configuration.
      */
     SMTP_HOSTNAME,

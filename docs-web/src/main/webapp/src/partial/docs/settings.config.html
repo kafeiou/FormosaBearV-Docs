@@ -35,6 +35,7 @@
   <span translate="settings.config.title_ocr"></span>
   <span class="label" ng-class="{ 'label-success': app.ocr_enabled, 'label-danger': !app.ocr_enabled }">
     {{ app.ocr_enabled ? 'enabled' : 'disabled' | translate }}
+  </span>
 </h2>
 <p translate="settings.config.message_ocr" translate-values="{ appName: appName }"></p>
 <div ng-if="app">
@@ -42,7 +43,88 @@
   <button ng-if="app.ocr_enabled" class="btn btn-danger" ng-click="changeOcrEnabled(false)">{{ 'settings.config.disable_ocr' | translate }}</button>
 </div>
 
+<h2 translate="settings.config.title_storage"></h2>
+<div class="well well-sm" ng-if="app.storage_path">
+  <strong><span class="fas fa-hdd"></span> {{ 'settings.config.storage_path_label' | translate }}：</strong>
+  <code>{{ app.storage_path }}</code>
+</div>
+
+<h3>
+  <span translate="settings.config.title_file_encrypt"></span>
+  <span class="label" ng-class="{ 'label-warning': app.file_encrypt, 'label-info': !app.file_encrypt }">
+    {{ app.file_encrypt ? 'settings.config.file_encrypt_mode_encrypted' : 'settings.config.file_encrypt_mode_unencrypted' | translate }}
+  </span>
+  <span class="label label-default" ng-if="app.file_encrypt_locked">
+    <span class="fas fa-lock"></span> {{ 'settings.config.file_encrypt_locked_badge' | translate }}
+  </span>
+</h3>
+<p translate="settings.config.message_file_encrypt"></p>
+<div ng-if="app && !app.file_encrypt_locked" class="mb-19">
+  <button class="btn btn-primary mr-10" ng-click="lockFileEncrypt(false)">
+    <span class="fas fa-lock"></span> {{ 'settings.config.lock_unencrypted_btn' | translate }}
+  </button>
+  <button class="btn btn-warning" ng-click="lockFileEncrypt(true)">
+    <span class="fas fa-lock"></span> {{ 'settings.config.lock_encrypted_btn' | translate }}
+  </button>
+</div>
+
+<h3>
+  <span translate="settings.config.title_file_delete"></span>
+  <span class="label" ng-class="{ 'label-danger': app.file_delete, 'label-success': !app.file_delete }">
+    {{ app.file_delete ? 'settings.config.file_delete_permanent' : 'settings.config.file_delete_recycle' | translate }}
+  </span>
+</h3>
+<p translate="settings.config.message_file_delete"></p>
+<div ng-if="app" class="mb-19">
+  <button ng-if="!app.file_delete" class="btn btn-danger" ng-click="changeFileDelete(true)">{{ 'settings.config.enable_file_delete' | translate }}</button>
+  <button ng-if="app.file_delete" class="btn btn-primary" ng-click="changeFileDelete(false)">{{ 'settings.config.disable_file_delete' | translate }}</button>
+</div>
+
+<h3>
+  <span translate="settings.config.title_file_duplicate"></span>
+  <span class="label" ng-class="{ 'label-success': app.file_duplicate, 'label-danger': !app.file_duplicate }">
+    {{ app.file_duplicate ? 'enabled' : 'disabled' | translate }}
+  </span>
+</h3>
+<p translate="settings.config.message_file_duplicate"></p>
+<div ng-if="app" class="mb-19">
+  <button ng-if="!app.file_duplicate" class="btn btn-primary" ng-click="changeFileDuplicate(true)">{{ 'settings.config.enable_file_duplicate' | translate }}</button>
+  <button ng-if="app.file_duplicate" class="btn btn-danger" ng-click="changeFileDuplicate(false)">{{ 'settings.config.disable_file_duplicate' | translate }}</button>
+</div>
+
 <h2 translate="settings.config.title_theme"></h2>
+<div class="form-horizontal" style="margin-bottom: 15px;">
+  <div class="form-group">
+    <label class="col-sm-2 control-label">{{ 'settings.config.color_scheme' | translate }}</label>
+    <div class="col-sm-8">
+      <div class="btn-group">
+        <button type="button" class="btn" ng-class="!darkMode ? 'btn-primary' : 'btn-default'" ng-click="setDarkMode(false)">
+          <span class="fas fa-sun"></span> {{ 'index.theme_light' | translate }}
+        </button>
+        <button type="button" class="btn" ng-class="darkMode ? 'btn-primary' : 'btn-default'" ng-click="setDarkMode(true)">
+          <span class="fas fa-moon"></span> {{ 'index.theme_dark' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">{{ 'settings.config.font_size' | translate }}</label>
+    <div class="col-sm-8">
+      <div class="btn-group" style="margin-right: 10px;">
+        <button type="button" class="btn" ng-class="fontSize == 12 ? 'btn-primary' : 'btn-default'" ng-click="setFontSize(12)">{{ 'settings.config.font_small' | translate }} (12px)</button>
+        <button type="button" class="btn" ng-class="fontSize == 14 ? 'btn-primary' : 'btn-default'" ng-click="setFontSize(14)">{{ 'settings.config.font_normal' | translate }} (14px)</button>
+        <button type="button" class="btn" ng-class="fontSize == 16 ? 'btn-primary' : 'btn-default'" ng-click="setFontSize(16)">{{ 'settings.config.font_medium' | translate }} (16px)</button>
+        <button type="button" class="btn" ng-class="fontSize == 18 ? 'btn-primary' : 'btn-default'" ng-click="setFontSize(18)">{{ 'settings.config.font_large' | translate }} (18px)</button>
+        <button type="button" class="btn" ng-class="fontSize == 20 ? 'btn-primary' : 'btn-default'" ng-click="setFontSize(20)">{{ 'settings.config.font_xlarge' | translate }} (20px)</button>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-default" ng-click="changeFontSize(-1)" ng-disabled="fontSize <= 12">A-</button>
+        <span class="btn btn-default disabled">{{ fontSize }}px ({{ fontScalePercent }}%)</span>
+        <button type="button" class="btn btn-default" ng-click="changeFontSize(1)" ng-disabled="fontSize >= 22">A+</button>
+      </div>
+    </div>
+  </div>
+</div>
 <form class="form-horizontal" name="editColorForm" novalidate>
   <div class="form-group">
     <label class="col-sm-2 control-label" for="inputName">{{ 'settings.config.application_name' | translate }}</label>

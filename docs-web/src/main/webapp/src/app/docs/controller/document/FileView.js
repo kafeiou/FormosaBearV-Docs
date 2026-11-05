@@ -19,8 +19,8 @@ angular.module('docs').controller('FileView', function($uibModal, $state, $state
     modal.closed = true;
     $timeout(function () {
       // After all router transitions are passed,
-      // if we are still on the file route, go back to the document
-      if ($state.current.name === 'document.view.content.file' || $state.current.name === 'document.default.file') {
+      // if we are still on the file route, go back to the document or tag view
+      if ($state.current.name === 'document.view.content.file' || $state.current.name === 'document.default.file' || $state.current.name === 'tag.view.file') {
         $state.go('^', {id: $stateParams.id});
       }
     });

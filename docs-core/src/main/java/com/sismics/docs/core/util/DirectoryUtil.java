@@ -34,9 +34,9 @@ public class DirectoryUtil {
             if (EnvironmentUtil.isUnix()) {
                 baseDataDir = Paths.get("/var/docs");
             } if (EnvironmentUtil.isWindows()) {
-                baseDataDir = Paths.get(EnvironmentUtil.getWindowsAppData() + "\\Sismics\\Docs");
+                baseDataDir = Paths.get(EnvironmentUtil.getWindowsAppData() + "\\FormosaBearV\\Docs");
             } else if (EnvironmentUtil.isMacOs()) {
-                baseDataDir = Paths.get(EnvironmentUtil.getMacOsUserHome() + "/Library/Sismics/Docs");
+                baseDataDir = Paths.get(EnvironmentUtil.getMacOsUserHome() + "/Library/FormosaBearV/Docs");
             }
         }
 
@@ -75,19 +75,30 @@ public class DirectoryUtil {
      * @return Storage directory.
      */
     public static Path getStorageDirectory(File file) {
-        if( !ConfigUtil.isFileEncrypt() && file!=null){
-          if( ConfigUtil.canFileDuplicate() )
-            return getDataSubDirectory("storage"+"/"+file.getUserId()+"/"+file.getId());
-          else{
-            if(  file.getDocumentId()==null || file.getDocumentId().trim().equals("") )
-              return getDataSubDirectory("storage"+"/"+file.getUserId()+"/"+file.getId());
-            else{
-              return getDataSubDirectory("storage"+"/"+file.getUserId()+"/"+ file.getDocumentId()+"/"+file.getId());
+        if (!ConfigUtil.isFileEncrypt() && file != null) {
+            if (file.getDocumentId() == null || file.getDocumentId().trim().isEmpty()) {
+                return getDataSubDirectory("storage/" + file.getUserId() + "/" + file.getId());
+            } else {
+                Path twoLevelDir = getBaseDataDirectory().resolve("storage/" + file.getUserId() + "/" + file.getId());
+                Path threeLevelDir = getBaseDataDirectory().resolve("storage/" + file.getUserId() + "/" + file.getDocumentId() + "/" + file.getId());
+                if (Files.isDirectory(twoLevelDir) && !Files.isDirectory(threeLevelDir)) {
+                    return twoLevelDir;
+                }
+                return getDataSubDirectory("storage/" + file.getUserId() + "/" + file.getDocumentId() + "/" + file.getId());
             }
-          }
+        } else {
+            return getDataSubDirectory("storage");
         }
-        else
-          return getDataSubDirectory("storage");
+    }
+
+    /**
+     * Returns the target 3-level document storage directory when attaching an unencrypted file to a document.
+     */
+    public static Path getDocumentStorageDirectory(File file) {
+        if (!ConfigUtil.isFileEncrypt() && file != null && file.getDocumentId() != null && !file.getDocumentId().trim().isEmpty()) {
+            return getDataSubDirectory("storage/" + file.getUserId() + "/" + file.getDocumentId() + "/" + file.getId());
+        }
+        return getStorageDirectory(file);
     }
 
     /**
