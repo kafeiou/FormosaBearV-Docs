@@ -4,7 +4,7 @@
 
 **FormosaBearV** is an open-source, lightweight document management system for individuals and businesses.
 
-> **Fork Notice**: This repository is forked from [https://github.com/fmaass/teedy-docs](https://github.com/fmaass/teedy-docs) (version `1.12`), modernized and maintained independently starting from version **`2.01`**.
+> **Fork Notice**: This repository is forked from [https://github.com/sismics/docs](https://github.com/sismics/docs) (version `1.12`), modernized and maintained independently starting from version **`2.01`**.
 
 ## Key Upgrades in v2.01
 
@@ -106,7 +106,7 @@ If no PostgreSQL configuration is provided, an embedded H2 2.3 database is used 
   - `DOCS_ADMIN_EMAIL_INIT`: Initial email address for the `admin` user.
   - `DOCS_ADMIN_PASSWORD_INIT`: Initial bcrypt password hash for the `admin` user (escape `$` with `$$` in Docker Compose).
 - **Database**
-  - `DATABASE_URL`: JDBC connection string for Hibernate (e.g., `jdbc:postgresql://db:5432/teedy`).
+  - `DATABASE_URL`: JDBC connection string for Hibernate (e.g., `jdbc:postgresql://db:5432/formosabearv`).
   - `DATABASE_USER`: Database username.
   - `DATABASE_PASSWORD`: Database password.
   - `DATABASE_POOL_SIZE`: Connection pool size (default `10`).
@@ -128,8 +128,8 @@ In the following examples some passwords are exposed in cleartext. This was done
 version: '3'
 services:
 # FormosaBearV Application
-  teedy-server:
-    build: .
+  FormosaBearV-docs:
+    build: ghcr.io/kafeiou/formosabearv-docs:latest
     restart: unless-stopped
     ports:
       # Map internal port to host
@@ -141,12 +141,12 @@ services:
       DOCS_ADMIN_EMAIL_INIT: "admin@example.com"
       # Set the admin password (in this example: "superSecure")
       DOCS_ADMIN_PASSWORD_INIT: "$$2a$$05$$PcMNUbJvsk7QHFSfEIDaIOjk1VI9/E7IPjTKx.jkjPxkx2EOKSoPS"
-      # Setup the database connection. "teedy-db" is the hostname
-      # and "teedy" is the name of the database the application
+      # Setup the database connection. "formosabearv-db" is the hostname
+      # and "formosabearv" is the name of the database the application
       # will connect to.
-      DATABASE_URL: "jdbc:postgresql://teedy-db:5432/teedy"
-      DATABASE_USER: "teedy_db_user"
-      DATABASE_PASSWORD: "teedy_db_password"
+      DATABASE_URL: "jdbc:postgresql://formosabearv-db:5432/formosabearv"
+      DATABASE_USER: "formosabearv_db_user"
+      DATABASE_PASSWORD: "formosabearv_db_password"
       DATABASE_POOL_SIZE: "10"
     volumes:
       - ./docs/data:/data
@@ -154,18 +154,18 @@ services:
       - docker-internal
       - internet
     depends_on:
-      - teedy-db
+      - formosabearv-db
 
 # DB for FormosaBearV
-  teedy-db:
+  formosabearv-db:
     image: postgres:16-alpine
     restart: unless-stopped
     expose:
       - 5432
     environment:
-      POSTGRES_USER: "teedy_db_user"
-      POSTGRES_PASSWORD: "teedy_db_password"
-      POSTGRES_DB: "teedy"
+      POSTGRES_USER: "formosabearv_db_user"
+      POSTGRES_PASSWORD: "formosabearv_db_password"
+      POSTGRES_DB: "formosabearv"
     volumes:
       - ./docs/db:/var/lib/postgresql/data
     networks:
@@ -187,8 +187,8 @@ networks:
 version: '3'
 services:
 # FormosaBearV Application
-  teedy-server:
-    build: .
+  FormosaBearV-docs:
+    build: ghcr.io/kafeiou/formosabearv-docs:latest
     restart: unless-stopped
     ports:
       # Map internal port to host
