@@ -143,6 +143,50 @@
         <directory>src/main/resources</directory>
       </resource>
     </resources>
+
+    <plugins>
+      <!-- Launch NPM & Grunt -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <configuration>
+              <target name="building">
+                <!-- npm install -->
+                <exec executable="cmd" dir="${project.basedir}/src/main/webapp" osfamily="windows" failonerror="true">
+                  <arg line="/c npm install" />
+                </exec>
+                <exec executable="npm" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
+                  <arg line="install" />
+                </exec>
+                <!-- grunt -->
+                <exec executable="cmd" dir="${project.basedir}/src/main/webapp" osfamily="windows" failonerror="true">
+                  <arg line="/c npx grunt --apiurl=api" />
+                </exec>
+                <exec executable="npx" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
+                  <arg line="grunt --apiurl=api" />
+                </exec>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- WAR generation -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <configuration>
+          <warSourceDirectory>${project.basedir}/src/main/webapp/dist</warSourceDirectory>
+          <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
   <profiles>
@@ -226,51 +270,6 @@
             </includes>
           </resource>
         </resources>
-        
-        <plugins>
-        
-          <!-- Launch NPM & Grunt -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>generate-sources</phase>
-                <configuration>
-                  <target name="building">
-                    <!-- npm install -->
-                    <exec executable="cmd" dir="${project.basedir}/src/main/webapp" osfamily="windows" failonerror="true">
-                      <arg line="/c npm install" />
-                    </exec>
-                    <exec executable="npm" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
-                      <arg line="install" />
-                    </exec>
-                    <!-- grunt -->
-                    <exec executable="cmd" dir="${project.basedir}/src/main/webapp" osfamily="windows" failonerror="true">
-                      <arg line="/c npx grunt --apiurl=api" />
-                    </exec>
-                    <exec executable="npx" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
-                      <arg line="grunt --apiurl=api" />
-                    </exec>
-                  </target>
-                </configuration>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        
-          <!-- WAR generation -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-war-plugin</artifactId>
-            <configuration>
-              <warSourceDirectory>${project.basedir}/src/main/webapp/dist</warSourceDirectory>
-              <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
-            </configuration>
-          </plugin>
-        </plugins>
       </build>
     </profile>
   </profiles>

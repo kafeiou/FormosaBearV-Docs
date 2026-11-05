@@ -37,7 +37,57 @@
 - Document sharing via URL
 - RESTful Web API and outgoing Webhooks
 
+## Building and Running from Source
+
+### Prerequisites
+
+- **JDK 21**
+- **Apache Maven 3.8+**
+- **Node.js & npm** (used automatically during Maven build to run Grunt and bundle frontend assets)
+- **Tesseract 4+**, **ffmpeg**, and **mediainfo**
+
+### Project Structure
+
+- `docs-core`: Persistence layer, JPA entities, DAOs, full-text indexing, and document processing services
+- `docs-web-common`: Shared JAX-RS filters, security providers, and REST utilities
+- `docs-web`: REST API resources and AngularJS 1.8.3 web application
+
+### Build All Modules & Generate Deployable WAR
+
+From the project root directory, run:
+
+```bash
+mvn clean package -DskipTests
+```
+*(or `mvn clean install -DskipTests`)*
+
+Both the default `dev` profile and the `-Pprod` profile automatically bundle and minify the frontend assets into `dist/` and generate the clean, deployable WAR archive (`docs-web-2.01.war`, without raw `src/` directories) in:
+
+```text
+docs-web/target/docs-web-2.01.war
+```
+
+### Run Development Server (Jetty 12.1 EE10)
+
+From the `docs-web` directory:
+
+```bash
+mvn jetty:run
+```
+
+---
+
 ## Running with Docker
+
+> **Important Prerequisite**: Because the `Dockerfile` packages `docs-web/target/docs-web-*.war` into the container (`/app/webapps/docs.war`), **you must first compile the project with Maven** (`mvn clean package -DskipTests`) before building the Docker image (`docker build` or `docker compose up --build`).
+
+```bash
+# Step 1: Build the WAR archive with Maven first
+mvn clean package -DskipTests
+
+# Step 2: Build the Docker image (or use docker compose)
+docker build -t formosabearv-docs:2.01 .
+```
 
 A `Dockerfile` is included to build a self-contained container image with OpenJDK 21, Jetty 12.1 (`ee10`), Tesseract OCR, `ffmpeg`, and `mediainfo`, listening on port `8080`.
 
@@ -69,79 +119,91 @@ If no PostgreSQL configuration is provided, an embedded H2 2.3 database is used 
   - `DOCS_SMTP_USERNAME`: SMTP username.
   - `DOCS_SMTP_PASSWORD`: SMTP password.
 
-### Docker Compose Example (PostgreSQL)
+## Docker Compose Examples
+
+In the following examples some passwords are exposed in cleartext. This was done in order to keep the examples simple. We strongly encourage you to use variables with an `.env` file or other means to securely store your passwords.
+
+### Default, using PostgreSQL
 
 ```yaml
+version: '3'
 services:
+# FormosaBearV Application
   teedy-server:
     build: .
     restart: unless-stopped
     ports:
+      # Map internal port to host
       - "8080:8080"
     environment:
+      # Base url to be used
       DOCS_BASE_URL: "https://docs.example.com"
+      # Set the admin email
       DOCS_ADMIN_EMAIL_INIT: "admin@example.com"
+      # Set the admin password (in this example: "superSecure")
       DOCS_ADMIN_PASSWORD_INIT: "$$2a$$05$$PcMNUbJvsk7QHFSfEIDaIOjk1VI9/E7IPjTKx.jkjPxkx2EOKSoPS"
+      # Setup the database connection. "teedy-db" is the hostname
+      # and "teedy" is the name of the database the application
+      # will connect to.
       DATABASE_URL: "jdbc:postgresql://teedy-db:5432/teedy"
       DATABASE_USER: "teedy_db_user"
       DATABASE_PASSWORD: "teedy_db_password"
       DATABASE_POOL_SIZE: "10"
     volumes:
       - ./docs/data:/data
+    networks:
+      - docker-internal
+      - internet
     depends_on:
       - teedy-db
 
+# DB for FormosaBearV
   teedy-db:
     image: postgres:16-alpine
     restart: unless-stopped
+    expose:
+      - 5432
     environment:
       POSTGRES_USER: "teedy_db_user"
       POSTGRES_PASSWORD: "teedy_db_password"
       POSTGRES_DB: "teedy"
     volumes:
       - ./docs/db:/var/lib/postgresql/data
+    networks:
+      - docker-internal
+
+networks:
+  # Network without internet access. The db does not need
+  # access to the host network.
+  docker-internal:
+    driver: bridge
+    internal: true
+  internet:
+    driver: bridge
 ```
 
-## Building and Running from Source
+### Using the internal database (only for testing)
 
-### Prerequisites
-
-- **JDK 21**
-- **Apache Maven 3.8+**
-- **Node.js & npm** (with `grunt-cli` for production frontend bundling)
-- **Tesseract 4+**, **ffmpeg**, and **mediainfo**
-
-### Project Structure
-
-- `docs-core`: Persistence layer, JPA entities, DAOs, full-text indexing, and document processing services
-- `docs-web-common`: Shared JAX-RS filters, security providers, and REST utilities
-- `docs-web`: REST API resources and AngularJS 1.8.3 web application
-
-### Build All Modules
-
-From the root directory:
-
-```bash
-mvn clean install -DskipTests
+```yaml
+version: '3'
+services:
+# FormosaBearV Application
+  teedy-server:
+    build: .
+    restart: unless-stopped
+    ports:
+      # Map internal port to host
+      - "8080:8080"
+    environment:
+      # Base url to be used
+      DOCS_BASE_URL: "https://docs.example.com"
+      # Set the admin email
+      DOCS_ADMIN_EMAIL_INIT: "admin@example.com"
+      # Set the admin password (in this example: "superSecure")
+      DOCS_ADMIN_PASSWORD_INIT: "$$2a$$05$$PcMNUbJvsk7QHFSfEIDaIOjk1VI9/E7IPjTKx.jkjPxkx2EOKSoPS"
+    volumes:
+      - ./docs/data:/data
 ```
-
-### Run Development Server (Jetty 12.1 EE10)
-
-From the `docs-web` directory:
-
-```bash
-mvn jetty:run
-```
-
-### Build Production WAR
-
-From the `docs-web` directory:
-
-```bash
-mvn -Pprod -DskipTests clean install
-```
-
-The deployable WAR archive (`docs-web-2.01.war`) will be generated in `docs-web/target/`.
 
 ## License
 
