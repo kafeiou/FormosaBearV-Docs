@@ -13,6 +13,7 @@
   <properties>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- Dependencies version (external) -->
@@ -56,6 +57,7 @@
     <org.eclipse.jetty.jetty-servlet.version>12.1.14</org.eclipse.jetty.jetty-servlet.version>
 
     <!-- Plugins version -->
+    <org.apache.maven.plugins.maven-compiler-plugin.version>3.13.0</org.apache.maven.plugins.maven-compiler-plugin.version>
     <org.apache.maven.plugins.maven-antrun-plugin.version>3.1.0</org.apache.maven.plugins.maven-antrun-plugin.version>
     <org.apache.maven.plugins.maven-jar-plugin.version>3.3.0</org.apache.maven.plugins.maven-jar-plugin.version>
     <org.apache.maven.plugins.maven-war-plugin.version>3.3.2</org.apache.maven.plugins.maven-war-plugin.version>
@@ -83,6 +85,15 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${org.apache.maven.plugins.maven-compiler-plugin.version}</version>
+        <configuration>
+          <release>21</release>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
