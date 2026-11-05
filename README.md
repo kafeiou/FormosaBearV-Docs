@@ -43,7 +43,6 @@
 
 - **JDK 21**
 - **Apache Maven 3.8+**
-- **Node.js & npm** (used automatically during Maven build to run Grunt and bundle frontend assets)
 - **Tesseract 4+**, **ffmpeg**, and **mediainfo**
 
 ### Project Structure
@@ -61,7 +60,7 @@ mvn clean package -DskipTests
 ```
 *(or `mvn clean install -DskipTests`)*
 
-Both the default `dev` profile and the `-Pprod` profile automatically bundle and minify the frontend assets into `dist/` and generate the clean, deployable WAR archive (`docs-web-2.01.war`, without raw `src/` directories) in:
+This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.01.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
 
 ```text
 docs-web/target/docs-web-2.01.war
