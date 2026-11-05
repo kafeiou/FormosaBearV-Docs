@@ -15,7 +15,8 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
   };
 
   // Load files
-  Restangular.one('file/list').get({ id: $stateParams.id }).then(function (data) {
+  var documentId = $stateParams.docId || $stateParams.id;
+  Restangular.one('file/list').get({ id: documentId }).then(function (data) {
     $scope.files = data.files;
     setFile(data.files);
 
@@ -59,7 +60,7 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
   $scope.goNextFile = function () {
     var next = $scope.nextFile();
     if (next) {
-      $state.go('^.file', { id: $stateParams.id, fileId: next.id });
+      $state.go('^.file', { id: $stateParams.id, docId: $stateParams.docId, fileId: next.id });
     }
   };
 
@@ -69,7 +70,7 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
   $scope.goPreviousFile = function () {
     var previous = $scope.previousFile();
     if (previous) {
-      $state.go('^.file', { id: $stateParams.id, fileId: previous.id });
+      $state.go('^.file', { id: $stateParams.id, docId: $stateParams.docId, fileId: previous.id });
     }
   };
 

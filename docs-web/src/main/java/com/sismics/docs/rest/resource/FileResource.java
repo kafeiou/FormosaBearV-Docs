@@ -217,19 +217,24 @@ public class FileResource extends BaseResource {
         }
         
         // Update the file
-        if( !ConfigUtil.canFileDuplicate() ){
+        if( !ConfigUtil.isFileEncrypt() ){
           if( file.getDocumentId() == null && documentId!=null){
             try{
-              java.nio.file.Path filePath = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());            
-              java.nio.file.Path thumbnailFilePath = DirectoryUtil.getStorageDirectory(file).resolve(file.getName() + "_thumb");            
-              java.nio.file.Path webFilePath = DirectoryUtil.getStorageDirectory(file).resolve(file.getName() + "_web");            
+              java.nio.file.Path oldDir = DirectoryUtil.getStorageDirectory(file);
+              java.nio.file.Path filePath = oldDir.resolve(file.getName());            
+              java.nio.file.Path thumbnailFilePath = oldDir.resolve(file.getName() + "_thumb");            
+              java.nio.file.Path webFilePath = oldDir.resolve(file.getName() + "_web");            
               file.setDocumentId(documentId);
-              java.nio.file.Path filePathDest = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());            
-              java.nio.file.Path thumbnailFilePathDest = DirectoryUtil.getStorageDirectory(file).resolve(file.getName() + "_thumb");            
-              java.nio.file.Path webFilePathDest = DirectoryUtil.getStorageDirectory(file).resolve(file.getName() + "_web");            
-              filePath.toFile().renameTo(filePathDest.toFile());
-              thumbnailFilePath.toFile().renameTo(thumbnailFilePathDest.toFile());
-              webFilePath.toFile().renameTo(webFilePathDest.toFile());
+              java.nio.file.Path newDir = DirectoryUtil.getDocumentStorageDirectory(file);
+              java.nio.file.Path filePathDest = newDir.resolve(file.getName());            
+              java.nio.file.Path thumbnailFilePathDest = newDir.resolve(file.getName() + "_thumb");            
+              java.nio.file.Path webFilePathDest = newDir.resolve(file.getName() + "_web");            
+              if (Files.exists(filePath)) filePath.toFile().renameTo(filePathDest.toFile());
+              if (Files.exists(thumbnailFilePath)) thumbnailFilePath.toFile().renameTo(thumbnailFilePathDest.toFile());
+              if (Files.exists(webFilePath)) webFilePath.toFile().renameTo(webFilePathDest.toFile());
+              if ( !oldDir.equals(newDir) ) {
+                Files.deleteIfExists(oldDir);
+              }
             }catch(Exception e){
                 e.printStackTrace();
             }

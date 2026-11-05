@@ -112,6 +112,11 @@ public class AppResource extends BaseResource {
                 .add("guest_login", guestLogin)
                 .add("ocr_enabled", ocrEnabled)
                 .add("default_language", defaultLanguage)
+                .add("file_delete", ConfigUtil.isFileDelete())
+                .add("file_duplicate", ConfigUtil.canFileDuplicate())
+                .add("file_encrypt", ConfigUtil.isFileEncrypt())
+                .add("file_encrypt_locked", ConfigUtil.isFileEncryptLocked())
+                .add("storage_path", DirectoryUtil.getBaseDataDirectory().toAbsolutePath().toString())
                 .add("queued_tasks", AppContext.getInstance().getQueuedTaskCount())
                 .add("total_memory", Runtime.getRuntime().totalMemory())
                 .add("free_memory", Runtime.getRuntime().freeMemory())
@@ -178,6 +183,62 @@ public class AppResource extends BaseResource {
         ConfigDao configDao = new ConfigDao();
         configDao.update(ConfigType.OCR_ENABLED, enabled.toString());
 
+        return Response.ok().build();
+    }
+
+    /**
+     * Enable/disable permanent file deletion on disk.
+     */
+    @POST
+    @Path("file_delete")
+    public Response fileDelete(@FormParam("enabled") Boolean enabled) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+        ValidationUtil.validateRequired(enabled, "enabled");
+
+        ConfigDao configDao = new ConfigDao();
+        configDao.update(ConfigType.FILE_DELETE, enabled.toString());
+
+        return Response.ok().build();
+    }
+
+    /**
+     * Enable/disable duplicate filenames.
+     */
+    @POST
+    @Path("file_duplicate")
+    public Response fileDuplicate(@FormParam("enabled") Boolean enabled) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+        ValidationUtil.validateRequired(enabled, "enabled");
+
+        ConfigDao configDao = new ConfigDao();
+        configDao.update(ConfigType.FILE_DUPLICATE, enabled.toString());
+
+        return Response.ok().build();
+    }
+
+    /**
+     * One-time lockable configuration for file encryption mode.
+     */
+    @POST
+    @Path("file_encrypt")
+    public Response fileEncrypt(@FormParam("enabled") Boolean enabled) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+        ValidationUtil.validateRequired(enabled, "enabled");
+
+        if (ConfigUtil.isFileEncryptLocked()) {
+            throw new ClientException("FileEncryptLocked", "File encryption mode has already been locked and cannot be modified.");
+        }
+
+        ConfigUtil.lockFileEncrypt(enabled);
         return Response.ok().build();
     }
 

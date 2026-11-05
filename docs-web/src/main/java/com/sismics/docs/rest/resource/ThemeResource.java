@@ -82,7 +82,11 @@ public class ThemeResource extends BaseResource {
     public Response get() {
         JsonObject themeConfig = getThemeConfig();
         JsonObjectBuilder json = Json.createObjectBuilder();
-        json.add("name", themeConfig.getString("name", "teedy-ng"));
+        String appName = themeConfig.getString("name", "FormosaBearV");
+        if ("Teedy".equals(appName) || "teedy-ng".equals(appName) || "FormosaBear".equals(appName)) {
+            appName = "FormosaBearV";
+        }
+        json.add("name", appName);
         json.add("color", themeConfig.getString("color", "#ffffff"));
         json.add("css", themeConfig.getString("css", ""));
         return Response.ok().entity(json.build()).build();

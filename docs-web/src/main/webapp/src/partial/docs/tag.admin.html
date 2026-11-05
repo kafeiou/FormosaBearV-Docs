@@ -1,0 +1,68 @@
+<script type="text/ng-template" id="tag-admin-tree-item">
+  <div class="tag-tree-row" ng-class="{ 'tag-tree-active': $stateParams.id == tag.id }">
+    <span class="tag-tree-toggle pointer"
+          ng-if="hasChildren(tag.id)"
+          ng-click="toggleTagExpand(tag.id, $event)">
+      <span class="fas" ng-class="{ 'fa-caret-down': isTagExpanded(tag.id), 'fa-caret-right': !isTagExpanded(tag.id) }"></span>
+    </span>
+    <span class="tag-tree-toggle-placeholder" ng-if="!hasChildren(tag.id)"></span>
+    <span class="fas fa-tag" ng-style="{ 'color': tag.color }"></span>
+    <a href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }">
+      {{ tag.name }}
+    </a>
+    <span class="text-muted small ml-10">
+      <span ng-if="hasChildren(tag.id)" class="mr-10" uib-tooltip="{{ 'tag.browse.subtag_count' | translate: { count: getChildrenTags(tag.id).length } }}">
+        <span class="far fa-folder"></span> {{ getChildrenTags(tag.id).length }}
+      </span>
+      <span uib-tooltip="{{ 'document.count' | translate: { count: tag.document_count || 0 } }}">
+        <span class="far fa-file-alt"></span> {{ tag.document_count || 0 }}
+      </span>
+    </span>
+  </div>
+  <ul class="list-unstyled tag-tree-children" ng-if="hasChildren(tag.id) && isTagExpanded(tag.id)">
+    <li ng-repeat="tag in getChildrenTags(tag.id) | orderBy: '+name'" ng-include="'tag-admin-tree-item'"></li>
+  </ul>
+</script>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="well well-3d">
+      <form ng-if="showAddTag" class="form-inline text-center mb-19" name="tagForm" novalidate>
+        <div class="input-group" ng-class="{ 'has-error': !tagForm.color.$valid && tagForm.$dirty }">
+          <span colorpicker class="input-group-addon btn btn-default" data-color="#3a87ad" ng-model="tag.color" ng-style="{ 'background': tag.color }">&nbsp;</span>
+          <input type="text" name="color" class="form-control" ng-maxlength="7" ng-model="tag.color" ng-show="hexaField">
+          <button class="btn btn-default" ng-click="hexaField = true" ng-show="!hexaField"><span class="fas fa-microchip"></span></button>
+        </div>
+        <div class="form-group" ng-class="{ 'has-error': !tagForm.name.$valid && tagForm.$dirty }">
+          <input type="text" name="name" ng-attr-placeholder="{{ 'tag.new_tag' | translate }}" class="form-control"
+                 ng-maxlength="36" required ng-model="tag.name" ui-validate="{ space: '!$value || $value.indexOf(\' \') == -1 && $value.indexOf(\':\') == -1' }">
+        </div>
+        <span class="btn btn-primary" ng-disabled="!tagForm.$valid" ng-click="addTag()">{{ 'add' | translate }}</span>
+        <span class="text-danger" ng-show="tagForm.name.$error.space && tagForm.$dirty">{{ 'validation.no_space' | translate }}</span>
+      </form>
+
+      <div class="clearfix mb-10" ng-if="hasAnyNestedTags()">
+        <div class="btn-group btn-group-xs pull-right">
+          <button type="button" class="btn btn-default" ng-click="expandAllTags()" uib-tooltip="{{ 'tag.expand_all' | translate }}">
+            <span class="fas fa-plus-square"></span> {{ 'tag.expand_all' | translate }}
+          </button>
+          <button type="button" class="btn btn-default" ng-click="collapseAllTags()" uib-tooltip="{{ 'tag.collapse_all' | translate }}">
+            <span class="fas fa-minus-square"></span> {{ 'tag.collapse_all' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <ul class="tag-tree">
+        <li ng-repeat="tag in getChildrenTags() | orderBy: '+name'" ng-include="'tag-admin-tree-item'"></li>
+      </ul>
+
+      <div class="well-3d-background">
+        <span class="fas fa-sliders-h"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div ui-view="tag"></div>
+  </div>
+</div>

@@ -15,6 +15,12 @@
   - 將 `jquery.js` 由 `3.2.1` 升級至 **`3.7.1`**。
   - 將無客製 Patch 之第三方外掛升級至最終穩定版：`angular.translate.js`（含 `static-files-loader`）升至 **`2.19.1`**、`angular.ui-router.js` 升至 **`1.0.30`**、`angular.tmhDynamicLocale.js` 升至 **`0.1.38`**、`angular.ui-sortable.js` 升至 **`0.19.0`**（保留含有 Teedy 客製化程式碼的 `angular.ui-bootstrap.js`、`angular.file-upload.js` 與 Restangular 相依的 `underscore.js` 1.8.3）。
   - 補強分享頁面模組 `docs-web/src/main/webapp/src/app/share/app.js` 的 `$qProvider.errorOnUnhandledRejections(false)` 與語系 fallback 防呆機制。
+  - 重構主導覽列與標籤瀏覽體驗：
+    - 頂部導覽列改為 **「標籤 (`#/tag`)」、「文件管理 (`#/document`)」、「標籤管理 (`#/tagadmin`，僅管理權限者可見)」、「帳號 & 群組 (`#/user`)」**，並將登入後預設首頁設為「標籤 (`#/tag`)」。
+    - 「標籤」與「標籤管理」左側樹狀結構支援 **節點展開 / 收合（Expand / Collapse）** 與全部展開/收合控制。
+    - 「標籤 (`#/tag/:id`)」右側直接列出所選標籤關聯的所有文件卡片與附屬檔案縮圖/檔名，支援標籤內關鍵字篩選、排序、分頁、點擊檔案直接彈出預覽視窗 (`FileModalView`) 或下載、以及點擊文件標題進入檢視頁。
+  - 改善快速上傳與文件檢視頁之檔案背景處理指示器與縮圖自動輪詢刷新機制，並移除舊版回饋按鈕與頁尾 Sismics 字樣。
+- 後端內嵌開源全語系字型 `NotoSansCJKtc-Regular.otf`（支援繁中、簡中、日文、越南文、拉丁字母），修正 PPTX / DOCX / ODT 預覽縮圖亂碼與 `FileDao.update` 空指標問題。
 - 全面改寫 `README.md`（英文）：明確標註本專案 Fork 自 `https://github.com/fmaass/teedy-docs` 1.12，移除所有與原專案（`sismics` / `teedy.io` / 贊助與舊版 Docker Hub）相關的連結與圖示，並更新為 `v2.01` 的環境需求與建置說明。
 
 ## Capabilities

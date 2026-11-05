@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html ng-app="share">
   <head>
-    <title ng-bind-template="{{ appName }}">teedy-ng</title>
+    <title ng-bind-template="{{ appName }}">FormosaBearV</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="renderer" content="webkit" />
-    <link rel="shortcut icon" href="../api/theme/image/logo" />
+    <link rel="shortcut icon" href="../api/theme/image/logo?v=2.01" />
     <!-- ref:css style/style.min.css?@build.date@ -->
     <link rel="stylesheet" href="style/bootstrap.css" type="text/css" />
     <link rel="stylesheet" href="style/fontawesome.css" type="text/css" />
@@ -50,12 +50,27 @@
     <div class="navbar navbar-inverse" role="navigation">
       <div class="navbar-header">
         <a class="navbar-brand" href="#">
-          <span ng-if="appName == 'teedy-ng'">
-            <span style="color: #2aabd2;">teedy-ng</span>
+          <img src="../api/theme/image/logo?v=2.01" style="max-height: 28px; display: inline-block; margin-top: -4px; margin-right: 6px;" />
+          <span ng-if="appName == 'FormosaBearV' || appName == 'FormosaBear'">
+            <span class="brand-formosa">Formosa</span><span class="brand-bear">Bear</span><span class="brand-v-badge">V</span>
           </span>
-          <span ng-if="appName != 'teedy-ng'" style="color: #888;">{{ appName }}</span>
+          <span ng-if="appName != 'FormosaBearV' && appName != 'FormosaBear'" style="color: #888;">{{ appName }}</span>
         </a>
       </div>
+      <ul class="nav navbar-nav navbar-right" style="margin-right: 12px;">
+        <li class="navbar-font-controls">
+          <div class="btn-group btn-group-xs" style="margin-top: 14px; margin-right: 6px;">
+            <button type="button" class="btn btn-default" ng-click="changeFontSize(-1, $event)" ng-disabled="fontSize <= 12" title="{{ 'index.font_decrease' | translate }}">A-</button>
+            <button type="button" class="btn btn-default" ng-click="resetFontSize($event)" title="{{ 'index.font_reset' | translate }}">{{ fontScalePercent }}%</button>
+            <button type="button" class="btn btn-default" ng-click="changeFontSize(1, $event)" ng-disabled="fontSize >= 22" title="{{ 'index.font_increase' | translate }}">A+</button>
+          </div>
+        </li>
+        <li>
+          <a href="#" ng-click="toggleDarkMode($event)" title="{{ (darkMode ? 'index.theme_light' : 'index.theme_dark') | translate }}">
+            <span class="fas" ng-class="darkMode ? 'fa-sun' : 'fa-moon'"></span>
+          </a>
+        </li>
+      </ul>
     </div>
 
     <div ui-view="page">
@@ -91,7 +106,7 @@
               <li><a href ng-click="changeLanguage('el')" ng-class="{ 'bg-info': currentLang == 'el' }">Ελληνικά</a></li>
               <li><a href ng-click="changeLanguage('ru')" ng-class="{ 'bg-info': currentLang == 'ru' }">Pусский</a></li>
               <li><a href ng-click="changeLanguage('pl')" ng-class="{ 'bg-info': currentLang == 'pl' }">Polski</a></li>              
-			        <li><a href ng-click="changeLanguage('zh_CN')" ng-class="{ 'bg-info': currentLang == 'zh_CN' }">简体中文</a></li>
+              <li><a href ng-click="changeLanguage('zh_CN')" ng-class="{ 'bg-info': currentLang == 'zh_CN' }">简体中文</a></li>
               <li><a href ng-click="changeLanguage('zh_TW')" ng-class="{ 'bg-info': currentLang == 'zh_TW' }">繁體中文</a></li>
             </ul>
           </li>

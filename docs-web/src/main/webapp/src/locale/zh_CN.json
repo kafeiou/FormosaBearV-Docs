@@ -29,13 +29,19 @@
   },
   "index": {
     "toggle_navigation": "切换导航",
-    "nav_documents": "文档",
+    "nav_documents": "文档管理",
     "nav_tags": "标签",
+    "nav_tag_management": "标签管理",
     "nav_users_groups": "用户 & 群组",
     "error_info": "{{ count }} 新错误",
     "logged_as": "以 {{ username }}登录",
     "nav_settings": "设置",
     "logout": "退出",
+    "theme_light": "浅色模式",
+    "theme_dark": "深色模式",
+    "font_decrease": "缩小字号 (A-)",
+    "font_reset": "重设为默认字号 (100%)",
+    "font_increase": "放大字号 (A+)",
     "global_quota_warning": "<strong>提醒!</strong> 全球配额存储空间已经使用 {{ current | number: 0 }}MB 占总存储配额 {{ total | number: 0 }}MB 的 ({{ percent | number: 1 }}%)"
   },
   "document": {
@@ -224,6 +230,18 @@
   "tag": {
     "new_tag": "新标签",
     "search": "搜索",
+    "expand_all": "全部展开",
+    "collapse_all": "全部收起",
+    "browse": {
+      "tree_title": "标签分类",
+      "welcome_title": "按标签浏览文档与文件",
+      "welcome_message": "请从左侧点选标签，以列出该标签关联的所有文档与文件。",
+      "subtags": "子标签",
+      "subtag_count": "下一层有 {{ count }} 个子目录",
+      "filter_placeholder": "在此标签内搜索文档或文件...",
+      "no_documents": "此标签下尚无关联文档",
+      "no_files_in_doc": "此文档尚无附属文件"
+    },
     "default": {
       "title": "标签",
       "message_1": "<strong>标签</strong> 是和文档相关的标示.",
@@ -412,6 +430,13 @@
       "enable_guest_access": "激活游客权限",
       "disable_guest_access": "不激活游客权限",
       "title_theme": "主题 <small>定制</small>",
+      "color_scheme": "外观显示模式",
+      "font_size": "字号大小设置",
+      "font_small": "小",
+      "font_normal": "标准",
+      "font_medium": "中",
+      "font_large": "大",
+      "font_xlarge": "特大",
       "title_general": "一般配置",
       "default_language": "新文档的默认语言",
       "application_name": "申请名",
@@ -437,7 +462,30 @@
       "webhook_event": "事件",
       "webhook_url": "URL",
       "webhook_create_date": "创建日期",
-      "webhook_add": "添加 Webhook"
+      "webhook_add": "添加 Webhook",
+      "title_storage": "文件存储与管理设置",
+      "storage_path_label": "服务器实体数据存放根目录",
+      "title_file_encrypt": "文件加密存储 (file.encrypt)",
+      "file_encrypt_mode_encrypted": "启用加密存储",
+      "file_encrypt_mode_unencrypted": "不加密（原始文件格式）",
+      "file_encrypt_locked_badge": "已永久锁定（不可变更）",
+      "message_file_encrypt": "决定上传至系统的文件是否以 AES-256 加密存放于服务器磁盘。注意：此设置属于系统初始化一次性认定，一旦锁定或已上传任何文件后即永久不可变更，以确保所有文件格式一致。",
+      "lock_unencrypted_btn": "认定为：不加密存储（推荐，保留原始文件）并永久锁定",
+      "lock_encrypted_btn": "认定为：启用 AES-256 加密存储并永久锁定",
+      "file_encrypt_confirm_title": "确认永久锁定文件加密模式",
+      "file_encrypt_confirm_message": "您即将把文件加密模式设置为「<strong>{{ mode }}</strong>」。<br/><span class='text-danger'>注意：一旦确认后此设置将永久锁定，未来绝对无法再修改！</span>是否确定？",
+      "first_time_encrypt_title": "首次使用系统初始化：请认定文件存储加密模式",
+      "first_time_encrypt_message": "欢迎使用 FormosaBearV！在开始上传文件前，请先认定系统的<strong>文件存储模式 (file.encrypt)</strong>：<br/><br/>1. <strong>不加密存储（推荐）</strong>：文件以原始格式依用户与文档分层存放于硬盘，方便直接备份与维护。<br/>2. <strong>启用 AES-256 加密存储</strong>：所有上传文件皆以密钥加密存放，直接从硬盘无法读取。<br/><br/><strong class='text-danger'>⚠️ 注意：此设置在认定（或上传第一个文件）后即永久锁定，之后绝对无法变更！</strong>",
+      "title_file_delete": "删除文件时之磁盘处理模式 (file.delete)",
+      "file_delete_permanent": "直接从磁盘永久删除",
+      "file_delete_recycle": "移至回收区目录保留 (delete/storage)",
+      "message_file_delete": "控制用户删除文件时，是否将服务器硬盘上的实体文件直接抹除，或搬移至 delete/storage 回收区目录下保留。",
+      "enable_file_delete": "改为：直接从磁盘永久删除",
+      "disable_file_delete": "改为：移至回收区目录保留",
+      "title_file_duplicate": "允许重复文件名称上传 (file.duplicate)",
+      "message_file_duplicate": "控制同一位用户是否可以上传相同文件名称的新文件。",
+      "enable_file_duplicate": "启用允许重复文件名",
+      "disable_file_duplicate": "禁止重复文件名上传"
     },
     "metadata": {
       "title": "自定义元数据配置",
@@ -556,7 +604,11 @@
       "typeahead": "请输入文档名称"
     },
     "selecttag": {
-      "typeahead": "请输入标签"
+      "typeahead": "输入关键字搜索标签，或点选右侧展开标签树勾选...",
+      "browse_tree": "选择标签",
+      "hide_tree": "收合标签树",
+      "tree_hint": "直接点击标签即可勾选或取消，亦可在上方输入框筛选",
+      "no_tags": "目前尚无任何标签"
     },
     "datepicker": {
       "current": "今天",

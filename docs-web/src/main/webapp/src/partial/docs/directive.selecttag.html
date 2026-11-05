@@ -1,11 +1,51 @@
-<div>
-  <ul class="list-inline">
-    <li ng-repeat="tag in tags">
-      <span class="label label-info" ng-style="{ 'background': tag.color }" invert-text-color="{{ tag.color }}">{{ tag.name }}
-        <span class="fas fa-times" ng-click="deleteTag(tag)" ng-show="!ngDisabled"></span>
+<div class="select-tag-wrapper">
+  <ul class="list-inline" ng-show="tags && tags.length > 0" style="margin-bottom: 8px;">
+    <li ng-repeat="tag in tags" style="margin-bottom: 4px;">
+      <span class="label label-info" ng-style="{ 'background': tag.color }" invert-text-color="{{ tag.color }}" style="font-size: 90%; padding: 4px 8px; display: inline-block;">
+        {{ tag.name }}
+        <span class="fas fa-times" style="cursor: pointer; margin-left: 4px;" ng-click="deleteTag(tag)" ng-show="!ngDisabled"></span>
       </span>
     </li>
   </ul>
-  <input class="form-control" type="text" id="{{ ref }}" ng-attr-placeholder="{{ 'directive.selecttag.typeahead' | translate }}" ng-model="input" ng-disabled="ngDisabled"
-    autocomplete="off" uib-typeahead="tag.name for tag in allTags | filter: $viewValue" typeahead-on-select="addTag()" />
+
+  <div class="input-group">
+    <input class="form-control" type="text" id="{{ ref }}"
+           ng-attr-placeholder="{{ 'directive.selecttag.typeahead' | translate }}"
+           ng-model="input" ng-disabled="ngDisabled"
+           autocomplete="off"
+           uib-typeahead="tag as tag.fullLabel for tag in allTags | filter: $viewValue"
+           typeahead-on-select="addTag($item)" />
+    <span class="input-group-btn">
+      <button type="button" class="btn" ng-class="showTree ? 'btn-info' : 'btn-default'"
+              ng-click="toggleTagTree()" ng-disabled="ngDisabled">
+        <span class="fas" ng-class="showTree ? 'fa-chevron-up' : 'fa-sitemap'"></span>
+        {{ (showTree ? 'directive.selecttag.hide_tree' : 'directive.selecttag.browse_tree') | translate }}
+        <span class="badge" ng-if="allTags.length > 0" style="margin-left: 4px;">{{ allTags.length }}</span>
+      </button>
+    </span>
+  </div>
+
+  <div class="panel panel-default select-tag-tree-panel" ng-show="showTree && !ngDisabled">
+    <div class="panel-heading clearfix" style="padding: 6px 12px;">
+      <span class="text-muted small" style="line-height: 22px;">
+        <i class="fas fa-hand-pointer"></i> {{ 'directive.selecttag.tree_hint' | translate }}
+      </span>
+      <div class="btn-group btn-group-xs pull-right">
+        <button type="button" class="btn btn-default" ng-click="expandAll($event)" title="{{ 'tag.expand_all' | translate }}">
+          <span class="fas fa-plus-square"></span> {{ 'tag.expand_all' | translate }}
+        </button>
+        <button type="button" class="btn btn-default" ng-click="collapseAll($event)" title="{{ 'tag.collapse_all' | translate }}">
+          <span class="fas fa-minus-square"></span> {{ 'tag.collapse_all' | translate }}
+        </button>
+      </div>
+    </div>
+    <div class="panel-body select-tag-tree-body">
+      <div class="text-muted text-center" ng-if="!rootTags || rootTags.length === 0" style="padding: 10px 0;">
+        {{ 'directive.selecttag.no_tags' | translate }}
+      </div>
+      <ul class="list-unstyled select-tag-root-list" ng-if="rootTags && rootTags.length > 0">
+        <li ng-repeat="node in rootTags" ng-show="matchesFilter(node)" ng-include="'selectTagNodeRenderer.html'"></li>
+      </ul>
+    </div>
+  </div>
 </div>

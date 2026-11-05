@@ -29,13 +29,82 @@ ul.tag-tree {
   padding: 0;
 
   li {
-    margin-left: 20px;
-    margin-top: 8px;
-    margin-bottom: 8px;
+    margin-left: 16px;
+    margin-top: 6px;
+    margin-bottom: 6px;
     white-space: nowrap;
 
     .active {
-      font-weight: 500;
+      font-weight: 600;
+      color: #2ab2dc;
+    }
+  }
+
+  & > li {
+    margin-left: 4px;
+  }
+
+  .tag-tree-row {
+    padding: 3px 6px;
+    border-radius: 4px;
+
+    &.tag-tree-active {
+      background-color: #f0f8fc;
+    }
+
+    .tag-tree-toggle {
+      display: inline-block;
+      width: 18px;
+      text-align: center;
+      color: #666;
+      user-select: none;
+
+      &:hover {
+        color: #2ab2dc;
+      }
+    }
+
+    .tag-tree-toggle-placeholder {
+      display: inline-block;
+      width: 18px;
+    }
+  }
+
+  .tag-tree-children {
+    border-left: 1px dashed #ddd;
+    margin-left: 9px;
+    padding-left: 4px;
+  }
+}
+
+// Tag document cards
+.tag-doc-card {
+  border-color: #e6ebf1;
+  box-shadow: 0 2px 5px 0 rgba(50,50,93,.06);
+
+  & > .panel-heading {
+    background-color: #f8fafd;
+    border-bottom-color: #e6ebf1;
+  }
+
+  .tag-doc-title {
+    color: #333;
+
+    &:hover {
+      color: #2ab2dc;
+      text-decoration: none;
+    }
+  }
+
+  .tag-file-thumbnail {
+    margin-bottom: 10px;
+
+    a.file-thumbnail {
+      height: 140px;
+
+      img {
+        margin-top: 70px;
+      }
     }
   }
 }
@@ -750,4 +819,470 @@ input[readonly].share-link {
   width: 0;
   padding-left: 0;
   padding-right: 0;
+}
+
+
+// Tag selector hierarchical tree picker
+.select-tag-tree-panel {
+  margin-top: 6px;
+  margin-bottom: 0;
+  border-color: #dce4ec;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  .select-tag-tree-body {
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 8px 12px;
+  }
+
+  .select-tag-root-list {
+    margin-bottom: 0;
+  }
+
+  .select-tag-children {
+    padding-left: 20px;
+    border-left: 1px dashed #e2e8f0;
+    margin-left: 7px;
+  }
+
+  .select-tag-node-row {
+    display: flex;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 4px;
+    transition: background-color 0.12s ease-in-out;
+
+    &:hover {
+      background-color: #f5f8fa;
+    }
+
+    &.selected {
+      background-color: #eef7fb;
+    }
+  }
+
+  .select-tag-toggle {
+    cursor: pointer;
+    width: 18px;
+    text-align: center;
+    color: #666;
+    user-select: none;
+    margin-right: 2px;
+
+    &:hover {
+      color: #222;
+    }
+  }
+
+  .select-tag-toggle-placeholder {
+    display: inline-block;
+    width: 18px;
+    margin-right: 2px;
+  }
+
+  .select-tag-item {
+    cursor: pointer;
+    flex: 1;
+    user-select: none;
+    padding: 2px 4px;
+  }
+}
+
+
+// FormosaBearV brand styling
+.brand-formosa {
+  color: #24282f;
+  font-weight: 700;
+}
+
+.brand-bear {
+  color: #2aabd2;
+  font-weight: 700;
+}
+
+.brand-v-badge {
+  display: inline-block;
+  background-color: #1e2229;
+  color: #ffffff;
+  border: 1px solid #3a414e;
+  border-radius: 5px;
+  padding: 1px 6px;
+  margin-left: 3px;
+  font-weight: 800;
+  font-size: 82%;
+  line-height: 1.25;
+  vertical-align: baseline;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+// Dark Mode theme
+body.dark-mode {
+  background-color: #12161f;
+  color: #e2e8f0;
+
+  h1, h2, h3, h4, h5, h6,
+  .h1, .h2, .h3, .h4, .h5, .h6,
+  legend, .page-header {
+    color: #f1f5f9;
+    border-color: #2d3748;
+  }
+
+  hr {
+    border-color: #2d3748;
+  }
+
+  a {
+    color: #38bdf8;
+    &:hover, &:focus {
+      color: #7dd3fc;
+    }
+  }
+
+  .text-muted {
+    color: #94a3b8 !important;
+  }
+
+  // Navbar in dark mode
+  .navbar,
+  .navbar-default,
+  .navbar-inverse {
+    background-color: #1a202c !important;
+    border-bottom: 1px solid #2d3748;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+
+    .navbar-nav > li > a {
+      color: #cbd5e1;
+      &:hover, &:focus {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+    }
+
+    .navbar-nav > .active > a,
+    .navbar-nav > .active > a:hover,
+    .navbar-nav > .active > a:focus {
+      color: #38bdf8 !important;
+      background-color: rgba(56, 189, 248, 0.1);
+    }
+
+    .brand-formosa {
+      color: #f8fafc;
+    }
+
+    .brand-v-badge {
+      background-color: #0b0e13;
+      color: #ffffff;
+      border-color: #94a3b8;
+    }
+  }
+
+  // Login screen in dark mode
+  .login-box {
+    img.img-responsive {
+      background: rgba(255, 255, 255, 0.93);
+      padding: 10px 16px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  // Panels, Wells, Cards, Modals
+  .panel,
+  .panel-default,
+  .well,
+  .well-sm,
+  .well-lg,
+  .well-3d,
+  .card,
+  .thumbnail,
+  .modal-content,
+  .select-tag-tree-panel {
+    background-color: #1e2532 !important;
+    border-color: #334155 !important;
+    color: #e2e8f0;
+  }
+
+  .panel-heading,
+  .panel-footer,
+  .modal-header,
+  .modal-footer {
+    background-color: #252d3d !important;
+    border-color: #334155 !important;
+    color: #f1f5f9;
+  }
+
+  .close {
+    color: #f1f5f9;
+    text-shadow: none;
+    opacity: 0.75;
+    &:hover {
+      color: #ffffff;
+      opacity: 1;
+    }
+  }
+
+  // List group
+  .list-group-item {
+    background-color: #1e2532;
+    border-color: #334155;
+    color: #e2e8f0;
+
+    &:hover, &:focus {
+      background-color: #263042;
+      color: #ffffff;
+    }
+
+    &.active, &.active:hover, &.active:focus {
+      background-color: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+    }
+  }
+
+  // Tables
+  .table {
+    color: #e2e8f0;
+
+    > thead > tr > th,
+    > tbody > tr > th,
+    > tfoot > tr > th,
+    > thead > tr > td,
+    > tbody > tr > td,
+    > tfoot > tr > td {
+      border-color: #334155;
+    }
+
+    > thead > tr > th {
+      background-color: #252d3d;
+      color: #f1f5f9;
+    }
+  }
+
+  .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #1a212d;
+  }
+
+  .table-hover > tbody > tr:hover {
+    background-color: #283245;
+  }
+
+  // Forms & Inputs
+  .form-control {
+    background-color: #151b26;
+    color: #f1f5f9;
+    border: 1px solid #3b4659;
+    box-shadow: none;
+
+    &:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    &[disabled], &[readonly] {
+      background-color: #1c222e;
+      color: #94a3b8;
+    }
+  }
+
+  .input-group-addon {
+    background-color: #252d3d;
+    border-color: #3b4659;
+    color: #cbd5e1;
+  }
+
+  // Buttons
+  .btn-default {
+    background-color: #262f3f;
+    color: #e2e8f0;
+    border-color: #3b4659;
+
+    &:hover, &:focus, &:active, &.active {
+      background-color: #323e52;
+      color: #ffffff;
+      border-color: #4b5970;
+    }
+  }
+
+  // Dropdown menus
+  .dropdown-menu {
+    background-color: #1e2532;
+    border: 1px solid #334155;
+
+    > li > a {
+      color: #e2e8f0;
+      &:hover, &:focus {
+        background-color: #2d3748;
+        color: #ffffff;
+      }
+    }
+
+    .divider {
+      background-color: #334155;
+    }
+  }
+
+  // Nav tabs & Breadcrumbs & Pagination
+  .nav-tabs {
+    border-bottom-color: #334155;
+
+    > li > a {
+      color: #cbd5e1;
+      &:hover {
+        background-color: #252d3d;
+        border-color: #334155;
+      }
+    }
+
+    > li.active > a,
+    > li.active > a:hover,
+    > li.active > a:focus {
+      background-color: #1e2532;
+      color: #38bdf8;
+      border-color: #334155 #334155 transparent;
+    }
+  }
+
+  .breadcrumb {
+    background-color: #1e2532;
+    border: 1px solid #334155;
+  }
+
+  .pagination {
+    > li > a,
+    > li > span {
+      background-color: #1e2532;
+      border-color: #334155;
+      color: #e2e8f0;
+
+      &:hover, &:focus {
+        background-color: #283245;
+        color: #ffffff;
+      }
+    }
+
+    > .active > a,
+    > .active > span {
+      background-color: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+    }
+
+    > .disabled > a,
+    > .disabled > span {
+      background-color: #171d28;
+      border-color: #2d3748;
+      color: #64748b;
+    }
+  }
+
+  // Code, Pre & Pell rich-text editor
+  pre, code {
+    background-color: #151b26;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+
+  .pell {
+    border-color: #3b4659;
+    background-color: #151b26;
+  }
+
+  .pell-actionbar {
+    background-color: #252d3d;
+    border-bottom-color: #3b4659;
+  }
+
+  .pell-button {
+    color: #e2e8f0;
+    &:hover {
+      background-color: #323e52;
+    }
+  }
+
+  .pell-content {
+    color: #f1f5f9;
+  }
+
+  // Tag tree & selector rows in dark mode
+  .select-tag-tree-panel {
+    .select-tag-children {
+      border-left-color: #334155;
+    }
+
+    .select-tag-node-row {
+      &:hover {
+        background-color: #283245;
+      }
+      &.selected {
+        background-color: rgba(56, 189, 248, 0.15);
+      }
+    }
+
+    .select-tag-toggle {
+      color: #94a3b8;
+      &:hover {
+        color: #f1f5f9;
+      }
+    }
+  }
+
+  .footer {
+    border-top-color: #2d3748;
+  }
+}
+
+
+// Global Font Size Scaling
+:root {
+  --app-font-size: 14px;
+}
+
+body {
+  font-size: var(--app-font-size, 14px);
+}
+
+.form-control,
+.btn:not(.btn-xs):not(.btn-sm):not(.btn-lg),
+.dropdown-menu,
+.input-group-addon,
+.popover,
+.nav > li > a,
+.table,
+.list-group-item,
+.panel-body,
+ul.tag-tree {
+  font-size: 1em;
+}
+
+.form-control:not(textarea) {
+  height: auto;
+  min-height: 2.42em;
+}
+
+.btn-sm, .btn-group-sm > .btn {
+  font-size: 0.86em;
+}
+
+.btn-xs, .btn-group-xs > .btn {
+  font-size: 0.78em;
+}
+
+.panel-title {
+  font-size: 1.14em;
+}
+
+h1, .h1 {
+  font-size: 2.2em;
+}
+
+h2, .h2 {
+  font-size: 1.8em;
+}
+
+h3, .h3 {
+  font-size: 1.45em;
+}
+
+h4, .h4 {
+  font-size: 1.2em;
 }

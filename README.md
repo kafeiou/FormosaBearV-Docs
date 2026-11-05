@@ -1,8 +1,8 @@
-# teedy-ng (v2.01)
+# FormosaBearV (v2.01)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
-**teedy-ng** is an open-source, lightweight document management system for individuals and businesses.
+**FormosaBearV** is an open-source, lightweight document management system for individuals and businesses.
 
 > **Fork Notice**: This repository is forked from [https://github.com/fmaass/teedy-docs](https://github.com/fmaass/teedy-docs) (version `1.12`), modernized and maintained independently starting from version **`2.01`**.
 
@@ -13,6 +13,9 @@
 - **Jersey 3.1.9** (Jakarta RESTful Web Services 3.1)
 - **H2 Database 2.3.232** with automatic legacy DDL transformation (`H2Dialect`)
 - **AngularJS 1.8.3** & **jQuery 3.7.1** with updated third-party frontend libraries
+- **Bundled Pan-CJK Font (`Noto Sans CJK TC`)** for out-of-the-box Traditional/Simplified Chinese, Japanese, Korean, and Latin rendering in DOCX, PPTX, ODT, and PDF thumbnails
+- **Enhanced Tag Browser & Admin UI** with expandable/collapsible hierarchical trees and sub-folder/document count badges
+- **Web-Managed Storage Settings** (`file.delete`, `file.duplicate`, and one-time immutable initialization lock for `file.encrypt` in **Settings -> Configuration**; see [`STORAGE.md`](STORAGE.md) for physical storage architecture details)
 
 ## Features
 

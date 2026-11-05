@@ -1,5 +1,5 @@
 {
-  "name": "teedy-ng",
+  "name": "formosabearv-docs",
   "description": "Lightweight document management system",
   "readme": "See http://github.com/simics/docs for more informations.",
   "license": "GPL-2.0",
@@ -9,8 +9,8 @@
     "url": "git://github.com/sismics/docs.git"
   },
   "apidoc": {
-    "name": "teedy-ng API",
-    "title": "teedy-ng API",
+    "name": "FormosaBearV API",
+    "title": "FormosaBearV API",
     "url": "/api",
     "template": {
       "withCompare": false,

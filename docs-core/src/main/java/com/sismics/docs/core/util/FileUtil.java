@@ -227,6 +227,9 @@ public class FileUtil {
         // Create the file
         String fileId = fileDao.create(file, userId);
 
+        // Ensure file encryption mode is permanently locked once any file is stored
+        ConfigUtil.ensureFileEncryptLocked();
+
         // Save the file
         Path path = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());
         try (InputStream inputStream = EncryptionUtil.encryptInputStream( Files.newInputStream(unencryptedFile),user.getPrivateKey())) {

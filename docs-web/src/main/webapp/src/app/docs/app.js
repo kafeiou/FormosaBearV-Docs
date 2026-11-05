@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Teedy application.
+ * FormosaBearV application.
  */
 angular.module('docs',
     // Dependencies
@@ -55,7 +55,42 @@ angular.module('docs',
         }
       }
     })
-    .state('tag.edit', {
+    .state('tag.view', {
+      url: '/:id',
+      views: {
+        'tag': {
+          templateUrl: 'partial/docs/tag.view.html',
+          controller: 'TagView'
+        }
+      }
+    })
+    .state('tag.view.file', {
+      url: '/document/:docId/file/:fileId',
+      views: {
+        'file': {
+          controller: 'FileView'
+        }
+      }
+    })
+    .state('tagadmin', {
+      url: '/tagadmin',
+      abstract: true,
+      views: {
+        'page': {
+          templateUrl: 'partial/docs/tag.admin.html',
+          controller: 'Tag'
+        }
+      }
+    })
+    .state('tagadmin.default', {
+      url: '',
+      views: {
+        'tag': {
+          templateUrl: 'partial/docs/tag.admin.default.html'
+        }
+      }
+    })
+    .state('tagadmin.edit', {
       url: '/:id',
       views: {
         'tag': {
@@ -435,10 +470,10 @@ angular.module('docs',
       'pt_*': 'pt',
       'fr_*': 'fr',
       'de_*': 'de',
-	    'el_*': 'el',
+      'el_*': 'el',
       'ru_*': 'ru',
       'it_*': 'it',
-	    'pl_*': 'pl',
+      'pl_*': 'pl',
       '*': 'en'
     })
     .fallbackLanguage('en');
@@ -519,6 +554,65 @@ angular.module('docs',
     $rootScope.appName = data.name;
   });
 
+  // Initialize dark/light theme mode
+  var applyDarkMode = function(isDark) {
+    $rootScope.darkMode = !!isDark;
+    if ($rootScope.darkMode) {
+      angular.element(document.body).addClass('dark-mode');
+    } else {
+      angular.element(document.body).removeClass('dark-mode');
+    }
+    try {
+      localStorage.formosaThemeMode = $rootScope.darkMode ? 'dark' : 'light';
+    } catch (e) {}
+  };
+  applyDarkMode(localStorage.formosaThemeMode === 'dark');
+  $rootScope.setDarkMode = function(isDark) {
+    applyDarkMode(isDark);
+  };
+  $rootScope.toggleDarkMode = function($event) {
+    if ($event) {
+      $event.preventDefault();
+    }
+    applyDarkMode(!$rootScope.darkMode);
+  };
+
+  // Initialize font size scaling (12px to 22px, default 14px)
+  var applyFontSize = function(sizePx) {
+    var parsed = parseInt(sizePx, 10);
+    if (isNaN(parsed)) {
+      parsed = 14;
+    }
+    if (parsed < 12) parsed = 12;
+    if (parsed > 22) parsed = 22;
+    $rootScope.fontSize = parsed;
+    $rootScope.fontScalePercent = Math.round((parsed / 14) * 100);
+    document.documentElement.style.setProperty('--app-font-size', parsed + 'px');
+    document.body.style.fontSize = parsed + 'px';
+    try {
+      localStorage.formosaFontSize = String(parsed);
+    } catch (e) {}
+  };
+  applyFontSize(localStorage.formosaFontSize ? parseInt(localStorage.formosaFontSize, 10) : 14);
+  $rootScope.setFontSize = function(sizePx, $event) {
+    if ($event) {
+      $event.preventDefault();
+    }
+    applyFontSize(sizePx);
+  };
+  $rootScope.changeFontSize = function(delta, $event) {
+    if ($event) {
+      $event.preventDefault();
+    }
+    applyFontSize(($rootScope.fontSize || 14) + delta);
+  };
+  $rootScope.resetFontSize = function($event) {
+    if ($event) {
+      $event.preventDefault();
+    }
+    applyFontSize(14);
+  };
+
   // Languages
   $rootScope.acceptedLanguages = [
     { key: 'eng', label: 'English' },
@@ -559,7 +653,7 @@ angular.module('docs',
 
   // Watch for the number of XHR running
   $rootScope.$watch(function() {
-    return $http.pendingRequests.length > 0
+    return $http.pendingRequests.length > 0;
   }, function(loading) {
     if (!loading) {
       $rootScope.ngProgress.complete();

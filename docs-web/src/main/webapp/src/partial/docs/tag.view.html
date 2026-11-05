@@ -1,0 +1,172 @@
+<div class="well well-3d">
+  <!-- Header & Breadcrumb -->
+  <div class="clearfix">
+    <ol class="breadcrumb breadcrumb-navigation pull-left" style="margin-bottom: 5px; padding-left: 0;">
+      <li ng-repeat="bTag in getTagBreadcrumb()" ng-class="{ active: bTag.id == tag.id }">
+        <a class="label" ng-style="{ 'background-color': bTag.color }" invert-text-color="{{ bTag.color }}" ng-if="bTag.id != tag.id" href="#/tag/{{ bTag.id }}">
+          {{ bTag.name }}
+        </a>
+        <span class="label" ng-style="{ 'background-color': bTag.color }" invert-text-color="{{ bTag.color }}" ng-if="bTag.id == tag.id" style="font-size: 105%;">
+          <span class="fas fa-tag"></span>&nbsp;{{ bTag.name }}
+        </span>
+      </li>
+    </ol>
+
+    <div class="pull-right text-muted small" style="line-height: 28px;" ng-if="totalDocuments !== undefined">
+      <span translate="document.count" translate-values="{ count: totalDocuments }"></span>
+    </div>
+  </div>
+
+  <!-- Child tags quick navigation -->
+  <div class="mb-10" ng-if="getChildrenTags(tag.id).length > 0">
+    <span class="text-muted small">{{ 'tag.browse.subtags' | translate }}：</span>
+    <a ng-repeat="child in getChildrenTags(tag.id) | orderBy: '+name'"
+       href="#/tag/{{ child.id }}"
+       ng-click="onTagClick(child)"
+       class="label mr-10"
+       ng-style="{ 'background-color': child.color }"
+       invert-text-color="{{ child.color }}"
+       style="display: inline-block; margin-bottom: 4px;">
+      <span class="fas fa-tag"></span> {{ child.name }}
+      <span ng-if="hasChildren(child.id)">&nbsp;<span class="far fa-folder"></span> {{ getChildrenTags(child.id).length }}</span>
+      <span>&nbsp;<span class="far fa-file-alt"></span> {{ child.document_count || 0 }}</span>
+    </a>
+  </div>
+
+  <!-- Filter & Sort Bar -->
+  <div class="row mt-10 mb-19">
+    <div class="col-sm-7 col-xs-12 mb-10">
+      <div class="input-group">
+        <span class="input-group-addon"><span class="fas fa-search"></span></span>
+        <input type="search"
+               class="form-control"
+               ng-model="filterText"
+               ng-attr-placeholder="{{ 'tag.browse.filter_placeholder' | translate }}" />
+        <span class="input-group-btn" ng-if="filterText.length > 0">
+          <button class="btn btn-default" type="button" ng-click="filterText = ''">
+            <span class="fas fa-times"></span>
+          </button>
+        </span>
+      </div>
+    </div>
+
+    <div class="col-sm-5 col-xs-12 text-right">
+      <div class="btn-group">
+        <button type="button" class="btn btn-default" ng-class="{ active: sortColumn == 1 }" ng-click="sortDocuments(1)">
+          {{ 'document.title' | translate }}
+          <span class="fas" ng-if="sortColumn == 1" ng-class="{ 'fa-chevron-down': asc, 'fa-chevron-up': !asc }"></span>
+        </button>
+        <button type="button" class="btn btn-default" ng-class="{ active: sortColumn == 3 }" ng-click="sortDocuments(3)">
+          {{ 'document.creation_date' | translate }}
+          <span class="fas" ng-if="sortColumn == 3" ng-class="{ 'fa-chevron-down': asc, 'fa-chevron-up': !asc }"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading spinner -->
+  <div class="text-center well-lg" ng-if="loadingDocuments">
+    <span class="fas fa-circle-notch fa-spin fa-2x text-muted"></span>
+  </div>
+
+  <!-- Empty state -->
+  <div class="text-center well-lg text-muted" ng-if="!loadingDocuments && totalDocuments == 0">
+    <span class="fas fa-folder-open fa-2x mb-10"></span>
+    <p ng-if="!filterText || filterText.length == 0">{{ 'tag.browse.no_documents' | translate }}</p>
+    <p ng-if="filterText && filterText.length > 0" translate="document.search_empty" translate-values="{ search: filterText }"></p>
+  </div>
+
+  <!-- Documents & Files Cards -->
+  <div ng-if="!loadingDocuments && documents.length > 0">
+    <div class="panel panel-default tag-doc-card" ng-repeat="document in documents">
+      <div class="panel-heading clearfix">
+        <div class="pull-right">
+          <span class="text-muted small mr-10" uib-tooltip="{{ 'document.last_updated' | translate: { date: document.update_date } }}">
+            {{ document.create_date | timeAgo: dateFormat }}
+          </span>
+          <a href="#/document/view/{{ document.id }}" class="btn btn-xs btn-primary">
+            <span class="fas fa-folder-open"></span> {{ 'open' | translate }}
+          </a>
+        </div>
+
+        <h4 class="panel-title" style="line-height: 24px;">
+          <a href="#/document/view/{{ document.id }}" class="tag-doc-title">
+            <span class="fas fa-book text-muted"></span>
+            <strong>{{ document.title }}</strong>
+          </a>
+          <span class="text-muted small">({{ document.file_count }})</span>
+          <span class="fas fa-share text-info" ng-if="document.shared" uib-tooltip="{{ 'document.shared' | translate }}"></span>
+          <span class="fas fa-random text-warning" ng-if="document.active_route" uib-tooltip="{{ document.current_step_name }}"></span>
+        </h4>
+
+        <div class="tags small mt-10" ng-if="document.tags.length > 0">
+          <a ng-repeat="docTag in document.tags"
+             href="#/tag/{{ docTag.id }}"
+             class="label label-info mr-10"
+             ng-style="{ 'background': docTag.color }"
+             invert-text-color="{{ docTag.color }}"
+             style="display: inline-block;">
+            {{ docTag.name }}
+          </a>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div ng-if="!document.files || document.files.length == 0" class="text-muted small">
+          {{ 'tag.browse.no_files_in_doc' | translate }}
+        </div>
+
+        <div class="row" ng-if="document.files && document.files.length > 0">
+          <div class="col-xs-6 col-sm-4 col-md-3 text-center" ng-repeat="file in document.files">
+            <div class="thumbnail tag-file-thumbnail">
+              <a class="file-thumbnail pointer"
+                 ng-click="openFile(document, file, $event)"
+                 uib-tooltip="{{ file.mimetype }} | {{ file.size | filesize }}"
+                 tooltip-placement="top">
+                <img ng-src="../api/file/{{ file.id }}/data?size=thumb" />
+              </a>
+              <div class="file-info">
+                <div class="v-align file-name pointer"
+                     ng-click="openFile(document, file, $event)"
+                     title="{{ file.name || ('v' + (file.version + 1) + '.0') }}">
+                  {{ file.name || ('v' + (file.version + 1) + '.0') }}
+                </div>
+                <div class="v-align">
+                  <a class="btn btn-xs btn-default"
+                     ng-href="../api/file/{{ file.id }}/data"
+                     target="_blank"
+                     uib-tooltip="{{ 'download' | translate }}"
+                     ng-click="$event.stopPropagation()">
+                    <span class="fas fa-download"></span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="text-center pagination-box" ng-if="totalDocuments > 0">
+    <ul uib-pagination
+        ng-if="paginationShown"
+        previous-text="{{ 'pagination.previous' | translate }}"
+        next-text="{{ 'pagination.next' | translate }}"
+        first-text="{{ 'pagination.first' | translate }}"
+        last-text="{{ 'pagination.last' | translate }}"
+        total-items="totalDocuments"
+        items-per-page="$parent.limit"
+        max-size="5"
+        ng-model="$parent.currentPage"></ul>
+    <label class="sr-only" for="tagPagesizeSelect">{{ 'document.page_size' | translate }}</label>
+    <select ng-model="limit" id="tagPagesizeSelect" class="form-control">
+      <option value="10">{{ 'document.page_size_10' | translate }}</option>
+      <option value="20">{{ 'document.page_size_20' | translate }}</option>
+      <option value="30">{{ 'document.page_size_30' | translate }}</option>
+    </select>
+  </div>
+</div>
+
+<div ui-view="file"></div>

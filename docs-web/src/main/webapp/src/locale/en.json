@@ -29,13 +29,19 @@
   },
   "index": {
     "toggle_navigation": "Toggle navigation",
-    "nav_documents": "Documents",
+    "nav_documents": "Document Management",
     "nav_tags": "Tags",
+    "nav_tag_management": "Tag Management",
     "nav_users_groups": "Users & Groups",
     "error_info": "{{ count }} new error{{ count > 1 ? 's' : '' }}",
     "logged_as": "Logged in as {{ username }}",
     "nav_settings": "Settings",
     "logout": "Logout",
+    "theme_light": "Light Mode",
+    "theme_dark": "Dark Mode",
+    "font_decrease": "Decrease Font Size (A-)",
+    "font_reset": "Reset Font Size (100%)",
+    "font_increase": "Increase Font Size (A+)",
     "global_quota_warning": "<strong>Warning!</strong> Global quota almost reached at {{ current | number: 0 }}MB ({{ percent | number: 1 }}%) used on {{ total | number: 0 }}MB"
   },
   "document": {
@@ -224,6 +230,18 @@
   "tag": {
     "new_tag": "New tag",
     "search": "Search",
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all",
+    "browse": {
+      "tree_title": "Tag Categories",
+      "welcome_title": "Browse Documents & Files by Tag",
+      "welcome_message": "Please select a tag on the left to list all associated documents and files.",
+      "subtags": "Sub-tags",
+      "subtag_count": "{{ count }} sub-folder(s)",
+      "filter_placeholder": "Filter documents or files within this tag...",
+      "no_documents": "No documents associated with this tag",
+      "no_files_in_doc": "No files attached to this document"
+    },
     "default": {
       "title": "Tags",
       "message_1": "<strong>Tags</strong> are labels associated to documents.",
@@ -412,6 +430,13 @@
       "enable_guest_access": "Enable guest access",
       "disable_guest_access": "Disable guest access",
       "title_theme": "Theme customization",
+      "color_scheme": "Appearance Mode",
+      "font_size": "Font Size",
+      "font_small": "Small",
+      "font_normal": "Default",
+      "font_medium": "Medium",
+      "font_large": "Large",
+      "font_xlarge": "X-Large",
       "title_general": "General configuration",
       "default_language": "Default language for new documents",
       "application_name": "Application name",
@@ -437,7 +462,30 @@
       "webhook_event": "Event",
       "webhook_url": "URL",
       "webhook_create_date": "Create date",
-      "webhook_add": "Add a webhook"
+      "webhook_add": "Add a webhook",
+      "title_storage": "File Storage & Management",
+      "storage_path_label": "Server Data Storage Root Path",
+      "title_file_encrypt": "File Storage Encryption (file.encrypt)",
+      "file_encrypt_mode_encrypted": "Encrypted Storage Enabled",
+      "file_encrypt_mode_unencrypted": "Unencrypted (Original Format)",
+      "file_encrypt_locked_badge": "Permanently Locked (Immutable)",
+      "message_file_encrypt": "Determines whether uploaded files are stored encrypted (AES-256) on the server disk. Note: This is a one-time initialization decision. Once locked or once any file is uploaded, it cannot be changed.",
+      "lock_unencrypted_btn": "Confirm & Lock: Unencrypted Storage (Recommended)",
+      "lock_encrypted_btn": "Confirm & Lock: Enable AES-256 Encrypted Storage",
+      "file_encrypt_confirm_title": "Confirm Permanent Lock of File Encryption Mode",
+      "file_encrypt_confirm_message": "You are about to set the file encryption mode to '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Warning: Once confirmed, this setting will be permanently locked and can never be changed!</span> Proceed?",
+      "first_time_encrypt_title": "First-Time Setup: Choose File Storage Encryption Mode",
+      "first_time_encrypt_message": "Welcome to FormosaBearV! Before uploading files, please choose and lock the <strong>File Storage Mode (file.encrypt)</strong>:<br/><br/>1. <strong>Unencrypted Storage (Recommended)</strong>: Files are stored in their original format organized by user and document folders, making direct backup and maintenance easy.<br/>2. <strong>AES-256 Encrypted Storage</strong>: All uploaded files are encrypted on disk and cannot be read directly from the filesystem.<br/><br/><strong class='text-danger'>⚠️ Warning: This setting is permanently locked after confirmation (or after the first file upload) and cannot be changed later!</strong>",
+      "title_file_delete": "Disk File Deletion Mode (file.delete)",
+      "file_delete_permanent": "Permanently Delete from Disk",
+      "file_delete_recycle": "Move to Recycle Directory (delete/storage)",
+      "message_file_delete": "Controls whether deleting a file permanently removes the physical file from disk or moves it to the delete/storage recycle directory.",
+      "enable_file_delete": "Switch to: Permanently Delete from Disk",
+      "disable_file_delete": "Switch to: Move to Recycle Directory",
+      "title_file_duplicate": "Allow Duplicate File Names (file.duplicate)",
+      "message_file_duplicate": "Controls whether the same user is allowed to upload multiple files with the same file name.",
+      "enable_file_duplicate": "Enable Duplicate File Names",
+      "disable_file_duplicate": "Disallow Duplicate File Names"
     },
     "metadata": {
       "title": "Custom metadata configuration",
@@ -556,7 +604,11 @@
       "typeahead": "Type a document title"
     },
     "selecttag": {
-      "typeahead": "Type a tag"
+      "typeahead": "Type to search tags, or click Browse Tags on the right...",
+      "browse_tree": "Browse Tags",
+      "hide_tree": "Hide Tag Tree",
+      "tree_hint": "Click any tag to select or deselect, or filter using the input above",
+      "no_tags": "No tags available"
     },
     "datepicker": {
       "current": "Today",

@@ -26,6 +26,20 @@
 - [x] 4.2 以英文全面改寫 `README.md`，標註專案 Fork 自 `https://github.com/fmaass/teedy-docs` 1.12、版本自 `2.01` 開始，移除所有原專案 (`sismics` / `teedy.io`) 相關連結與圖示，並更新為 Java 21 與 Jetty 12.1 的建置與運行說明
 - [x] 4.3 執行完整 Maven 測試與打包驗證，確保所有模組在 Java 21、Jetty 12.1 (EE10)、Jersey 3.1.9 與 H2 2.3.232 下建置成功
 
+## 5. 導覽列重構、可展開收合標籤樹與標籤檔案瀏覽實作
+
+- [x] 5.1 更新 `index.html`、`Navigation.js`、`Main.js`、`Login.js` 與語系檔（`zh_TW.json`、`zh_CN.json`、`en.json`），將導覽列改為「標籤」、「文件管理」、「標籤管理（限權限者）」、「帳號 & 群組」，並將登入後預設首頁改為 `tag.default` (`#/tag`)
+- [x] 5.2 重構 `app.js`、`Tag.js`、`TagEdit.js` 並新增 `TagView.js`、`tag.view.html`、`tag.admin.html`，實作左側標籤樹展開/收合機制，以及「標籤 (`#/tag/:id`)」右側顯示關聯文件卡片與附屬檔案縮圖、標籤內篩選/排序/分頁與原頁檔案預覽視窗
+- [x] 5.3 於 `TagDao` 與 `TagResource` 新增標籤關聯文件數 (`document_count`) 統計，並在左側標籤樹與子標籤區塊同時顯示「子目錄數 (`fa-folder`)」與「文件數 (`fa-file-alt`)」
+- [x] 5.4 執行 `mvn clean package -Pprod -DskipTests` 重新編譯前端與打包 `docs-web-2.01.war`
+
+## 6. 實體檔案儲存架構文件化 (`STORAGE.md`) 與儲存設定網頁化 (`file.encrypt` / `file.delete` / `file.duplicate`)
+
+- [x] 6.1 撰寫專案根目錄 `STORAGE.md`，完整記錄各作業系統預設存放路徑、`DOCS_HOME`、目錄結構 (`storage/`、`delete/storage/`、`db/`、`lucene/`) 以及加密與非加密儲存命名規則與流程圖
+- [x] 6.2 擴充 `ConfigType`、`ConfigUtil`、`DirectoryUtil`、`FileUtil`、`FileResource` 與 `AppResource`，將 `file.delete`、`file.duplicate` 改為資料庫動態設定，並實作 `file.encrypt` 首次初始化一次性認定與永久鎖定機制 (`FILE_ENCRYPT_LOCKED`)
+- [x] 6.3 更新前端 `SettingsConfig.js`、`settings.config.html`、`Navigation.js` 與三語系檔 (`zh_TW.json`、`zh_CN.json`、`en.json`)，於「設置 -> 設定」顯示伺服器實體存放路徑、儲存管理設定，以及管理員首次登入自動引導認定 `file.encrypt` 視窗
+- [x] 6.4 執行 `mvn clean package -Pprod -DskipTests` 重新編譯後端與前端並更新 `docs-web-2.01.war`
+
 ## Workflow follow-up
 
 - 待所有任務實作與測試驗證完成後，執行 OpenSpec 變更歸檔 (`openspec archive`) 並自動重新生成 `openspec/specs/README.md`。

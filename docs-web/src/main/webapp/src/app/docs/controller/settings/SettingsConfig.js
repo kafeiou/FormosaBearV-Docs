@@ -3,7 +3,7 @@
 /**
  * Settings config page controller.
  */
-angular.module('docs').controller('SettingsConfig', function($scope, $rootScope, Restangular) {
+angular.module('docs').controller('SettingsConfig', function($scope, $rootScope, Restangular, $dialog, $translate) {
   // Get the app configuration
   Restangular.one('app').get().then(function (data) {
     $rootScope.app = data;
@@ -27,6 +27,48 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
       enabled: enabled
     }).then(function () {
       $scope.app.ocr_enabled = enabled;
+    });
+  };
+
+  // Enable/disable permanent file deletion on disk (file.delete)
+  $scope.changeFileDelete = function (enabled) {
+    Restangular.one('app').post('file_delete', {
+      enabled: enabled
+    }).then(function () {
+      $scope.app.file_delete = enabled;
+    });
+  };
+
+  // Enable/disable duplicate filenames (file.duplicate)
+  $scope.changeFileDuplicate = function (enabled) {
+    Restangular.one('app').post('file_duplicate', {
+      enabled: enabled
+    }).then(function () {
+      $scope.app.file_duplicate = enabled;
+    });
+  };
+
+  // One-time lock for file encryption mode (file.encrypt)
+  $scope.lockFileEncrypt = function (enabled) {
+    var title = $translate.instant('settings.config.file_encrypt_confirm_title');
+    var modeText = enabled ?
+      $translate.instant('settings.config.file_encrypt_mode_encrypted') :
+      $translate.instant('settings.config.file_encrypt_mode_unencrypted');
+    var msg = $translate.instant('settings.config.file_encrypt_confirm_message', { mode: modeText });
+    var btns = [
+      { result: 'cancel', label: $translate.instant('cancel') },
+      { result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }
+    ];
+
+    $dialog.messageBox(title, msg, btns, function (result) {
+      if (result === 'ok') {
+        Restangular.one('app').post('file_encrypt', {
+          enabled: enabled
+        }).then(function () {
+          $scope.app.file_encrypt = enabled;
+          $scope.app.file_encrypt_locked = true;
+        });
+      }
     });
   };
 

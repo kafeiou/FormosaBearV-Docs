@@ -5,6 +5,10 @@ import java.util.ResourceBundle;
 import com.sismics.docs.core.constant.ConfigType;
 import com.sismics.docs.core.dao.ConfigDao;
 import com.sismics.docs.core.model.jpa.Config;
+import com.sismics.util.context.ThreadLocalContext;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
 /**
  * Configuration parameter utilities.
@@ -12,45 +16,128 @@ import com.sismics.docs.core.model.jpa.Config;
  */
 public class ConfigUtil {
 
-    private static Boolean isFileEncrypt = null;
-    private static Boolean isSoftDelete = null;
-    private static Boolean canFileDuplicate = null;
+    private static Boolean cachedFileEncrypt = null;
 
-    public static boolean isFileEncrypt(){    
-      if( isFileEncrypt == null ){
-        try{
-          isFileEncrypt = ConfigUtil.getConfigBundle().getString("file.encrypt").equals("1") ;
-        }
-        catch(Exception ee){
-          isFileEncrypt = true;
-        }
-      }
-      return isFileEncrypt;
+    private static boolean hasActiveEntityManager() {
+        return ThreadLocalContext.get() != null && ThreadLocalContext.get().getEntityManager() != null;
     }
 
-    public static boolean isFileDelete(){
-      if( isSoftDelete == null ){
-        try{
-          isSoftDelete = ConfigUtil.getConfigBundle().getString("file.delete").equals("1");
+    private static boolean getBundleBoolean(String key, boolean defaultVal) {
+        try {
+            return "1".equals(getConfigBundle().getString(key).trim())
+                    || "true".equalsIgnoreCase(getConfigBundle().getString(key).trim());
+        } catch (Exception e) {
+            return defaultVal;
         }
-        catch(Exception ee){
-          isSoftDelete = true;
-        }
-      }
-      return isSoftDelete;
-     }
+    }
 
-     public static boolean canFileDuplicate(){
-        if( canFileDuplicate == null ){
-          try{
-            canFileDuplicate = ConfigUtil.getConfigBundle().getString("file.duplicate").equals("1") ;
-          }catch(Exception ee){
-            canFileDuplicate = true;
-          }
+    /**
+     * Returns true if uploaded files should be encrypted on disk.
+     * Once locked in the database, this value can never be changed.
+     */
+    public static boolean isFileEncrypt() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config config = configDao.getById(ConfigType.FILE_ENCRYPT);
+                if (config != null && config.getValue() != null) {
+                    boolean val = "1".equals(config.getValue().trim()) || Boolean.parseBoolean(config.getValue().trim());
+                    cachedFileEncrypt = val;
+                    return val;
+                }
+            } catch (Exception ignored) {
+            }
         }
-        return canFileDuplicate;
-     }
- 
+        if (cachedFileEncrypt == null) {
+            cachedFileEncrypt = getBundleBoolean("file.encrypt", false);
+        }
+        return cachedFileEncrypt;
+    }
+
+    /**
+     * Returns true if the file encryption mode has been permanently locked.
+     * Also automatically locks if any file already exists in T_FILE.
+     */
+    public static boolean isFileEncryptLocked() {
+        if (!hasActiveEntityManager()) {
+            return true;
+        }
+        try {
+            ConfigDao configDao = new ConfigDao();
+            Config lockedConfig = configDao.getById(ConfigType.FILE_ENCRYPT_LOCKED);
+            if (lockedConfig != null && ("1".equals(lockedConfig.getValue()) || Boolean.parseBoolean(lockedConfig.getValue()))) {
+                return true;
+            }
+            EntityManager em = ThreadLocalContext.get().getEntityManager();
+            Query q = em.createNativeQuery("select count(f.FIL_ID_C) from T_FILE f");
+            long fileCount = ((Number) q.getSingleResult()).longValue();
+            if (fileCount > 0) {
+                boolean currentEncrypt = isFileEncrypt();
+                configDao.update(ConfigType.FILE_ENCRYPT, Boolean.toString(currentEncrypt));
+                configDao.update(ConfigType.FILE_ENCRYPT_LOCKED, "true");
+                cachedFileEncrypt = currentEncrypt;
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    /**
+     * Permanently lock the file encryption mode.
+     */
+    public static void lockFileEncrypt(boolean encrypt) {
+        cachedFileEncrypt = encrypt;
+        if (hasActiveEntityManager()) {
+            ConfigDao configDao = new ConfigDao();
+            configDao.update(ConfigType.FILE_ENCRYPT, Boolean.toString(encrypt));
+            configDao.update(ConfigType.FILE_ENCRYPT_LOCKED, "true");
+        }
+    }
+
+    /**
+     * Ensure file encryption mode is locked (called when the first file is created).
+     */
+    public static void ensureFileEncryptLocked() {
+        if (hasActiveEntityManager() && !isFileEncryptLocked()) {
+            lockFileEncrypt(isFileEncrypt());
+        }
+    }
+
+    /**
+     * Returns true if deleting a file should permanently delete it from disk (instead of moving to delete/storage).
+     */
+    public static boolean isFileDelete() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config config = configDao.getById(ConfigType.FILE_DELETE);
+                if (config != null && config.getValue() != null) {
+                    return "1".equals(config.getValue().trim()) || Boolean.parseBoolean(config.getValue().trim());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return getBundleBoolean("file.delete", false);
+    }
+
+    /**
+     * Returns true if duplicate filenames are allowed for the same user.
+     */
+    public static boolean canFileDuplicate() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config config = configDao.getById(ConfigType.FILE_DUPLICATE);
+                if (config != null && config.getValue() != null) {
+                    return "1".equals(config.getValue().trim()) || Boolean.parseBoolean(config.getValue().trim());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return getBundleBoolean("file.duplicate", false);
+    }
+
     /**
      * Returns the textual value of a configuration parameter.
      *
