@@ -129,7 +129,7 @@ version: '3'
 services:
 # FormosaBearV Application
   formosabearv-docs:
-    build: kafeiou/formosabearv-docs:latest
+    image: kafeiou/formosabearv-docs:latest
     restart: unless-stopped
     ports:
       # Map internal port to host
@@ -188,7 +188,7 @@ version: '3'
 services:
 # FormosaBearV Application
   formosabearv-docs:
-    build: kafeiou/formosabearv-docs:latest
+    image: kafeiou/formosabearv-docs:latest
     restart: unless-stopped
     ports:
       # Map internal port to host
