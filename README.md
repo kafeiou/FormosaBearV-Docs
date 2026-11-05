@@ -128,7 +128,7 @@ In the following examples some passwords are exposed in cleartext. This was done
 version: '3'
 services:
 # FormosaBearV Application
-  FormosaBearV-docs:
+  formosabearv-docs:
     build: kafeiou/formosabearv-docs:latest
     restart: unless-stopped
     ports:
@@ -187,7 +187,7 @@ networks:
 version: '3'
 services:
 # FormosaBearV Application
-  FormosaBearV-docs:
+  formosabearv-docs:
     build: kafeiou/formosabearv-docs:latest
     restart: unless-stopped
     ports:
