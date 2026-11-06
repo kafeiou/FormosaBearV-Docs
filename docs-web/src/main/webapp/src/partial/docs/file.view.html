@@ -22,10 +22,7 @@
   </div>
   
   <div class="btn-group pull-right">
-    <button type="button" class="btn btn-default" uib-tooltip="Print this file" tooltip-append-to-body="true" ng-click="printFile()">
-      <span class="fas fa-print"></span>
-    </button>
-    <button type="button" class="btn btn-default" uib-tooltip="Download this file" tooltip-append-to-body="true" ng-click="openFile()">
+    <button type="button" class="btn btn-default" ng-if="canDownload()" uib-tooltip="Download this file" tooltip-append-to-body="true" ng-click="openFile()">
       <span class="fas fa-download"></span>
     </button>
     <button type="button" class="btn btn-default" uib-tooltip="Show text content" tooltip-append-to-body="true" ng-click="openFileContent()">
@@ -34,26 +31,69 @@
   </div>
 </div>
 
-<div class="text-center" style="position: relative;" ng-if="$stateParams.fileId">
-  <!-- Standard preview -->
+<!-- Dedicated PDF toolbar when viewing PDF -->
+<div ng-if="isPdf()" class="text-center" style="margin-top: 10px; margin-bottom: 5px;">
+  <div class="btn-group btn-group-sm" style="display: inline-flex; align-items: center; vertical-align: middle;">
+    <button type="button" class="btn btn-default" ng-click="prevPdfPage()" ng-disabled="pdfCurrentPage <= 1" uib-tooltip="{{ 'file.view.prev_page' | translate }}" tooltip-append-to-body="true">
+      <span class="fas fa-chevron-left"></span>
+    </button>
+    <span class="btn btn-default" style="cursor: default; font-weight: bold; min-width: 90px;">
+      {{ pdfCurrentPage }} / {{ pdfTotalPages }}
+    </span>
+    <button type="button" class="btn btn-default" ng-click="nextPdfPage()" ng-disabled="pdfCurrentPage >= pdfTotalPages" uib-tooltip="{{ 'file.view.next_page' | translate }}" tooltip-append-to-body="true">
+      <span class="fas fa-chevron-right"></span>
+    </button>
+  </div>
+
+  <div class="btn-group btn-group-sm" style="display: inline-flex; align-items: center; vertical-align: middle; margin-left: 8px;">
+    <button type="button" class="btn btn-default" ng-click="zoomPdf(-0.2)" ng-disabled="pdfScale <= 0.6" uib-tooltip="{{ 'file.view.zoom_out' | translate }}" tooltip-append-to-body="true">
+      <span class="fas fa-search-minus"></span>
+    </button>
+    <button type="button" class="btn btn-default" ng-click="fitPdfWidth()" uib-tooltip="{{ 'file.view.fit_width' | translate }}" tooltip-append-to-body="true" style="min-width: 65px;">
+      {{ Math.round(pdfScale * 100) }}%
+    </button>
+    <button type="button" class="btn btn-default" ng-click="zoomPdf(0.2)" ng-disabled="pdfScale >= 3.0" uib-tooltip="{{ 'file.view.zoom_in' | translate }}" tooltip-append-to-body="true">
+      <span class="fas fa-search-plus"></span>
+    </button>
+  </div>
+
+  <div class="btn-group btn-group-sm" style="display: inline-flex; align-items: center; vertical-align: middle; margin-left: 8px;">
+    <button type="button" class="btn btn-default" ng-click="rotatePdf()" uib-tooltip="{{ 'file.view.rotate' | translate }}" tooltip-append-to-body="true">
+      <span class="fas fa-redo"></span>
+    </button>
+  </div>
+</div>
+
+<div class="text-center" style="position: relative; min-height: 400px; margin-top: 10px;" ng-if="$stateParams.fileId">
+  <!-- Interactive PDF.js Reader -->
+  <div ng-if="isPdf()" class="pdf-container" oncontextmenu="return false;" ondragstart="return false;" style="position: relative; overflow: auto; max-height: 75vh; min-height: 480px; background: #525659; border-radius: 4px; padding: 15px; text-align: center; user-select: none; -webkit-user-select: none;">
+    <div ng-if="pdfLoading" style="position: absolute; top: 40%; left: 0; right: 0; color: #fff; font-size: 16px; z-index: 10;">
+      <span class="fas fa-spinner fa-spin fa-2x"></span>
+      <div style="margin-top: 10px;">{{ 'file.view.pdf_loading' | translate }}</div>
+    </div>
+    <div ng-if="pdfError" class="alert alert-warning" style="display: inline-block; margin-top: 50px;">
+      <span class="fas fa-exclamation-triangle"></span> {{ 'file.view.pdf_error' | translate }}
+    </div>
+    <canvas id="pdf-canvas" ng-show="!pdfError" oncontextmenu="return false;" ondragstart="return false;" draggable="false" style="box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 2px; max-width: 100%; display: inline-block; vertical-align: middle; background: #fff; user-select: none; -webkit-user-select: none;"></canvas>
+  </div>
+
+  <!-- Standard preview for non-PDF (1280px high-res web preview image) -->
   <img ng-src="../api/file/{{ $stateParams.fileId }}/data?size=web"
-       ng-init="error = false"
-       img-error="error = true"
-       ng-show="!error && canDisplayPreview()" />
+       ng-init="imgError = false"
+       img-error="imgError = true"
+       ng-if="!isPdf() && canDisplayPreview() && !imgError"
+       oncontextmenu="return false;" ondragstart="return false;" draggable="false" style="max-width: 100%; height: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 4px; user-select: none; -webkit-user-select: none;" />
 
   <!-- Media player -->
-  <a href class="video-overlay" ng-if="!error && (file.mimetype.substring(0, 6) == 'video/' || file.mimetype.substring(0, 6) == 'audio/')"
+  <a href class="video-overlay" ng-if="file && (file.mimetype.substring(0, 6) == 'video/' || file.mimetype.substring(0, 6) == 'audio/')"
      ng-init="videoPlayer = false" ng-click="videoPlayer = true">
     <span class="fas fa-play-circle" ng-if="!videoPlayer"></span>
     <video ng-if="videoPlayer" autoplay="autoplay" loop="loop"
            controls="controls" ng-src="../api/file/{{ $stateParams.fileId }}/data"></video>
   </a>
 
-  <!-- PDF viewer -->
-  <iframe ng-src="{{ trustedFileUrl }}" class="pdf-viewer" scrolling="yes" ng-if="!error && file.mimetype == 'application/pdf'"></iframe>
-
-  <!-- File not found -->
-  <p class="well-lg" ng-show="error">
+  <!-- File not found / preview error -->
+  <p class="well-lg" ng-show="imgError && !isPdf()">
     <span class="fas fa-exclamation-triangle"></span>
     {{ 'file.view.not_found' | translate }}
   </p>

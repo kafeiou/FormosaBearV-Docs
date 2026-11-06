@@ -35,7 +35,7 @@ const askBaseUrl = () => {
     {
       type: 'input',
       name: 'baseUrl',
-      message: 'What is the base URL of your Teedy? (eg. https://teedy.mycompany.com)',
+      message: 'What is the base URL of your FormosaBearV-docs? (eg. https://formosabearv.mycompany.com)',
       default: prefs.importer.baseUrl
     }
   ]).then(answers => {

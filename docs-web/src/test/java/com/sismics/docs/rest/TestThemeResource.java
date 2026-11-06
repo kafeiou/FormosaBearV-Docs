@@ -37,7 +37,7 @@ public class TestThemeResource extends BaseJerseyTest {
         // Get the theme configuration anonymously
         JsonObject json = target().path("/theme").request()
                 .get(JsonObject.class);
-        Assert.assertEquals("teedy-ng", json.getString("name"));
+        Assert.assertEquals("FormosaBearV", json.getString("name"));
         Assert.assertEquals("#ffffff", json.getString("color"));
         Assert.assertEquals("", json.getString("css"));
 
@@ -109,7 +109,7 @@ public class TestThemeResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .post(Entity.form(new Form()
                         .param("color", "#ffffff")
-                .param("name", "teedy-ng")
+                .param("name", "FormosaBearV")
                 .param("css", "")), JsonObject.class);
     }
 }

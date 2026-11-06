@@ -1,0 +1,180 @@
+<div>
+  <h2>{{ 'settings.backup.title' | translate }}</h2>
+  <p class="text-muted">{{ 'settings.backup.description' | translate }}</p>
+
+  <!-- 1. System Status Panel -->
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title"><span class="fas fa-info-circle"></span> {{ 'settings.backup.system_status' | translate }}</h3>
+    </div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-6">
+          <table class="table table-bordered table-striped">
+            <tbody>
+              <tr>
+                <th style="width: 50%;">{{ 'settings.backup.db_engine' | translate }}</th>
+                <td><span class="label label-info">{{ info.database_driver || '...' }}</span></td>
+              </tr>
+              <tr>
+                <th>{{ 'settings.backup.storage_mode' | translate }}</th>
+                <td>
+                  <span class="label" ng-class="info.file_encrypt ? 'label-warning' : 'label-success'">
+                    {{ (info.file_encrypt ? 'settings.backup.encrypted' : 'settings.backup.unencrypted') | translate }}
+                  </span>
+                  <span class="label label-default" ng-if="info.file_encrypt_locked">
+                    {{ 'settings.backup.locked' | translate }}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <th>{{ 'settings.backup.soft_delete' | translate }}</th>
+                <td>
+                  <span class="label" ng-class="info.file_delete ? 'label-success' : 'label-default'">
+                    {{ (info.file_delete ? 'common.enabled' : 'common.disabled') | translate }}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <th>{{ 'settings.backup.allow_duplicate' | translate }}</th>
+                <td>
+                  <span class="label" ng-class="info.file_duplicate ? 'label-success' : 'label-default'">
+                    {{ (info.file_duplicate ? 'common.enabled' : 'common.disabled') | translate }}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <th>{{ 'settings.backup.allow_download' | translate }}</th>
+                <td>
+                  <span class="label" ng-class="info.file_download ? 'label-success' : 'label-default'">
+                    {{ (info.file_download ? 'common.enabled' : 'common.disabled') | translate }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <table class="table table-bordered table-striped">
+            <tbody>
+              <tr>
+                <th style="width: 50%;">{{ 'settings.backup.document_count' | translate }}</th>
+                <td><strong>{{ info.document_count || 0 }}</strong></td>
+              </tr>
+              <tr>
+                <th>{{ 'settings.backup.file_count' | translate }}</th>
+                <td><strong>{{ info.file_count || 0 }}</strong></td>
+              </tr>
+              <tr>
+                <th>{{ 'settings.backup.storage_size' | translate }}</th>
+                <td><strong>{{ (info.storage_size_bytes || 0) | filesize }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Export / Backup Section -->
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title"><span class="fas fa-file-archive"></span> {{ 'settings.backup.export_section_title' | translate }}</h3>
+    </div>
+    <div class="panel-body">
+      <p>{{ 'settings.backup.export_explain' | translate }}</p>
+      <ul>
+        <li><strong>dump.sql</strong>：{{ 'settings.backup.explain_dump_sql' | translate }}</li>
+        <li><strong>config.json</strong>：{{ 'settings.backup.explain_config_json' | translate }}</li>
+        <li><strong>storage/</strong> 與 <strong>delete/</strong>：{{ 'settings.backup.explain_files' | translate }}</li>
+      </ul>
+      <div style="margin-top: 15px;">
+        <button class="btn btn-primary btn-lg" ng-click="downloadBackup()" ng-disabled="downloading">
+          <span class="fas fa-download"></span>
+          <span ng-if="!downloading">{{ 'settings.backup.download_button' | translate }}</span>
+          <span ng-if="downloading">{{ 'settings.backup.downloading' | translate }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Restore Section -->
+  <div class="panel panel-danger">
+    <div class="panel-heading">
+      <h3 class="panel-title"><span class="fas fa-history"></span> {{ 'settings.backup.restore_section_title' | translate }}</h3>
+    </div>
+    <div class="panel-body">
+      <div class="alert alert-warning">
+        <span class="fas fa-exclamation-triangle"></span>
+        <strong>{{ 'settings.backup.warning_title' | translate }}</strong>
+        <p>{{ 'settings.backup.warning_message' | translate }}</p>
+      </div>
+
+      <!-- File upload dropzone -->
+      <div class="drop-box pointer text-center"
+           ngf-drop ngf-select
+           ng-model="backupFile"
+           ngf-drag-over-class="'dragover'"
+           ngf-multiple="false"
+           ngf-pattern="'.zip,application/zip'"
+           ng-hide="restoring"
+           style="border: 2px dashed #bbb; border-radius: 6px; padding: 30px; background: #fafafa; margin-bottom: 15px;">
+        <span class="fas fa-cloud-upload-alt fa-3x" style="color: #888;"></span>
+        <div style="margin-top: 10px;" ng-if="!backupFile">
+          <strong>{{ 'settings.backup.select_or_drag_file' | translate }}</strong>
+          <div class="text-muted">{{ 'settings.backup.zip_only' | translate }}</div>
+        </div>
+        <div style="margin-top: 10px;" ng-if="backupFile">
+          <span class="label label-primary" style="font-size: 14px;">
+            <span class="fas fa-file-archive"></span> {{ backupFile.name }} ({{ backupFile.size | filesize }})
+          </span>
+          <div class="text-muted" style="margin-top: 5px;">{{ 'settings.backup.click_to_change_file' | translate }}</div>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div ng-show="restoring" style="margin-bottom: 15px;">
+        <div class="text-center" style="margin-bottom: 5px;">
+          <strong>{{ restoreStatusMessage }}</strong> ({{ progressPercentage }}%)
+        </div>
+        <div class="progress progress-striped active">
+          <div class="progress-bar progress-bar-danger" role="progressbar" ng-style="{ width: progressPercentage + '%' }">
+            {{ progressPercentage }}%
+          </div>
+        </div>
+      </div>
+
+      <!-- Success Alert -->
+      <div class="alert alert-success" ng-if="restoreSuccess">
+        <span class="fas fa-check-circle"></span>
+        <strong>{{ 'settings.backup.restore_success_title' | translate }}</strong>
+        <p>{{ 'settings.backup.restore_success_message' | translate }}</p>
+        <button class="btn btn-success" ng-click="reloadPage()" style="margin-top: 10px;">
+          <span class="fas fa-sync-alt"></span> {{ 'settings.backup.reload_page' | translate }}
+        </button>
+      </div>
+
+      <!-- Error Alert -->
+      <div class="alert alert-danger" ng-if="restoreError">
+        <span class="fas fa-times-circle"></span>
+        <strong>{{ 'settings.backup.restore_error_title' | translate }}</strong>
+        <p>{{ restoreErrorMessage }}</p>
+      </div>
+
+      <div>
+        <button class="btn btn-danger btn-lg"
+                ng-click="confirmAndRestore()"
+                ng-disabled="!backupFile || restoring || restoreSuccess">
+          <span class="fas fa-undo"></span>
+          {{ 'settings.backup.start_restore_button' | translate }}
+        </button>
+        <button class="btn btn-default"
+                ng-click="clearFile()"
+                ng-disabled="!backupFile || restoring"
+                ng-if="backupFile && !restoreSuccess">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -35,6 +35,7 @@ public enum ConfigType {
      */
     FILE_DELETE,
     FILE_DUPLICATE,
+    FILE_DOWNLOAD,
     FILE_ENCRYPT,
     FILE_ENCRYPT_LOCKED,
 

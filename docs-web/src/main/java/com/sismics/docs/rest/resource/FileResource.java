@@ -35,8 +35,12 @@ import com.sismics.docs.core.model.jpa.File;
 import com.sismics.docs.core.model.jpa.User;
 import com.sismics.docs.core.util.ConfigUtil;
 import com.sismics.docs.core.util.DirectoryUtil;
+import com.sismics.docs.core.util.PdfUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.sismics.docs.core.util.EncryptionUtil;
 import com.sismics.docs.core.util.FileUtil;
+import com.sismics.docs.rest.constant.BaseFunction;
 import com.sismics.rest.exception.ClientException;
 import com.sismics.rest.exception.ForbiddenClientException;
 import com.sismics.rest.exception.ServerException;
@@ -74,6 +78,7 @@ import jakarta.ws.rs.core.StreamingOutput;
  */
 @Path("/file")
 public class FileResource extends BaseResource {
+    private static final Logger log = LoggerFactory.getLogger(FileResource.class);
     /**
      * Add a file (with or without a document).
      *
@@ -653,7 +658,7 @@ public class FileResource extends BaseResource {
      */
     @GET
     @Path("{id: [a-z0-9\\-]+}/data")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.WILDCARD)
     public Response data(
             @PathParam("id") final String fileId,
             @QueryParam("share") String shareId,
@@ -712,10 +717,11 @@ public class FileResource extends BaseResource {
             stream = outputStream -> {
                 try {
                     ByteStreams.copy(responseInputStream, outputStream);
+                } catch (IOException e) {
+                    // Client abort or connection closed by client, ignore safely
                 } finally {
                     try {
                         responseInputStream.close();
-                        outputStream.close();
                     } catch (IOException e) {
                         // Ignore
                     }
@@ -729,10 +735,14 @@ public class FileResource extends BaseResource {
             com.sismics.docs.core.util.AuditLogUtil.create(file, AuditLogType.DOWNLOAD, user.getId());
         }
 
-        Response.ResponseBuilder builder = Response.ok(stream)
+        String filename = file.getFullName(size != null ? "preview" : "data");
+        String encodedFilename = filenameEncode(filename);
+        String cleanAsciiFilename = filename.replaceAll("[^a-zA-Z0-9._-]", "_");
+        String disposition = "inline; filename=\"" + cleanAsciiFilename + "\"; filename*=UTF-8''" + encodedFilename;
+
+        Response.ResponseBuilder builder = Response.ok(stream, mimeType)
                 .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache")
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename*=utf-8''" + filenameEncode(  file.getFullName("data") ))
-                .header(HttpHeaders.CONTENT_TYPE, mimeType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
                 .header(HttpHeaders.EXPIRES, "0");                
         return builder.build();
     }
@@ -743,6 +753,66 @@ public class FileResource extends BaseResource {
         } catch (java.io.UnsupportedEncodingException e) {
             e.printStackTrace();
             return name;
+        }
+    }
+
+    /**
+     * Returns the file converted to a multi-page PDF (or the original if it is already a PDF).
+     *
+     * @param fileId File ID
+     * @param shareId Share ID
+     * @return Response with application/pdf stream
+     */
+    @GET
+    @Path("{id: [a-z0-9\\-]+}/pdf")
+    @Produces(MimeType.APPLICATION_PDF)
+    public Response pdf(
+            @PathParam("id") final String fileId,
+            @QueryParam("share") String shareId) {
+        authenticate();
+
+        File file = findFile(fileId, shareId);
+        UserDao userDao = new UserDao();
+        User user = userDao.getById(file.getUserId());
+
+        try {
+            java.nio.file.Path pdfFile = PdfUtil.getOrCreatePdfFile(file, user);
+            if (pdfFile == null || !Files.exists(pdfFile)) {
+                throw new NotFoundException();
+            }
+
+            InputStream fileInputStream = Files.newInputStream(pdfFile);
+            final InputStream responseInputStream = ConfigUtil.isFileEncrypt() ?
+                    EncryptionUtil.decryptInputStream(fileInputStream, user.getPrivateKey()) : fileInputStream;
+
+            StreamingOutput stream = outputStream -> {
+                try {
+                    ByteStreams.copy(responseInputStream, outputStream);
+                } catch (IOException e) {
+                    // Client abort or connection closed safely
+                } finally {
+                    try {
+                        responseInputStream.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+            };
+
+            String filename = file.getName();
+            int dotIdx = filename.lastIndexOf('.');
+            String pdfName = (dotIdx > 0 ? filename.substring(0, dotIdx) : filename) + ".pdf";
+            String encodedFilename = filenameEncode(pdfName);
+            String cleanAsciiFilename = pdfName.replaceAll("[^a-zA-Z0-9._-]", "_");
+            String disposition = "inline; filename=\"" + cleanAsciiFilename + "\"; filename*=UTF-8''" + encodedFilename;
+
+            return Response.ok(stream, MimeType.APPLICATION_PDF)
+                    .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                    .header(HttpHeaders.EXPIRES, "0")
+                    .build();
+        } catch (Exception e) {
+            log.error("Error generating PDF preview for file: " + fileId, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -808,6 +878,9 @@ public class FileResource extends BaseResource {
     public Response zip(
             @FormParam("files") List<String> filesIdsList) {
         authenticate();
+        if (!ConfigUtil.canFileDownload() && !hasBaseFunction(BaseFunction.ADMIN)) {
+            throw new ForbiddenClientException();
+        }
         List<File> fileList = findFiles(filesIdsList);
         return sendZippedFiles("files", fileList);
     }

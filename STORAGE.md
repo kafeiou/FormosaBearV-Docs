@@ -1,6 +1,6 @@
 # FormosaBearV 實體檔案與資料存放路徑說明 (Storage Architecture)
 
-本文件說明 **FormosaBearV (v2.01)** 系統中所有資料庫、全文檢索索引、日誌、自訂主題與上傳檔案在伺服器硬碟上的存放位置與目錄規則（對應後端核心類別 `com.sismics.docs.core.util.DirectoryUtil` 與 `FileUtil`）。
+本文件說明 **FormosaBearV (v2.02)** 系統中所有資料庫、全文檢索索引、日誌、自訂主題與上傳檔案在伺服器硬碟上的存放位置與目錄規則（對應後端核心類別 `com.sismics.docs.core.util.DirectoryUtil` 與 `FileUtil`）。
 
 ---
 

@@ -1,4 +1,4 @@
-{
+﻿{
   "login": {
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
@@ -501,9 +501,9 @@
   },
   "feedback": {
     "title": "Donnez-nous votre avis",
-    "message": "Vous avez des suggestions ou des questions à propos de Teedy ? Nous vous écoutons !",
+    "message": "Vous avez des suggestions ou des questions à propos de FormosaBearV ? Nous vous écoutons !",
     "sent_title": "Avis envoyé",
-    "sent_message": "Merci pour votre avis ! Cela nous aidera à améliorer Teedy."
+    "sent_message": "Merci pour votre avis ! Cela nous aidera à améliorer FormosaBearV."
   },
   "import": {
     "title": "Import en cours",
@@ -598,11 +598,11 @@
   "onboarding": {
     "step1": {
       "title": "Première fois ici ?",
-      "description": "Si vous utilisez Teedy pour la première fois, cliquez sur le bouton Suivant. Sinon, n'hésitez pas à me fermer."
+      "description": "Si vous utilisez FormosaBearV pour la première fois, cliquez sur le bouton Suivant. Sinon, n'hésitez pas à me fermer."
     },
     "step2": {
       "title": "Documents",
-      "description": "Teedy est organisé en documents et chaque document contient plusieurs fichiers."
+      "description": "FormosaBearV est organisé en documents et chaque document contient plusieurs fichiers."
     },
     "step3": {
       "title": "Fichiers",

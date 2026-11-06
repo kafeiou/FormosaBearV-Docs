@@ -1,16 +1,16 @@
 {
   "name": "formosabearv-docs",
   "description": "Lightweight document management system",
-  "readme": "See http://github.com/simics/docs for more informations.",
+  "readme": "FormosaBearV-docs document management system.",
   "license": "GPL-2.0",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "repository": {
     "type": "git",
     "url": "git://github.com/sismics/docs.git"
   },
   "apidoc": {
-    "name": "FormosaBearV API",
-    "title": "FormosaBearV API",
+    "name": "FormosaBearV-docs API",
+    "title": "FormosaBearV-docs API",
     "url": "/api",
     "template": {
       "withCompare": false,

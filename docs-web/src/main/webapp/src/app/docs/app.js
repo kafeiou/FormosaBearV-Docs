@@ -162,6 +162,15 @@ angular.module('docs',
         }
       }
     })
+    .state('settings.backup', {
+      url: '/backup',
+      views: {
+        'settings': {
+          templateUrl: 'partial/docs/settings.backup.html',
+          controller: 'SettingsBackup'
+        }
+      }
+    })
     .state('settings.config', {
       url: '/config',
       views: {
@@ -667,7 +676,26 @@ angular.module('docs',
  */
 .run (function ($rootScope) {
   $rootScope.onboardingEnabled = false;
-});
+})
+
+/**
+ * Global download permission helper.
+ */
+.run(function ($rootScope, Restangular) {
+  $rootScope.canDownload = function() {
+    if ($rootScope.app && $rootScope.app.file_download === false) {
+      return false;
+    }
+    return true;
+  };
+
+  if (!$rootScope.app) {
+    Restangular.one('app').get().then(function(appData) {
+      $rootScope.app = appData;
+    });
+  }
+})
+;
 
 if (location.search.indexOf("protractor") > -1) {
   window.name = 'NG_DEFER_BOOTSTRAP!';

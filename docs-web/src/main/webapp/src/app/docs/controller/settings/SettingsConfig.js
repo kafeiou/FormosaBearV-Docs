@@ -40,6 +40,17 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
   };
 
   // Enable/disable duplicate filenames (file.duplicate)
+  
+  // Enable/disable file download (file.download)
+  $scope.changeFileDownload = function (enabled) {
+    Restangular.one('app').post('file_download', {
+      enabled: enabled
+    }).then(function () {
+      $scope.app.file_download = enabled;
+      $rootScope.app.file_download = enabled;
+    });
+  };
+
   $scope.changeFileDuplicate = function (enabled) {
     Restangular.one('app').post('file_duplicate', {
       enabled: enabled
@@ -80,7 +91,7 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
 
   // Update the theme
   $scope.update = function () {
-    $scope.theme.name = $scope.theme.name.length === 0 ? 'teedy-ng' : $scope.theme.name;
+    $scope.theme.name = $scope.theme.name.length === 0 ? 'FormosaBearV-docs' : $scope.theme.name;
     Restangular.one('theme').post('', $scope.theme).then(function () {
       var stylesheet = $('#theme-stylesheet')[0];
       stylesheet.href = stylesheet.href.replace(/\?.*|$/, '?' + new Date().getTime());

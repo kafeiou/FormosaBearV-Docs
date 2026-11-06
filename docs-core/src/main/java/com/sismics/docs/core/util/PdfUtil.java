@@ -9,6 +9,8 @@ import com.lowagie.text.pdf.BaseFont;
 import com.sismics.docs.core.constant.Constants;
 import com.sismics.docs.core.dao.dto.DocumentDto;
 import com.sismics.docs.core.model.jpa.File;
+import com.sismics.docs.core.model.jpa.User;
+import com.sismics.util.mime.MimeType;
 import com.sismics.docs.core.util.format.FormatHandler;
 import com.sismics.docs.core.util.format.FormatHandlerUtil;
 import com.sismics.docs.core.util.pdf.PdfPage;
@@ -182,5 +184,75 @@ public class PdfUtil {
             }
             return FontFactory.getFont(BUNDLED_CJK_FONT_FAMILY, BaseFont.IDENTITY_H, BaseFont.EMBEDDED, size, style, color);
         };
+    }
+
+    /**
+     * Converts a single file (DOCX, PPTX, ODT) to a PDF file if needed and caches it.
+     *
+     * @param file File entity
+     * @param user Owner user (for private key decryption)
+     * @return Path to the stored or cached PDF file, or null if not convertible
+     * @throws Exception If an error occurs during conversion
+     */
+    public static Path getOrCreatePdfFile(File file, User user) throws Exception {
+        Path storageDir = DirectoryUtil.getStorageDirectory(file);
+        
+        // If it's already a native PDF, return the original stored file
+        if (MimeType.APPLICATION_PDF.equals(file.getMimeType())) {
+            return storageDir.resolve(file.getName());
+        }
+
+        // Check if converted PDF cache already exists
+        Path cachedPdfFile = storageDir.resolve(file.getName() + "_pdf");
+        if (Files.exists(cachedPdfFile)) {
+            return cachedPdfFile;
+        }
+
+        // Find format handler
+        FormatHandler formatHandler = FormatHandlerUtil.find(file.getMimeType());
+        if (formatHandler == null) {
+            return null;
+        }
+
+        Path storedFile = storageDir.resolve(file.getName());
+        if (!Files.exists(storedFile)) {
+            return null;
+        }
+
+        // Decrypt to temp file if encrypted
+        Path unencryptedFile = ConfigUtil.isFileEncrypt() ?
+                EncryptionUtil.decryptFile(storedFile, user.getPrivateKey()) : storedFile;
+
+        // Convert to PDF
+        Path tempPdf = Files.createTempFile("converted_", ".pdf");
+        try (PDDocument doc = new PDDocument();
+             Closer closer = Closer.create()) {
+            formatHandler.appendToPdf(unencryptedFile, doc, false, 0, MemoryUsageSetting.setupMainMemoryOnly(), closer);
+            try (OutputStream pdfOut = Files.newOutputStream(tempPdf)) {
+                doc.save(pdfOut);
+            }
+        } finally {
+            if (ConfigUtil.isFileEncrypt() && unencryptedFile != null && !unencryptedFile.equals(storedFile)) {
+                try {
+                    Files.deleteIfExists(unencryptedFile);
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        // Save to cachedPdfFile (encrypting if file encryption is enabled)
+        try (InputStream pdfIn = Files.newInputStream(tempPdf);
+             OutputStream cachedOut = ConfigUtil.isFileEncrypt() ?
+                     EncryptionUtil.encryptOutputStream(Files.newOutputStream(cachedPdfFile), user.getPrivateKey()) :
+                     Files.newOutputStream(cachedPdfFile)) {
+            ByteStreams.copy(pdfIn, cachedOut);
+        } finally {
+            try {
+                Files.deleteIfExists(tempPdf);
+            } catch (Exception ignored) {
+            }
+        }
+
+        return cachedPdfFile;
     }
 }

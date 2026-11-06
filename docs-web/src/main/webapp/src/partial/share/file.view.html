@@ -11,10 +11,7 @@
   </div>
 
   <div class="btn-group pull-right">
-    <button type="button" class="btn btn-default" ng-click="printFile()">
-      <span class="fas fa-print"></span>
-    </button>
-    <button type="button" class="btn btn-default" ng-click="openFile()">
+    <button type="button" class="btn btn-default" ng-if="canDownload()" ng-click="openFile()">
       <span class="fas fa-download"></span>
     </button>
   </div>
@@ -22,5 +19,5 @@
 
 
 <div class="text-center" ng-if="$stateParams.fileId">
-  <img ng-src="../api/file/{{ $stateParams.fileId }}/data?size=web&share={{ $stateParams.shareId }}" />
+  <img ng-src="../api/file/{{ $stateParams.fileId }}/data?size=web&share={{ $stateParams.shareId }}" oncontextmenu="return false;" ondragstart="return false;" draggable="false" style="user-select: none; -webkit-user-select: none;" />
 </div>

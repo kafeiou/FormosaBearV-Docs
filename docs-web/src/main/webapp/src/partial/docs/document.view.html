@@ -26,7 +26,7 @@
       <span class="caret"></span>
     </button>
     <ul class="dropdown-menu">
-      <li>
+      <li ng-if="canDownload()">
         <a ng-href="../api/file/zip?id={{ document.id }}">
           <span class="fas fa-download"></span>
           {{ 'document.view.download_files' | translate }}

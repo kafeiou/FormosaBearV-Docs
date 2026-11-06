@@ -108,6 +108,12 @@ module.exports = function(grunt) {
         cwd: 'src/',
         src: ['**', '!**/*.js', '!*.html', '!**/*.less', '!**/*.css', 'locale/**'],
         dest: 'dist/'
+      },
+      pdfjs: {
+        expand: true,
+        cwd: 'src/lib/pdfjs/',
+        src: ['**'],
+        dest: 'dist/lib/pdfjs/'
       }
     },
     htmlrefs: {

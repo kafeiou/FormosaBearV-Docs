@@ -28,12 +28,15 @@ public final class EMF {
 
     private static EntityManagerFactory emfInstance;
 
+    private static ServiceRegistry serviceRegistry;
+
     static {
         try {
             properties = getEntityManagerProperties();
 
             ConfigurationHelper.resolvePlaceHolders(properties);
             ServiceRegistry reg = new StandardServiceRegistryBuilder().applySettings(properties).build();
+            serviceRegistry = reg;
 
             DbOpenHelper openHelper = new DbOpenHelper(reg) {
                 @Override
@@ -137,5 +140,21 @@ public final class EMF {
 
     public static String getDriver() {
         return (String) properties.get("hibernate.connection.driver_class");
+    }
+
+    public static java.sql.Connection obtainConnection() throws java.sql.SQLException {
+        org.hibernate.engine.jdbc.spi.JdbcServices jdbcServices = serviceRegistry.getService(org.hibernate.engine.jdbc.spi.JdbcServices.class);
+        return jdbcServices.getBootstrapJdbcConnectionAccess().obtainConnection();
+    }
+
+    public static void releaseConnection(java.sql.Connection connection) throws java.sql.SQLException {
+        if (connection != null && serviceRegistry != null) {
+            org.hibernate.engine.jdbc.spi.JdbcServices jdbcServices = serviceRegistry.getService(org.hibernate.engine.jdbc.spi.JdbcServices.class);
+            jdbcServices.getBootstrapJdbcConnectionAccess().releaseConnection(connection);
+        }
+    }
+
+    public static Properties getProperties() {
+        return properties;
     }
 }

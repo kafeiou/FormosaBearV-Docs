@@ -114,6 +114,7 @@ public class AppResource extends BaseResource {
                 .add("default_language", defaultLanguage)
                 .add("file_delete", ConfigUtil.isFileDelete())
                 .add("file_duplicate", ConfigUtil.canFileDuplicate())
+                .add("file_download", ConfigUtil.canFileDownload())
                 .add("file_encrypt", ConfigUtil.isFileEncrypt())
                 .add("file_encrypt_locked", ConfigUtil.isFileEncryptLocked())
                 .add("storage_path", DirectoryUtil.getBaseDataDirectory().toAbsolutePath().toString())
@@ -218,6 +219,24 @@ public class AppResource extends BaseResource {
 
         ConfigDao configDao = new ConfigDao();
         configDao.update(ConfigType.FILE_DUPLICATE, enabled.toString());
+
+        return Response.ok().build();
+    }
+
+    /**
+     * Enable/disable file download.
+     */
+    @POST
+    @Path("file_download")
+    public Response fileDownload(@FormParam("enabled") Boolean enabled) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+        ValidationUtil.validateRequired(enabled, "enabled");
+
+        ConfigDao configDao = new ConfigDao();
+        configDao.update(ConfigType.FILE_DOWNLOAD, enabled.toString());
 
         return Response.ok().build();
     }
