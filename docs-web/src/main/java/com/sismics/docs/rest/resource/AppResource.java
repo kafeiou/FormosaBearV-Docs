@@ -93,8 +93,18 @@ public class AppResource extends BaseResource {
     @GET
     public Response info() {
         ResourceBundle configBundle = ConfigUtil.getConfigBundle();
-        String currentVersion = configBundle.getString("api.current_version");
-        String minVersion = configBundle.getString("api.min_version");
+        String currentVersion = "2.02";
+        try {
+            currentVersion = configBundle.getString("api.current_version");
+        } catch (Exception e) {
+            log.warn("Missing api.current_version in config bundle, fallback to default: " + e.getMessage());
+        }
+        String minVersion = "1.0";
+        try {
+            minVersion = configBundle.getString("api.min_version");
+        } catch (Exception e) {
+            log.warn("Missing api.min_version in config bundle, fallback to default: " + e.getMessage());
+        }
         Boolean guestLogin = ConfigUtil.getConfigBooleanValue(ConfigType.GUEST_LOGIN);
         Boolean ocrEnabled = ConfigUtil.getConfigBooleanValue(ConfigType.OCR_ENABLED, true);
         String defaultLanguage = ConfigUtil.getConfigStringValue(ConfigType.DEFAULT_LANGUAGE);
