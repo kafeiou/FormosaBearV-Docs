@@ -61,7 +61,7 @@ public class TagResource extends BaseResource {
         
         TagDao tagDao = new TagDao();
         List<String> targetIdList = getTargetIdList(null);
-        List<TagDto> tagDtoList = tagDao.findByCriteria(new TagCriteria().setTargetIdList(targetIdList), new SortCriteria(1, true));
+        List<TagDto> tagDtoList = tagDao.findByCriteria(new TagCriteria().setTargetIdList(targetIdList), null);
         Map<String, Set<String>> directDocsByTag = tagDao.getReadableDocumentIdsByTag(targetIdList);
 
         // Extract tag IDs
@@ -98,6 +98,12 @@ public class TagResource extends BaseResource {
                     .add("name", tagDto.getName())
                     .add("color", tagDto.getColor())
                     .add("document_count", totalDocs.size());
+            if (tagDto.getOrder() != null) {
+                item.add("order", tagDto.getOrder());
+            }
+            if (tagDto.getCreateDate() != null) {
+                item.add("create_date", tagDto.getCreateDate().getTime());
+            }
             if (tagIdSet.contains(tagDto.getParentId())) {
                 item.add("parent", tagDto.getParentId());
             }
@@ -154,6 +160,12 @@ public class TagResource extends BaseResource {
                 .add("creator", tagDto.getCreator())
                 .add("name", tagDto.getName())
                 .add("color", tagDto.getColor());
+        if (tagDto.getOrder() != null) {
+            tag.add("order", tagDto.getOrder());
+        }
+        if (tagDto.getCreateDate() != null) {
+            tag.add("create_date", tagDto.getCreateDate().getTime());
+        }
 
         // Add the parent if its visible
         if (tagDto.getParentId() != null) {
@@ -195,7 +207,8 @@ public class TagResource extends BaseResource {
     public Response add(
             @FormParam("name") String name,
             @FormParam("color") String color,
-            @FormParam("parent") String parentId) {
+            @FormParam("parent") String parentId,
+            @FormParam("order") Integer order) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -222,6 +235,9 @@ public class TagResource extends BaseResource {
         tag.setColor(color);
         tag.setUserId(principal.getId());
         tag.setParentId(parentId);
+        if (order != null) {
+            tag.setOrder(order);
+        }
         String id = tagDao.create(tag, principal.getId());
 
         // Create read ACL
@@ -277,7 +293,8 @@ public class TagResource extends BaseResource {
             @PathParam("id") String id,
             @FormParam("name") String name,
             @FormParam("color") String color,
-            @FormParam("parent") String parentId) {
+            @FormParam("parent") String parentId,
+            @FormParam("order") Integer order) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -319,6 +336,15 @@ public class TagResource extends BaseResource {
         }
         if (!StringUtils.isEmpty(color)) {
             tag.setColor(color);
+        }
+        // Handle parent change and order
+        boolean parentChanged = (parentId == null && tag.getParentId() != null)
+                || (parentId != null && !parentId.equals(tag.getParentId()));
+        if (parentChanged) {
+            Integer maxOrder = tagDao.getMaxOrderByParent(parentId);
+            tag.setOrder(maxOrder == null ? 0 : maxOrder + 1);
+        } else if (order != null) {
+            tag.setOrder(order);
         }
         // Parent tag is always updated to have the possibility to delete it
         tag.setParentId(parentId);
@@ -365,6 +391,175 @@ public class TagResource extends BaseResource {
         tagDao.delete(id, principal.getId());
         
         // Always return OK
+        JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("status", "ok");
+        return Response.ok().entity(response.build()).build();
+    }
+
+    /**
+     * Reorder tags in a hierarchy level.
+     *
+     * @api {post} /tag/reorder Reorder tags
+     * @apiName ReorderTags
+     * @apiGroup Tag
+     * @apiParam {String[]} tag_ids Ordered list of tag IDs
+     * @apiSuccess {String} status Status OK
+     * @apiError (client) ForbiddenError Access denied
+     * @apiError (client) ValidationError Validation error
+     * @apiPermission user
+     * @apiVersion 2.0.2
+     *
+     * @param tagIdList Ordered list of tag IDs
+     * @param tagIdsCsv Optional comma-separated list of tag IDs
+     * @return Response
+     */
+    @POST
+    @Path("/reorder")
+    public Response reorder(
+            @FormParam("tag_ids") java.util.List<String> tagIdList,
+            @FormParam("tag_ids_csv") String tagIdsCsv) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+
+        java.util.List<String> idList = new java.util.ArrayList<>();
+        if (tagIdList != null) {
+            for (String item : tagIdList) {
+                if (item != null) {
+                    if (item.contains(",")) {
+                        for (String part : item.split(",")) {
+                            if (!part.trim().isEmpty()) {
+                                idList.add(part.trim());
+                            }
+                        }
+                    } else if (!item.trim().isEmpty()) {
+                        idList.add(item.trim());
+                    }
+                }
+            }
+        }
+        if (idList.isEmpty() && !StringUtils.isEmpty(tagIdsCsv)) {
+            for (String part : tagIdsCsv.split(",")) {
+                if (!part.trim().isEmpty()) {
+                    idList.add(part.trim());
+                }
+            }
+        }
+
+        if (idList.isEmpty()) {
+            JsonObjectBuilder response = Json.createObjectBuilder().add("status", "ok");
+            return Response.ok().entity(response.build()).build();
+        }
+
+        AclDao aclDao = new AclDao();
+        TagDao tagDao = new TagDao();
+        java.util.List<String> targetIdList = getTargetIdList(null);
+
+        // Validate all tags exist and user has WRITE permission
+        String expectedParentId = null;
+        boolean first = true;
+        for (String tagId : idList) {
+            if (!aclDao.checkPermission(tagId, PermType.WRITE, targetIdList)) {
+                throw new ForbiddenClientException();
+            }
+            Tag tag = tagDao.getById(tagId);
+            if (tag == null || tag.getDeleteDate() != null) {
+                throw new ClientException("TagNotFound", "Tag not found: " + tagId);
+            }
+            if (first) {
+                expectedParentId = tag.getParentId();
+                first = false;
+            } else {
+                String p = tag.getParentId();
+                if ((expectedParentId == null && p != null) || (expectedParentId != null && !expectedParentId.equals(p))) {
+                    throw new ClientException("InvalidHierarchy", "All reordered tags must share the same parent");
+                }
+            }
+        }
+
+        // Apply new order
+        for (int i = 0; i < idList.size(); i++) {
+            tagDao.updateOrder(idList.get(i), i);
+        }
+
+        JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("status", "ok");
+        return Response.ok().entity(response.build()).build();
+    }
+
+    /**
+     * Reorder documents within a tag.
+     *
+     * @api {post} /tag/:id/document/reorder Reorder documents in tag
+     * @apiName ReorderDocumentsInTag
+     * @apiGroup Tag
+     * @apiParam {String} id Tag ID
+     * @apiParam {String[]} document_ids Ordered list of document IDs
+     * @apiParam {String} document_ids_csv Optional comma-separated list of document IDs
+     * @apiParam {Number} offset Optional pagination offset
+     * @apiSuccess {String} status Status OK
+     * @apiError (client) ForbiddenError Access denied
+     * @apiError (client) NotFound Tag not found
+     * @apiPermission user
+     * @apiVersion 2.0.2
+     *
+     * @param id Tag ID
+     * @param documentIdList Ordered list of document IDs
+     * @param documentIdsCsv Optional comma-separated list of document IDs
+     * @param offset Optional page offset
+     * @return Response
+     */
+    @POST
+    @Path("/{id: [a-z0-9\\-]+}/document/reorder")
+    public Response reorderDocuments(
+            @PathParam("id") String id,
+            @FormParam("document_ids") java.util.List<String> documentIdList,
+            @FormParam("document_ids_csv") String documentIdsCsv,
+            @FormParam("offset") Integer offset) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+
+        // Validate tag exists and caller has WRITE permission
+        TagDao tagDao = new TagDao();
+        Tag tag = tagDao.getById(id);
+        if (tag == null || tag.getDeleteDate() != null) {
+            throw new NotFoundException();
+        }
+
+        AclDao aclDao = new AclDao();
+        if (!aclDao.checkPermission(id, PermType.WRITE, getTargetIdList(null))) {
+            throw new ForbiddenClientException();
+        }
+
+        java.util.List<String> idList = new java.util.ArrayList<>();
+        if (documentIdList != null) {
+            for (String item : documentIdList) {
+                if (item != null) {
+                    if (item.contains(",")) {
+                        for (String part : item.split(",")) {
+                            if (!part.trim().isEmpty()) {
+                                idList.add(part.trim());
+                            }
+                        }
+                    } else if (!item.trim().isEmpty()) {
+                        idList.add(item.trim());
+                    }
+                }
+            }
+        }
+        if (idList.isEmpty() && !StringUtils.isEmpty(documentIdsCsv)) {
+            for (String part : documentIdsCsv.split(",")) {
+                if (!part.trim().isEmpty()) {
+                    idList.add(part.trim());
+                }
+            }
+        }
+
+        if (!idList.isEmpty()) {
+            tagDao.reorderDocumentsInTag(id, idList, offset);
+        }
+
         JsonObjectBuilder response = Json.createObjectBuilder()
                 .add("status", "ok");
         return Response.ok().entity(response.build()).build();

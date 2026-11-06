@@ -157,12 +157,12 @@ public class DocumentDao {
         q.setParameter("dateNow", dateNow);
         q.executeUpdate();
         
-        q = em.createQuery("update DocumentTag dt set dt.deleteDate = :dateNow where dt.documentId = :documentId and dt.deleteDate is not null");
+        q = em.createQuery("update DocumentTag dt set dt.deleteDate = :dateNow where dt.documentId = :documentId and dt.deleteDate is null");
         q.setParameter("documentId", id);
         q.setParameter("dateNow", dateNow);
         q.executeUpdate();
         
-        q = em.createQuery("update Relation r set r.deleteDate = :dateNow where (r.fromDocumentId = :documentId or r.toDocumentId = :documentId) and r.deleteDate is not null");
+        q = em.createQuery("update Relation r set r.deleteDate = :dateNow where (r.fromDocumentId = :documentId or r.toDocumentId = :documentId) and r.deleteDate is null");
         q.setParameter("documentId", id);
         q.setParameter("dateNow", dateNow);
         q.executeUpdate();

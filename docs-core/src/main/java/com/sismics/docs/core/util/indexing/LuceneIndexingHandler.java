@@ -254,10 +254,18 @@ public class LuceneIndexingHandler implements IndexingHandler {
         List<String> criteriaList = new ArrayList<>();
         Map<String, String> documentSearchMap = Maps.newHashMap();
 
+        boolean scopedByTag = !Strings.isNullOrEmpty(criteria.getTagId());
         StringBuilder sb = new StringBuilder("select distinct d.DOC_ID_C c0, d.DOC_TITLE_C c1, d.DOC_DESCRIPTION_C c2, d.DOC_CREATEDATE_D c3, d.DOC_LANGUAGE_C c4, d.DOC_IDFILE_C, ");
         sb.append(" s.count c5, ");
         sb.append(" rs2.RTP_ID_C c7, rs2.RTP_NAME_C, d.DOC_UPDATEDATE_D c8 ");
+        if (scopedByTag) {
+            sb.append(", coalesce(dt_order.DOT_ORDER_N, 999999999) c9 ");
+        }
         sb.append(" from T_DOCUMENT d ");
+        if (scopedByTag) {
+            sb.append(" join T_DOCUMENT_TAG dt_order on dt_order.DOT_IDDOCUMENT_C = d.DOC_ID_C and dt_order.DOT_IDTAG_C = :scopedTagId and dt_order.DOT_DELETEDATE_D is null ");
+            parameterMap.put("scopedTagId", criteria.getTagId());
+        }
         sb.append(" left join (SELECT count(s.SHA_ID_C) count, ac.ACL_SOURCEID_C " +
                 "   FROM T_SHARE s, T_ACL ac " +
                 "   WHERE ac.ACL_TARGETID_C = s.SHA_ID_C AND ac.ACL_DELETEDATE_D IS NULL AND " +
@@ -359,6 +367,9 @@ public class LuceneIndexingHandler implements IndexingHandler {
         sb.append(Joiner.on(" and ").join(criteriaList));
 
         // Perform the search
+        if (scopedByTag && sortCriteria == null) {
+            sortCriteria = new SortCriteria(9, true);
+        }
         QueryParam queryParam = new QueryParam(sb.toString(), parameterMap);
         List<Object[]> l = PaginatedLists.executePaginatedQuery(paginatedList, queryParam, sortCriteria);
 

@@ -1,5 +1,7 @@
 package com.sismics.docs.core.dao.dto;
 
+import java.util.Date;
+
 /**
  * Tag DTO.
  *
@@ -30,6 +32,16 @@ public class TagDto {
      * Creator.
      */
     private String creator;
+
+    /**
+     * Display order.
+     */
+    private Integer order;
+
+    /**
+     * Creation date.
+     */
+    private Date createDate;
 
     public String getId() {
         return id;
@@ -73,6 +85,24 @@ public class TagDto {
 
     public TagDto setCreator(String creator) {
         this.creator = creator;
+        return this;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public TagDto setOrder(Integer order) {
+        this.order = order;
+        return this;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public TagDto setCreateDate(Date createDate) {
+        this.createDate = createDate;
         return this;
     }
 }

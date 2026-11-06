@@ -127,6 +127,9 @@ public class AppContext {
             }
         }
 
+        // Initialize tag orders if needed
+        new com.sismics.docs.core.dao.TagDao().initializeTagOrdersIfNeeded();
+
         // Change the admin email if needed
         String envAdminEmail = System.getenv(Constants.ADMIN_EMAIL_INIT_ENV);
         if (!Strings.isNullOrEmpty(envAdminEmail)) {

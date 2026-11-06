@@ -76,7 +76,11 @@ public class DocumentCriteria {
     /**
      * A route is active.
      */
-    private Boolean activeRoute;
+        /**
+     * Target tag ID for scoped tag ordering.
+     */
+    private String tagId;
+private Boolean activeRoute;
 
     /**
      * MIME type of a file.
@@ -194,5 +198,14 @@ public class DocumentCriteria {
 
     public List<String> getTitleList() {
         return titleList;
+    }
+
+    public String getTagId() {
+        return tagId;
+    }
+
+    public DocumentCriteria setTagId(String tagId) {
+        this.tagId = tagId;
+        return this;
     }
 }

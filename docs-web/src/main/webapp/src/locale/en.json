@@ -205,7 +205,9 @@
       "title": "Share document",
       "message": "Name the sharing if you want to share multiple times the same document.",
       "submit": "Share"
-    }
+    },
+    "page_size_50": "50 per page",
+    "page_size_100": "100 per page"
   },
   "file": {
     "view": {
@@ -246,6 +248,8 @@
     "search": "Search",
     "expand_all": "Expand all",
     "collapse_all": "Collapse all",
+    "move_up": "Move Up",
+    "move_down": "Move Down",
     "browse": {
       "tree_title": "Tag Categories",
       "welcome_title": "Browse Documents & Files by Tag",
@@ -272,8 +276,15 @@
       "parent": "Parent",
       "info": "Permissions on this tag will also be applied to documents tagged <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span>",
       "circular_reference_title": "Circular reference",
-      "circular_reference_message": "The hierarchy of parent tags makes a loop, please choose another parent."
-    }
+      "circular_reference_message": "The hierarchy of parent tags makes a loop, please choose another parent.",
+      "order": "Order in Level",
+      "order_placeholder": "Default: by date",
+      "order_help": "When empty or equal, ordered chronologically by creation date (oldest first)"
+    },
+    "expand_files": "Expand files",
+    "collapse_files": "Collapse files",
+    "expand_all_files": "Expand all files",
+    "collapse_all_files": "Collapse all files"
   },
   "group": {
     "profile": {

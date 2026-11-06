@@ -76,6 +76,8 @@ public class TagDao {
                 documentTag.setId(UUID.randomUUID().toString());
                 documentTag.setDocumentId(documentId);
                 documentTag.setTagId(tagId);
+                Integer maxOrder = getMaxDocumentOrderByTag(tagId);
+                documentTag.setOrder(maxOrder == null ? 0 : maxOrder + 1);
                 em.persist(documentTag);
             }
         }
@@ -91,6 +93,12 @@ public class TagDao {
     public String create(Tag tag, String userId) {
         // Create the UUID
         tag.setId(UUID.randomUUID().toString());
+        
+        // Compute initial order if not set
+        if (tag.getOrder() == null) {
+            Integer max = getMaxOrderByParent(tag.getParentId());
+            tag.setOrder(max == null ? 0 : max + 1);
+        }
         
         // Create the tag
         EntityManager em = ThreadLocalContext.get().getEntityManager();
@@ -122,7 +130,7 @@ public class TagDao {
         tagDb.setDeleteDate(dateNow);
 
         // Delete linked data
-        q = em.createQuery("update DocumentTag dt set dt.deleteDate = :dateNow where dt.tagId = :tagId and dt.deleteDate is not null");
+        q = em.createQuery("update DocumentTag dt set dt.deleteDate = :dateNow where dt.tagId = :tagId and dt.deleteDate is null");
         q.setParameter("dateNow", dateNow);
         q.setParameter("tagId", tagId);
         q.executeUpdate();
@@ -159,6 +167,7 @@ public class TagDao {
         tagDb.setName(tag.getName());
         tagDb.setColor(tag.getColor());
         tagDb.setParentId(tag.getParentId());
+        tagDb.setOrder(tag.getOrder());
         
         // Create audit log
         AuditLogUtil.create(tagDb, AuditLogType.UPDATE, userId);
@@ -177,7 +186,7 @@ public class TagDao {
         Map<String, Object> parameterMap = new HashMap<>();
         List<String> criteriaList = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4 ");
+        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4, t.TAG_ORDER_N as c5, t.TAG_CREATEDATE_D as c6 ");
         sb.append(" from T_TAG t ");
         sb.append(" join T_USER u on t.TAG_IDUSER_C = u.USE_ID_C ");
 
@@ -203,7 +212,13 @@ public class TagDao {
         sb.append(Joiner.on(" and ").join(criteriaList));
 
         // Perform the search
-        QueryParam queryParam = QueryUtil.getSortedQueryParam(new QueryParam(sb.toString(), parameterMap), sortCriteria);
+        QueryParam queryParam;
+        if (sortCriteria != null) {
+            queryParam = QueryUtil.getSortedQueryParam(new QueryParam(sb.toString(), parameterMap), sortCriteria);
+        } else {
+            sb.append(" order by coalesce(t.TAG_ORDER_N, 999999999) asc, t.TAG_CREATEDATE_D asc, t.TAG_NAME_C asc");
+            queryParam = new QueryParam(sb.toString(), parameterMap);
+        }
         @SuppressWarnings("unchecked")
         List<Object[]> l = QueryUtil.getNativeQuery(queryParam).getResultList();
 
@@ -216,11 +231,108 @@ public class TagDao {
                     .setName((String) o[i++])
                     .setColor((String) o[i++])
                     .setParentId((String) o[i++])
-                    .setCreator((String) o[i]);
+                    .setCreator((String) o[i++])
+                    .setOrder(o[i] == null ? null : ((Number) o[i]).intValue());
+            i++;
+            tagDto.setCreateDate((Date) o[i]);
             tagDtoList.add(tagDto);
         }
 
+        if (sortCriteria == null) {
+            return sortHierarchically(tagDtoList);
+        }
+
         return tagDtoList;
+    }
+
+    /**
+     * Sorts tags hierarchically. Root tags first (ordered by order ASC, createDate ASC, name ASC),
+     * followed immediately by their children in a depth-first traversal.
+     *
+     * @param tagDtoList List of tags
+     * @return Hierarchically sorted list of tags
+     */
+    public List<TagDto> sortHierarchically(List<TagDto> tagDtoList) {
+        if (tagDtoList == null || tagDtoList.size() <= 1) {
+            return tagDtoList;
+        }
+
+        Comparator<TagDto> siblingComparator = (a, b) -> {
+            int orderA = a.getOrder() != null ? a.getOrder() : Integer.MAX_VALUE;
+            int orderB = b.getOrder() != null ? b.getOrder() : Integer.MAX_VALUE;
+            if (orderA != orderB) {
+                return Integer.compare(orderA, orderB);
+            }
+            Date dateA = a.getCreateDate();
+            Date dateB = b.getCreateDate();
+            if (dateA != null && dateB != null && !dateA.equals(dateB)) {
+                return dateA.compareTo(dateB);
+            } else if (dateA != null && dateB == null) {
+                return -1;
+            } else if (dateA == null && dateB != null) {
+                return 1;
+            }
+            String nameA = a.getName() != null ? a.getName() : "";
+            String nameB = b.getName() != null ? b.getName() : "";
+            return nameA.compareToIgnoreCase(nameB);
+        };
+
+        Set<String> allIds = new HashSet<>();
+        for (TagDto dto : tagDtoList) {
+            allIds.add(dto.getId());
+        }
+
+        List<TagDto> roots = new ArrayList<>();
+        Map<String, List<TagDto>> childrenByParent = new HashMap<>();
+
+        for (TagDto dto : tagDtoList) {
+            String parentId = dto.getParentId();
+            if (parentId == null || !allIds.contains(parentId)) {
+                roots.add(dto);
+            } else {
+                childrenByParent.computeIfAbsent(parentId, k -> new ArrayList<>()).add(dto);
+            }
+        }
+
+        roots.sort(siblingComparator);
+
+        List<TagDto> result = new ArrayList<>(tagDtoList.size());
+        Set<String> visited = new HashSet<>();
+
+        for (TagDto root : roots) {
+            traverseTagTree(root, childrenByParent, siblingComparator, result, visited);
+        }
+
+        // Add any remaining unvisited tags (e.g. loops in detached subgraphs)
+        if (result.size() < tagDtoList.size()) {
+            List<TagDto> remaining = new ArrayList<>();
+            for (TagDto dto : tagDtoList) {
+                if (!visited.contains(dto.getId())) {
+                    remaining.add(dto);
+                }
+            }
+            remaining.sort(siblingComparator);
+            for (TagDto dto : remaining) {
+                traverseTagTree(dto, childrenByParent, siblingComparator, result, visited);
+            }
+        }
+
+        return result;
+    }
+
+    private void traverseTagTree(TagDto current, Map<String, List<TagDto>> childrenByParent,
+                                 Comparator<TagDto> comparator, List<TagDto> result, Set<String> visited) {
+        if (!visited.add(current.getId())) {
+            return;
+        }
+        result.add(current);
+        List<TagDto> children = childrenByParent.get(current.getId());
+        if (children != null) {
+            children.sort(comparator);
+            for (TagDto child : children) {
+                traverseTagTree(child, childrenByParent, comparator, result, visited);
+            }
+        }
     }
 
     /**
@@ -262,5 +374,174 @@ public class TagDao {
         }
         return result;
     }
-}
 
+    /**
+     * Gets the maximum order number for tags in a given hierarchy level.
+     *
+     * @param parentId Parent tag ID, or null for root tags
+     * @return Maximum order number, or null if no tags exist
+     */
+    public Integer getMaxOrderByParent(String parentId) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        StringBuilder sb = new StringBuilder("select max(t.order) from Tag t where t.deleteDate is null ");
+        if (parentId == null) {
+            sb.append("and t.parentId is null");
+        } else {
+            sb.append("and t.parentId = :parentId");
+        }
+        Query q = em.createQuery(sb.toString());
+        if (parentId != null) {
+            q.setParameter("parentId", parentId);
+        }
+        try {
+            return (Integer) q.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Updates the order of a tag.
+     *
+     * @param tagId Tag ID
+     * @param order New order
+     */
+    public void updateOrder(String tagId, int order) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("update Tag t set t.order = :order where t.id = :tagId and t.deleteDate is null");
+        q.setParameter("order", order);
+        q.setParameter("tagId", tagId);
+        q.executeUpdate();
+    }
+
+    /**
+     * Initializes tag orders for existing tags where order is null.
+     * Orders them sequentially within each parent level based on creation date ASC.
+     */
+    public void initializeTagOrdersIfNeeded() {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query countQuery = em.createQuery("select count(t) from Tag t where t.order is null and t.deleteDate is null");
+        Long nullCount = (Long) countQuery.getSingleResult();
+        if (nullCount == null || nullCount == 0L) {
+            return;
+        }
+
+        // Get all active tags
+        Query q = em.createQuery("select t from Tag t where t.deleteDate is null order by t.createDate asc, t.id asc");
+        @SuppressWarnings("unchecked")
+        List<Tag> allTags = q.getResultList();
+
+        // Group by parentId
+        Map<String, List<Tag>> grouped = new HashMap<>();
+        for (Tag t : allTags) {
+            String p = t.getParentId() == null ? "" : t.getParentId();
+            grouped.computeIfAbsent(p, k -> new ArrayList<>()).add(t);
+        }
+
+        for (List<Tag> list : grouped.values()) {
+            for (int i = 0; i < list.size(); i++) {
+                Tag t = list.get(i);
+                if (t.getOrder() == null) {
+                    t.setOrder(i);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Gets the maximum order number for documents within a tag.
+     *
+     * @param tagId Tag ID
+     * @return Maximum order number, or null if no documents exist
+     */
+    public Integer getMaxDocumentOrderByTag(String tagId) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("select max(dt.order) from DocumentTag dt, Document d where dt.documentId = d.id and d.deleteDate is null and dt.tagId = :tagId and dt.deleteDate is null");
+        q.setParameter("tagId", tagId);
+        try {
+            return (Integer) q.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Cleans ghost/orphan DocumentTag records where the document is deleted.
+     *
+     * @param tagId Tag ID
+     */
+    public void cleanGhostDocumentTags(String tagId) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Date now = new Date();
+        Query q = em.createQuery("update DocumentTag dt set dt.deleteDate = :now where dt.deleteDate is null and dt.tagId = :tagId and dt.documentId in (select d.id from Document d where d.deleteDate is not null)");
+        q.setParameter("now", now);
+        q.setParameter("tagId", tagId);
+        q.executeUpdate();
+    }
+
+    /**
+     * Reorders documents within a tag, auto-compacting active documents into consecutive orders.
+     *
+     * @param tagId Tag ID
+     * @param orderedDocIds List of document IDs in their new order
+     * @param offset Optional page offset
+     */
+    public void reorderDocumentsInTag(String tagId, List<String> orderedDocIds, Integer offset) {
+        if (orderedDocIds == null || orderedDocIds.isEmpty()) {
+            return;
+        }
+
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        cleanGhostDocumentTags(tagId);
+
+        // Fetch all active DocumentTag records for this tag
+        Query q = em.createQuery("select dt from DocumentTag dt, Document d where dt.documentId = d.id and d.deleteDate is null and dt.tagId = :tagId and dt.deleteDate is null order by coalesce(dt.order, 999999999) asc, d.title asc");
+        q.setParameter("tagId", tagId);
+        @SuppressWarnings("unchecked")
+        List<DocumentTag> allActive = q.getResultList();
+
+        Map<String, DocumentTag> map = new HashMap<>();
+        for (DocumentTag dt : allActive) {
+            map.put(dt.getDocumentId(), dt);
+        }
+
+        Set<String> reorderedSet = new HashSet<>(orderedDocIds);
+        int startOffset = (offset != null && offset >= 0) ? offset : 0;
+        if (startOffset > allActive.size()) {
+            startOffset = allActive.size();
+        }
+
+        List<DocumentTag> before = new ArrayList<>();
+        List<DocumentTag> current = new ArrayList<>();
+        List<DocumentTag> after = new ArrayList<>();
+
+        for (int i = 0; i < allActive.size(); i++) {
+            DocumentTag dt = allActive.get(i);
+            if (reorderedSet.contains(dt.getDocumentId())) {
+                continue; // Handled in current
+            }
+            if (i < startOffset) {
+                before.add(dt);
+            } else {
+                after.add(dt);
+            }
+        }
+
+        for (String docId : orderedDocIds) {
+            DocumentTag dt = map.get(docId);
+            if (dt != null) {
+                current.add(dt);
+            }
+        }
+
+        List<DocumentTag> finalOrder = new ArrayList<>(allActive.size());
+        finalOrder.addAll(before);
+        finalOrder.addAll(current);
+        finalOrder.addAll(after);
+
+        // Assign clean consecutive 0, 1, 2... orders
+        for (int i = 0; i < finalOrder.size(); i++) {
+            finalOrder.get(i).setOrder(i);
+        }
+    }
+}

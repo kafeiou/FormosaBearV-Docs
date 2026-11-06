@@ -59,6 +59,12 @@ public class Tag implements Loggable {
      */
     @Column(name = "TAG_COLOR_C", nullable = false, length = 7)
     private String color;
+    
+    /**
+     * Display order.
+     */
+    @Column(name = "TAG_ORDER_N")
+    private Integer order;
 
     public String getId() {
         return id;
@@ -115,6 +121,14 @@ public class Tag implements Loggable {
 
     public void setParentId(String parentId) {
         this.parentId = parentId;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
     }
 
     @Override

@@ -47,6 +47,12 @@ public class DocumentTag implements Serializable {
      */
     @Column(name = "DOT_DELETEDATE_D")
     private Date deleteDate;
+
+    /**
+     * Order number within the tag.
+     */
+    @Column(name = "DOT_ORDER_N")
+    private Integer order;
     
     public String getId() {
         return id;
@@ -79,6 +85,14 @@ public class DocumentTag implements Serializable {
     public void setDeleteDate(Date deleteDate) {
         this.deleteDate = deleteDate;
     }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
     
     @Override
     public String toString() {
@@ -86,6 +100,7 @@ public class DocumentTag implements Serializable {
                 .add("id", id)
                 .add("documentId", documentId)
                 .add("tagId", tagId)
+                .add("order", order)
                 .toString();
     }
 }

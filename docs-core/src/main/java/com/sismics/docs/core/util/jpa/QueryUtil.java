@@ -42,6 +42,9 @@ public class QueryUtil {
             sb.append(" order by c");
             sb.append(sortCriteria.getColumn());
             sb.append(sortCriteria.isAsc() ? " asc" : " desc");
+            if (sortCriteria.getColumn() == 9) {
+                sb.append(", c1 asc");
+            }
         }
         
         return new QueryParam(sb.toString(), queryParam.getParameterMap());

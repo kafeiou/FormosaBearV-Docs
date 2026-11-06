@@ -73,7 +73,17 @@ angular.module('docs').directive('selectTag', function($templateCache) {
 
         var sortNodes = function(nodes) {
           nodes.sort(function(a, b) {
-            return a.name.localeCompare(b.name);
+            var orderA = (a.order !== undefined && a.order !== null) ? a.order : 999999999;
+            var orderB = (b.order !== undefined && b.order !== null) ? b.order : 999999999;
+            if (orderA !== orderB) {
+              return orderA - orderB;
+            }
+            var dateA = a.create_date || 0;
+            var dateB = b.create_date || 0;
+            if (dateA !== dateB) {
+              return dateA - dateB;
+            }
+            return (a.name || '').localeCompare(b.name || '');
           });
           _.each(nodes, function(n) {
             if (n.children && n.children.length > 0) {

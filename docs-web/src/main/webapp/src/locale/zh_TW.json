@@ -205,7 +205,9 @@
       "title": "共享文件",
       "message": "如果您想要多次共享相同文件，請設定名稱。",
       "submit": "共享"
-    }
+    },
+    "page_size_50": "每頁50列",
+    "page_size_100": "每頁100列"
   },
   "file": {
     "view": {
@@ -246,6 +248,8 @@
     "search": "搜尋",
     "expand_all": "全部展開",
     "collapse_all": "全部收合",
+    "move_up": "上移",
+    "move_down": "下移",
     "browse": {
       "tree_title": "標籤分類",
       "welcome_title": "依標籤瀏覽文件與檔案",
@@ -272,8 +276,15 @@
       "parent": "上層",
       "info": "此標籤上的權限將套用至關聯的文件 <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span>",
       "circular_reference_title": "重複引用",
-      "circular_reference_message": "上層標籤的層次結構形成循環，請選擇另一個上層標籤。"
-    }
+      "circular_reference_message": "上層標籤的層次結構形成循環，請選擇另一個上層標籤。",
+      "order": "同層排序序號",
+      "order_placeholder": "預設留空依日期",
+      "order_help": "留空或相同時，依建立日期（由舊到新）自動排序"
+    },
+    "expand_files": "展開檔案",
+    "collapse_files": "收合檔案",
+    "expand_all_files": "展開所有檔案",
+    "collapse_all_files": "收合所有檔案"
   },
   "group": {
     "profile": {

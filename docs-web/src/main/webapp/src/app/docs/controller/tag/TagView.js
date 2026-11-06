@@ -3,15 +3,15 @@
 /**
  * Tag view controller (browsing documents and files under a selected tag).
  */
-angular.module('docs').controller('TagView', function($scope, $stateParams, $state, $timeout, Restangular) {
-  $scope.sortColumn = 3;
-  $scope.asc = false;
+angular.module('docs').controller('TagView', function($scope, $rootScope, $stateParams, $state, $timeout, Restangular) {
   $scope.offset = 0;
   $scope.currentPage = 1;
-  $scope.limit = _.isUndefined(localStorage.documentsPageSize) ? '10' : localStorage.documentsPageSize;
+  $scope.limit = _.isUndefined(localStorage.tagDocumentsPageSize) ? '30' : localStorage.tagDocumentsPageSize;
   $scope.filterText = '';
   $scope.paginationShown = true;
   $scope.loadingDocuments = true;
+  $scope.savingOrder = false;
+  $scope.expandedDocs = {};
 
   var timeoutPromise;
 
@@ -47,23 +47,21 @@ angular.module('docs').controller('TagView', function($scope, $stateParams, $sta
    * Load documents & attached files for the current tag.
    */
   $scope.pageDocuments = function() {
-    if (!$scope.tag || !$scope.tag.name) {
+    if (!$scope.tag || !$scope.tag.id) {
       return;
     }
     $scope.loadingDocuments = true;
-    var searchQuery = 'tag:' + $scope.tag.name;
+    var params = {
+      tag_id: $scope.tag.id,
+      offset: $scope.offset,
+      limit: $scope.limit,
+      files: true
+    };
     if ($scope.filterText && $scope.filterText.trim().length > 0) {
-      searchQuery += ' ' + $scope.filterText.trim();
+      params.search = $scope.filterText.trim();
     }
     Restangular.one('document/list')
-      .get({
-        offset: $scope.offset,
-        limit: $scope.limit,
-        sort_column: $scope.sortColumn,
-        asc: $scope.asc,
-        search: searchQuery,
-        files: true
-      })
+      .get(params)
       .then(function(data) {
         $scope.documents = data.documents;
         $scope.totalDocuments = data.total;
@@ -83,6 +81,94 @@ angular.module('docs').controller('TagView', function($scope, $stateParams, $sta
   };
 
   /**
+   * Toggle expand/collapse for a document's files.
+   */
+  $scope.toggleDocExpand = function(docId, $event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    $scope.expandedDocs[docId] = !$scope.expandedDocs[docId];
+  };
+
+  /**
+   * Check if a document's files are expanded.
+   */
+  $scope.isDocExpanded = function(docId) {
+    return !!$scope.expandedDocs[docId];
+  };
+
+  /**
+   * Expand files for all documents on current page.
+   */
+  $scope.expandAllDocs = function() {
+    _.each($scope.documents, function(d) {
+      $scope.expandedDocs[d.id] = true;
+    });
+  };
+
+  /**
+   * Collapse files for all documents on current page.
+   */
+  $scope.collapseAllDocs = function() {
+    $scope.expandedDocs = {};
+  };
+
+  /**
+   * Check if any document on current page is expanded.
+   */
+  $scope.hasAnyDocExpanded = function() {
+    return _.some($scope.documents, function(d) {
+      return !!$scope.expandedDocs[d.id];
+    });
+  };
+
+  /**
+   * Move a document up in the current page list.
+   */
+  $scope.moveDocumentUp = function(doc, index) {
+    if (index <= 0 || $scope.savingOrder) {
+      return;
+    }
+    var temp = $scope.documents[index - 1];
+    $scope.documents[index - 1] = $scope.documents[index];
+    $scope.documents[index] = temp;
+    $scope.applyAndSaveDocumentOrder();
+  };
+
+  /**
+   * Move a document down in the current page list.
+   */
+  $scope.moveDocumentDown = function(doc, index) {
+    if (index >= $scope.documents.length - 1 || $scope.savingOrder) {
+      return;
+    }
+    var temp = $scope.documents[index + 1];
+    $scope.documents[index + 1] = $scope.documents[index];
+    $scope.documents[index] = temp;
+    $scope.applyAndSaveDocumentOrder();
+  };
+
+  /**
+   * Save reordered documents for the current tag.
+   */
+  $scope.applyAndSaveDocumentOrder = function() {
+    if (!$scope.tag || !$scope.documents || !$scope.documents.length) {
+      return;
+    }
+    $scope.savingOrder = true;
+    var docIds = _.pluck($scope.documents, 'id');
+    Restangular.one('tag', $scope.tag.id)
+      .all('document/reorder')
+      .post({
+        document_ids_csv: docIds.join(','),
+        offset: $scope.offset
+      })
+      .finally(function() {
+        $scope.savingOrder = false;
+      });
+  };
+
+  /**
    * Watch page change.
    */
   $scope.$watch('currentPage', function(prev, next) {
@@ -97,7 +183,7 @@ angular.module('docs').controller('TagView', function($scope, $stateParams, $sta
    * Watch page size change.
    */
   $scope.$watch('limit', function(next, prev) {
-    localStorage.documentsPageSize = next;
+    localStorage.tagDocumentsPageSize = next;
     if (next === prev) {
       return;
     }
@@ -118,19 +204,6 @@ angular.module('docs').controller('TagView', function($scope, $stateParams, $sta
       $scope.loadDocuments();
     }, 250);
   });
-
-  /**
-   * Sort documents by column (1: title, 3: creation date).
-   */
-  $scope.sortDocuments = function(sortColumn) {
-    if (sortColumn === $scope.sortColumn) {
-      $scope.asc = !$scope.asc;
-    } else {
-      $scope.asc = sortColumn === 1;
-    }
-    $scope.sortColumn = sortColumn;
-    $scope.loadDocuments();
-  };
 
   /**
    * Open file preview modal directly in the current tag view.
