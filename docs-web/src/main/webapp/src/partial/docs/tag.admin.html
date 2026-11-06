@@ -10,17 +10,30 @@
     <a href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }">
       {{ tag.name }}
     </a>
-    <span class="text-muted small ml-10">
-      <span ng-if="hasChildren(tag.id)" class="mr-10" uib-tooltip="{{ 'tag.browse.subtag_count' | translate: { count: getChildrenTags(tag.id).length } }}">
+    <span class="tag-order-actions ml-10" ng-if="canManageTags">
+      <button type="button" class="btn btn-xs btn-link p-0 text-muted"
+              ng-disabled="isFirstSibling(tag)"
+              ng-click="moveTagUp(tag, $event)"
+              uib-tooltip="{{ 'tag.move_up' | translate }}"
+              style="padding: 0 3px; font-size: 11px;">
+        <span class="fas fa-chevron-up"></span>
+      </button>
+      <button type="button" class="btn btn-xs btn-link p-0 text-muted"
+              ng-disabled="isLastSibling(tag)"
+              ng-click="moveTagDown(tag, $event)"
+              uib-tooltip="{{ 'tag.move_down' | translate }}"
+              style="padding: 0 3px; font-size: 11px;">
+        <span class="fas fa-chevron-down"></span>
+      </button>
+    </span>
+    <span class="text-muted small ml-10" ng-if="hasChildren(tag.id)">
+      <span uib-tooltip="{{ 'tag.browse.subtag_count' | translate: { count: getChildrenTags(tag.id).length } }}">
         <span class="far fa-folder"></span> {{ getChildrenTags(tag.id).length }}
-      </span>
-      <span uib-tooltip="{{ 'document.count' | translate: { count: tag.document_count || 0 } }}">
-        <span class="far fa-file-alt"></span> {{ tag.document_count || 0 }}
       </span>
     </span>
   </div>
   <ul class="list-unstyled tag-tree-children" ng-if="hasChildren(tag.id) && isTagExpanded(tag.id)">
-    <li ng-repeat="tag in getChildrenTags(tag.id) | orderBy: '+name'" ng-include="'tag-admin-tree-item'"></li>
+    <li ng-repeat="tag in getChildrenTags(tag.id)" ng-include="'tag-admin-tree-item'"></li>
   </ul>
 </script>
 
@@ -53,7 +66,7 @@
       </div>
 
       <ul class="tag-tree">
-        <li ng-repeat="tag in getChildrenTags() | orderBy: '+name'" ng-include="'tag-admin-tree-item'"></li>
+        <li ng-repeat="tag in getChildrenTags()" ng-include="'tag-admin-tree-item'"></li>
       </ul>
 
       <div class="well-3d-background">

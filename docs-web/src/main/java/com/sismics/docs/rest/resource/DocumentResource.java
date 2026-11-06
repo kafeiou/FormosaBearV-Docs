@@ -463,7 +463,8 @@ public class DocumentResource extends BaseResource {
             @QueryParam("search[title]") String searchTitle,
             @QueryParam("search[uafter]") String searchUpdatedAfter,
             @QueryParam("search[ubefore]") String searchUpdatedBefore,
-            @QueryParam("search[searchworkflow]") String searchWorkflow
+            @QueryParam("search[searchworkflow]") String searchWorkflow,
+            @QueryParam("tag_id") String tagId
     ) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
@@ -498,6 +499,12 @@ public class DocumentResource extends BaseResource {
                 searchWorkflow,
                 allTagDtoList);
 
+        if (!com.google.common.base.Strings.isNullOrEmpty(tagId)) {
+            documentCriteria.setTagId(tagId);
+            if (sortColumn == null) {
+                sortCriteria = new SortCriteria(9, true);
+            }
+        }
         documentCriteria.setTargetIdList(getTargetIdList(null));
         try {
             AppContext.getInstance().getIndexingHandler().findByCriteria(paginatedList, suggestionList, documentCriteria, sortCriteria);
@@ -600,7 +607,8 @@ public class DocumentResource extends BaseResource {
             @FormParam("search[title]") String searchTitle,
             @FormParam("search[uafter]") String searchUpdatedAfter,
             @FormParam("search[ubefore]") String searchUpdatedBefore,
-            @FormParam("search[searchworkflow]") String searchWorkflow
+            @FormParam("search[searchworkflow]") String searchWorkflow,
+            @FormParam("tag_id") String tagId
     ) {
         return list(
                 limit,
@@ -622,7 +630,8 @@ public class DocumentResource extends BaseResource {
                 searchTitle,
                 searchUpdatedAfter,
                 searchUpdatedBefore,
-                searchWorkflow
+                searchWorkflow,
+                tagId
         );
     }
 

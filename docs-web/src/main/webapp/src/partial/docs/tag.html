@@ -20,7 +20,7 @@
     </span>
   </div>
   <ul class="list-unstyled tag-tree-children" ng-if="hasChildren(tag.id) && isTagExpanded(tag.id)">
-    <li ng-repeat="tag in getChildrenTags(tag.id) | orderBy: '+name'" ng-include="'tag-browse-tree-item'"></li>
+    <li ng-repeat="tag in getChildrenTags(tag.id)" ng-include="'tag-browse-tree-item'"></li>
   </ul>
 </script>
 
@@ -46,7 +46,7 @@
       </p>
 
       <ul class="tag-tree">
-        <li ng-repeat="tag in getChildrenTags() | orderBy: '+name'" ng-include="'tag-browse-tree-item'"></li>
+        <li ng-repeat="tag in getChildrenTags()" ng-include="'tag-browse-tree-item'"></li>
       </ul>
 
       <div class="well-3d-background">

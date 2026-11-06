@@ -237,4 +237,180 @@ public class TestTagResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .delete();
     }
+
+    /**
+     * Test tag reordering.
+     */
+    @Test
+    public void testTagReorder() {
+        clientUtil.createUser("reorder_user");
+        String userToken = clientUtil.login("reorder_user");
+
+        // Create 3 tags
+        JsonObject jsonA = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("name", "TagAlpha")
+                        .param("color", "#111111")), JsonObject.class);
+        String idA = jsonA.getString("id");
+
+        JsonObject jsonB = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("name", "TagBeta")
+                        .param("color", "#222222")), JsonObject.class);
+        String idB = jsonB.getString("id");
+
+        JsonObject jsonC = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("name", "TagGamma")
+                        .param("color", "#333333")), JsonObject.class);
+        String idC = jsonC.getString("id");
+
+        // Verify initial creation order (Alpha -> Beta -> Gamma)
+        JsonObject listJson = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        JsonArray tags = listJson.getJsonArray("tags");
+        Assert.assertEquals(idA, tags.getJsonObject(0).getString("id"));
+        Assert.assertEquals(idB, tags.getJsonObject(1).getString("id"));
+        Assert.assertEquals(idC, tags.getJsonObject(2).getString("id"));
+
+        // Reorder tags: Gamma -> Alpha -> Beta
+        Response response = target().path("/tag/reorder").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form()
+                        .param("tag_ids_csv", idC + "," + idA + "," + idB)));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(response.getStatus()));
+
+        // Verify reordered list
+        listJson = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        tags = listJson.getJsonArray("tags");
+        Assert.assertEquals(idC, tags.getJsonObject(0).getString("id"));
+        Assert.assertEquals(idA, tags.getJsonObject(1).getString("id"));
+        Assert.assertEquals(idB, tags.getJsonObject(2).getString("id"));
+
+        // Clean up
+        target().path("/tag/" + idA).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .delete();
+        target().path("/tag/" + idB).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .delete();
+        target().path("/tag/" + idC).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .delete();
+        String adminToken = adminToken();
+        target().path("/user/reorder_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+    }
+
+    /**
+     * Test document reordering within a tag and ghost cleanup.
+     */
+    @Test
+    public void testDocumentReorderInTag() {
+        clientUtil.createUser("doc_reorder_user");
+        String userToken = clientUtil.login("doc_reorder_user");
+
+        // Create a tag
+        JsonObject tagJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("name", "Projects")
+                        .param("color", "#abcdef")), JsonObject.class);
+        String tagId = tagJson.getString("id");
+
+        // Create 3 documents tagged with 'Projects'
+        // Created in order: Zebra, Apple, Mango
+        JsonObject doc1Json = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Zebra Project")
+                        .param("language", "eng")
+                        .param("tags", tagId)), JsonObject.class);
+        String doc1Id = doc1Json.getString("id");
+
+        JsonObject doc2Json = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Apple Project")
+                        .param("language", "eng")
+                        .param("tags", tagId)), JsonObject.class);
+        String doc2Id = doc2Json.getString("id");
+
+        JsonObject doc3Json = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Mango Project")
+                        .param("language", "eng")
+                        .param("tags", tagId)), JsonObject.class);
+        String doc3Id = doc3Json.getString("id");
+
+        // Verify initial list (ordered by DOT_ORDER_N ASC, which is creation order 0, 1, 2)
+        JsonObject listJson = target().path("/document/list")
+                .queryParam("tag_id", tagId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        JsonArray docs = listJson.getJsonArray("documents");
+        Assert.assertEquals(3, docs.size());
+        Assert.assertEquals(doc1Id, docs.getJsonObject(0).getString("id"));
+        Assert.assertEquals(doc2Id, docs.getJsonObject(1).getString("id"));
+        Assert.assertEquals(doc3Id, docs.getJsonObject(2).getString("id"));
+
+        // Reorder documents in this tag: Mango -> Apple -> Zebra
+        Response response = target().path("/tag/" + tagId + "/document/reorder").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form()
+                        .param("document_ids_csv", doc3Id + "," + doc2Id + "," + doc1Id)));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(response.getStatus()));
+
+        // Verify reordered list: Mango -> Apple -> Zebra
+        listJson = target().path("/document/list")
+                .queryParam("tag_id", tagId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        docs = listJson.getJsonArray("documents");
+        Assert.assertEquals(3, docs.size());
+        Assert.assertEquals(doc3Id, docs.getJsonObject(0).getString("id"));
+        Assert.assertEquals(doc2Id, docs.getJsonObject(1).getString("id"));
+        Assert.assertEquals(doc1Id, docs.getJsonObject(2).getString("id"));
+
+        // Test ghost cleanup: delete Mango document
+        target().path("/document/" + doc3Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .delete();
+
+        // Listing documents in tag now only returns 2 active documents (Apple, Zebra)
+        listJson = target().path("/document/list")
+                .queryParam("tag_id", tagId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        docs = listJson.getJsonArray("documents");
+        Assert.assertEquals(2, docs.size());
+        Assert.assertEquals(doc2Id, docs.getJsonObject(0).getString("id"));
+        Assert.assertEquals(doc1Id, docs.getJsonObject(1).getString("id"));
+
+        // Clean up remaining documents, tag, and user
+        target().path("/document/" + doc1Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .delete();
+        target().path("/document/" + doc2Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .delete();
+        target().path("/tag/" + tagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .delete();
+        String adminToken = adminToken();
+        target().path("/user/doc_reorder_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+    }
 }

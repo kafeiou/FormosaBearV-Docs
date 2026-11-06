@@ -20,7 +20,7 @@
   <!-- Child tags quick navigation -->
   <div class="mb-10" ng-if="getChildrenTags(tag.id).length > 0">
     <span class="text-muted small">{{ 'tag.browse.subtags' | translate }}：</span>
-    <a ng-repeat="child in getChildrenTags(tag.id) | orderBy: '+name'"
+    <a ng-repeat="child in getChildrenTags(tag.id)"
        href="#/tag/{{ child.id }}"
        ng-click="onTagClick(child)"
        class="label mr-10"
@@ -29,13 +29,12 @@
        style="display: inline-block; margin-bottom: 4px;">
       <span class="fas fa-tag"></span> {{ child.name }}
       <span ng-if="hasChildren(child.id)">&nbsp;<span class="far fa-folder"></span> {{ getChildrenTags(child.id).length }}</span>
-      <span>&nbsp;<span class="far fa-file-alt"></span> {{ child.document_count || 0 }}</span>
     </a>
   </div>
 
-  <!-- Filter & Sort Bar -->
+  <!-- Filter Bar & Expand/Collapse Toggle -->
   <div class="row mt-10 mb-19">
-    <div class="col-sm-7 col-xs-12 mb-10">
+    <div class="col-sm-8 col-xs-12 mb-10">
       <div class="input-group">
         <span class="input-group-addon"><span class="fas fa-search"></span></span>
         <input type="search"
@@ -49,16 +48,13 @@
         </span>
       </div>
     </div>
-
-    <div class="col-sm-5 col-xs-12 text-right">
-      <div class="btn-group">
-        <button type="button" class="btn btn-default" ng-class="{ active: sortColumn == 1 }" ng-click="sortDocuments(1)">
-          {{ 'document.title' | translate }}
-          <span class="fas" ng-if="sortColumn == 1" ng-class="{ 'fa-chevron-down': asc, 'fa-chevron-up': !asc }"></span>
+    <div class="col-sm-4 col-xs-12 text-right" ng-if="documents.length > 0">
+      <div class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-default" ng-click="expandAllDocs()" uib-tooltip="{{ 'tag.expand_all_files' | translate }}">
+          <span class="fas fa-expand-arrows-alt"></span> {{ 'tag.expand_all_files' | translate }}
         </button>
-        <button type="button" class="btn btn-default" ng-class="{ active: sortColumn == 3 }" ng-click="sortDocuments(3)">
-          {{ 'document.creation_date' | translate }}
-          <span class="fas" ng-if="sortColumn == 3" ng-class="{ 'fa-chevron-down': asc, 'fa-chevron-up': !asc }"></span>
+        <button type="button" class="btn btn-default" ng-click="collapseAllDocs()" uib-tooltip="{{ 'tag.collapse_all_files' | translate }}">
+          <span class="fas fa-compress-arrows-alt"></span> {{ 'tag.collapse_all_files' | translate }}
         </button>
       </div>
     </div>
@@ -84,17 +80,50 @@
           <span class="text-muted small mr-10" uib-tooltip="{{ 'document.last_updated' | translate: { date: document.update_date } }}">
             {{ document.create_date | timeAgo: dateFormat }}
           </span>
+          <span class="btn-group mr-10" ng-if="canManageTags">
+            <button class="btn btn-default btn-xs"
+                    type="button"
+                    ng-click="moveDocumentUp(document, $index)"
+                    ng-disabled="$index === 0 || savingOrder"
+                    uib-tooltip="{{ 'tag.move_up' | translate }}">
+              <span class="fas fa-chevron-up"></span>
+            </button>
+            <button class="btn btn-default btn-xs"
+                    type="button"
+                    ng-click="moveDocumentDown(document, $index)"
+                    ng-disabled="$index === documents.length - 1 || savingOrder"
+                    uib-tooltip="{{ 'tag.move_down' | translate }}">
+              <span class="fas fa-chevron-down"></span>
+            </button>
+          </span>
           <a href="#/document/view/{{ document.id }}" class="btn btn-xs btn-primary">
             <span class="fas fa-folder-open"></span> {{ 'open' | translate }}
           </a>
         </div>
 
         <h4 class="panel-title" style="line-height: 24px;">
+          <!-- Expand/Collapse Caret -->
+          <span class="pointer text-muted mr-5"
+                ng-click="toggleDocExpand(document.id, $event)"
+                ng-if="document.files && document.files.length > 0"
+                uib-tooltip="{{ (isDocExpanded(document.id) ? 'tag.collapse_files' : 'tag.expand_files') | translate }}">
+            <span class="fas" ng-class="{ 'fa-chevron-down': isDocExpanded(document.id), 'fa-chevron-right': !isDocExpanded(document.id) }"></span>
+          </span>
           <a href="#/document/view/{{ document.id }}" class="tag-doc-title">
             <span class="fas fa-book text-muted"></span>
             <strong>{{ document.title }}</strong>
           </a>
-          <span class="text-muted small">({{ document.file_count }})</span>
+          <!-- File count badge (clickable to toggle files) -->
+          <button type="button"
+                  class="btn btn-link btn-xs p-0 text-muted ml-5"
+                  ng-if="document.files && document.files.length > 0"
+                  ng-click="toggleDocExpand(document.id, $event)"
+                  uib-tooltip="{{ (isDocExpanded(document.id) ? 'tag.collapse_files' : 'tag.expand_files') | translate }}">
+            <span class="badge" style="font-size: 11px;">
+              {{ document.file_count }} <span class="far fa-file"></span>
+            </span>
+          </button>
+          <span class="text-muted small" ng-if="!document.files || document.files.length === 0">(0)</span>
           <span class="fas fa-share text-info" ng-if="document.shared" uib-tooltip="{{ 'document.shared' | translate }}"></span>
           <span class="fas fa-random text-warning" ng-if="document.active_route" uib-tooltip="{{ document.current_step_name }}"></span>
         </h4>
@@ -111,7 +140,8 @@
         </div>
       </div>
 
-      <div class="panel-body">
+      <!-- Collapsible panel body for files -->
+      <div class="panel-body" ng-if="isDocExpanded(document.id)">
         <div ng-if="!document.files || document.files.length == 0" class="text-muted small">
           {{ 'tag.browse.no_files_in_doc' | translate }}
         </div>
@@ -162,9 +192,9 @@
         ng-model="$parent.currentPage"></ul>
     <label class="sr-only" for="tagPagesizeSelect">{{ 'document.page_size' | translate }}</label>
     <select ng-model="limit" id="tagPagesizeSelect" class="form-control">
-      <option value="10">{{ 'document.page_size_10' | translate }}</option>
-      <option value="20">{{ 'document.page_size_20' | translate }}</option>
       <option value="30">{{ 'document.page_size_30' | translate }}</option>
+      <option value="50">{{ 'document.page_size_50' | translate }}</option>
+      <option value="100">{{ 'document.page_size_100' | translate }}</option>
     </select>
   </div>
 </div>

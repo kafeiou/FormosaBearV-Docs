@@ -1057,12 +1057,66 @@ body.dark-mode {
     }
   }
 
+  // Active & Selected table line in dark mode
+  .table tr.active td,
+  .table > tbody > tr.active > td,
+  .table > tbody > tr.active > th,
+  .table > tbody > tr > td.active,
+  .table > tbody > tr > th.active {
+    background-color: rgba(56, 189, 248, 0.18) !important;
+    color: #f1f5f9 !important;
+  }
+
+  .table-hover > tbody > tr.active:hover > td,
+  .table-hover > tbody > tr.active:hover > th,
+  .table-hover > tbody > tr:hover > .active,
+  .table-hover > tbody > tr > td.active:hover,
+  .table-hover > tbody > tr > th.active:hover {
+    background-color: rgba(56, 189, 248, 0.28) !important;
+    color: #ffffff !important;
+  }
+
   .table-striped > tbody > tr:nth-of-type(odd) {
     background-color: #1a212d;
   }
 
   .table-hover > tbody > tr:hover {
     background-color: #283245;
+  }
+
+  .table-documents {
+    thead th {
+      background-color: #252d3d !important;
+      color: #f1f5f9 !important;
+    }
+
+    tbody tr.active {
+      background-color: rgba(56, 189, 248, 0.18) !important;
+      color: #f1f5f9 !important;
+
+      .text-muted {
+        color: #94a3b8 !important;
+      }
+    }
+  }
+
+  .table-navigation {
+    tr {
+      &:hover td {
+        background-color: #283245 !important;
+      }
+      &.active td {
+        background-color: rgba(56, 189, 248, 0.18) !important;
+        color: #f1f5f9 !important;
+      }
+      td.tree-structure {
+        border-left-color: #475569 !important;
+        .tree-line {
+          border-bottom-color: #475569 !important;
+          border-left-color: #475569 !important;
+        }
+      }
+    }
   }
 
   // Forms & Inputs
@@ -1200,6 +1254,94 @@ body.dark-mode {
 
   .pell-content {
     color: #f1f5f9;
+  }
+
+  // Tag tree in dark mode
+  ul.tag-tree {
+    li {
+      .active {
+        color: #38bdf8 !important;
+        font-weight: 600;
+      }
+    }
+
+    .tag-tree-row {
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      &.tag-tree-active {
+        background-color: rgba(56, 189, 248, 0.18) !important;
+      }
+
+      .tag-tree-toggle {
+        color: #94a3b8;
+        &:hover {
+          color: #38bdf8;
+        }
+      }
+
+      a {
+        color: #cbd5e1;
+        &:hover {
+          color: #38bdf8;
+        }
+        &.active {
+          color: #38bdf8 !important;
+        }
+      }
+    }
+
+    .tag-tree-children {
+      border-left-color: #334155;
+    }
+  }
+
+  // Tag document cards in dark mode
+  .tag-doc-card {
+    border-color: #334155 !important;
+    background-color: #1e2532 !important;
+
+    & > .panel-heading {
+      background-color: #252d3d !important;
+      border-bottom-color: #334155 !important;
+    }
+
+    .tag-doc-title {
+      color: #f1f5f9 !important;
+
+      &:hover {
+        color: #38bdf8 !important;
+      }
+    }
+
+    .tag-file-thumbnail a.file-thumbnail {
+      background-color: #151b26 !important;
+    }
+  }
+
+  // Thumbnails in dark mode
+  .thumbnail {
+    background-color: #1e2532 !important;
+    border-color: #334155 !important;
+
+    &.active {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+    }
+
+    a.file-thumbnail {
+      background-color: #151b26 !important;
+    }
+
+    .file-name {
+      color: #f1f5f9 !important;
+    }
+  }
+
+  .breadcrumb-navigation {
+    background: none !important;
+    border: none !important;
   }
 
   // Tag tree & selector rows in dark mode

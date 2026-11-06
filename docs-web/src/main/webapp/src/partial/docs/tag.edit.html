@@ -44,6 +44,16 @@
     </div>
 
     <div class="form-group">
+      <label class="col-sm-2 control-label" for="inputOrder">{{ 'tag.edit.order' | translate }}</label>
+
+      <div class="col-sm-3">
+        <input type="number" name="order" class="form-control" id="inputOrder" min="0" ng-model="tag.order"
+               ng-attr-placeholder="{{ 'tag.edit.order_placeholder' | translate }}">
+        <span class="help-block small text-muted">{{ 'tag.edit.order_help' | translate }}</span>
+      </div>
+    </div>
+
+    <div class="form-group">
       <div class="col-sm-offset-2 col-sm-10">
         <button type="submit" class="btn btn-primary" ng-click="edit()" ng-disabled="!editTagForm.$valid">
           <span class="fas fa-pencil-alt"></span> {{ 'save' | translate }}
