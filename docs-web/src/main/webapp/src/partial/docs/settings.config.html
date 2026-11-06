@@ -92,6 +92,19 @@
   <button ng-if="app.file_duplicate" class="btn btn-danger" ng-click="changeFileDuplicate(false)">{{ 'settings.config.disable_file_duplicate' | translate }}</button>
 </div>
 
+
+<h3>
+  <span translate="settings.config.title_file_download"></span>
+  <span class="label" ng-class="{ 'label-success': app.file_download, 'label-danger': !app.file_download }">
+    {{ (app.file_download ? 'settings.config.file_download_enabled' : 'settings.config.file_download_disabled') | translate }}
+  </span>
+</h3>
+<p translate="settings.config.message_file_download"></p>
+<div ng-if="app" class="mb-19">
+  <button ng-if="!app.file_download" class="btn btn-primary" ng-click="changeFileDownload(true)">{{ 'settings.config.enable_file_download' | translate }}</button>
+  <button ng-if="app.file_download" class="btn btn-danger" ng-click="changeFileDownload(false)">{{ 'settings.config.disable_file_download' | translate }}</button>
+</div>
+
 <h2 translate="settings.config.title_theme"></h2>
 <div class="form-horizontal" style="margin-bottom: 15px;">
   <div class="form-group">

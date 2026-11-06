@@ -50,7 +50,7 @@ angular.module('share',
       }
     }
   });
-  
+
   // Configuring Restangular
   RestangularProvider.setBaseUrl('../api');
 
@@ -206,4 +206,22 @@ angular.module('share',
     }
     applyFontSize(14);
   };
+});
+
+/**
+ * Global download permission helper for share app.
+ */
+angular.module('share').run(function ($rootScope, Restangular) {
+  $rootScope.canDownload = function () {
+    if ($rootScope.app && $rootScope.app.file_download === false) {
+      return false;
+    }
+    return true;
+  };
+
+  if (!$rootScope.app) {
+    Restangular.one('app').get().then(function (appData) {
+      $rootScope.app = appData;
+    });
+  }
 });

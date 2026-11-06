@@ -1,4 +1,4 @@
-{
+﻿{
   "login": {
     "username": "Emri i përdoruesit",
     "password": "Fjalëkalimi",
@@ -501,7 +501,7 @@
   },
   "feedback": {
     "title": "Na jepni një koment",
-    "message": "Ndonjë sugjerim apo pyetje në lidhje me Teedy? ",
+    "message": "Ndonjë sugjerim apo pyetje në lidhje me FormosaBearV? ",
     "sent_title": "Komentet u dërguan",
     "sent_message": "Faleminderit për komentin tuaj! "
   },
@@ -598,11 +598,11 @@
   "onboarding": {
     "step1": {
       "title": "Hera e parë?",
-      "description": "Nëse është hera juaj e parë në Teedy, klikoni butonin Next, përndryshe mos ngurroni të më mbyllni."
+      "description": "Nëse është hera juaj e parë në FormosaBearV, klikoni butonin Next, përndryshe mos ngurroni të më mbyllni."
     },
     "step2": {
       "title": "Dokumentet",
-      "description": "Teedy është i organizuar në dokumente dhe çdo dokument përmban skedarë të shumtë."
+      "description": "FormosaBearV është i organizuar në dokumente dhe çdo dokument përmban skedarë të shumtë."
     },
     "step3": {
       "title": "Skedarët",

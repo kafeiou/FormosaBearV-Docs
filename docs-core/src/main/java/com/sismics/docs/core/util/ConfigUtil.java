@@ -18,6 +18,10 @@ public class ConfigUtil {
 
     private static Boolean cachedFileEncrypt = null;
 
+    public static void resetCache() {
+        cachedFileEncrypt = null;
+    }
+
     private static boolean hasActiveEntityManager() {
         return ThreadLocalContext.get() != null && ThreadLocalContext.get().getEntityManager() != null;
     }
@@ -136,6 +140,23 @@ public class ConfigUtil {
             }
         }
         return getBundleBoolean("file.duplicate", false);
+    }
+
+    /**
+     * Returns true if file download is enabled. Default is true.
+     */
+    public static boolean canFileDownload() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config config = configDao.getById(ConfigType.FILE_DOWNLOAD);
+                if (config != null && config.getValue() != null) {
+                    return "1".equals(config.getValue().trim()) || Boolean.parseBoolean(config.getValue().trim());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return getBundleBoolean("file.download", true);
     }
 
     /**

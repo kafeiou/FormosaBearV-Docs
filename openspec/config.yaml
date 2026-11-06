@@ -1,6 +1,6 @@
 schema: spec-driven
 context: |
-  Project: teedy-ng (v2.01, Forked from https://github.com/fmaass/teedy-docs 1.12)
+  Project: FormosaBearV-docs (v2.02, Forked from https://github.com/fmaass/teedy-docs 1.12)
   Tech Stack: Java 21, Eclipse Jetty 12.1 (EE10), Jakarta Servlet 6.0, Jersey 3.1.x, Hibernate 6.3, H2 2.3.x / PostgreSQL, Lucene 8.7, AngularJS 1.8.3, jQuery 3.7.1, Grunt
   Conventions:
     - 遵守 Conventional Commits 規範

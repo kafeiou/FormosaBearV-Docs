@@ -1,10 +1,28 @@
-# FormosaBearV (v2.01)
+# FormosaBearV (v2.02)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
 **FormosaBearV** is an open-source, lightweight document management system for individuals and businesses.
 
 > **Fork Notice**: This repository is forked from [https://github.com/sismics/docs](https://github.com/sismics/docs) (version `1.12`), modernized and maintained independently starting from version **`2.01`**.
+
+## Key Upgrades in v2.02
+
+- **Full System Backup & Restore**:
+  - Streaming export of complete system backups as a standard ZIP archive (`FormosaBearV-docs_backup_YYYYMMDD_HHmmss.zip`) without consuming server temporary disk space.
+  - Cross-database compatible ANSI SQL database dump (`dump.sql`) supporting seamless migration between **H2 and PostgreSQL**.
+  - System configuration export (`config.json`) preserving encryption mode, duplicate policy, soft delete, and download permissions.
+  - Full-fidelity physical document storage packaging (`storage/` and `delete/` directories).
+  - Safe restore with transactional rollback, Zip Slip path traversal defenses, high-risk confirmation guardrails, and automatic background Lucene full-text search index reconstruction.
+- **Interactive Multi-Page Office Document Previews**:
+  - Full in-browser slide-by-slide viewing for **PowerPoint (`.pptx`)** presentations and page-by-page viewing for **Word (`.docx`, `.odt`)** documents powered by Mozilla PDF.js.
+  - Automatic on-the-fly multi-page PDF generation with server-side caching (`_pdf`) for fast subsequent loads.
+  - Safe previewing with right-click context menu lock, disabled drag, and suppressed print buttons.
+- **Hardened Download Suppression & Security Guardrails**:
+  - Global download permission switch (`canDownload()`) enforced across document card views, table views, three-dot context menus, and tag views.
+  - Administration setting to completely forbid file downloading while maintaining complete multi-page in-browser reading capability.
+- **WAR Deployment Storage Persistence**:
+  - Resolved default in-memory H2 database bundling so that every WAR redeployment persists permanently to disk (`%APPDATA%\FormosaBearV\Docs\db\docs.mv.db` on Windows or `/var/docs/db/` on Linux).
 
 ## Key Upgrades in v2.01
 
@@ -60,10 +78,10 @@ mvn clean package -DskipTests
 ```
 *(or `mvn clean install -DskipTests`)*
 
-This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.01.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
+This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.02.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
 
 ```text
-docs-web/target/docs-web-2.01.war
+docs-web/target/docs-web-2.02.war
 ```
 
 ### Run Development Server (Jetty 12.1 EE10)
@@ -85,7 +103,7 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # Step 2: Build the Docker image (or use docker compose)
-docker build -t formosabearv-docs:2.01 .
+docker build -t formosabearv-docs:2.02 .
 ```
 
 A `Dockerfile` is included to build a self-contained container image with OpenJDK 21, Jetty 12.1 (`ee10`), Tesseract OCR, `ffmpeg`, and `mediainfo`, listening on port `8080`.
