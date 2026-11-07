@@ -1,113 +1,114 @@
-# FormosaBearV 實體檔案與資料存放路徑說明 (Storage Architecture)
+[ English ](STORAGE.md) | [ 繁體中文 ](STORAGE.zh-TW.md)
 
-本文件說明 **FormosaBearV (v2.02)** 系統中所有資料庫、全文檢索索引、日誌、自訂主題與上傳檔案在伺服器硬碟上的存放位置與目錄規則（對應後端核心類別 `com.sismics.docs.core.util.DirectoryUtil` 與 `FileUtil`）。
+# FormosaBearV Storage Architecture & File Directory Guide
+
+This document explains the on-disk storage locations and directory layout rules for databases, full-text indexes, logs, custom themes, and uploaded documents in **FormosaBearV (v2.02)** (corresponding to backend core classes `com.sismics.docs.core.util.DirectoryUtil` and `FileUtil`).
 
 ---
 
-## 1. 資料根目錄 (Base Data Directory)
+## 1. Base Data Directory
 
-系統啟動時會依照以下優先順序決定 **資料根目錄**：
+When the system starts up, it determines the **base data directory** using the following order of precedence:
 
 ```mermaid
 flowchart TD
-    Start["系統啟動讀取資料根目錄"] --> CheckProp{"是否有設定 JVM 參數<br/>-Ddocs.home 或環境變數 DOCS_HOME ?"}
-    CheckProp -- "有設定" --> CustomDir["使用指定的自訂路徑"]
-    CheckProp -- "未設定" --> CheckOS{"判斷作業系統類型"}
-    CheckOS -- "Windows" --> WinDir["%APPDATA%\\FormosaBearV\\Docs<br/>(例: C:\\Users\\<帳號>\\AppData\\Roaming\\FormosaBearV\\Docs)"]
+    Start["System Boot: Determine Base Directory"] --> CheckProp{"JVM parameter -Ddocs.home or<br/>environment variable DOCS_HOME set?"}
+    CheckProp -- "Yes" --> CustomDir["Use specified custom directory path"]
+    CheckProp -- "No" --> CheckOS{"Detect Operating System"}
+    CheckOS -- "Windows" --> WinDir["%APPDATA%\\FormosaBearV\\Docs<br/>(e.g., C:\\Users\\<user>\\AppData\\Roaming\\FormosaBearV\\Docs)"]
     CheckOS -- "Linux / Docker" --> UnixDir["/var/docs"]
     CheckOS -- "macOS" --> MacDir["~/Library/FormosaBearV/Docs"]
 ```
 
-### 各環境預設根目錄一覽
+### Default Base Directory by Environment
 
-| 執行環境 | 預設資料根目錄路徑 | 範例路徑 |
+| Environment | Default Base Directory | Example Path |
 | :--- | :--- | :--- |
 | **Windows** | `%APPDATA%\FormosaBearV\Docs` | `C:\Users\william\AppData\Roaming\FormosaBearV\Docs` |
 | **Linux / Docker** | `/var/docs` | `/var/docs` |
 | **macOS** | `~/Library/FormosaBearV/Docs` | `/Users/william/Library/FormosaBearV/Docs` |
-| **自訂路徑（推薦生產環境使用）** | 設定環境變數 `DOCS_HOME` 或 JVM 參數 `-Ddocs.home` | 例如 `-Ddocs.home=D:\formosabearv-data` |
+| **Custom Path (Recommended for Production)** | Set environment variable `DOCS_HOME` or JVM argument `-Ddocs.home` | e.g., `-Ddocs.home=D:\formosabearv-data` |
 
 > [!TIP]
-> 管理員登入系統後，可直接前往 **「設置 -> 設定 (`#/settings/config`)」** 查看伺服器當前的實際資料存放根目錄路徑。
+> Administrators can verify the actual runtime data directory at any time in **Settings -> Configuration (`#/settings/config`)**.
 
 ---
 
-## 2. 根目錄下的子目錄結構
+## 2. Directory Layout Under Base Directory
 
-在資料根目錄下，系統會自動建立並維護以下子目錄：
+The system automatically manages the following subdirectories under the base data directory:
 
 ```text
-<資料根目錄>/
-  ├── db/               # 嵌入式 H2 資料庫實體檔案（若使用外部 PostgreSQL 則不使用此目錄）
-  ├── lucene/           # Apache Lucene 全文檢索索引檔
-  ├── log/              # 系統執行日誌檔案 (docs.log)
-  ├── theme/            # 系統自訂主題圖片（Logo、登入頁背景圖）
-  ├── storage/          # 【核心】所有上傳的正式檔案、預覽圖 (_web) 與縮圖 (_thumb)
+<Base Data Directory>/
+  ├── db/               # Embedded H2 database files (not used if external PostgreSQL is configured)
+  ├── lucene/           # Apache Lucene full-text search index files
+  ├── log/              # Application execution logs (docs.log)
+  ├── theme/            # Custom theme images (custom logo, login page background)
+  ├── storage/          # [Core] Uploaded document files, web preview renders (_web), and thumbnails (_thumb)
   └── delete/
-      └── storage/      # 【回收區】當「檔案刪除模式 (file.delete)」設為「移至回收區」時，被刪除的檔案存放處
+      └── storage/      # [Trash] Stored files moved here when soft-delete mode (file.delete = false) is enabled
 ```
 
 ---
 
-## 3. 上傳檔案 (`storage/`) 的存放規則
+## 3. Upload Storage Rules (`storage/`)
 
-每當使用者上傳一個檔案（例如 `資安規範.pptx`），系統會在該檔案專屬的目錄下產生 **3 個實體檔案**：
+Whenever a user uploads a file (e.g., `SecurityPolicy.pptx`), the system generates **3 physical files** in its dedicated directory:
 
-1. **`資安規範.pptx`**：使用者上傳的原始檔案本體。
-2. **`資安規範.pptx_web`**：系統轉檔產生的較高解析度預覽圖（寬度 1280px，供網頁預覽視窗使用）。
-3. **`資安規範.pptx_thumb`**：系統轉檔產生的正方形縮圖（256x256，供列表與卡片縮圖使用）。
+1. **`SecurityPolicy.pptx`**: The original unaltered file uploaded by the user.
+2. **`SecurityPolicy.pptx_web`**: Higher-resolution web preview image (width 1280px) used by the in-browser viewer.
+3. **`SecurityPolicy.pptx_thumb`**: Square thumbnail image (256x256) used in document list and grid views.
 
-### 3.1 檔案加密模式 (`file.encrypt`) 對存放結構的影響
+### 3.1 Impact of File Encryption (`file.encrypt`)
 
 > [!IMPORTANT]
-> **`file.encrypt` 屬於系統初始化一次性認定設定**。一旦管理員於首次登入時完成認定（或系統已上傳第一個檔案），該設定即永久鎖定於資料庫中，不可再變更，以確保系統內所有檔案的加密/解密狀態一致。
+> **`file.encrypt` is a one-time immutable system initialization setting**. Once initialized during the administrator's first setup (or after the first file is uploaded), it is permanently locked in the database and cannot be toggled, guaranteeing cryptographic consistency across all files.
 
 ```mermaid
 flowchart LR
-    Upload["上傳檔案"] --> CheckEncrypt{"檔案加密模式<br/>(file.encrypt)"}
-    CheckEncrypt -- "不加密 (false，預設)" --> Unencrypted["以原始檔案格式存放，依帳號與文件分層：<br/>storage/{userId}/{documentId}/{fileId}/{原始檔名}"]
-    CheckEncrypt -- "啟用加密 (true)" --> Encrypted["以 AES-256 加密內容存放：<br/>storage/{原始檔名}"]
+    Upload["Upload File"] --> CheckEncrypt{"Encryption Mode<br/>(file.encrypt)"}
+    CheckEncrypt -- "Unencrypted (false, default)" --> Unencrypted["Stored in original format, partitioned by user & doc:<br/>storage/{userId}/{documentId}/{fileId}/{filename}"]
+    CheckEncrypt -- "Encrypted (true)" --> Encrypted["Stored with AES-256 stream encryption:<br/>storage/{filename}"]
 ```
 
-- **不加密儲存（`file.encrypt = false`，預設推薦）**：
-  - 檔案以**原始未加密格式**直接存放在磁碟上，方便系統管理員直接於作業系統層級進行備份、檢視或救援。
-  - **已歸屬文件之檔案路徑**：
-    `storage/{使用者ID}/{文件ID}/{檔案ID}/{原始檔名}`
-  - **快速上傳區（尚未建立文件）之暫存檔案路徑**：
-    `storage/{使用者ID}/{檔案ID}/{原始檔名}`（當使用者勾選並建立文件後，系統會自動將其搬移至 `{文件ID}` 目錄下）。
-- **啟用加密儲存（`file.encrypt = true`）**：
-  - 檔案在寫入磁碟時，會使用該使用者的私鑰透過 `PBEWITHSHA256AND256BITAES-CBC-BC` (`AES/CTR/NOPADDING`) 進行串流加密，直接從磁碟打開無法閱讀，必須透過系統應用程式解密讀取。
-  - 存放路徑：`storage/{原始檔名}`。
+- **Unencrypted Storage (`file.encrypt = false`, recommended default)**:
+  - Files are stored in **native unencrypted format** on disk, allowing direct administrator backup, inspection, or disaster recovery.
+  - **Associated document file path**:
+    `storage/{userId}/{documentId}/{fileId}/{originalFilename}`
+  - **Staged upload file path (before document creation)**:
+    `storage/{userId}/{fileId}/{originalFilename}` (automatically moved into `{documentId}` once the document is created).
+- **Encrypted Storage (`file.encrypt = true`)**:
+  - Files are encrypted on-the-fly using the user's private key via `PBEWITHSHA256AND256BITAES-CBC-BC` (`AES/CTR/NOPADDING`). Files cannot be read directly from disk and must be accessed through the application.
+  - Storage path: `storage/{originalFilename}`.
 
 ---
 
-## 4. 檔案刪除模式 (`file.delete`) 與重複檔名設定 (`file.duplicate`)
+## 4. Deletion Policy (`file.delete`) and Duplicate Filename Policy (`file.duplicate`)
 
-這兩項設定可由管理員隨時於 **「設置 -> 設定 (`#/settings/config`)」** 動態切換，無須重啟伺服器即可生效：
+Both settings can be dynamically toggled at runtime in **Settings -> Configuration (`#/settings/config`)** without restarting the application:
 
-### 4.1 檔案刪除模式 (`file.delete`)
+### 4.1 File Deletion Policy (`file.delete`)
 
 ```mermaid
 flowchart TD
-    DelAction["使用者於介面點擊「刪除檔案」或「刪除文件」"] --> DBUpdate["1. 資料庫 T_FILE 標記刪除時間 (FIL_DELETEDATE_D)<br/>2. 扣回使用者已用容量配額<br/>3. 從 Lucene 搜尋索引移除"]
-    DBUpdate --> CheckDelMode{"檢查「檔案刪除模式」<br/>(file.delete)"}
-    CheckDelMode -- "移至回收區保留 (false，預設)" --> MoveToDelete["將原始檔、_web、_thumb 搬移至：<br/>delete/storage/{userId}/{documentId}/{fileId}/"]
-    CheckDelMode -- "直接永久刪除 (true)" --> HardDelete["直接呼叫 Files.delete()<br/>從硬碟永久抹除原始檔、_web 與 _thumb"]
+    DelAction["User clicks 'Delete File' or 'Delete Document'"] --> DBUpdate["1. Mark FIL_DELETEDATE_D in database T_FILE<br/>2. Reclaim user storage quota<br/>3. Remove document from Lucene search index"]
+    DBUpdate --> CheckDelMode{"Check Deletion Mode<br/>(file.delete)"}
+    CheckDelMode -- "Soft Delete / Move to Trash (false, default)" --> MoveToDelete["Move original file, _web, and _thumb to:<br/>delete/storage/{userId}/{documentId}/{fileId}/"]
+    CheckDelMode -- "Permanent Hard Delete (true)" --> HardDelete["Invoke Files.delete()<br/>Permanently erase original file, _web, and _thumb from disk"]
 ```
 
-- **移至回收區保留（`file.delete = false`，預設）**：
-  - 前台介面與搜尋結果立即移除該檔案，並釋放使用者的配額空間，但硬碟上的實體檔案會被搬移至 `delete/storage/...` 目錄下妥善保留，防止誤刪。
-- **直接從磁碟永久刪除（`file.delete = true`）**：
-  - 除了從前台與搜尋索引移除外，會直接將硬碟上的 `{原始檔名}`、`{原始檔名}_web`、`{原始檔名}_thumb` 及空目錄**徹底從硬碟刪除**，不保留於 `delete/storage/`。
+- **Soft Delete / Trash (`file.delete = false`, default)**:
+  - The document is removed from user views and search results, and quota is refunded, but physical files are safely preserved under `delete/storage/...` to protect against accidental deletion.
+- **Permanent Hard Delete (`file.delete = true`)**:
+  - Along with database and index removal, physical files (`{filename}`, `{filename}_web`, `{filename}_thumb`) and parent empty folders are **permanently deleted from disk**.
 
-### 4.2 重複檔案名稱檢查 (`file.duplicate`)
-- **禁止重複檔名（`file.duplicate = false`，預設）**：同一位使用者上傳相同檔名的新檔案時，系統會攔截並提示「已經有相同檔案名稱」（避免重複上傳相同檔案；若要更新舊檔可使用檔案選單中的「上傳新的版本」）。
-- **允許重複檔名（`file.duplicate = true`）**：允許上傳相同檔案名稱（因為每個檔案在磁碟上都有獨立的 `{檔案ID}` 子資料夾，因此同檔名在未加密分層目錄下也不會互相覆蓋）。
+### 4.2 Duplicate Filename Policy (`file.duplicate`)
+- **Forbid Duplicates (`file.duplicate = false`, default)**: If a user uploads a file with an identical filename, the system rejects it and prompts that a duplicate exists (to update an existing document, use "Upload a new version" in the file context menu).
+- **Allow Duplicates (`file.duplicate = true`)**: Allows identical filenames because each file is isolated in its own `{fileId}` directory on disk.
 
 ---
 
-## 5. 系統備份與災難復原指引
+## 5. Backup & Disaster Recovery Guide
 
-有關巨量資料（如 100GB+）情境下的二階段分離式備份架構、Docker Compose 與 Windows 目錄位置及完整災難復原 SOP，請參閱專屬維運文件：
-👉 [FormosaBearV / Teedy 巨量資料備份與還原維運指南 (BACKUP_GUIDE.md)](BACKUP_GUIDE.md)
-
+For large-scale deployments (100GB+) using the dual-layer decoupled backup architecture, Docker Compose / Windows host paths, and complete disaster recovery procedures, refer to:
+👉 [FormosaBearV / Teedy Dual-Layer Backup & Disaster Recovery Guide (BACKUP_GUIDE.md)](BACKUP_GUIDE.md)

@@ -1,37 +1,39 @@
-# FormosaBearV / Teedy 巨量資料備份與還原維運指南 (Backup & Disaster Recovery Guide)
+[ English ](BACKUP_GUIDE.md) | [ 繁體中文 ](BACKUP_GUIDE.zh-TW.md)
 
-本指南說明如何在海量檔案（例如數十 GB 至數百 GB、數十萬份文件）情境下，採用**「二階段分離式備份架構」**進行極速、穩定且永不逾時中斷的系統備份與災難復原作業。
+# FormosaBearV / Teedy Dual-Layer Backup & Disaster Recovery Guide
+
+This guide explains how to perform high-speed, reliable, and uninterrupted system backup and disaster recovery operations for massive datasets (ranging from dozens of gigabytes to hundreds of gigabytes and hundreds of thousands of documents) using a **Dual-Layer Decoupled Backup Architecture**.
 
 ---
 
-## 1. 二階段分離式備份架構 (Dual-Layer Backup Architecture)
+## 1. Dual-Layer Decoupled Backup Architecture
 
-當系統儲存容量達 100GB 以上時，若透過瀏覽器 HTTP 下載完整打包 ZIP，極易因反向代理（Nginx / Cloudflare）請求逾時或網路抖動而中斷，且單一 HTTP 下載無法斷點續傳。
+When system storage reaches 100GB or more, downloading a single consolidated ZIP over HTTP through a web browser is prone to timeouts (caused by Nginx / Cloudflare reverse proxies) or network hiccups, and standard browser downloads do not support resumable transfers.
 
-因此，系統採用業界最佳實踐（Best Practice）之**二階段分離式架構**：
+Therefore, the system employs the industry best-practice **Dual-Layer Architecture**:
 
 ```mermaid
 flowchart TD
-    subgraph TeedyApp ["FormosaBearV / Teedy 應用程式"]
+    subgraph TeedyApp ["FormosaBearV / Teedy Application"]
         direction TB
-        AppDB[("資料庫 (H2 / PostgreSQL)")]
-        AppCfg["系統安全設定 (T_CONFIG)"]
-        AppStorage[("實體檔案 (storage/ 目錄)")]
+        AppDB[("Database (H2 / PostgreSQL)")]
+        AppCfg["Security Config (T_CONFIG)"]
+        AppStorage[("Physical Files (storage/ directory)")]
     end
 
-    subgraph Phase1 ["階段一：輕量資料庫與組態備份 (Web 後台)"]
+    subgraph Phase1 ["Phase 1: Lightweight Database & Config Backup (Web Admin)"]
         direction TB
-        ZipOut["串流匯出 ZIP (< 5 MB，1~2 秒完成)"]
-        ZipOut --> Dump["dump.sql (ANSI SQL 資料表與記錄)"]
-        ZipOut --> Config["config.json (加密鎖定/下載控制設定)"]
-        ZipOut --> Manifest["manifest.json (版本與元資料)"]
+        ZipOut["Streaming ZIP Export (< 5 MB, 1~2 seconds)"]
+        ZipOut --> Dump["dump.sql (ANSI SQL schema & records)"]
+        ZipOut --> Config["config.json (encryption & security flags)"]
+        ZipOut --> Manifest["manifest.json (version & metadata)"]
     end
 
-    subgraph Phase2 ["階段二：實體檔案儲存增量備份 (主機排程)"]
+    subgraph Phase2 ["Phase 2: Incremental Physical Storage Backup (Host Scheduler)"]
         direction TB
-        WinSync["Windows: Robocopy 多執行緒增量同步"]
-        LinSync["Docker / Linux: Rsync 增量同步"]
-        DiskBackup[("外部備份硬碟 / NAS / 雲端儲存")]
+        WinSync["Windows: Robocopy Multi-threaded Mirroring"]
+        LinSync["Docker / Linux: Rsync Incremental Sync"]
+        DiskBackup[("External Backup Disk / NAS / Cloud Object Storage")]
     end
 
     AppDB & AppCfg --> Phase1
@@ -41,114 +43,114 @@ flowchart TD
 
 ---
 
-## 2. 實體檔案目錄位置 (Physical Storage Locations)
+## 2. Physical Storage Locations
 
-### 2.1 Docker Compose 環境（官方推薦部署方式）
-在 Teedy 的 Docker 映像檔中，系統組態 `docs.xml` 將 `docs.home` 指定為 `/data`。
+### 2.1 Docker Compose Environment (Official Recommended Deployment)
+In Teedy's Docker image, the application configuration `docs.xml` sets `docs.home` to `/data`.
 
-- **容器內部路徑**：
-  - 基礎資料目錄：`/data`
-  - 實體檔案目錄：`/data/storage`
-  - 回收桶目錄：`/data/delete`
-- **宿主機 (Host 端) 對應路徑**：
-  在專案根目錄的 `docker-compose.yml` 中的 Volume 定義為：
+- **In-Container Paths**:
+  - Base data directory: `/data`
+  - Physical file directory: `/data/storage`
+  - Trash / deleted files directory: `/data/delete`
+- **Host System Corresponding Paths**:
+  As defined in the root `docker-compose.yml` volume mapping:
   ```yaml
   volumes:
     - ./docs/data:/data
   ```
-  因此，宿主機上的實際儲存位置為：
+  The physical on-disk path on the host is:
   ```text
-  <docker-compose.yml 所在目錄>/docs/data/storage
+  <docker-compose.yml directory>/docs/data/storage
   ```
 
-### 2.2 Windows 原生運行環境（獨立 Jetty / Tomcat 或本機服務）
-當未在 JVM 中配置 `-Ddocs.home` 時，Teedy 預設將資料寫入當前使用者的 AppData 目錄：
-- **基礎資料目錄**：
+### 2.2 Windows Native Environment (Standalone Jetty / Tomcat / Windows Service)
+When `-Ddocs.home` is not explicitly set in the JVM arguments, Teedy defaults to the Windows user's AppData directory:
+- **Base Data Directory**:
   ```text
   %APPDATA%\FormosaBearV\Docs
   ```
-- **典型實際路徑**：
+- **Typical Concrete Path**:
   ```text
-  C:\Users\<Windows使用者名稱>\AppData\Roaming\FormosaBearV\Docs
+  C:\Users\<Username>\AppData\Roaming\FormosaBearV\Docs
   ```
-- **實體檔案目錄**：
+- **Physical File Directory**:
   ```text
-  C:\Users\<Windows使用者名稱>\AppData\Roaming\FormosaBearV\Docs\storage
+  C:\Users\<Username>\AppData\Roaming\FormosaBearV\Docs\storage
   ```
-*(若有在 Tomcat / Jetty 啟動腳本設置 `-Ddocs.home=D:\TeedyData`，則以該自訂路徑為準)*
+*(If `-Ddocs.home=D:\TeedyData` is configured in the startup script, the custom path takes precedence).*
 
-### 2.3 Linux / Unix 原生環境（非 Docker）
-- **基礎資料目錄**：`/var/docs`
-- **實體檔案目錄**：`/var/docs/storage`
+### 2.3 Linux / Unix Native Environment (Non-Docker)
+- **Base Data Directory**: `/var/docs`
+- **Physical File Directory**: `/var/docs/storage`
 
 ---
 
-## 3. 建議備份操作標準流程 (Backup SOP)
+## 3. Recommended Backup SOP
 
-### 3.1 步驟一：由網頁後台下載資料庫與組態備份
-1. 以管理員（Admin）身分登入 FormosaBearV / Teedy。
-2. 進入「設置 (Settings)」➔「備份與還原 (Backup & Restore)」。
-3. 點選 **「下載資料庫與設定備份 ZIP」** 按鈕。
-4. 系統將即時產生包含 `dump.sql`、`config.json` 與 `manifest.json` 的輕量備份檔（通常小於 5 MB），數秒內下載完成。
+### 3.1 Step 1: Download Database & Configuration Backup via Web Admin
+1. Log in to FormosaBearV / Teedy as an **Admin**.
+2. Navigate to **Settings** ➔ **Backup & Restore**.
+3. Click the **"Download Database & Settings Backup ZIP"** button.
+4. The system streams a lightweight ZIP containing `dump.sql`, `config.json`, and `manifest.json` (typically under 5 MB), finishing within seconds.
 
-### 3.2 步驟二：作業系統層級增量備份實體檔案
+### 3.2 Step 2: Incremental File Backup at the OS Level
 
-#### 【Windows 環境】PowerShell / CMD 指令（Robocopy）
-利用 Windows 內建的 `robocopy` 支援多執行緒、增量鏡像與中斷自動重試（即使檔案達 100GB，首次複製後，日常排程僅需數秒至數分鐘）：
+#### [Windows Environment] PowerShell / CMD Command (Robocopy)
+Using Windows built-in `robocopy` with multi-threading, mirroring, and automated retry on locked files (even with 100GB of files, subsequent runs only take seconds to minutes):
 ```powershell
-# 將實體 storage 目錄鏡像同步至備份磁碟 D:\Backup\Teedy\storage
+# Mirror physical storage to backup drive D:\Backup\Teedy\storage
 robocopy "$env:APPDATA\FormosaBearV\Docs\storage" "D:\Backup\Teedy\storage" /MIR /R:3 /W:5 /MT:8 /NP /LOG:"D:\Backup\Teedy\backup.log"
 ```
-> **參數說明**：
-> - `/MIR`：鏡像目錄（僅複製有變更的檔案，並同步刪除目標端不存在的檔案）。
-> - `/MT:8`：使用 8 個執行緒平行複製，極大加快大量小檔案傳輸效率。
-> - `/R:3 /W:5`：遇鎖定檔案重試 3 次，間隔 5 秒。
+> **Parameters**:
+> - `/MIR`: Mirror directory tree (copies only modified files and prunes deleted files at destination).
+> - `/MT:8`: Uses 8 parallel threads, dramatically speeding up small file transfers.
+> - `/R:3 /W:5`: Retries 3 times on locked files, waiting 5 seconds between retries.
 
-#### 【Docker / Linux 環境】Bash 指令（rsync）
-在宿主機（Host）執行以下指令即可進行增量備份：
+#### [Docker / Linux Environment] Bash Command (rsync)
+On the host machine, run incremental synchronization:
 ```bash
-# 宿主機 Docker Compose 目錄下的 docs/data/storage 同步至 /backup/teedy/storage
+# Sync docs/data/storage from host Docker Compose directory to /backup/teedy/storage
 rsync -avz --delete --progress ./docs/data/storage/ /backup/teedy/storage/
 ```
-或定期打包封存：
+Or periodic compressed tar archive:
 ```bash
 tar -czvf /backup/teedy/teedy_storage_$(date +%Y%m%d).tar.gz -C ./docs/data storage
 ```
 
 ---
 
-## 4. 災難復原操作標準流程 (Disaster Recovery SOP)
+## 4. Disaster Recovery SOP
 
-當伺服器損毀、更換新主機或進行主機遷移時，復原步驟如下：
+When replacing the server, hardware failure occurs, or migrating between environments, follow these recovery steps:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Admin as 系統管理員
-    participant Host as 目標新主機 (Host)
-    participant Teedy as FormosaBearV 系統
-    participant Lucene as 全文檢索索引模組
+    actor Admin as System Administrator
+    participant Host as Target Host Machine
+    participant Teedy as FormosaBearV Application
+    participant Lucene as Full-Text Search Module
 
-    Admin->>Host: 1. 將實體檔案放回 storage 目錄 (Windows AppData 或 Docker ./docs/data/storage)
-    Admin->>Teedy: 2. 啟動 Teedy 並至「備份與還原」頁面上傳備份 ZIP (dump.sql + config.json)
-    Teedy->>Teedy: 3. 恢復資料庫記錄、權限 ACL、標籤階層與系統設定
-    Note over Teedy: 安全防呆：若 ZIP 無 storage，既有檔案絕對不被刪除！
-    Teedy->>Lucene: 4. 自動觸發背景全文重建索引 (RebuildIndexAsyncEvent)
-    Lucene-->>Admin: 5. 搜尋索引重建完畢，復原完成！
+    Admin->>Host: 1. Place physical files into storage directory (Windows AppData or Docker ./docs/data/storage)
+    Admin->>Teedy: 2. Start Teedy and upload backup ZIP (dump.sql + config.json) in Backup & Restore page
+    Teedy->>Teedy: 3. Restore database records, ACLs, tag hierarchies, and security configurations
+    Note over Teedy: Safety Guardrail: If ZIP contains no storage, existing files on disk are NEVER deleted!
+    Teedy->>Lucene: 4. Automatically trigger background full-text re-indexing (RebuildIndexAsyncEvent)
+    Lucene-->>Admin: 5. Search index rebuild complete, system fully operational!
 ```
 
-### 復原步驟說明：
-1. **就位實體檔案**：
-   - **Docker**：將備份的檔案置於宿主機的 `./docs/data/storage/`。
-   - **Windows**：將備份的檔案置於 `%APPDATA%\FormosaBearV\Docs\storage`。
-2. **啟動系統**：
-   - 啟動 Docker 容器或啟動應用程式服務。
-3. **還原資料庫與組態**：
-   - 登入管理者帳號，進入「設置」➔「備份與還原」。
-   - 將先前下載的備份 ZIP（幾 MB）拖曳至還原區域，點擊「開始還原系統」。
-   - 系統將套用標準 ANSI SQL 還原所有資料表，並更新系統安全設定。
-4. **自動防呆與重建索引**：
-   - 系統已內建防呆保護：當備份 ZIP 內無 `storage/` 檔案時，**絕對不會清空既有實體磁碟檔案**。
-   - 資料庫還原成功後，Teedy 會自動觸發背景 `RebuildIndexAsyncEvent`，重新對磁碟上的所有實體檔案建立 Lucene 全文搜尋索引。
-5. **重新整理頁面**：
-   - 點擊「立即重新整理頁面」，所有文件、階層標籤、權限與搜尋功能即刻完全就緒。
+### Detailed Recovery Steps:
+1. **Restore Physical Files**:
+   - **Docker**: Copy backup files into `./docs/data/storage/` on the host machine.
+   - **Windows**: Copy backup files into `%APPDATA%\FormosaBearV\Docs\storage`.
+2. **Start the Application**:
+   - Start the Docker container or application server.
+3. **Restore Database & Settings**:
+   - Log in as admin, go to **Settings** ➔ **Backup & Restore**.
+   - Drag and drop the lightweight backup ZIP into the restore area and click **"Start System Restore"**.
+   - The system executes standard ANSI SQL statements in an atomic transaction to restore tables, ACLs, and system configurations.
+4. **Safety Guardrail & Automatic Reindexing**:
+   - **Built-in Guardrail**: When the uploaded backup ZIP does not contain physical files, the system **never deletes existing on-disk storage**.
+   - Once the database is restored, Teedy automatically triggers `RebuildIndexAsyncEvent` in the background to reconstruct the Apache Lucene full-text search index from the on-disk files.
+5. **Reload the Application**:
+   - Click **"Go to Login"** or reload the browser. All documents, hierarchical tags, permissions, and search functions are immediately available.
