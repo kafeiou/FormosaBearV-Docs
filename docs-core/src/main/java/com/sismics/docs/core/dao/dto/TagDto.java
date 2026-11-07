@@ -43,6 +43,16 @@ public class TagDto {
      */
     private Date createDate;
 
+    /**
+     * Whether this tag inherits permissions from ancestor tags.
+     */
+    private boolean inheritAcl = true;
+
+    /**
+     * Whether this tag is displayed only as a path container.
+     */
+    private boolean container = false;
+
     public String getId() {
         return id;
     }
@@ -103,6 +113,24 @@ public class TagDto {
 
     public TagDto setCreateDate(Date createDate) {
         this.createDate = createDate;
+        return this;
+    }
+
+    public boolean isInheritAcl() {
+        return inheritAcl;
+    }
+
+    public TagDto setInheritAcl(boolean inheritAcl) {
+        this.inheritAcl = inheritAcl;
+        return this;
+    }
+
+    public boolean isContainer() {
+        return container;
+    }
+
+    public TagDto setContainer(boolean container) {
+        this.container = container;
         return this;
     }
 }

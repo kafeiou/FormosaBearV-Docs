@@ -245,11 +245,14 @@
   },
   "tag": {
     "new_tag": "New tag",
+    "root_tag_option": "No parent (Root tag)",
     "search": "Search",
     "expand_all": "Expand all",
     "collapse_all": "Collapse all",
     "move_up": "Move Up",
     "move_down": "Move Down",
+    "broken_inheritance": "Permission inheritance is broken (custom independent permissions)",
+    "container_tooltip": "Path container tag only (no direct access permission)",
     "browse": {
       "tree_title": "Tag Categories",
       "welcome_title": "Browse Documents & Files by Tag",
@@ -271,6 +274,8 @@
     "edit": {
       "delete_tag_title": "Delete tag",
       "delete_tag_message": "Do you really want to delete this tag?",
+      "delete_has_children_title": "Cannot Delete Tag",
+      "delete_has_children_message": "This tag still contains child tags. Please remove or move all child tags before deleting this tag.",
       "name": "Name",
       "color": "Color",
       "parent": "Parent",
@@ -279,12 +284,21 @@
       "circular_reference_message": "The hierarchy of parent tags makes a loop, please choose another parent.",
       "order": "Order in Level",
       "order_placeholder": "Default: by date",
-      "order_help": "When empty or equal, ordered chronologically by creation date (oldest first)"
+      "order_help": "When empty or equal, ordered chronologically by creation date (oldest first)",
+      "inherit_acl": "Inherit permissions from parent tag",
+      "inherit_acl_help": "When checked, automatically inherits access permissions from all ancestors. When unchecked (broken), copies current inherited permissions into local permissions for independent management.",
+      "inherited_acls_title": "Inherited Permissions from Ancestors",
+      "inherited_acls_help": "The following permissions are inherited from ancestor tags and cannot be deleted here. To modify them, edit the source tag or disable inheritance.",
+      "no_inherited_acls": "No access permissions defined on ancestor tags",
+      "direct_acls_title": "Direct Permissions for This Tag",
+      "restore_inheritance_title": "Confirm Restoring Permission Inheritance",
+      "restore_inheritance_confirm": "Re-enabling inheritance will clear all local custom permissions on this tag and revert control to ancestor tags. Are you sure you want to restore inheritance?"
     },
     "expand_files": "Expand files",
     "collapse_files": "Collapse files",
     "expand_all_files": "Expand all files",
-    "collapse_all_files": "Collapse all files"
+    "collapse_all_files": "Collapse all files",
+    "tree_filter_placeholder": "Filter tags..."
   },
   "group": {
     "profile": {
@@ -509,7 +523,12 @@
         "search_group": "Search a group",
         "members": "Members",
         "new_member": "New member",
-        "search_user": "Search a user"
+        "search_user": "Search a user",
+        "no_parent_group": "-- (No parent group / Root group) --",
+        "parent_group_help": "Select a parent group directly from the dropdown, or leave empty for a top-level group.",
+        "select_user_dropdown": "-- Select an account to add --",
+        "add_member_hint": "Search by username or select directly from the dropdown to add members.",
+        "no_members": "No members in this group yet"
       }
     },
     "account": {
@@ -591,8 +610,8 @@
     },
     "menu_backup": "Backup & Restore",
     "backup": {
-      "title": "System Backup & Restore",
-      "description": "Full backup and restore supporting H2 and PostgreSQL database schema, data, full-text index, document storage files, and system security configurations.",
+      "title": "System Database & Configuration Backup",
+      "description": "Backup and restore supporting H2 and PostgreSQL database metadata, tags, ACLs, full-text index, and security configurations. Physical storage files (storage/) are recommended to be backed up via host filesystem tools.",
       "system_status": "System Status & Statistics",
       "db_engine": "Database Engine",
       "storage_mode": "Storage Mode",
@@ -605,27 +624,32 @@
       "document_count": "Active Documents",
       "file_count": "Active Files",
       "storage_size": "Physical Storage Size",
-      "export_section_title": "Full System Backup (Export ZIP)",
-      "export_explain": "Click the button below to stream and download a complete system backup archive (.zip). It contains:",
+      "storage_path": "Server Storage Path",
+      "export_section_title": "Database & Config Backup (Export ZIP)",
+      "export_explain": "Click the button below to download a lightweight database and configuration backup archive (.zip, typically < 5 MB in a few seconds). It contains:",
       "explain_dump_sql": "ANSI-standard SQL dump compatible with both H2 and PostgreSQL, including all users, metadata, tags, and ACLs.",
       "explain_config_json": "Complete system configuration (encryption mode, soft delete, duplication, download permission, etc.).",
-      "explain_files": "All document files, versions, and thumbnails preserving their original hierarchy (including soft-deleted files).",
-      "download_button": "Download Full Backup ZIP",
-      "downloading": "Streaming and compressing backup, please wait...",
-      "restore_section_title": "Full System Restore",
+      "explain_manifest_json": "System version and export metadata information.",
+      "physical_storage_notice_title": "Physical Storage Files Backup Notice:",
+      "physical_storage_notice_msg": "To prevent timeouts or connection drops when handling large storage sizes (e.g. tens or hundreds of GBs), physical document files are not packaged inside this web download. System administrators should directly back up the filesystem directory:",
+      "docker_compose_container_path": "container path",
+      "download_button": "Download Database & Config Backup ZIP",
+      "downloading": "Generating and downloading backup, please wait...",
+      "restore_section_title": "Database & Config Restore",
       "warning_title": "High-Risk Operation Warning:",
-      "warning_message": "System restore performs a 'Full Clean Restore'! Existing database tables and storage directories will be wiped and completely replaced with the backup contents, followed by automatic background search re-indexing. Please ensure you have selected the correct backup file.",
+      "warning_message": "System restore will overwrite database tables and system configurations, followed by automatic background search re-indexing. If the backup archive does not include physical files, existing files on disk will be safely preserved. Please ensure you have selected the correct backup file.",
       "select_or_drag_file": "Click to select or drag a backup ZIP file here",
       "zip_only": "Only .zip backup archives generated by this system are supported",
       "click_to_change_file": "Click to select a different file",
-      "confirm_restore_prompt": "WARNING: You are about to perform a full system restore!\n\nThis will wipe current database records and files, replacing them entirely with the backup contents, and rebuild search indexes.\nThis action CANNOT be undone. Are you sure you want to proceed?",
+      "confirm_restore_prompt": "WARNING: You are about to restore database and configurations!\n\nThis will overwrite current database records and configurations, and rebuild search indexes in the background.\nExisting storage files on disk will be preserved.\nThis action CANNOT be undone. Are you sure you want to proceed?",
       "uploading_and_restoring": "Uploading and restoring backup archive, please do not close this window...",
       "restore_success_title": "System Restore Successful!",
-      "restore_success_message": "Database, system configurations, and files have been successfully restored. Full-text search index is rebuilding in background. Please reload the page to apply changes.",
+      "restore_success_message": "Database and system configurations have been successfully restored, and session tokens have been reset. You will be redirected to log in again to load the restored data.",
       "reload_page": "Reload Page Now",
       "restore_error_title": "System Restore Failed",
       "restore_failed_generic": "An error occurred during upload or restoration. Please check file format and try again.",
-      "start_restore_button": "Start System Restore"
+      "start_restore_button": "Start System Restore",
+      "goto_login_button": "Go to Login"
     }
   },
   "feedback": {
@@ -697,7 +721,10 @@
     "WRITE": "Can write",
     "USER": "User",
     "GROUP": "Group",
-    "SHARE": "Shared"
+    "SHARE": "Shared",
+    "source": "Source Tag",
+    "target": "Target",
+    "perm": "Permission"
   },
   "workflow_type": {
     "VALIDATE": "Validation",
@@ -770,5 +797,10 @@
   "loading": "Loading...",
   "send": "Send",
   "enabled": "Enabled",
-  "disabled": "Disabled"
+  "disabled": "Disabled",
+  "common": {
+    "cancel": "Cancel",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  }
 }

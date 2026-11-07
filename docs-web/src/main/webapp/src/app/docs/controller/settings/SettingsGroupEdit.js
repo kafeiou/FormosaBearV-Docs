@@ -12,6 +12,26 @@ angular.module('docs').controller('SettingsGroupEdit', function($scope, $dialog,
   };
   
   /**
+   * Ensure groups list is loaded for parent group dropdown.
+   */
+  if (!$scope.groups || !$scope.groups.length) {
+    Restangular.one('group').get().then(function(data) {
+      $scope.groups = data.groups || [];
+    });
+  }
+
+  /**
+   * Load all users for the direct user selection dropdown.
+   */
+  $scope.allUsers = [];
+  $scope.loadAllUsers = function() {
+    Restangular.one('user/list').get({ sort_column: 1, asc: true }).then(function(data) {
+      $scope.allUsers = data.users || [];
+    });
+  };
+  $scope.loadAllUsers();
+
+  /**
    * In edit mode, load the current group.
    */
   if ($scope.isEdit()) {
@@ -131,10 +151,23 @@ angular.module('docs').controller('SettingsGroupEdit', function($scope, $dialog,
     Restangular.one('group/' + $stateParams.name).put({
       username: member
     }).then(function() {
+      if (!$scope.group.members) {
+        $scope.group.members = [];
+      }
       if ($scope.group.members.indexOf(member) === -1) {
         $scope.group.members.push(member);
       }
     });
+  };
+
+  /**
+   * Handle direct selection from user dropdown.
+   */
+  $scope.onSelectUserToAdd = function(username) {
+    if (username) {
+      $scope.addMember(username);
+      $scope.selectedUserToAdd = '';
+    }
   };
 
   /**

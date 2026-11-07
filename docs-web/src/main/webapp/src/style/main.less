@@ -1427,3 +1427,15 @@ h3, .h3 {
 h4, .h4 {
   font-size: 1.2em;
 }
+
+// Tree select row interactive styles
+.tree-select-row {
+  cursor: pointer;
+  transition: background-color 0.12s ease-in-out;
+  &:hover {
+    background-color: #f0f7fd !important;
+  }
+  &.tree-select-active {
+    background-color: #e1effe !important;
+  }
+}

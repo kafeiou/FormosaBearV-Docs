@@ -7,6 +7,7 @@
     </span>
     <span class="tag-tree-toggle-placeholder" ng-if="!hasChildren(tag.id)"></span>
     <span class="fas fa-tag" ng-style="{ 'color': tag.color }"></span>
+    <span class="fas fa-lock text-warning" ng-if="tag.inherit_acl === false" uib-tooltip="{{ 'tag.broken_inheritance' | translate }}" style="margin-left: 3px; font-size: 11px;"></span>
     <a href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }">
       {{ tag.name }}
     </a>
@@ -37,21 +38,74 @@
   </ul>
 </script>
 
+<script type="text/ng-template" id="parent-tag-tree-select-node">
+  <div class="tree-select-row" ng-class="{ 'tree-select-active': tag.parent === node.id }" style="border-radius: 3px; padding: 3px 6px; display: flex; align-items: center;">
+    <span class="pointer mr-5" ng-if="hasChildren(node.id)" ng-click="toggleParentTreeExpand(node.id, $event)" style="width: 14px; display: inline-block; text-align: center;">
+      <span class="fas" ng-class="{ 'fa-caret-down': isParentTreeExpanded(node.id), 'fa-caret-right': !isParentTreeExpanded(node.id) }"></span>
+    </span>
+    <span class="mr-5" ng-if="!hasChildren(node.id)" style="width: 14px; display: inline-block;"></span>
+    <span class="fas fa-tag mr-5" ng-style="{ 'color': node.color }"></span>
+    <span class="flex-grow pointer" ng-click="selectParentTag(node)" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+      {{ node.name }}
+    </span>
+    <span class="badge pull-right" ng-if="hasChildren(node.id)" style="font-size: 10px; padding: 2px 5px; margin-left: 5px;">
+      {{ getChildrenTags(node.id).length }}
+    </span>
+  </div>
+  <ul class="list-unstyled select-tag-children" ng-if="hasChildren(node.id) && isParentTreeExpanded(node.id)" style="padding-left: 16px; margin-bottom: 0;">
+    <li ng-repeat="node in getChildrenTags(node.id) | filter: filterParentTreeNode" ng-include="'parent-tag-tree-select-node'"></li>
+  </ul>
+</script>
+
 <div class="row">
   <div class="col-md-4">
     <div class="well well-3d">
-      <form ng-if="showAddTag" class="form-inline text-center mb-19" name="tagForm" novalidate>
-        <div class="input-group" ng-class="{ 'has-error': !tagForm.color.$valid && tagForm.$dirty }">
-          <span colorpicker class="input-group-addon btn btn-default" data-color="#3a87ad" ng-model="tag.color" ng-style="{ 'background': tag.color }">&nbsp;</span>
-          <input type="text" name="color" class="form-control" ng-maxlength="7" ng-model="tag.color" ng-show="hexaField">
-          <button class="btn btn-default" ng-click="hexaField = true" ng-show="!hexaField"><span class="fas fa-microchip"></span></button>
+      <form ng-if="showAddTag" class="mb-19" name="tagForm" novalidate style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0;">
+        <div class="row">
+          <div class="col-xs-12 mb-10">
+            <div class="input-group" ng-class="{ 'has-error': (!tagForm.color.$valid || !tagForm.name.$valid) && tagForm.$dirty }">
+              <span colorpicker class="input-group-addon btn btn-default" data-color="#3a87ad" ng-model="tag.color" ng-style="{ 'background-color': tag.color, 'color': '#ffffff', 'text-shadow': '0 0 2px rgba(0,0,0,0.8)', 'width': '38px', 'cursor': 'pointer' }" uib-tooltip="{{ 'tag.edit.color' | translate }}">
+                <span class="fas fa-palette"></span>
+              </span>
+              <input type="text" name="name" ng-attr-placeholder="{{ 'tag.new_tag' | translate }}" class="form-control"
+                     ng-maxlength="36" required ng-model="tag.name" ui-validate="{ space: '!$value || $value.indexOf(\' \') == -1 && $value.indexOf(\':\') == -1' }">
+            </div>
+            <span class="text-danger small" ng-show="tagForm.name.$error.space && tagForm.$dirty">{{ 'validation.no_space' | translate }}</span>
+          </div>
+          <div class="col-xs-12 mb-10">
+            <div class="dropdown" uib-dropdown is-open="parentSelectorOpen" auto-close="outsideClick">
+              <button type="button" class="btn btn-default btn-sm btn-block text-left clearfix" uib-dropdown-toggle style="text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <span class="fas fa-sitemap text-muted mr-5"></span>
+                <span ng-if="!tag.parent" class="text-muted">
+                  {{ 'tag.root_tag_option' | translate }}
+                </span>
+                <span ng-if="tag.parent">
+                  <span class="fas fa-tag mr-5" ng-style="{ 'color': getTagColor(tag.parent) }"></span>
+                  <strong>{{ getTagBreadcrumb(tag.parent) }}</strong>
+                </span>
+                <span class="caret pull-right" style="margin-top: 7px;"></span>
+              </button>
+              <div class="dropdown-menu p-10" uib-dropdown-menu style="width: 100%; min-width: 280px; max-height: 320px; overflow-y: auto; padding: 8px;">
+                <div class="form-group mb-5">
+                  <input type="text" class="form-control input-sm" ng-model="parentTreeSearch" placeholder="{{ 'tag.tree_filter_placeholder' | translate }}" ng-click="$event.stopPropagation()">
+                </div>
+                <div class="tree-select-row p-5" ng-class="{ 'tree-select-active': !tag.parent }" ng-click="selectParentTag(null)" style="border-radius: 3px; padding: 4px 6px; cursor: pointer;">
+                  <span class="fas fa-level-up-alt text-muted mr-5"></span>
+                  <em>{{ 'tag.root_tag_option' | translate }}</em>
+                </div>
+                <hr style="margin: 5px 0;">
+                <ul class="list-unstyled select-tag-tree-panel mb-0" style="padding-left: 0;">
+                  <li ng-repeat="node in getChildrenTags() | filter: filterParentTreeNode" ng-include="'parent-tag-tree-select-node'"></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-12">
+            <button type="button" class="btn btn-primary btn-sm btn-block" ng-disabled="!tagForm.$valid" ng-click="addTag()">
+              <span class="fas fa-plus"></span> {{ 'add' | translate }}
+            </button>
+          </div>
         </div>
-        <div class="form-group" ng-class="{ 'has-error': !tagForm.name.$valid && tagForm.$dirty }">
-          <input type="text" name="name" ng-attr-placeholder="{{ 'tag.new_tag' | translate }}" class="form-control"
-                 ng-maxlength="36" required ng-model="tag.name" ui-validate="{ space: '!$value || $value.indexOf(\' \') == -1 && $value.indexOf(\':\') == -1' }">
-        </div>
-        <span class="btn btn-primary" ng-disabled="!tagForm.$valid" ng-click="addTag()">{{ 'add' | translate }}</span>
-        <span class="text-danger" ng-show="tagForm.name.$error.space && tagForm.$dirty">{{ 'validation.no_space' | translate }}</span>
       </form>
 
       <div class="clearfix mb-10" ng-if="hasAnyNestedTags()">

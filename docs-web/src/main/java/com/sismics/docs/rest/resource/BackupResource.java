@@ -54,7 +54,8 @@ public class BackupResource extends BaseResource {
                 .add("file_download", info.fileDownload)
                 .add("document_count", info.documentCount)
                 .add("file_count", info.fileCount)
-                .add("storage_size_bytes", info.storageSizeBytes);
+                .add("storage_size_bytes", info.storageSizeBytes)
+                .add("storage_path", info.storagePath != null ? info.storagePath : "");
 
         return Response.ok(response.build()).build();
     }
@@ -89,7 +90,7 @@ public class BackupResource extends BaseResource {
             auditLog.setEntityId("SYSTEM");
             auditLog.setEntityClass("System");
             auditLog.setType(AuditLogType.DOWNLOAD);
-            auditLog.setMessage("Full system backup downloaded: " + filename);
+            auditLog.setMessage("System database and configuration backup downloaded: " + filename);
             auditLogDao.create(auditLog);
         } catch (Exception e) {
             log.warn("Could not write audit log for backup download", e);

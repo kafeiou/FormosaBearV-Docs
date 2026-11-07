@@ -31,7 +31,7 @@
                 <th>{{ 'settings.backup.soft_delete' | translate }}</th>
                 <td>
                   <span class="label" ng-class="info.file_delete ? 'label-success' : 'label-default'">
-                    {{ (info.file_delete ? 'common.enabled' : 'common.disabled') | translate }}
+                    {{ (info.file_delete ? 'enabled' : 'disabled') | translate }}
                   </span>
                 </td>
               </tr>
@@ -39,7 +39,7 @@
                 <th>{{ 'settings.backup.allow_duplicate' | translate }}</th>
                 <td>
                   <span class="label" ng-class="info.file_duplicate ? 'label-success' : 'label-default'">
-                    {{ (info.file_duplicate ? 'common.enabled' : 'common.disabled') | translate }}
+                    {{ (info.file_duplicate ? 'enabled' : 'disabled') | translate }}
                   </span>
                 </td>
               </tr>
@@ -47,7 +47,7 @@
                 <th>{{ 'settings.backup.allow_download' | translate }}</th>
                 <td>
                   <span class="label" ng-class="info.file_download ? 'label-success' : 'label-default'">
-                    {{ (info.file_download ? 'common.enabled' : 'common.disabled') | translate }}
+                    {{ (info.file_download ? 'enabled' : 'disabled') | translate }}
                   </span>
                 </td>
               </tr>
@@ -58,7 +58,7 @@
           <table class="table table-bordered table-striped">
             <tbody>
               <tr>
-                <th style="width: 50%;">{{ 'settings.backup.document_count' | translate }}</th>
+                <th style="width: 40%;">{{ 'settings.backup.document_count' | translate }}</th>
                 <td><strong>{{ info.document_count || 0 }}</strong></td>
               </tr>
               <tr>
@@ -68,6 +68,10 @@
               <tr>
                 <th>{{ 'settings.backup.storage_size' | translate }}</th>
                 <td><strong>{{ (info.storage_size_bytes || 0) | filesize }}</strong></td>
+              </tr>
+              <tr>
+                <th>{{ 'settings.backup.storage_path' | translate }}</th>
+                <td><code style="word-break: break-all;">{{ info.storage_path || '...' }}</code></td>
               </tr>
             </tbody>
           </table>
@@ -86,8 +90,17 @@
       <ul>
         <li><strong>dump.sql</strong>：{{ 'settings.backup.explain_dump_sql' | translate }}</li>
         <li><strong>config.json</strong>：{{ 'settings.backup.explain_config_json' | translate }}</li>
-        <li><strong>storage/</strong> 與 <strong>delete/</strong>：{{ 'settings.backup.explain_files' | translate }}</li>
+        <li><strong>manifest.json</strong>：{{ 'settings.backup.explain_manifest_json' | translate }}</li>
       </ul>
+      <div class="alert alert-info" style="margin-top: 15px;">
+        <span class="fas fa-folder-open"></span>
+        <strong>{{ 'settings.backup.physical_storage_notice_title' | translate }}</strong>
+        <p>{{ 'settings.backup.physical_storage_notice_msg' | translate }}</p>
+        <ul style="margin-bottom: 0;">
+          <li><strong>Windows</strong>：<code>%APPDATA%\FormosaBearV\Docs\storage</code></li>
+          <li><strong>Docker Compose</strong>：<code>./docs/data/storage</code> ({{ 'settings.backup.docker_compose_container_path' | translate }}: <code>/data/storage</code>)</li>
+        </ul>
+      </div>
       <div style="margin-top: 15px;">
         <button class="btn btn-primary btn-lg" ng-click="downloadBackup()" ng-disabled="downloading">
           <span class="fas fa-download"></span>
@@ -149,9 +162,11 @@
         <span class="fas fa-check-circle"></span>
         <strong>{{ 'settings.backup.restore_success_title' | translate }}</strong>
         <p>{{ 'settings.backup.restore_success_message' | translate }}</p>
-        <button class="btn btn-success" ng-click="reloadPage()" style="margin-top: 10px;">
-          <span class="fas fa-sync-alt"></span> {{ 'settings.backup.reload_page' | translate }}
-        </button>
+        <div style="margin-top: 10px;">
+          <button class="btn btn-success" ng-click="goToLogin()">
+            <span class="fas fa-sign-in-alt"></span> {{ 'settings.backup.goto_login_button' | translate }} ({{ countdown }}s)
+          </button>
+        </div>
       </div>
 
       <!-- Error Alert -->
@@ -172,7 +187,7 @@
                 ng-click="clearFile()"
                 ng-disabled="!backupFile || restoring"
                 ng-if="backupFile && !restoreSuccess">
-          {{ 'common.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
       </div>
     </div>

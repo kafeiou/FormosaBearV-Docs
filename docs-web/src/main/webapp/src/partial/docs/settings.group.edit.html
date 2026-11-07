@@ -25,10 +25,19 @@
       <label class="col-sm-2 control-label" for="inputParent">{{ 'settings.group.edit.parent_group' | translate }}</label>
 
       <div class="col-sm-7">
-        <input name="parent" type="text" id="inputParent" class="form-control" autocomplete="off"
-               ng-attr-placeholder="{{ 'settings.group.edit.search_group' | translate }}" ng-model="group.parent"
-               uib-typeahead="group for group in getGroupTypeahead($viewValue)"
-               typeahead-wait-ms="200" typeahead-editable="false" />
+        <div class="input-group">
+          <span class="input-group-addon"><span class="fas fa-users-cog"></span></span>
+          <select name="parent" id="inputParent" class="form-control" ng-model="group.parent">
+            <option value="">{{ 'settings.group.edit.no_parent_group' | translate }}</option>
+            <option ng-repeat="g in groups | orderBy: 'name'"
+                    ng-if="!isEdit() || g.name !== group.name"
+                    ng-selected="group.parent === g.name"
+                    value="{{ g.name }}">
+              {{ g.name }}
+            </option>
+          </select>
+        </div>
+        <span class="help-block small text-muted">{{ 'settings.group.edit.parent_group_help' | translate }}</span>
       </div>
     </div>
 
@@ -50,23 +59,47 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="inputMember">{{ 'settings.group.edit.new_member' | translate }}</label>
         <div class="col-sm-7">
-          <input name="member" type="text" id="inputMember" class="form-control" ng-model="member"
-                 ng-attr-placeholder="{{ 'settings.group.edit.search_user' | translate }}"
-                 uib-typeahead="user for user in getUserTypeahead($viewValue)" typeahead-on-select="addMember($item)"
-                 typeahead-wait-ms="200" typeahead-editable="false" autocomplete="off" />
+          <div class="row">
+            <div class="col-sm-6 mb-10">
+              <div class="input-group">
+                <span class="input-group-addon"><span class="fas fa-search"></span></span>
+                <input name="member" type="text" id="inputMember" class="form-control" ng-model="member"
+                       ng-attr-placeholder="{{ 'settings.group.edit.search_user' | translate }}"
+                       uib-typeahead="user for user in getUserTypeahead($viewValue)" typeahead-on-select="addMember($item)"
+                       typeahead-wait-ms="200" typeahead-editable="false" autocomplete="off" />
+              </div>
+            </div>
+            <div class="col-sm-6 mb-10">
+              <div class="input-group">
+                <span class="input-group-addon"><span class="fas fa-user-plus"></span></span>
+                <select class="form-control" ng-model="selectedUserToAdd" ng-change="onSelectUserToAdd(selectedUserToAdd)">
+                  <option value="">{{ 'settings.group.edit.select_user_dropdown' | translate }}</option>
+                  <option ng-repeat="u in allUsers | orderBy: 'username'"
+                          ng-if="!group.members || group.members.indexOf(u.username) === -1"
+                          value="{{ u.username }}">
+                    {{ u.username }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <span class="help-block small text-muted">{{ 'settings.group.edit.add_member_hint' | translate }}</span>
         </div>
       </div>
 
       <div class="form-group">
         <label class="col-sm-2 control-label">{{ 'settings.group.edit.members' | translate }}</label>
         <div class="col-sm-7">
-          <span ng-repeat="member in group.members">
-            <span class="btn btn-default"
+          <span ng-repeat="member in group.members | orderBy: 'toString()'">
+            <span class="btn btn-default" style="margin-bottom: 5px;"
                ng-click="removeMember(member)">
               {{ member }}
-              <span class="fas fa-times"></span>
+              <span class="fas fa-times text-danger"></span>
             </span>&nbsp;
           </span>
+          <p class="text-muted" ng-if="!group.members || group.members.length === 0">
+            <em>{{ 'settings.group.edit.no_members' | translate }}</em>
+          </p>
         </div>
       </div>
     </form>

@@ -367,7 +367,9 @@ angular.module('docs').controller('Document', function ($scope, $rootScope, $tim
       }
 
       // Create the tag
-      tag.parent = $scope.navigatedTag ? $scope.navigatedTag.id : undefined;
+      if (!tag.parent) {
+        tag.parent = $scope.navigatedTag ? $scope.navigatedTag.id : undefined;
+      }
       Restangular.one('tag').put(tag).then(function (data) {
         // Add the new tag to the list
         tag.id = data.id;
