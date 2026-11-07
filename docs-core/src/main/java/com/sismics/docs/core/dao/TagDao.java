@@ -112,12 +112,30 @@ public class TagDao {
     }
     
     /**
+     * Check if a tag has active children.
+     * 
+     * @param tagId Tag ID
+     * @return True if tag has children
+     */
+    public boolean hasChildren(String tagId) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("select count(t.id) from Tag t where t.parentId = :tagId and t.deleteDate is null");
+        q.setParameter("tagId", tagId);
+        Long count = (Long) q.getSingleResult();
+        return count != null && count > 0;
+    }
+
+    /**
      * Deletes a tag.
      * 
      * @param tagId Tag ID
      * @param userId User ID
      */
     public void delete(String tagId, String userId) {
+        if (hasChildren(tagId)) {
+            throw new IllegalStateException("Cannot delete a tag that has child tags");
+        }
+
         EntityManager em = ThreadLocalContext.get().getEntityManager();
             
         // Get the tag
@@ -168,11 +186,150 @@ public class TagDao {
         tagDb.setColor(tag.getColor());
         tagDb.setParentId(tag.getParentId());
         tagDb.setOrder(tag.getOrder());
+        tagDb.setInheritAcl(tag.isInheritAcl());
         
         // Create audit log
         AuditLogUtil.create(tagDb, AuditLogType.UPDATE, userId);
         
         return tagDb;
+    }
+
+    /**
+     * Traverses upward from tagId collecting effective ACL tag IDs.
+     * Stops traversal if a tag has inheritAcl == false or is soft-deleted.
+     * Protected against cyclic references.
+     *
+     * @param tagId Starting tag ID
+     * @return List of effective tag IDs (starting with tagId and ancestors until inheritance is broken)
+     */
+    public List<String> getEffectiveAclTagIds(String tagId) {
+        List<String> effectiveIds = new ArrayList<>();
+        if (tagId == null) {
+            return effectiveIds;
+        }
+        Set<String> visited = new HashSet<>();
+        String currentId = tagId;
+        while (currentId != null && visited.add(currentId)) {
+            effectiveIds.add(currentId);
+            Tag tag = getById(currentId);
+            if (tag == null || tag.getDeleteDate() != null || !tag.isInheritAcl()) {
+                break;
+            }
+            currentId = tag.getParentId();
+        }
+        return effectiveIds;
+    }
+
+    /**
+     * Returns union of effective ACL tag IDs for a collection of tag IDs.
+     *
+     * @param tagIds Collection of tag IDs
+     * @return Set of effective tag IDs
+     */
+    public Set<String> getEffectiveAclTagIds(Collection<String> tagIds) {
+        Set<String> result = new HashSet<>();
+        if (tagIds == null || tagIds.isEmpty()) {
+            return result;
+        }
+        for (String tagId : tagIds) {
+            result.addAll(getEffectiveAclTagIds(tagId));
+        }
+        return result;
+    }
+
+    /**
+     * Returns the set of all tag IDs that are readable by the given targets,
+     * taking into account ancestor ACL inheritance and broken inheritance boundaries.
+     *
+     * @param targetIdList List of target IDs (user, groups, shares)
+     * @return Set of readable tag IDs
+     */
+    public Set<String> getReadableTagIds(List<String> targetIdList) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        if (SecurityUtil.skipAclCheck(targetIdList)) {
+            Query q = em.createQuery("select t.id from Tag t where t.deleteDate is null");
+            @SuppressWarnings("unchecked")
+            List<String> allIds = q.getResultList();
+            return new HashSet<>(allIds);
+        }
+        if (targetIdList == null || targetIdList.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        // Get all active tags
+        Query q = em.createQuery("select t.id, t.parentId, t.inheritAcl from Tag t where t.deleteDate is null");
+        @SuppressWarnings("unchecked")
+        List<Object[]> allTags = q.getResultList();
+        Map<String, String> parentMap = new HashMap<>();
+        Map<String, Boolean> inheritMap = new HashMap<>();
+        for (Object[] row : allTags) {
+            String id = (String) row[0];
+            String parentId = (String) row[1];
+            Boolean inherit = (Boolean) row[2];
+            parentMap.put(id, parentId);
+            inheritMap.put(id, inherit == null ? true : inherit);
+        }
+
+        // Get all tags with direct READ or WRITE ACL
+        Query aclQuery = em.createNativeQuery("select distinct a.ACL_SOURCEID_C from T_ACL a " +
+                "where a.ACL_TARGETID_C in (:targetIdList) and a.ACL_PERM_C in ('READ', 'WRITE') and a.ACL_DELETEDATE_D is null");
+        aclQuery.setParameter("targetIdList", targetIdList);
+        @SuppressWarnings("unchecked")
+        List<String> grantedList = aclQuery.getResultList();
+        Set<String> grantedSet = new HashSet<>(grantedList);
+
+        // Compute readable tags via upward inheritance
+        Set<String> readableTagIds = new HashSet<>();
+        for (String tagId : parentMap.keySet()) {
+            Set<String> visited = new HashSet<>();
+            String curr = tagId;
+            while (curr != null && visited.add(curr)) {
+                if (grantedSet.contains(curr)) {
+                    readableTagIds.add(tagId);
+                    break;
+                }
+                Boolean inherit = inheritMap.get(curr);
+                if (inherit == null || !inherit) {
+                    break;
+                }
+                curr = parentMap.get(curr);
+            }
+        }
+        return readableTagIds;
+    }
+
+    /**
+     * Returns the set of ancestor tag IDs that are not readable themselves, but are necessary
+     * path containers for the user to navigate to their accessible tags in the hierarchy.
+     *
+     * @param readableTagIds Set of tag IDs readable by the user
+     * @return Set of container tag IDs
+     */
+    public Set<String> getContainerTagIds(Set<String> readableTagIds) {
+        if (readableTagIds == null || readableTagIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("select t.id, t.parentId from Tag t where t.deleteDate is null");
+        @SuppressWarnings("unchecked")
+        List<Object[]> allTags = q.getResultList();
+        Map<String, String> parentMap = new HashMap<>();
+        for (Object[] row : allTags) {
+            parentMap.put((String) row[0], (String) row[1]);
+        }
+
+        Set<String> containerTagIds = new HashSet<>();
+        for (String tagId : readableTagIds) {
+            Set<String> visited = new HashSet<>();
+            String parentId = parentMap.get(tagId);
+            while (parentId != null && visited.add(parentId)) {
+                if (!readableTagIds.contains(parentId)) {
+                    containerTagIds.add(parentId);
+                }
+                parentId = parentMap.get(parentId);
+            }
+        }
+        return containerTagIds;
     }
 
     /**
@@ -186,7 +343,7 @@ public class TagDao {
         Map<String, Object> parameterMap = new HashMap<>();
         List<String> criteriaList = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4, t.TAG_ORDER_N as c5, t.TAG_CREATEDATE_D as c6 ");
+        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4, t.TAG_ORDER_N as c5, t.TAG_CREATEDATE_D as c6, t.TAG_INHERIT_ACL_B as c7 ");
         sb.append(" from T_TAG t ");
         sb.append(" join T_USER u on t.TAG_IDUSER_C = u.USE_ID_C ");
 
@@ -195,10 +352,18 @@ public class TagDao {
             criteriaList.add("t.TAG_ID_C = :id");
             parameterMap.put("id", criteria.getId());
         }
+        Set<String> containerTagIds = Collections.emptySet();
         if (criteria.getTargetIdList() != null && !SecurityUtil.skipAclCheck(criteria.getTargetIdList())) {
-            sb.append(" left join T_ACL a on a.ACL_TARGETID_C in (:targetIdList) and a.ACL_SOURCEID_C = t.TAG_ID_C and a.ACL_PERM_C = 'READ' and a.ACL_DELETEDATE_D is null ");
-            criteriaList.add("a.ACL_ID_C is not null");
-            parameterMap.put("targetIdList", criteria.getTargetIdList());
+            Set<String> readableTagIds = getReadableTagIds(criteria.getTargetIdList());
+            containerTagIds = getContainerTagIds(readableTagIds);
+            Set<String> visibleTagIds = new HashSet<>(readableTagIds);
+            visibleTagIds.addAll(containerTagIds);
+            if (visibleTagIds.isEmpty()) {
+                criteriaList.add("1 = 0");
+            } else {
+                criteriaList.add("t.TAG_ID_C in (:visibleTagIds)");
+                parameterMap.put("visibleTagIds", visibleTagIds);
+            }
         }
         if (criteria.getDocumentId() != null) {
             sb.append(" join T_DOCUMENT_TAG dt on dt.DOT_IDTAG_C = t.TAG_ID_C and dt.DOT_DELETEDATE_D is null ");
@@ -234,7 +399,9 @@ public class TagDao {
                     .setCreator((String) o[i++])
                     .setOrder(o[i] == null ? null : ((Number) o[i]).intValue());
             i++;
-            tagDto.setCreateDate((Date) o[i]);
+            tagDto.setCreateDate((Date) o[i++]);
+            tagDto.setInheritAcl(o[i] == null ? true : (Boolean) o[i]);
+            tagDto.setContainer(containerTagIds.contains(tagDto.getId()));
             tagDtoList.add(tagDto);
         }
 
@@ -352,11 +519,16 @@ public class TagDao {
         criteriaList.add("dt.DOT_DELETEDATE_D is null");
 
         if (targetIdList != null && !SecurityUtil.skipAclCheck(targetIdList)) {
+            Set<String> readableTagIds = getReadableTagIds(targetIdList);
+            if (readableTagIds.isEmpty()) {
+                return Collections.emptyMap();
+            }
             sb.append(" left join T_ACL a on a.ACL_TARGETID_C in (:targetIdList) and a.ACL_SOURCEID_C = d.DOC_ID_C and a.ACL_PERM_C = 'READ' and a.ACL_DELETEDATE_D is null ");
-            sb.append(" left join T_DOCUMENT_TAG dta on dta.DOT_IDDOCUMENT_C = d.DOC_ID_C and dta.DOT_DELETEDATE_D is null ");
-            sb.append(" left join T_ACL a2 on a2.ACL_TARGETID_C in (:targetIdList) and a2.ACL_SOURCEID_C = dta.DOT_IDTAG_C and a2.ACL_PERM_C = 'READ' and a2.ACL_DELETEDATE_D is null ");
-            criteriaList.add("(a.ACL_ID_C is not null or a2.ACL_ID_C is not null)");
+            sb.append(" left join T_DOCUMENT_TAG dta on dta.DOT_IDDOCUMENT_C = d.DOC_ID_C and dta.DOT_IDTAG_C in (:readableTagIds) and dta.DOT_DELETEDATE_D is null ");
+            criteriaList.add("(a.ACL_ID_C is not null or dta.DOT_ID_C is not null)");
+            criteriaList.add("dt.DOT_IDTAG_C in (:readableTagIds)");
             parameterMap.put("targetIdList", targetIdList);
+            parameterMap.put("readableTagIds", readableTagIds);
         }
 
         sb.append(" where ");

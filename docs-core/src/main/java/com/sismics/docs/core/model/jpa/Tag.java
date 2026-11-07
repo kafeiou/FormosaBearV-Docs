@@ -66,6 +66,12 @@ public class Tag implements Loggable {
     @Column(name = "TAG_ORDER_N")
     private Integer order;
 
+    /**
+     * Whether this tag inherits permissions from ancestor tags.
+     */
+    @Column(name = "TAG_INHERIT_ACL_B", nullable = false)
+    private boolean inheritAcl = true;
+
     public String getId() {
         return id;
     }
@@ -129,6 +135,14 @@ public class Tag implements Loggable {
 
     public void setOrder(Integer order) {
         this.order = order;
+    }
+
+    public boolean isInheritAcl() {
+        return inheritAcl;
+    }
+
+    public void setInheritAcl(boolean inheritAcl) {
+        this.inheritAcl = inheritAcl;
     }
 
     @Override

@@ -71,6 +71,7 @@ public class BackupService {
         public long documentCount;
         public long fileCount;
         public long storageSizeBytes;
+        public String storagePath;
     }
 
     /**
@@ -113,6 +114,7 @@ public class BackupService {
 
         try {
             Path storageDir = DirectoryUtil.getBaseDataDirectory().resolve("storage");
+            info.storagePath = storageDir.toAbsolutePath().toString();
             if (Files.exists(storageDir)) {
                 final long[] totalSize = {0L};
                 Files.walkFileTree(storageDir, new SimpleFileVisitor<Path>() {
@@ -198,11 +200,6 @@ public class BackupService {
                 sqlWriter.flush();
                 zos.closeEntry();
 
-                // 4. Export files under storage/ and delete/
-                Path baseDir = DirectoryUtil.getBaseDataDirectory();
-                packageDirectory(zos, baseDir, "storage");
-                packageDirectory(zos, baseDir, "delete");
-
                 zos.finish();
             }
         } finally {
@@ -213,28 +210,6 @@ public class BackupService {
                 }
             }
         }
-    }
-
-    private void packageDirectory(ZipOutputStream zos, Path baseDir, String subDirName) throws IOException {
-        Path targetDir = baseDir.resolve(subDirName);
-        if (!Files.exists(targetDir)) {
-            return;
-        }
-
-        Files.walkFileTree(targetDir, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Path relative = baseDir.relativize(file);
-                String entryName = relative.toString().replace('\\', '/');
-                ZipEntry entry = new ZipEntry(entryName);
-                entry.setTime(attrs.lastModifiedTime().toMillis());
-                entry.setSize(attrs.size());
-                zos.putNextEntry(entry);
-                Files.copy(file, zos);
-                zos.closeEntry();
-                return FileVisitResult.CONTINUE;
-            }
-        });
     }
 
     private void exportTableSql(Connection conn, String table, Writer writer, SimpleDateFormat dateFormat) throws Exception {
@@ -266,6 +241,19 @@ public class BackupService {
                         sql.append("'").append(dateFormat.format((Timestamp) obj)).append("'");
                     } else if (obj instanceof java.sql.Date) {
                         sql.append("'").append(dateFormat.format((java.sql.Date) obj)).append("'");
+                    } else if (obj instanceof Clob) {
+                        Clob clob = (Clob) obj;
+                        long len = clob.length();
+                        String s = len > 0 ? clob.getSubString(1, (int) Math.min(len, 100000000L)) : "";
+                        sql.append("'").append(s.replace("'", "''")).append("'");
+                    } else if (obj instanceof Blob) {
+                        Blob blob = (Blob) obj;
+                        byte[] bytes = blob.getBytes(1, (int) Math.min(blob.length(), 100000000L));
+                        sql.append("X'");
+                        for (byte b : bytes) {
+                            sql.append(String.format("%02x", b));
+                        }
+                        sql.append("'");
                     } else if (obj instanceof byte[]) {
                         byte[] bytes = (byte[]) obj;
                         sql.append("X'");
@@ -445,23 +433,21 @@ public class BackupService {
             }
             ConfigUtil.resetCache();
 
-            // Step 4: Restore storage/ and delete/ directories (Full Clean Restore)
+            // Step 4: Restore storage/ and delete/ directories if present in backup archive
             Path baseDir = DirectoryUtil.getBaseDataDirectory();
             Path targetStorage = baseDir.resolve("storage");
             Path targetDelete = baseDir.resolve("delete");
 
-            // Clean existing storage and delete directories
-            deleteDirectoryIfExists(targetStorage);
-            deleteDirectoryIfExists(targetDelete);
-
-            // Copy restored files from temp folder
+            // Copy restored files from temp folder if present (protect existing files on metadata-only restore)
             Path tempStorage = tempDir.resolve("storage");
             if (Files.exists(tempStorage)) {
+                deleteDirectoryIfExists(targetStorage);
                 copyDirectoryRecursively(tempStorage, targetStorage);
             }
 
             Path tempDelete = tempDir.resolve("delete");
             if (Files.exists(tempDelete)) {
+                deleteDirectoryIfExists(targetDelete);
                 copyDirectoryRecursively(tempDelete, targetDelete);
             }
 

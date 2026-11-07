@@ -245,11 +245,14 @@
   },
   "tag": {
     "new_tag": "新增",
+    "root_tag_option": "無上層標籤（作為根標籤）",
     "search": "搜尋",
     "expand_all": "全部展開",
     "collapse_all": "全部收合",
     "move_up": "上移",
     "move_down": "下移",
+    "broken_inheritance": "此標籤已中斷權限繼承（自訂獨立權限）",
+    "container_tooltip": "僅作為導航路徑容器（無直接存取權限）",
     "browse": {
       "tree_title": "標籤分類",
       "welcome_title": "依標籤瀏覽文件與檔案",
@@ -271,6 +274,8 @@
     "edit": {
       "delete_tag_title": "刪除標籤",
       "delete_tag_message": "是否刪除?",
+      "delete_has_children_title": "無法刪除標籤",
+      "delete_has_children_message": "此標籤底下仍包含子標籤，請先將子標籤移除或移至其他標籤下，方可刪除此標籤。",
       "name": "名稱",
       "color": "顏色",
       "parent": "上層",
@@ -279,12 +284,21 @@
       "circular_reference_message": "上層標籤的層次結構形成循環，請選擇另一個上層標籤。",
       "order": "同層排序序號",
       "order_placeholder": "預設留空依日期",
-      "order_help": "留空或相同時，依建立日期（由舊到新）自動排序"
+      "order_help": "留空或相同時，依建立日期（由舊到新）自動排序",
+      "inherit_acl": "繼承上層標籤權限",
+      "inherit_acl_help": "勾選時將自動繼承上層所有標籤之存取權限；取消勾選（中斷繼承）時，將把目前繼承之權限複製為專屬權限以便獨立維護",
+      "inherited_acls_title": "繼承自上層之權限",
+      "inherited_acls_help": "以下權限由上層標籤自動繼承，無法在此直接刪除；如需修改請至該來源標籤或取消繼承。",
+      "no_inherited_acls": "上層標籤尚無設定任何特定存取權限",
+      "direct_acls_title": "本標籤專屬權限",
+      "restore_inheritance_title": "確認恢復權限繼承",
+      "restore_inheritance_confirm": "重新啟用繼承將會清除本層目前的所有自訂權限，改由上層標籤完全接管。是否確定要恢復繼承？"
     },
     "expand_files": "展開檔案",
     "collapse_files": "收合檔案",
     "expand_all_files": "展開所有檔案",
-    "collapse_all_files": "收合所有檔案"
+    "collapse_all_files": "收合所有檔案",
+    "tree_filter_placeholder": "搜尋篩選標籤..."
   },
   "group": {
     "profile": {
@@ -509,7 +523,12 @@
         "search_group": "搜尋群組",
         "members": "成員",
         "new_member": "新成員",
-        "search_user": "搜尋帳號"
+        "search_user": "搜尋帳號",
+        "no_parent_group": "-- (無上層群組 / 根群組) --",
+        "parent_group_help": "直接下拉選取上層群組，若不選取則為頂層獨立群組。",
+        "select_user_dropdown": "-- 直接選擇帳號加入 --",
+        "add_member_hint": "您可輸入關鍵字搜尋帳號，或直接由右側下拉選單選取帳號加入群組。",
+        "no_members": "目前群組尚無成員"
       }
     },
     "account": {
@@ -591,8 +610,8 @@
     },
     "menu_backup": "備份與還原",
     "backup": {
-      "title": "系統備份與還原",
-      "description": "支援 H2 與 PostgreSQL 之資料庫結構、全文索引、所有文件實體檔案與系統安全性設定之完整備份與還原。",
+      "title": "系統資料庫與設定備份",
+      "description": "支援 H2 與 PostgreSQL 之資料庫元資料、標籤階層、權限、全文索引與系統安全性設定之備份與還原。實體儲存檔案（storage/）建議透過作業系統工具獨立備份。",
       "system_status": "目前系統狀態與統計",
       "db_engine": "資料庫引擎",
       "storage_mode": "檔案儲存模式",
@@ -605,27 +624,32 @@
       "document_count": "有效文件總數",
       "file_count": "有效檔案總數",
       "storage_size": "實體儲存空間",
-      "export_section_title": "完整系統備份 (Export Full Backup)",
-      "export_explain": "點選下方按鈕即可即時壓縮並下載系統備份壓縮檔 (ZIP)。備份檔包含：",
+      "storage_path": "實體儲存路徑",
+      "export_section_title": "系統資料庫與設定備份 (Export Database & Config)",
+      "export_explain": "點選下方按鈕即可即時下載系統資料庫與設定備份壓縮檔 (ZIP，通常小於 5MB，數秒內完成)。備份檔包含：",
       "explain_dump_sql": "相容於 H2 與 PostgreSQL 之標準 ANSI SQL 資料庫傾印，包含所有使用者帳號、文件元資料、標籤與權限設定。",
       "explain_config_json": "完整系統設定（檔案加密狀態、軟刪除、允許重複、下載控制等安全性參數）。",
-      "explain_files": "所有上傳之原檔與縮圖，保留原始階層路徑（包含回收區軟刪除檔案）。",
-      "download_button": "下載完整備份 ZIP",
-      "downloading": "正在串流壓縮並下載中，請稍候...",
-      "restore_section_title": "完整系統還原 (Restore System)",
+      "explain_manifest_json": "系統版本與匯出中繼資料資訊。",
+      "physical_storage_notice_title": "實體檔案獨立備份指引：",
+      "physical_storage_notice_msg": "為避免巨量檔案（如數十至數百 GB）造成網頁下載逾時或中斷，上傳之實體檔案不包裝於本下載檔內。請系統管理員直接於主機層級進行檔案目錄備份：",
+      "docker_compose_container_path": "容器內對應",
+      "download_button": "下載資料庫與設定備份 ZIP",
+      "downloading": "正在產生並下載備份，請稍候...",
+      "restore_section_title": "系統資料庫與設定還原 (Restore System)",
       "warning_title": "高風險操作警示：",
-      "warning_message": "系統還原將採用「完全乾淨覆蓋」模式！現有的資料庫資料表與 storage 目錄將被清空，完全以備份檔案內容取代，並在還原完成後自動在背景重建全文檢索索引。請確認您已備妥正確的備份檔。",
+      "warning_message": "系統還原將覆蓋目前的資料庫資料表與系統組態設定，並於還原完成後自動在背景重新建立全文檢索搜尋索引。若備份檔未包含實體檔案，伺服器上現有的實體 storage 目錄將安全保留不被刪除。請確認您已備妥正確的備份檔。",
       "select_or_drag_file": "點選選擇或拖曳備份 ZIP 檔案至此",
       "zip_only": "僅支援先由本系統產出之 .zip 備份壓縮檔",
       "click_to_change_file": "點選可重新選擇檔案",
-      "confirm_restore_prompt": "【警告】您即將執行系統完全還原！\n\n這將清空目前資料庫與檔案，並由備份檔內容完全覆蓋，且於還原後自動重建搜尋索引。\n此操作無法復原，您確定要繼續執行嗎？",
+      "confirm_restore_prompt": "【警告】您即將執行系統資料庫與設定還原！\n\n這將以備份檔內容覆蓋目前資料庫記錄與組態設定，並於背景自動重建搜尋索引。\n現有磁碟上的實體檔案將被保留。\n此操作無法復原，您確定要繼續執行嗎？",
       "uploading_and_restoring": "正在上傳並解包還原中，請勿關閉視窗...",
       "restore_success_title": "系統還原成功！",
-      "restore_success_message": "資料庫、系統設定與所有檔案已成功還原，背景全文搜尋索引重建中。請重新整理頁面以套用最新狀態。",
+      "restore_success_message": "資料庫與系統設定已成功還原，認證 Token 已重置。系統即將引導您重新登入，以載入最新還原的資料與文件。",
       "reload_page": "立即重新整理頁面",
       "restore_error_title": "系統還原失敗",
       "restore_failed_generic": "上傳或還原過程中發生錯誤，請檢查檔案格式後重試。",
-      "start_restore_button": "開始還原系統"
+      "start_restore_button": "開始還原系統",
+      "goto_login_button": "立即前往重新登入"
     }
   },
   "feedback": {
@@ -697,7 +721,10 @@
     "WRITE": "修改",
     "USER": "帳號",
     "GROUP": "群組",
-    "SHARE": "已共享"
+    "SHARE": "已共享",
+    "source": "來源標籤",
+    "target": "對象",
+    "perm": "權限"
   },
   "workflow_type": {
     "VALIDATE": "檢查",
@@ -770,5 +797,10 @@
   "loading": "載入中...",
   "send": "發送",
   "enabled": "啟用",
-  "disabled": "未啟用"
+  "disabled": "未啟用",
+  "common": {
+    "cancel": "取消",
+    "enabled": "啟用",
+    "disabled": "未啟用"
+  }
 }

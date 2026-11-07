@@ -6,6 +6,7 @@ import com.sismics.docs.core.constant.PermType;
 import com.sismics.docs.core.dao.AclDao;
 import com.sismics.docs.core.dao.TagDao;
 import com.sismics.docs.core.dao.criteria.TagCriteria;
+import com.sismics.docs.core.dao.dto.AclDto;
 import com.sismics.docs.core.dao.dto.TagDto;
 import com.sismics.docs.core.model.jpa.Acl;
 import com.sismics.docs.core.model.jpa.Tag;
@@ -14,6 +15,7 @@ import com.sismics.rest.exception.ClientException;
 import com.sismics.rest.exception.ForbiddenClientException;
 import com.sismics.rest.util.AclUtil;
 import com.sismics.rest.util.ValidationUtil;
+import com.sismics.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import jakarta.json.Json;
@@ -24,6 +26,7 @@ import jakarta.ws.rs.core.Response;
 import java.text.MessageFormat;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -97,7 +100,9 @@ public class TagResource extends BaseResource {
                     .add("id", tagDto.getId())
                     .add("name", tagDto.getName())
                     .add("color", tagDto.getColor())
-                    .add("document_count", totalDocs.size());
+                    .add("document_count", tagDto.isContainer() ? 0 : totalDocs.size())
+                    .add("inherit_acl", tagDto.isInheritAcl())
+                    .add("is_container", tagDto.isContainer());
             if (tagDto.getOrder() != null) {
                 item.add("order", tagDto.getOrder());
             }
@@ -159,7 +164,9 @@ public class TagResource extends BaseResource {
                 .add("id", tagDto.getId())
                 .add("creator", tagDto.getCreator())
                 .add("name", tagDto.getName())
-                .add("color", tagDto.getColor());
+                .add("color", tagDto.getColor())
+                .add("inherit_acl", tagDto.isInheritAcl())
+                .add("is_container", tagDto.isContainer());
         if (tagDto.getOrder() != null) {
             tag.add("order", tagDto.getOrder());
         }
@@ -168,15 +175,43 @@ public class TagResource extends BaseResource {
         }
 
         // Add the parent if its visible
+        AclDao aclDao = new AclDao();
         if (tagDto.getParentId() != null) {
-            AclDao aclDao = new AclDao();
             if (aclDao.checkPermission(tagDto.getParentId(), PermType.READ, getTargetIdList(null))) {
                 tag.add("parent", tagDto.getParentId());
             }
         }
 
         // Add ACL
-        AclUtil.addAcls(tag, id, getTargetIdList(null));
+        if (tagDto.isContainer()) {
+            tag.add("acls", Json.createArrayBuilder())
+                    .add("writable", false);
+            tag.add("inherited_acls", Json.createArrayBuilder());
+        } else {
+            AclUtil.addAcls(tag, id, getTargetIdList(null));
+
+            // Add inherited ACLs from effective ancestor tags
+            JsonArrayBuilder inheritedAclArray = Json.createArrayBuilder();
+            if (tagDto.isInheritAcl()) {
+                List<String> effectiveTagIds = tagDao.getEffectiveAclTagIds(id);
+                for (int i = 1; i < effectiveTagIds.size(); i++) {
+                    String ancestorId = effectiveTagIds.get(i);
+                    Tag ancestorTag = tagDao.getById(ancestorId);
+                    String ancestorName = ancestorTag != null ? ancestorTag.getName() : ancestorId;
+                    List<AclDto> ancestorAcls = aclDao.getBySourceId(ancestorId, AclType.USER);
+                    for (AclDto aclDto : ancestorAcls) {
+                        inheritedAclArray.add(Json.createObjectBuilder()
+                                .add("perm", aclDto.getPerm().name())
+                                .add("id", aclDto.getTargetId())
+                                .add("name", JsonUtil.nullable(aclDto.getTargetName()))
+                                .add("type", aclDto.getTargetType())
+                                .add("source_tag_id", ancestorId)
+                                .add("source_tag_name", ancestorName));
+                    }
+                }
+            }
+            tag.add("inherited_acls", inheritedAclArray);
+        }
 
         return Response.ok().entity(tag.build()).build();
     }
@@ -208,7 +243,8 @@ public class TagResource extends BaseResource {
             @FormParam("name") String name,
             @FormParam("color") String color,
             @FormParam("parent") String parentId,
-            @FormParam("order") Integer order) {
+            @FormParam("order") Integer order,
+            @FormParam("inherit_acl") Boolean inheritAcl) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -235,6 +271,7 @@ public class TagResource extends BaseResource {
         tag.setColor(color);
         tag.setUserId(principal.getId());
         tag.setParentId(parentId);
+        tag.setInheritAcl(inheritAcl != null ? inheritAcl : true);
         if (order != null) {
             tag.setOrder(order);
         }
@@ -294,7 +331,8 @@ public class TagResource extends BaseResource {
             @FormParam("name") String name,
             @FormParam("color") String color,
             @FormParam("parent") String parentId,
-            @FormParam("order") Integer order) {
+            @FormParam("order") Integer order,
+            @FormParam("inherit_acl") Boolean inheritAcl) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -302,7 +340,9 @@ public class TagResource extends BaseResource {
         // Validate input data
         name = ValidationUtil.validateLength(name, "name", 1, 36, true);
         ValidationUtil.validateHexColor(color, "color", true);
-        ValidationUtil.validateTagName(name);
+        if (name != null) {
+            ValidationUtil.validateTagName(name);
+        }
 
         // Check permission
         AclDao aclDao = new AclDao();
@@ -348,6 +388,44 @@ public class TagResource extends BaseResource {
         }
         // Parent tag is always updated to have the possibility to delete it
         tag.setParentId(parentId);
+
+        // Handle inherit_acl transition
+        if (inheritAcl != null && inheritAcl != tag.isInheritAcl()) {
+            if (!inheritAcl) {
+                // Breaking inheritance: copy effective ACLs from parent to this tag as direct ACLs
+                String effParentId = parentChanged ? parentId : tag.getParentId();
+                if (effParentId != null) {
+                    List<String> effectiveAncestorIds = tagDao.getEffectiveAclTagIds(effParentId);
+                    List<AclDto> existingAcls = aclDao.getBySourceId(id, AclType.USER);
+                    Set<String> existingKeys = new HashSet<>();
+                    for (AclDto a : existingAcls) {
+                        existingKeys.add(a.getTargetId() + ":" + a.getPerm().name());
+                    }
+                    for (String ancestorId : effectiveAncestorIds) {
+                        List<AclDto> ancestorAcls = aclDao.getBySourceId(ancestorId, AclType.USER);
+                        for (AclDto parentAcl : ancestorAcls) {
+                            String key = parentAcl.getTargetId() + ":" + parentAcl.getPerm().name();
+                            if (!existingKeys.contains(key)) {
+                                Acl newAcl = new Acl();
+                                newAcl.setSourceId(id);
+                                newAcl.setTargetId(parentAcl.getTargetId());
+                                newAcl.setPerm(parentAcl.getPerm());
+                                newAcl.setType(AclType.USER);
+                                aclDao.create(newAcl, principal.getId());
+                                existingKeys.add(key);
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Restoring inheritance: clear local custom ACLs on this tag
+                List<AclDto> existingAcls = aclDao.getBySourceId(id, AclType.USER);
+                for (AclDto a : existingAcls) {
+                    aclDao.delete(id, a.getPerm(), a.getTargetId(), principal.getId(), AclType.USER);
+                }
+            }
+            tag.setInheritAcl(inheritAcl);
+        }
         
         tagDao.update(tag, principal.getId());
         
@@ -388,6 +466,9 @@ public class TagResource extends BaseResource {
 
         // Delete the tag
         TagDao tagDao = new TagDao();
+        if (tagDao.hasChildren(id)) {
+            throw new ClientException("TagHasChildren", "Cannot delete a tag that has child tags");
+        }
         tagDao.delete(id, principal.getId());
         
         // Always return OK

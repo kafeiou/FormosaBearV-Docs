@@ -37,6 +37,11 @@ public class DialectUtil {
             sql = sql.substring(4);
         }
 
+        String trimmed = sql.trim();
+        if (trimmed.toUpperCase().startsWith("INSERT INTO")) {
+            return sql;
+        }
+
         if (EMF.isDriverPostgresql()) {
             sql = transformToPostgresql(sql);
         } else if (EMF.isDriverH2()) {

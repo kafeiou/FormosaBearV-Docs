@@ -4,7 +4,7 @@
  * Tag controller.
  */
 angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, Restangular, User) {
-  $scope.tag = { name: '', color: '#3a87ad' };
+  $scope.tag = { name: '', color: '#3a87ad', parent: '' };
   $scope.expandedTags = {};
 
   // Guardrail for tagadmin routes: redirect non-authorized users to tag browser
@@ -67,9 +67,13 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
    * Add a tag.
    */
   $scope.addTag = function() {
-    Restangular.one('tag').put($scope.tag).then(function() {
+    var tagData = angular.copy($scope.tag);
+    if (!tagData.parent) {
+      delete tagData.parent;
+    }
+    Restangular.one('tag').put(tagData).then(function() {
       $scope.loadTags();
-      $scope.tag = { name: '', color: '#3a87ad' };
+      $scope.tag = { name: '', color: '#3a87ad', parent: '' };
     });
   };
 
@@ -238,5 +242,113 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
    */
   $scope.collapseAllTags = function() {
     $scope.expandedTags = {};
+  };
+
+  // Parent tag tree selector state
+  $scope.parentTreeExpanded = {};
+  $scope.parentTreeSearch = '';
+
+  /**
+   * Get full hierarchical path breadcrumb of a tag (e.g. "DCC > QMS > QP").
+   */
+  $scope.getTagBreadcrumb = function(tagId) {
+    if (!tagId || !$scope.tags || !$scope.tags.length) {
+      return '';
+    }
+    var current = _.findWhere($scope.tags, { id: tagId });
+    if (!current) {
+      return '';
+    }
+    var path = [current.name];
+    var visited = {};
+    visited[current.id] = true;
+    while (current && current.parent) {
+      if (visited[current.parent]) break;
+      visited[current.parent] = true;
+      current = _.findWhere($scope.tags, { id: current.parent });
+      if (current) {
+        path.unshift(current.name);
+      }
+    }
+    return path.join(' > ');
+  };
+
+  /**
+   * Get tag color by ID.
+   */
+  $scope.getTagColor = function(tagId) {
+    if (!tagId || !$scope.tags) return '#3a87ad';
+    var t = _.findWhere($scope.tags, { id: tagId });
+    return t ? t.color : '#3a87ad';
+  };
+
+  /**
+   * Select parent tag from tree for Add Tag form.
+   */
+  $scope.selectParentTag = function(node) {
+    $scope.tag.parent = node ? node.id : '';
+    $scope.parentSelectorOpen = false;
+  };
+
+  /**
+   * Check if parent selector tree node is expanded.
+   */
+  $scope.isParentTreeExpanded = function(tagId) {
+    return !!$scope.parentTreeExpanded[tagId];
+  };
+
+  /**
+   * Toggle parent selector tree node expansion.
+   */
+  $scope.toggleParentTreeExpand = function(tagId, $event) {
+    if ($event) {
+      $event.stopPropagation();
+      $event.preventDefault();
+    }
+    $scope.parentTreeExpanded[tagId] = !$scope.parentTreeExpanded[tagId];
+  };
+
+  /**
+   * Check if a tag is equal to or a descendant of another tag.
+   */
+  $scope.isDescendantOf = function(tagId, ancestorId) {
+    if (!tagId || !ancestorId) return false;
+    if (tagId === ancestorId) return true;
+    var current = _.findWhere($scope.tags, { id: tagId });
+    var visited = {};
+    while (current && current.parent) {
+      if (current.parent === ancestorId) return true;
+      if (visited[current.parent]) break;
+      visited[current.parent] = true;
+      current = _.findWhere($scope.tags, { id: current.parent });
+    }
+    return false;
+  };
+
+  /**
+   * Recursive check if node or any of its descendants match the query.
+   */
+  $scope.nodeOrDescendantsMatch = function(tagId, query, excludeId) {
+    if (excludeId && tagId === excludeId) return false;
+    var node = _.findWhere($scope.tags, { id: tagId });
+    if (node && node.name && node.name.toLowerCase().indexOf(query) !== -1) {
+      return true;
+    }
+    var children = $scope.getChildrenTags(tagId);
+    return _.some(children, function(child) {
+      return $scope.nodeOrDescendantsMatch(child.id, query, excludeId);
+    });
+  };
+
+  /**
+   * Filter tree nodes based on search query.
+   */
+  $scope.filterParentTreeNode = function(node, excludeId) {
+    if (excludeId && $scope.isDescendantOf(node.id, excludeId)) {
+      return false;
+    }
+    if (!$scope.parentTreeSearch) return true;
+    var q = $scope.parentTreeSearch.toLowerCase();
+    return $scope.nodeOrDescendantsMatch(node.id, q, excludeId);
   };
 });

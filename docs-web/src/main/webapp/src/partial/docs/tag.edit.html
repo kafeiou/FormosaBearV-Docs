@@ -1,3 +1,22 @@
+<script type="text/ng-template" id="edit-tag-tree-select-node">
+  <div class="tree-select-row" ng-class="{ 'tree-select-active': tag.parent === node.id }" style="border-radius: 3px; padding: 3px 6px; display: flex; align-items: center;">
+    <span class="pointer mr-5" ng-if="hasChildren(node.id)" ng-click="toggleParentTreeExpand(node.id, $event)" style="width: 14px; display: inline-block; text-align: center;">
+      <span class="fas" ng-class="{ 'fa-caret-down': isParentTreeExpanded(node.id), 'fa-caret-right': !isParentTreeExpanded(node.id) }"></span>
+    </span>
+    <span class="mr-5" ng-if="!hasChildren(node.id)" style="width: 14px; display: inline-block;"></span>
+    <span class="fas fa-tag mr-5" ng-style="{ 'color': node.color }"></span>
+    <span class="flex-grow pointer" ng-click="selectEditParentTag(node)" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+      {{ node.name }}
+    </span>
+    <span class="badge pull-right" ng-if="hasChildren(node.id)" style="font-size: 10px; padding: 2px 5px; margin-left: 5px;">
+      {{ getChildrenTags(node.id).length }}
+    </span>
+  </div>
+  <ul class="list-unstyled select-tag-children" ng-if="hasChildren(node.id) && isParentTreeExpanded(node.id)" style="padding-left: 16px; margin-bottom: 0;">
+    <li ng-repeat="node in getChildrenTags(node.id) | filter: filterEditParentTreeNode" ng-include="'edit-tag-tree-select-node'"></li>
+  </ul>
+</script>
+
 <div class="pull-right" ng-show="tag.writable">
   <button class="btn btn-danger" ng-click="deleteTag(tag)"><span class="fas fa-trash"></span> {{ 'delete' | translate }}</button>
 </div>
@@ -20,11 +39,12 @@
     <div class="form-group" ng-class="{ 'has-error': !editTagForm.color.$valid, success: editTagForm.color.$valid }">
       <label class="col-sm-2 control-label" for="inputColor">{{ 'tag.edit.color' | translate }}</label>
 
-      <div class="col-sm-2">
-        <div class="input-group" id="inputColor" ng-class="{ 'has-error': !editTagForm.color.$valid && tagForm.$dirty }">
-          <span colorpicker class="input-group-addon btn btn-default" data-color="#3a87ad" ng-model="tag.color" ng-style="{ 'background': tag.color }">&nbsp;</span>
-          <button class="btn btn-default" ng-click="hexaField = true" ng-show="!hexaField"><span class="fas fa-microchip"></span></button>
-          <input type="text" name="color" class="form-control" ng-maxlength="7" ng-model="tag.color" ng-show="hexaField">
+      <div class="col-sm-3">
+        <div class="input-group" id="inputColor" ng-class="{ 'has-error': !editTagForm.color.$valid }">
+          <span colorpicker class="input-group-addon btn btn-default" data-color="#3a87ad" ng-model="tag.color" ng-style="{ 'background-color': tag.color, 'color': '#ffffff', 'text-shadow': '0 0 2px rgba(0,0,0,0.8)', 'cursor': 'pointer' }" uib-tooltip="{{ 'tag.edit.color' | translate }}">
+            <span class="fas fa-palette"></span>
+          </span>
+          <input type="text" name="color" class="form-control" ng-maxlength="7" ng-model="tag.color" placeholder="#3a87ad">
         </div>
       </div>
     </div>
@@ -33,13 +53,32 @@
       <label class="col-sm-2 control-label" for="inputParent">{{ 'tag.edit.parent' | translate }}</label>
 
       <div class="col-sm-6">
-        <select class="form-control" ng-model="tag.parent" id="inputParent">
-          <option value="" ng-selected="!tag.parent"></option>
-          <option ng-repeat="tag0 in tags"
-                  ng-if="tag0.id != tag.id"
-                  ng-selected="tag.parent == tag0.id"
-                  value="{{ tag0.id }}">{{ tag0.name }}</option>
-        </select>
+        <div class="dropdown" uib-dropdown is-open="editParentSelectorOpen" auto-close="outsideClick">
+          <button type="button" class="btn btn-default btn-block text-left clearfix" uib-dropdown-toggle style="text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <span class="fas fa-sitemap text-muted mr-5"></span>
+            <span ng-if="!tag.parent" class="text-muted">
+              {{ 'tag.root_tag_option' | translate }}
+            </span>
+            <span ng-if="tag.parent">
+              <span class="fas fa-tag mr-5" ng-style="{ 'color': getTagColor(tag.parent) }"></span>
+              <strong>{{ getTagBreadcrumb(tag.parent) }}</strong>
+            </span>
+            <span class="caret pull-right" style="margin-top: 7px;"></span>
+          </button>
+          <div class="dropdown-menu p-10" uib-dropdown-menu style="width: 100%; min-width: 300px; max-height: 320px; overflow-y: auto; padding: 8px;">
+            <div class="form-group mb-5">
+              <input type="text" class="form-control input-sm" ng-model="parentTreeSearch" placeholder="{{ 'tag.tree_filter_placeholder' | translate }}" ng-click="$event.stopPropagation()">
+            </div>
+            <div class="tree-select-row p-5" ng-class="{ 'tree-select-active': !tag.parent }" ng-click="selectEditParentTag(null)" style="border-radius: 3px; padding: 4px 6px; cursor: pointer;">
+              <span class="fas fa-level-up-alt text-muted mr-5"></span>
+              <em>{{ 'tag.root_tag_option' | translate }}</em>
+            </div>
+            <hr style="margin: 5px 0;">
+            <ul class="list-unstyled select-tag-tree-panel mb-0" style="padding-left: 0;">
+              <li ng-repeat="node in getChildrenTags() | filter: filterEditParentTreeNode" ng-include="'edit-tag-tree-select-node'"></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -50,6 +89,18 @@
         <input type="number" name="order" class="form-control" id="inputOrder" min="0" ng-model="tag.order"
                ng-attr-placeholder="{{ 'tag.edit.order_placeholder' | translate }}">
         <span class="help-block small text-muted">{{ 'tag.edit.order_help' | translate }}</span>
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="tag.parent">
+      <div class="col-sm-offset-2 col-sm-10">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="tag.inherit_acl" ng-change="onInheritAclChange()">
+            <strong>{{ 'tag.edit.inherit_acl' | translate }}</strong>
+          </label>
+        </div>
+        <span class="help-block small text-muted">{{ 'tag.edit.inherit_acl_help' | translate }}</span>
       </div>
     </div>
 
@@ -64,6 +115,41 @@
 </div>
 
 <div class="well col-lg-8">
+  <div ng-if="tag.parent && tag.inherit_acl">
+    <h4>{{ 'tag.edit.inherited_acls_title' | translate }}</h4>
+    <p class="text-muted small">{{ 'tag.edit.inherited_acls_help' | translate }}</p>
+    <table class="table table-striped table-hover" ng-if="tag.inherited_acls && tag.inherited_acls.length > 0">
+      <thead>
+        <tr>
+          <th>{{ 'acl.target' | translate }}</th>
+          <th>{{ 'acl.perm' | translate }}</th>
+          <th>{{ 'acl.source' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="acl in tag.inherited_acls">
+          <td>
+            <span class="fas" ng-class="{ 'fa-user': acl.type == 'USER', 'fa-users': acl.type == 'GROUP' }"></span>
+            {{ acl.name || acl.id }}
+          </td>
+          <td>
+            <span class="label" ng-class="{ 'label-success': acl.perm == 'WRITE', 'label-info': acl.perm == 'READ' }">{{ 'acl.' + acl.perm | translate }}</span>
+          </td>
+          <td>
+            <span class="label label-default" ng-style="{ 'background-color': acl.source_color }">
+              <span class="fas fa-tag"></span> {{ acl.source_name }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="text-muted" ng-if="!tag.inherited_acls || tag.inherited_acls.length == 0">
+      {{ 'tag.edit.no_inherited_acls' | translate }}
+    </p>
+    <hr/>
+  </div>
+
+  <h4>{{ 'tag.edit.direct_acls_title' | translate }}</h4>
   <p translate="tag.edit.info" translate-values="{ name: tag.name, color: tag.color }"></p>
 
   <acl-edit source="tag.id"

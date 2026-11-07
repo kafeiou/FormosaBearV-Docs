@@ -6,15 +6,19 @@
       <span class="fas" ng-class="{ 'fa-caret-down': isTagExpanded(tag.id), 'fa-caret-right': !isTagExpanded(tag.id) }"></span>
     </span>
     <span class="tag-tree-toggle-placeholder" ng-if="!hasChildren(tag.id)"></span>
-    <span class="fas fa-tag" ng-style="{ 'color': tag.color }"></span>
-    <a href="#/tag/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }">
+    <span class="fas fa-tag" ng-style="{ 'color': tag.is_container ? '#999999' : tag.color }"></span>
+    <span class="fas fa-lock text-warning" ng-if="tag.inherit_acl === false" uib-tooltip="{{ 'tag.broken_inheritance' | translate }}" style="margin-left: 3px; font-size: 11px;"></span>
+    <span ng-if="tag.is_container" class="text-muted" uib-tooltip="{{ 'tag.container_tooltip' | translate }}" style="cursor: not-allowed; font-weight: normal;">
+      {{ tag.name }}
+    </span>
+    <a ng-if="!tag.is_container" href="#/tag/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }">
       {{ tag.name }}
     </a>
     <span class="text-muted small ml-10">
       <span ng-if="hasChildren(tag.id)" class="mr-10" uib-tooltip="{{ 'tag.browse.subtag_count' | translate: { count: getChildrenTags(tag.id).length } }}">
         <span class="far fa-folder"></span> {{ getChildrenTags(tag.id).length }}
       </span>
-      <span uib-tooltip="{{ 'document.count' | translate: { count: tag.document_count || 0 } }}">
+      <span ng-if="!tag.is_container" uib-tooltip="{{ 'document.count' | translate: { count: tag.document_count || 0 } }}">
         <span class="far fa-file-alt"></span> {{ tag.document_count || 0 }}
       </span>
     </span>

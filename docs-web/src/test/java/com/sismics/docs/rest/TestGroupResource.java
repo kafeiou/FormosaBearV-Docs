@@ -58,7 +58,7 @@ public class TestGroupResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .get(JsonObject.class);
         JsonArray groups = json.getJsonArray("groups");
-        Assert.assertEquals(6, groups.size());
+        Assert.assertEquals(7, groups.size());
         JsonObject groupG11 = groups.getJsonObject(2);
         Assert.assertEquals("g11", groupG11.getString("name"));
         Assert.assertEquals("g1", groupG11.getString("parent"));
@@ -68,8 +68,13 @@ public class TestGroupResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .get(JsonObject.class);
         groups = json.getJsonArray("groups");
-        Assert.assertEquals(1, groups.size());
-        Assert.assertEquals("administrators", groups.getString(0));
+        Assert.assertEquals(2, groups.size());
+        List<String> adminGroupList = new ArrayList<>();
+        for (int i = 0; i < groups.size(); i++) {
+            adminGroupList.add(groups.getString(i));
+        }
+        Assert.assertTrue(adminGroupList.contains("administrators"));
+        Assert.assertTrue(adminGroupList.contains("tag_editor"));
         
         // Check group1 groups (all computed groups)
         json = target().path("/user").request()

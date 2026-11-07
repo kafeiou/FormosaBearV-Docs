@@ -245,11 +245,14 @@
   },
   "tag": {
     "new_tag": "新标签",
+    "root_tag_option": "无上级标签（作为根标签）",
     "search": "搜索",
     "expand_all": "全部展开",
     "collapse_all": "全部收起",
     "move_up": "上移",
     "move_down": "下移",
+    "broken_inheritance": "此标签已中断权限继承（自定义独立权限）",
+    "container_tooltip": "仅作为导航路径容器（无直接访问权限）",
     "browse": {
       "tree_title": "标签分类",
       "welcome_title": "按标签浏览文档与文件",
@@ -271,6 +274,8 @@
     "edit": {
       "delete_tag_title": "删除标签",
       "delete_tag_message": "您是否确认删除该标签?",
+      "delete_has_children_title": "无法删除标签",
+      "delete_has_children_message": "此标签底下仍包含子标签，请先将子标签移除或移至其他标签下，方可删除此标签。",
       "name": "名称",
       "color": "颜色",
       "parent": "母",
@@ -279,12 +284,21 @@
       "circular_reference_message": "父标签的层级结构形成了一个循环，请选择另一个父标签。",
       "order": "同层排序序号",
       "order_placeholder": "默认留空依日期",
-      "order_help": "留空或相同时，依创建日期（由旧到新）自动排序"
+      "order_help": "留空或相同时，依创建日期（由旧到新）自动排序",
+      "inherit_acl": "继承上层标签权限",
+      "inherit_acl_help": "勾选时将自动继承上层所有标签之访问权限；取消勾选（中断继承）时，将把当前继承之权限复制为专属权限以便独立维护",
+      "inherited_acls_title": "继承自上层之权限",
+      "inherited_acls_help": "以下权限由上层标签自动继承，无法在此直接删除；如需修改请至该来源标签或取消继承。",
+      "no_inherited_acls": "上层标签尚无设定任何特定访问权限",
+      "direct_acls_title": "本标签专属权限",
+      "restore_inheritance_title": "确认恢复权限继承",
+      "restore_inheritance_confirm": "重新启用继承将会清除本层目前的所有自定义权限，改由上层标签完全接管。是否确定要恢复继承？"
     },
     "expand_files": "展开文件",
     "collapse_files": "收起文件",
     "expand_all_files": "展开所有文件",
-    "collapse_all_files": "收起所有文件"
+    "collapse_all_files": "收起所有文件",
+    "tree_filter_placeholder": "搜索筛选标签..."
   },
   "group": {
     "profile": {
@@ -509,7 +523,12 @@
         "search_group": "搜索组",
         "members": "成员",
         "new_member": "新成员",
-        "search_user": "搜索用户"
+        "search_user": "搜索用户",
+        "no_parent_group": "-- (无上层群组 / 根群组) --",
+        "parent_group_help": "直接下拉选取上层群组，若不选取则为顶层独立群组。",
+        "select_user_dropdown": "-- 直接选择账号加入 --",
+        "add_member_hint": "您可输入关键字搜索账号，或直接由右侧下拉菜单选取账号加入群组。",
+        "no_members": "目前群组尚无成员"
       }
     },
     "account": {
@@ -591,8 +610,8 @@
     },
     "menu_backup": "备份与还原",
     "backup": {
-      "title": "系统备份与还原",
-      "description": "支持 H2 与 PostgreSQL 之数据库结构、全文索引、所有文件实体档案与系统安全性设置之完整备份与还原。",
+      "title": "系统数据库与设置备份",
+      "description": "支持 H2 与 PostgreSQL 之数据库元数据、标签层级、权限、全文索引与系统安全性设置之备份与还原。实体存储文件（storage/）建议通过操作系统工具独立备份。",
       "system_status": "目前系统状态与统计",
       "db_engine": "数据库引擎",
       "storage_mode": "文件存储模式",
@@ -605,27 +624,32 @@
       "document_count": "有效文件总数",
       "file_count": "有效档案总数",
       "storage_size": "实体存储空间",
-      "export_section_title": "完整系统备份 (Export Full Backup)",
-      "export_explain": "点击下方按钮即可实时压缩并下载系统备份压缩包 (ZIP)。备份包包含：",
+      "storage_path": "实体存储路径",
+      "export_section_title": "系统数据库与设置备份 (Export Database & Config)",
+      "export_explain": "点击下方按钮即可实时下载系统数据库与设置备份压缩包 (ZIP，通常小于 5MB，数秒内完成)。备份包包含：",
       "explain_dump_sql": "兼容于 H2 与 PostgreSQL 之标准 ANSI SQL 数据库转储，包含所有用户账号、文件元数据、标签与权限设置。",
       "explain_config_json": "完整系统设置（文件加密状态、软删除、允许重复、下载控制等安全性参数）。",
-      "explain_files": "所有上传之原件与缩略图，保留原始层级路径（包含回收区软删除档案）。",
-      "download_button": "下载完整备份 ZIP",
-      "downloading": "正在流式压缩并下载中，请稍候...",
-      "restore_section_title": "完整系统还原 (Restore System)",
+      "explain_manifest_json": "系统版本与导出元数据信息。",
+      "physical_storage_notice_title": "实体文件独立备份指引：",
+      "physical_storage_notice_msg": "为避免巨量文件（如数十至数百 GB）造成网页下载超时或中断，上传之实体文件不包装于本下载包内。请系统管理员直接于主机层级进行文件目录备份：",
+      "docker_compose_container_path": "容器内对应",
+      "download_button": "下载数据库与设置备份 ZIP",
+      "downloading": "正在生成并下载备份，请稍候...",
+      "restore_section_title": "系统数据库与设置还原 (Restore System)",
       "warning_title": "高风险操作警示：",
-      "warning_message": "系统还原将采用“完全干净覆盖”模式！现有的数据库数据表与 storage 目录将被清空，完全以备份文件内容取代，并在还原完成后自动在后台重建全文检索索引。请确认您已备好正确的备份文件。",
+      "warning_message": "系统还原将覆盖当前的数据库数据表与系统配置设置，并于还原完成后自动在后台重新建立全文检索搜索索引。若备份包未包含实体文件，服务器上现有的实体 storage 目录将安全保留不被删除。请确认您已备好正确的备份文件。",
       "select_or_drag_file": "点击选择或拖拽备份 ZIP 文件至此",
       "zip_only": "仅支持先由本系统产出之 .zip 备份压缩包",
       "click_to_change_file": "点击可重新选择文件",
-      "confirm_restore_prompt": "【警告】您即将执行系统完全还原！\n\n这将清空当前数据库与文件，并由备份文件内容完全覆盖，且于还原后自动重建搜索索引。\n此操作无法撤销，您确定要继续执行吗？",
+      "confirm_restore_prompt": "【警告】您即将执行系统数据库与设置还原！\n\n这将以备份包内容覆盖当前数据库记录与配置设置，并于后台自动重建搜索索引。\n现有磁盘上的实体文件将被保留。\n此操作无法撤销，您确定要继续执行吗？",
       "uploading_and_restoring": "正在上传并解包还原中，请勿关闭窗口...",
       "restore_success_title": "系统还原成功！",
-      "restore_success_message": "数据库、系统设置与所有文件已成功还原，后台全文搜索索引重建中。请刷新页面以应用最新状态。",
+      "restore_success_message": "数据库与系统设置已成功还原，认证 Token 已重置。系统即将引导您重新登录，以载入最新还原的数据与文档。",
       "reload_page": "立即刷新页面",
       "restore_error_title": "系统还原失败",
       "restore_failed_generic": "上传或还原过程中发生错误，请检查文件格式后重试。",
-      "start_restore_button": "开始还原系统"
+      "start_restore_button": "开始还原系统",
+      "goto_login_button": "立即前往重新登录"
     }
   },
   "feedback": {
@@ -697,7 +721,10 @@
     "WRITE": "可写",
     "USER": "用户",
     "GROUP": "组",
-    "SHARE": "已共享"
+    "SHARE": "已共享",
+    "source": "来源标签",
+    "target": "对象",
+    "perm": "权限"
   },
   "workflow_type": {
     "VALIDATE": "验证",
@@ -770,5 +797,10 @@
   "loading": "加载中...",
   "send": "发送",
   "enabled": "激活",
-  "disabled": "未激活"
+  "disabled": "未激活",
+  "common": {
+    "cancel": "取消",
+    "enabled": "启用",
+    "disabled": "未启用"
+  }
 }

@@ -217,19 +217,37 @@ public class TestTagResource extends BaseJerseyTest {
         Assert.assertEquals(2, tags.size());
         Assert.assertEquals(tag3Id, tags.getJsonObject(1).getString("parent"));
 
-        // Deletes a tag
-        target().path("/tag/" + tag3Id).request()
+        // Cannot delete tag3 because it has a child (Tag4) -> Guardrail TagHasChildren
+        Response failDelete = target().path("/tag/" + tag3Id).request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tag1Token)
                 .delete();
-        
-        // Get all tags
+        Assert.assertEquals(Status.BAD_REQUEST, Status.fromStatusCode(failDelete.getStatus()));
+
+        // Both tags still exist
         json = target().path("/tag/list").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tag1Token)
                 .get(JsonObject.class);
         tags = json.getJsonArray("tags");
-        Assert.assertEquals(1, tags.size());
-        Assert.assertEquals("UpdatedName", tags.getJsonObject(0).getString("name"));
-        Assert.assertNull(tags.getJsonObject(0).get("parent"));
+        Assert.assertEquals(2, tags.size());
+
+        // Delete child tag4Id first
+        Response successDeleteChild = target().path("/tag/" + tag4Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tag1Token)
+                .delete();
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(successDeleteChild.getStatus()));
+
+        // Now parent tag3Id can be deleted
+        Response successDeleteParent = target().path("/tag/" + tag3Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tag1Token)
+                .delete();
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(successDeleteParent.getStatus()));
+
+        // Verify all tags deleted
+        json = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tag1Token)
+                .get(JsonObject.class);
+        tags = json.getJsonArray("tags");
+        Assert.assertEquals(0, tags.size());
 
         // Deletes user tag1
         String adminToken = adminToken();
@@ -412,5 +430,282 @@ public class TestTagResource extends BaseJerseyTest {
         target().path("/user/doc_reorder_user").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .delete();
+    }
+
+    /**
+     * Test hierarchical tag permissions, inheritance break, union access, and container tags.
+     */
+    @Test
+    public void testHierarchicalTagPermissions() {
+        // Create test users
+        clientUtil.createUser("h_admin");
+        clientUtil.createUser("h_reader");
+        clientUtil.createUser("h_writer");
+        clientUtil.createUser("h_unauth");
+        String adminUserToken = clientUtil.login("h_admin");
+        String readerToken = clientUtil.login("h_reader");
+        String writerToken = clientUtil.login("h_writer");
+        String unauthToken = clientUtil.login("h_unauth");
+
+        // 1. h_admin creates RootTag
+        JsonObject rootJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("name", "HRoot")
+                        .param("color", "#111111")), JsonObject.class);
+        String rootTagId = rootJson.getString("id");
+
+        // Grant READ on RootTag to h_reader
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("source", rootTagId)
+                        .param("perm", "READ")
+                        .param("target", "h_reader")
+                        .param("type", "USER")), JsonObject.class);
+
+        // Grant WRITE on RootTag to h_writer
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("source", rootTagId)
+                        .param("perm", "WRITE")
+                        .param("target", "h_writer")
+                        .param("type", "USER")), JsonObject.class);
+
+        // 2. h_admin creates ChildTag under RootTag (inherit_acl = true)
+        JsonObject childJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("name", "HChild")
+                        .param("color", "#222222")
+                        .param("parent", rootTagId)
+                        .param("inherit_acl", "true")), JsonObject.class);
+        String childTagId = childJson.getString("id");
+
+        // h_admin creates DocInChild tagged with ChildTag
+        JsonObject doc1Json = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("title", "DocInChild")
+                        .param("language", "eng")
+                        .param("tags", childTagId)), JsonObject.class);
+        String docInChildId = doc1Json.getString("id");
+
+        // Verify ChildTag inherits READ: h_reader can read ChildTag and DocInChild
+        JsonObject childGet = target().path("/tag/" + childTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("HChild", childGet.getString("name"));
+        Assert.assertTrue(childGet.getBoolean("inherit_acl"));
+        Assert.assertFalse(childGet.getBoolean("is_container"));
+        Assert.assertEquals(rootTagId, childGet.getString("parent"));
+
+        JsonObject listReader = target().path("/document/list")
+                .queryParam("tag_id", childTagId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, listReader.getJsonArray("documents").size());
+        Assert.assertEquals(docInChildId, listReader.getJsonArray("documents").getJsonObject(0).getString("id"));
+
+        // Verify h_reader cannot WRITE to ChildTag (cannot update it)
+        Response failUpdate = target().path("/tag/" + childTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .post(Entity.form(new Form()
+                        .param("name", "HChild")
+                        .param("color", "#333333")
+                        .param("parent", rootTagId)));
+        Assert.assertEquals(Status.NOT_FOUND, Status.fromStatusCode(failUpdate.getStatus()));
+
+        // Verify ChildTag inherits WRITE: h_writer CAN update ChildTag
+        Response successUpdate = target().path("/tag/" + childTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, writerToken)
+                .post(Entity.form(new Form()
+                        .param("name", "HChild")
+                        .param("color", "#333333")
+                        .param("parent", rootTagId)));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(successUpdate.getStatus()));
+
+        // Verify h_unauth cannot see ChildTag or DocInChild
+        Response failGetTag = target().path("/tag/" + childTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, unauthToken)
+                .get();
+        Assert.assertEquals(Status.NOT_FOUND, Status.fromStatusCode(failGetTag.getStatus()));
+
+        // 3. Test Broken Inheritance (inherit_acl = false)
+        JsonObject secretJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("name", "HSecret")
+                        .param("color", "#444444")
+                        .param("parent", rootTagId)
+                        .param("inherit_acl", "false")), JsonObject.class);
+        String secretTagId = secretJson.getString("id");
+
+        JsonObject docSecretJson = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("title", "DocInSecret")
+                        .param("language", "eng")
+                        .param("tags", secretTagId)), JsonObject.class);
+        String docSecretId = docSecretJson.getString("id");
+
+        // Verify h_reader & h_writer CANNOT access SecretTag or DocInSecret (inheritance broken!)
+        Response failReaderSecret = target().path("/tag/" + secretTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get();
+        Assert.assertEquals(Status.NOT_FOUND, Status.fromStatusCode(failReaderSecret.getStatus()));
+
+        Response failWriterSecret = target().path("/tag/" + secretTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, writerToken)
+                .get();
+        Assert.assertEquals(Status.NOT_FOUND, Status.fromStatusCode(failWriterSecret.getStatus()));
+
+        JsonObject listReaderSecretDocs = target().path("/document/list")
+                .queryParam("tag_id", secretTagId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(0, listReaderSecretDocs.getJsonArray("documents").size());
+
+        // Grant READ on SecretTag directly to h_unauth
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("source", secretTagId)
+                        .param("perm", "READ")
+                        .param("target", "h_unauth")
+                        .param("type", "USER")), JsonObject.class);
+
+        // Now h_unauth CAN see SecretTag and DocInSecret
+        JsonObject secretGetUnauth = target().path("/tag/" + secretTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, unauthToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("HSecret", secretGetUnauth.getString("name"));
+        Assert.assertFalse(secretGetUnauth.getBoolean("inherit_acl"));
+
+        JsonObject listUnauthDocs = target().path("/document/list")
+                .queryParam("tag_id", secretTagId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, unauthToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, listUnauthDocs.getJsonArray("documents").size());
+        Assert.assertEquals(docSecretId, listUnauthDocs.getJsonArray("documents").getJsonObject(0).getString("id"));
+
+        // 4. Test Multi-tag Union Access: DocMulti tagged with both SecretTag and ChildTag
+        JsonObject docMultiJson = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("title", "DocMulti")
+                        .param("language", "eng")
+                        .param("tags", secretTagId)
+                        .param("tags", childTagId)), JsonObject.class);
+        String docMultiId = docMultiJson.getString("id");
+
+        // h_reader can access DocMulti (via ChildTag) even though h_reader has no access to SecretTag
+        JsonObject docMultiReader = target().path("/document/" + docMultiId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(docMultiId, docMultiReader.getString("id"));
+
+        // h_unauth can access DocMulti (via SecretTag) even though h_unauth has no access to ChildTag
+        JsonObject docMultiUnauth = target().path("/document/" + docMultiId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, unauthToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(docMultiId, docMultiUnauth.getString("id"));
+
+        // 5. Test Path Container Tag (is_container: true)
+        // h_unauth only has access to SecretTag, parent RootTag must be returned as is_container: true
+        JsonObject unauthTagList = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, unauthToken)
+                .get(JsonObject.class);
+        JsonArray unauthTags = unauthTagList.getJsonArray("tags");
+        Assert.assertEquals(2, unauthTags.size());
+        boolean foundRootContainer = false;
+        boolean foundSecretTag = false;
+        for (int i = 0; i < unauthTags.size(); i++) {
+            JsonObject t = unauthTags.getJsonObject(i);
+            if (t.getString("id").equals(rootTagId)) {
+                foundRootContainer = true;
+                Assert.assertTrue(t.getBoolean("is_container"));
+                Assert.assertEquals(0, t.getInt("document_count"));
+            } else if (t.getString("id").equals(secretTagId)) {
+                foundSecretTag = true;
+                Assert.assertFalse(t.getBoolean("is_container"));
+                Assert.assertEquals(rootTagId, t.getString("parent"));
+            }
+        }
+        Assert.assertTrue(foundRootContainer);
+        Assert.assertTrue(foundSecretTag);
+
+        // 6. Test State Transition: breaking & restoring inheritance on SubTag
+        JsonObject subJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .put(Entity.form(new Form()
+                        .param("name", "HSub")
+                        .param("color", "#555555")
+                        .param("parent", rootTagId)
+                        .param("inherit_acl", "true")), JsonObject.class);
+        String subTagId = subJson.getString("id");
+
+        // Initially inherits: inherited_acls has RootTag's ACLs
+        JsonObject subGet1 = target().path("/tag/" + subTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .get(JsonObject.class);
+        Assert.assertTrue(subGet1.getJsonArray("inherited_acls").size() >= 2);
+
+        // Break inheritance: POST inherit_acl = false -> parent ACLs copied to direct ACLs
+        target().path("/tag/" + subTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .post(Entity.form(new Form()
+                        .param("name", "HSub")
+                        .param("color", "#555555")
+                        .param("parent", rootTagId)
+                        .param("inherit_acl", "false")));
+
+        JsonObject subGet2 = target().path("/tag/" + subTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .get(JsonObject.class);
+        Assert.assertFalse(subGet2.getBoolean("inherit_acl"));
+        Assert.assertEquals(0, subGet2.getJsonArray("inherited_acls").size());
+        Assert.assertTrue(subGet2.getJsonArray("acls").size() >= 2);
+
+        // Restore inheritance: POST inherit_acl = true -> direct ACLs cleared, inherited_acls restored
+        target().path("/tag/" + subTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .post(Entity.form(new Form()
+                        .param("name", "HSub")
+                        .param("color", "#555555")
+                        .param("parent", rootTagId)
+                        .param("inherit_acl", "true")));
+
+        JsonObject subGet3 = target().path("/tag/" + subTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken)
+                .get(JsonObject.class);
+        Assert.assertTrue(subGet3.getBoolean("inherit_acl"));
+        Assert.assertEquals(0, subGet3.getJsonArray("acls").size());
+        Assert.assertTrue(subGet3.getJsonArray("inherited_acls").size() >= 2);
+
+        // Cleanup
+        target().path("/document/" + docMultiId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken).delete();
+        target().path("/document/" + docSecretId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken).delete();
+        target().path("/document/" + docInChildId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken).delete();
+        target().path("/tag/" + subTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken).delete();
+        target().path("/tag/" + secretTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken).delete();
+        target().path("/tag/" + childTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken).delete();
+        target().path("/tag/" + rootTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken).delete();
+        String sysAdminToken = adminToken();
+        target().path("/user/h_admin").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, sysAdminToken).delete();
+        target().path("/user/h_reader").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, sysAdminToken).delete();
+        target().path("/user/h_writer").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, sysAdminToken).delete();
+        target().path("/user/h_unauth").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, sysAdminToken).delete();
     }
 }

@@ -3,7 +3,7 @@
 /**
  * Settings backup and restore controller.
  */
-angular.module('docs').controller('SettingsBackup', function ($scope, $window, $timeout, $filter, Restangular, Upload) {
+angular.module('docs').controller('SettingsBackup', function ($scope, $window, $timeout, $interval, $filter, Restangular, Upload, User) {
   $scope.info = {};
   $scope.backupFile = null;
   $scope.downloading = false;
@@ -13,6 +13,8 @@ angular.module('docs').controller('SettingsBackup', function ($scope, $window, $
   $scope.restoreError = false;
   $scope.restoreErrorMessage = '';
   $scope.restoreStatusMessage = '';
+  $scope.countdown = 5;
+  var countdownInterval = null;
 
   /**
    * Loads backup statistics and configuration information.
@@ -62,7 +64,16 @@ angular.module('docs').controller('SettingsBackup', function ($scope, $window, $
       $scope.restoring = false;
       $scope.progressPercentage = 100;
       $scope.restoreSuccess = true;
-      $scope.loadInfo();
+      $scope.countdown = 5;
+      if (countdownInterval) {
+        $interval.cancel(countdownInterval);
+      }
+      countdownInterval = $interval(function () {
+        $scope.countdown--;
+        if ($scope.countdown <= 0) {
+          $scope.goToLogin();
+        }
+      }, 1000);
     }, function (response) {
       $scope.restoring = false;
       $scope.restoreError = true;
@@ -87,11 +98,33 @@ angular.module('docs').controller('SettingsBackup', function ($scope, $window, $
   };
 
   /**
+   * Navigates to login page after restoring.
+   */
+  $scope.goToLogin = function () {
+    if (countdownInterval) {
+      $interval.cancel(countdownInterval);
+      countdownInterval = null;
+    }
+    try {
+      User.logout();
+    } catch (e) {}
+    $window.location.href = '#/login';
+    $window.location.reload();
+  };
+
+  /**
    * Refreshes the application.
    */
   $scope.reloadPage = function () {
-    $window.location.reload();
+    $scope.goToLogin();
   };
+
+  $scope.$on('$destroy', function () {
+    if (countdownInterval) {
+      $interval.cancel(countdownInterval);
+      countdownInterval = null;
+    }
+  });
 
   $scope.loadInfo();
 });

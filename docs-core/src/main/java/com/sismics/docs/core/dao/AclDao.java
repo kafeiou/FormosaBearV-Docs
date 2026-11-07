@@ -12,10 +12,7 @@ import com.sismics.util.context.ThreadLocalContext;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * ACL DAO.
@@ -128,25 +125,54 @@ public class AclDao {
         if (SecurityUtil.skipAclCheck(targetIdList)) {
             return true;
         }
-        if (targetIdList.isEmpty()) {
+        if (targetIdList == null || targetIdList.isEmpty() || sourceId == null) {
             return false;
         }
 
         EntityManager em = ThreadLocalContext.get().getEntityManager();
-        StringBuilder sb = new StringBuilder("select a.ACL_ID_C from T_ACL a ");
-        sb.append(" where a.ACL_TARGETID_C in (:targetIdList) and a.ACL_SOURCEID_C = :sourceId and a.ACL_PERM_C = :perm and a.ACL_DELETEDATE_D is null ");
-        sb.append(" union all ");
-        sb.append(" select a.ACL_ID_C from T_ACL a, T_DOCUMENT_TAG dt, T_DOCUMENT d ");
-        sb.append(" where a.ACL_SOURCEID_C = dt.DOT_IDTAG_C and dt.DOT_IDDOCUMENT_C = d.DOC_ID_C and dt.DOT_DELETEDATE_D is null ");
-        sb.append(" and d.DOC_ID_C = :sourceId and d.DOC_DELETEDATE_D is null ");
-        sb.append(" and a.ACL_TARGETID_C in (:targetIdList) and a.ACL_PERM_C = :perm and a.ACL_DELETEDATE_D is null ");
-        Query q = em.createNativeQuery(sb.toString());
-        q.setParameter("sourceId", sourceId);
-        q.setParameter("perm", perm.name());
-        q.setParameter("targetIdList", targetIdList);
+        TagDao tagDao = new TagDao();
+        List<String> allowedPerms = perm == PermType.READ ?
+                Arrays.asList(PermType.READ.name(), PermType.WRITE.name()) :
+                Collections.singletonList(PermType.WRITE.name());
 
-        // We have a matching permission
-        return q.getResultList().size() > 0;
+        // 1. Check direct ACL on sourceId, or if sourceId is a tag, on its effective ancestors
+        List<String> effectiveSourceTagIds = tagDao.getEffectiveAclTagIds(sourceId);
+        if (effectiveSourceTagIds.isEmpty()) {
+            effectiveSourceTagIds = Collections.singletonList(sourceId);
+        }
+        Query q = em.createNativeQuery("select a.ACL_ID_C from T_ACL a " +
+                "where a.ACL_TARGETID_C in (:targetIdList) and a.ACL_SOURCEID_C in (:sourceIds) " +
+                "and a.ACL_PERM_C in (:allowedPerms) and a.ACL_DELETEDATE_D is null");
+        q.setParameter("targetIdList", targetIdList);
+        q.setParameter("sourceIds", effectiveSourceTagIds);
+        q.setParameter("allowedPerms", allowedPerms);
+        if (!q.getResultList().isEmpty()) {
+            return true;
+        }
+
+        // 2. If sourceId is a document, check permissions via the document's tags (and their ancestors)
+        Query docTagQuery = em.createNativeQuery("select dt.DOT_IDTAG_C from T_DOCUMENT_TAG dt, T_DOCUMENT d " +
+                "where dt.DOT_IDDOCUMENT_C = d.DOC_ID_C and dt.DOT_DELETEDATE_D is null " +
+                "and d.DOC_ID_C = :docId and d.DOC_DELETEDATE_D is null");
+        docTagQuery.setParameter("docId", sourceId);
+        @SuppressWarnings("unchecked")
+        List<String> docTags = docTagQuery.getResultList();
+        if (!docTags.isEmpty()) {
+            Set<String> effectiveDocTagIds = tagDao.getEffectiveAclTagIds(docTags);
+            if (!effectiveDocTagIds.isEmpty()) {
+                Query tagAclQuery = em.createNativeQuery("select a.ACL_ID_C from T_ACL a " +
+                        "where a.ACL_TARGETID_C in (:targetIdList) and a.ACL_SOURCEID_C in (:tagIds) " +
+                        "and a.ACL_PERM_C in (:allowedPerms) and a.ACL_DELETEDATE_D is null");
+                tagAclQuery.setParameter("targetIdList", targetIdList);
+                tagAclQuery.setParameter("tagIds", effectiveDocTagIds);
+                tagAclQuery.setParameter("allowedPerms", allowedPerms);
+                if (!tagAclQuery.getResultList().isEmpty()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
