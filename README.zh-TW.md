@@ -30,6 +30,11 @@
   - 修正原版預設記憶體 H2 資料庫問題，確保每次 WAR 重新部署時資料庫永久寫入實體硬碟（Windows 位於 `%APPDATA%\FormosaBearV\Docs\db\docs.mv.db`，Linux 位於 `/var/docs/db/`）。
   - 詳細架構與目錄結構請參閱：[`STORAGE.zh-TW.md`](STORAGE.zh-TW.md)。
   - 巨量資料備份維運請參閱：[`BACKUP_GUIDE.zh-TW.md`](BACKUP_GUIDE.zh-TW.md)。
+- **免 Docker 綠色免安裝可攜版一鍵打包機制 (Docker-Free Portable Edition)**：
+  - 專案相對目錄全自包含打包腳本（Windows 雙擊 `package-portable.bat`、Linux/macOS 執行 `./package-portable.sh`），自動將 Jetty 12.1.14 與系統核心 WAR 打包成完全免安裝的綠色發行包（`target/FormosaBearV-docs-2.02-portable.zip`，約 143 MB）。
+  - 資料完全自包含：內建 H2 資料庫、文件儲存與 Lucene 索引自動收納在解壓後的 `data/` 目錄中（透過 `-Ddocs.home`），不污染系統暫存區與 AppData，隨身碟拔了就能帶走！
+  - 智慧啟動腳本（`start.bat` / `start.sh`）：自動搜尋多路徑 Java 21、埠號衝突防呆、自動喚起預設瀏覽器開啟頁面，並提供平順安全關閉腳本（`stop.bat` / `stop.sh`）。
+  - 內建五國語言快速上手說明書（`README.txt`，含繁體中文、英文、簡體中文、日本語、越南語）。
 
 ## v2.01 重大升級亮點
 
@@ -90,6 +95,26 @@ mvn clean package -DskipTests
 ```text
 docs-web/target/docs-web-2.02.war
 ```
+
+### 打包免安裝可攜綠色版（無需 Docker）
+
+在專案根目錄執行一鍵打包腳本：
+
+```bash
+# Windows 環境（或直接雙擊 package-portable.bat）
+.\package-portable.bat
+
+# Linux / macOS 環境
+chmod +x package-portable.sh && ./package-portable.sh
+```
+
+此腳本會自動讀取 `tools/jetty/` 專案基底 Jetty 12 ZIP（缺少時自動從 Maven 中央倉庫下載），自動編譯 WAR 並組裝所有模組與腳本，最終產出：
+
+```text
+target/FormosaBearV-docs-2.02-portable.zip
+```
+
+解壓後只要電腦有安裝 Java 21，雙擊 `start.bat`（或執行 `./start.sh`）即可直接秒速啟動！
 
 ### 啟動本機開發伺服器 (Jetty 12.1 EE10)
 

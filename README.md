@@ -25,6 +25,11 @@
   - Administration setting to completely forbid file downloading while maintaining complete multi-page in-browser reading capability.
 - **WAR Deployment Storage Persistence**:
   - Resolved default in-memory H2 database bundling so that every WAR redeployment persists permanently to disk (`%APPDATA%\FormosaBearV\Docs\db\docs.mv.db` on Windows or `/var/docs/db/` on Linux).
+- **Docker-Free Portable Edition One-Click Packaging**:
+  - Project-relative standalone packaging scripts (`package-portable.bat` for Windows / `package-portable.sh` for Linux/macOS) bundling Eclipse Jetty 12.1.14 and `docs-web-2.02.war` into a zero-installation runnable archive (`target/FormosaBearV-docs-2.02-portable.zip`).
+  - Fully self-contained local storage: automatically isolates database (H2), document storage (`storage/`), and Lucene search indexes inside the extracted `data/` folder (via `-Ddocs.home`), leaving zero residue in system AppData. Flash-drive portable!
+  - Robust startup scripts (`start.bat` / `start.sh`) with intelligent multi-path Java 21 detection, automatic port conflict detection, browser auto-launch, and graceful shutdown (`stop.bat` / `stop.sh`).
+  - Bundled 5-language quick-start manual (`README.txt`) in Traditional Chinese, English, Simplified Chinese, Japanese, and Vietnamese.
 
 ## Key Upgrades in v2.01
 
@@ -85,6 +90,26 @@ This build uses `frontend-maven-plugin` to automatically download a portable Nod
 ```text
 docs-web/target/docs-web-2.02.war
 ```
+
+### Build Standalone Portable Edition (No Docker Required)
+
+Run the one-click packaging script from the project root:
+
+```bash
+# Windows (or simply double-click package-portable.bat)
+.\package-portable.bat
+
+# Linux / macOS
+chmod +x package-portable.sh && ./package-portable.sh
+```
+
+This automatically downloads the base Jetty 12 ZIP into `tools/jetty/` if absent, compiles the WAR, assembles all modules, and outputs:
+
+```text
+target/FormosaBearV-docs-2.02-portable.zip
+```
+
+Simply unzip this package on any computer with Java 21 and run `start.bat` or `./start.sh`!
 
 ### Run Development Server (Jetty 12.1 EE10)
 

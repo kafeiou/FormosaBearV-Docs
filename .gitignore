@@ -4,6 +4,8 @@
 /*/bin
 /*/gen
 /*/target
+/target
+
 /*/build
 /out
 /.idea
@@ -24,3 +26,7 @@ docs/*
 # AI Agents & OpenSpec planning
 /.agents/
 /openspec/
+
+# Portable packaging
+/tools/jetty/*.zip
+!/tools/jetty/.gitkeep
