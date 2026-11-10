@@ -405,7 +405,6 @@
     "menu_user_account": "用户帐号",
     "menu_two_factor_auth": "双重身份验证",
     "menu_opened_sessions": "已打开会话",
-    "menu_file_importer": "批量文件导入程序",
     "menu_general_settings": "一般设置",
     "menu_workflow": "工作流程",
     "menu_users": "用户",
@@ -599,18 +598,6 @@
       "value": "值",
       "order": "顺序",
       "new_entry": "新输入"
-    },
-    "fileimporter": {
-      "title": "批量文件导入程序",
-      "advanced_users": "面向高级用户！",
-      "need_intro": "如果您需要：",
-      "need_1": "一次性导入一个文件目录",
-      "need_2": "扫描目录以查找新文件并将其导入",
-      "line_1": "转到 <a href=\"https://github.com/sismics/docs/releases\">sismics/docs/releases</a> 并为你的系统下载文件导入工具。",
-      "line_2": "请按照<a href=\"https://github.com/sismics/docs/tree/master/docs-importer\">此处的说明</a>使用该工具。",
-      "line_3": "您的文件将根据文件导入器的配置导入到文档中。",
-      "download": "下载",
-      "instructions": "使用说明"
     },
     "menu_backup": "备份与还原",
     "backup": {

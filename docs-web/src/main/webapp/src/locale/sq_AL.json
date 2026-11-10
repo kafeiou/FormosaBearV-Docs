@@ -270,7 +270,6 @@
     "menu_user_account": "Llogaria e përdoruesit",
     "menu_two_factor_auth": "Autentifikimi me dy faktorë",
     "menu_opened_sessions": "Seancat e hapura",
-    "menu_file_importer": "Importuesi i skedarëve në masë",
     "menu_general_settings": "Cilësimet e përgjithshme",
     "menu_workflow": "Rrjedha e punës",
     "menu_users": "Përdoruesit",
@@ -485,18 +484,6 @@
       "value": "Vlera",
       "order": "Rendit",
       "new_entry": "Hyrje e re"
-    },
-    "fileimporter": {
-      "title": "Importuesi i skedarëve në masë",
-      "advanced_users": "Për përdoruesit e avancuar!",
-      "need_intro": "Nëse ju duhet:",
-      "need_1": "Importoni një direktori skedarësh menjëherë",
-      "need_2": "Skanoni një drejtori për skedarë të rinj dhe importojini ato",
-      "line_1": "Shkoni në <a href=\"https://github.com/sismics/docs/releases\">sismics/docs/releases</a> dhe shkarkoni mjetin e importuesit të skedarëve për sistemin tuaj.",
-      "line_2": "Ndiq <a href=\"https://github.com/sismics/docs/tree/master/docs-importer\">udhëzime këtu</a> për të përdorur këtë mjet.",
-      "line_3": "Skedarët tuaj do të importohen në dokumente sipas konfigurimit të importuesit të skedarëve.",
-      "download": "Shkarko",
-      "instructions": "Udhëzimet"
     }
   },
   "feedback": {

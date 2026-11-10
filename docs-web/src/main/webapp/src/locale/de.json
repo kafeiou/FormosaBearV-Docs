@@ -36,7 +36,7 @@
     "logged_as": "Eingeloggt als {{ username }}",
     "nav_settings": "Einstellungen",
     "logout": "Logout",
-    "global_quota_warning": "<strong>Warnung!</strong> Der verfügbare Speicherplatz beträgt {{ total | number: 0 }}\u00A0MB, davon sind {{ current | number: 0 }}\u00A0MB ({{ percent | number: 1 }}\u00A0%) bereits verwendet"
+    "global_quota_warning": "<strong>Warnung!</strong> Der verfügbare Speicherplatz beträgt {{ total | number: 0 }} MB, davon sind {{ current | number: 0 }} MB ({{ percent | number: 1 }} %) bereits verwendet"
   },
   "document": {
     "navigation_up": "Eine Ebene höher",
@@ -84,7 +84,7 @@
     "page_size_20": "20 pro Seite",
     "page_size_30": "30 pro Seite",
     "upgrade_quota": "Fragen Sie Ihren Administrator, um Ihren Speicherplatz zu erweitern.",
-    "quota": "{{ current | number: 0 }}\u00A0MB ({{ percent | number: 1 }}\u00A0%) verwendet von {{ total | number: 0 }}\u00A0MB",
+    "quota": "{{ current | number: 0 }} MB ({{ percent | number: 1 }} %) verwendet von {{ total | number: 0 }} MB",
     "count": "{{ count }} {{ count > 1 ? 'Dokumente' : 'Dokument' }} gefunden",
     "last_updated": "Zuletzt bearbeitet {{ date | timeAgo: dateFormat }}",
     "view": {
@@ -113,8 +113,8 @@
         "content": "Inhalt",
         "delete_file_title": "Datei löschen",
         "delete_file_message": "Wollen Sie diese Datei wirklich löschen?",
-        "upload_pending": "Ausstehend\u2026",
-        "upload_progress": "Hochladen\u2026",
+        "upload_pending": "Ausstehend…",
+        "upload_progress": "Hochladen…",
         "upload_error": "Fehler beim Hochladen",
         "upload_error_quota": "Maximaler Speicherplatz erreicht",
         "drop_zone": "Legen Sie Dateien hier ab, um sie hochzuladen",
@@ -165,11 +165,11 @@
       "publisher_placeholder": "Name der Person, Organisation oder Abteilung, von der aus das Dokument veröffentlicht wurde.",
       "format_placeholder": "MIME-Typ oder physisches Format des Dokuments",
       "source_placeholder": "Ressource, aus der das Dokument stammt",
-      "uploading_files": "Dateien hochladen\u2026"
+      "uploading_files": "Dateien hochladen…"
     },
     "default": {
-      "upload_pending": "Ausstehend\u2026",
-      "upload_progress": "Lädt hoch\u2026",
+      "upload_pending": "Ausstehend…",
+      "upload_progress": "Lädt hoch…",
       "upload_error": "Fehler beim Hochladen",
       "upload_error_quota": "Maximaler Speicherplatz erreicht",
       "quick_upload": "Schnelles Hochladen",
@@ -225,7 +225,7 @@
       "message_2": "Ein Dokument kann mit mehreren Tags versehen werden und ein Tag kann auf mehrere Dokumente angewendet werden.",
       "message_3": "Mit der <span class=\"glyphicon glyphicon-pencil\"></span>-Schaltfläche können Sie die Berechtigungen für ein Tag bearbeiten.",
       "message_4": "Wenn ein Tag von einem anderen Benutzer oder einer anderen Gruppe gelesen werden kann, können die zugehörigen Dokumente auch von diesen Personen gelesen werden.",
-      "message_5": "Kennzeichnen Sie z.\u00A0B. Ihre Firmendokumente mit einem Tag <span class=\"label label-info\">MyCompany</span> und fügen Sie die Berechtigung <strong>Kann lesen</strong> zu einer Gruppe <span class=\"btn btn-default\">Mitarbeiter</span> hinzu"
+      "message_5": "Kennzeichnen Sie z. B. Ihre Firmendokumente mit einem Tag <span class=\"label label-info\">MyCompany</span> und fügen Sie die Berechtigung <strong>Kann lesen</strong> zu einer Gruppe <span class=\"btn btn-default\">Mitarbeiter</span> hinzu"
     },
     "edit": {
       "delete_tag_title": "Tag löschen",
@@ -250,7 +250,7 @@
     "profile": {
       "groups": "Gruppen",
       "quota_used": "Benutzter Speicherplatz",
-      "percent_used": "{{ percent | number: 0 }}\u00A0% genutzt",
+      "percent_used": "{{ percent | number: 0 }} % genutzt",
       "related_links": "Weiterführende Links",
       "document_created": "Dokumente erstellt von {{ username }}",
       "edit_user": "Benutzer {{ username }} bearbeiten"
@@ -270,7 +270,6 @@
     "menu_user_account": "Benutzerkonto",
     "menu_two_factor_auth": "Zwei-Faktor-Authentifizierung",
     "menu_opened_sessions": "Geöffnete Sitzungen",
-    "menu_file_importer": "Massen-Datei-Importer",
     "menu_general_settings": "Allgemeine Einstellungen",
     "menu_workflow": "Workflows",
     "menu_users": "Benutzerverwaltung",
@@ -489,18 +488,6 @@
       "value": "Wert",
       "order": "Reihenfolge",
       "new_entry": "Neuer Eintrag"
-    },
-    "fileimporter": {
-      "title": "Massen-Datei-Importer",
-      "advanced_users": "Für fortgeschrittene Benutzer!",
-      "need_intro": "Wenn Sie:",
-      "need_1": "Ganze Verzeichnisse von Dateien auf einmal importieren möchten",
-      "need_2": "Ein Verzeichnis nach neuen Dateien durchsuchen lassen und gefunden Dateien importieren lassen möchten",
-      "line_1": "Gehen Sie zu <a href=\"https://github.com/sismics/docs/releases\">sismics/docs/releases</a> und laden Sie das Datei-Importer-Tool für Ihr System herunter.",
-      "line_2": "Folgen Sie den <a href=\"https://github.com/sismics/docs/tree/master/docs-importer\">Anweisungen</a>, um das Import-Tool zu nutzen.",
-      "line_3": "Ihre Dateien werden im <a href=\"#/document\">Modus 'Schnelles Hochladen'</a> importiert. Danach können Sie die Dateien weiterbearbeiten und Dokumenten zuordnen oder Dokumente erstellen.",
-      "download": "Herunterladen",
-      "instructions": "Anweisungen"
     }
   },
   "feedback": {
@@ -636,7 +623,7 @@
   "delete": "Löschen",
   "rename": "Umbenennen",
   "download": "Herunterladen",
-  "loading": "Lädt\u2026",
+  "loading": "Lädt…",
   "send": "Absenden",
   "enabled": "Aktiviert",
   "disabled": "Deaktiviert"

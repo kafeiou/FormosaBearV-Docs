@@ -1,4 +1,4 @@
-﻿[ English ](CHANGELOG.md) | [ 繁體中文 ](CHANGELOG.zh-TW.md)
+[ English ](CHANGELOG.md) | [ 繁體中文 ](CHANGELOG.zh-TW.md)
 
 # FormosaBearV 版本更新紀錄 (Changelog)
 
@@ -83,23 +83,28 @@
   - **PostgreSQL JDBC 驅動**：由 `42.6.0` 升級至 `42.7.11`。
   - **Apache Directory LDAP Client API**：由 `2.1.7` 升級至 `2.1.8`。
   - **Jersey REST Client**：由 `3.1.9` 升級至 `3.1.10`（連帶同步 Jersey 全套核心元件）。
-- **前端與命令列匯入工具 (npm) 弱點修復**：
-  - 透過 `package.json` 的 `overrides` 機制與直接相依版本調整，解決深度間接相依之原型污染與安全問題：
-    - `cryptiles`：升級至 `3.2.1`（>= 3.1.3）。
-    - `hoek`：升級至 `4.2.1` / `4.3.1`（>= 4.2.1）。
-    - `minimatch`：升級至 `3.1.5`（>= 3.1.4）。
-    - `ansi-regex`：升級至 `3.0.1`（>= 3.0.1）。
-    - `brace-expansion`：升級至 `1.1.21`（>= 1.1.21）。
-    - `tmp`：升級至 `0.2.7`（>= 0.2.6）。
-    - `lodash`：升級至 `4.18.1`（修復 CVE-2021-23337 命令注入與原型污染）。
-    - `semver`：升級至 `5.7.3`（修復 CVE-2022-25883 ReDoS 漏洞）。
-    - `qs`：升級至 `6.17.1`（修復 CVE-2022-24999 原型污染）。
-    - `tough-cookie`：升級至 `4.1.4`（修復 CVE-2023-26136 原型污染）。
-    - `form-data`：升級至 `4.0.6`（修復 CVE-2020-7608 標頭注入與表單安全）。
-    - `minimist`：升級至 `1.2.8`（>= 1.2.6，修復 CVE-2021-44906）。
-    - `getobject`：升級至 `1.1.1`（> 1.0.0，修復 CVE-2020-28282）。
-    - `underscore`：升級至 `1.13.8`（> 1.12.1，修復 CVE-2021-23358）。
-    - `json-schema`：升級至 `0.4.0`（> 0.4.0 / >= 0.4.0，修復 CVE-2021-3918）。
+- **前端建置工具鏈現代化與舊版命令列工具退場 (Frontend Toolchain & Deprecation)**：
+  - **移除已廢棄之獨立上傳工具 `docs-importer`**：
+    - 徹底移除無官方維護且依賴已封存套件 `request: ^2.83.0` 之舊版獨立 Node.js CLI 工具 `docs-importer/`。
+    - 同步清理前端 UI 路由與設定選單（`settings.html`、`app.js`、`settings.fileimporter.html`）以及 11 國語言檔中之無效鍵值，消除 12 項深層無法獨立修復之歷史相依漏洞（包含 `boom`, `cryptiles`, `hawk`, `sntp`, `har-validator` 等）。
+  - **前端建置核心與相依套件升級 (`docs-web`)**：
+    - 將 `grunt` 自 `^1.0.1` 升級至 `^1.6.1`，修復 CVE-2020-7729（任意程式碼執行）與 CVE-2022-0436（競爭條件/任意檔案寫入）。
+    - 透過 `package.json` 之 `overrides` 機制安全鎖定間接相依版本，消除高風險弱點：
+      - `async`：強制升級至 `^2.6.4`，修復 CVE-2021-43138 原型污染漏洞。
+      - `clean-css`：強制升級至 `^4.2.4`，修復 CVE-2020-7789 ReDoS 弱點。
+      - `js-yaml`：強制升級至 `^3.14.1`，修復 CVE-2020-7712 原型污染漏洞。
+      - `hosted-git-info`：強制升級至 `^2.8.9`，修復 CVE-2021-23362 ReDoS 弱點。
+      - `underscore.string`：強制升級至 `^3.3.6`。
+      - `uuid`：強制升級至 `^9.0.1`。
+      - `lodash`：升級至 `4.18.1`（修復 CVE-2021-23337 命令注入與原型污染）。
+      - `semver`：升級至 `5.7.3`（修復 CVE-2022-25883 ReDoS 漏洞）。
+      - `qs`：升級至 `6.17.1`（修復 CVE-2022-24999 原型污染）。
+      - `tough-cookie`：升級至 `4.1.4`（修復 CVE-2023-26136 原型污染）。
+      - `form-data`：升級至 `4.0.6`（修復 CVE-2020-7608 標頭注入與表單安全）。
+      - `minimist`：升級至 `1.2.8`（修復 CVE-2021-44906）。
+      - `getobject`：升級至 `1.1.1`（修復 CVE-2020-28282）。
+      - `underscore`：升級至 `1.13.8`（修復 CVE-2021-23358）。
+      - `json-schema`：升級至 `0.4.0`（修復 CVE-2021-3918）。
 
 ### 📦 專案版本與產出全面升級 (Project Versioning)
 - Maven POM（根模組與 `docs-core`、`docs-web-common`、`docs-web`）全面升級至 `<version>2.03</version>`。

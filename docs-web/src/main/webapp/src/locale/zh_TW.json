@@ -405,7 +405,6 @@
     "menu_user_account": "帳號",
     "menu_two_factor_auth": "雙因素驗證",
     "menu_opened_sessions": "已開啟之連線",
-    "menu_file_importer": "匯入大量檔案",
     "menu_general_settings": "一般設定",
     "menu_workflow": "工作流程",
     "menu_users": "使用者",
@@ -599,18 +598,6 @@
       "value": "詞彙",
       "order": "顺序",
       "new_entry": "新增詞彙"
-    },
-    "fileimporter": {
-      "title": "匯入大量檔案",
-      "advanced_users": "進階使用者專用!",
-      "need_intro": "阿你如果要:",
-      "need_1": "一次性匯入整個目錄內檔案",
-      "need_2": "掃描目錄內新的檔案並且匯入",
-      "line_1": "前往 <a href=\"https://github.com/sismics/docs/releases\">sismics/docs/releases</a> 並下載適合您系統的檔案匯入工具。",
-      "line_2": "請依照<a href=\"https://github.com/sismics/docs/tree/master/docs-importer\">此處的說明</a>使用此工具。",
-      "line_3": "您的文件將根據設定匯入到文件中。",
-      "download": "下載",
-      "instructions": "匯入步驟"
     },
     "menu_backup": "備份與還原",
     "backup": {

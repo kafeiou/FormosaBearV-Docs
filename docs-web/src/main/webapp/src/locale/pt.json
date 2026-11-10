@@ -197,65 +197,65 @@
       "message": "Dê um nome à partilha se quiser partilhar o mesmo documento várias vezes.",
       "submit": "Partilha"
     }
- },
- "file": {
-  "view": { 
-    "previous": "Anterior",
-    "next": "Seguinte",
-    "not_found": "Ficheiro não encontrado"
   },
-  "edit": {
-    "title": "Editar ficheiro",
-    "name": "Nome do ficheiro"
+  "file": {
+    "view": {
+      "previous": "Anterior",
+      "next": "Seguinte",
+      "not_found": "Ficheiro não encontrado"
+    },
+    "edit": {
+      "title": "Editar ficheiro",
+      "name": "Nome do ficheiro"
+    },
+    "versions": {
+      "title": "Histórico de versões",
+      "filename": "Nome do ficheiro",
+      "mimetype": "Tipo",
+      "create_date": "Data de criação",
+      "version": "Versão"
+    }
   },
-  "versions": {
-    "title": "Histórico de versões",
-    "filename": "Nome do ficheiro",
-    "mimetype": "Tipo",
-    "create_date": "Data de criação",
-    "version": "Versão"
-  }
-},
-"tag": {
-  "new_tag": "Nova etiqueta",
-  "search": "Pesquisar",
-  "default": {
-    "title": "Etiquetas",
-    "message_1": "<strong>Etiquetas</strong> são rótulos associados a documentos.",
-    "message_2": "Um documento pode ser etiquetado com várias etiquetas e uma etiqueta pode ser aplicada a vários documentos.",
-    "message_3": "Usando o botão <span class=\"fas fa-pencil-alt\"></span>, pode editar as permissões de uma etiqueta.",
-    "message_4": "Se uma etiqueta puder ser lida por outro utilizador ou grupo, os documentos associados também poderão ser lidos por essas pessoas.",
-    "message_5": "Por exemplo, etiquete os documentos da sua empresa com a etiqueta <span class=\"label label-info\">MinhaEmpresa</span> e adicione a permissão <strong>Pode ler</strong> a um grupo <span class=\"btn btn-default\">funcionários</span>."
+  "tag": {
+    "new_tag": "Nova etiqueta",
+    "search": "Pesquisar",
+    "default": {
+      "title": "Etiquetas",
+      "message_1": "<strong>Etiquetas</strong> são rótulos associados a documentos.",
+      "message_2": "Um documento pode ser etiquetado com várias etiquetas e uma etiqueta pode ser aplicada a vários documentos.",
+      "message_3": "Usando o botão <span class=\"fas fa-pencil-alt\"></span>, pode editar as permissões de uma etiqueta.",
+      "message_4": "Se uma etiqueta puder ser lida por outro utilizador ou grupo, os documentos associados também poderão ser lidos por essas pessoas.",
+      "message_5": "Por exemplo, etiquete os documentos da sua empresa com a etiqueta <span class=\"label label-info\">MinhaEmpresa</span> e adicione a permissão <strong>Pode ler</strong> a um grupo <span class=\"btn btn-default\">funcionários</span>."
+    },
+    "edit": {
+      "delete_tag_title": "Eliminar etiqueta",
+      "delete_tag_message": "Tem a certeza de que deseja eliminar esta etiqueta?",
+      "name": "Nome",
+      "color": "Cor",
+      "parent": "Pai",
+      "info": "As permissões nesta etiqueta serão também aplicadas aos documentos etiquetados com <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span>",
+      "circular_reference_title": "Referência circular",
+      "circular_reference_message": "A hierarquia das etiquetas pai faz um loop, por favor escolha outra etiqueta pai."
+    }
   },
-  "edit": {
-    "delete_tag_title": "Eliminar etiqueta",
-    "delete_tag_message": "Tem a certeza de que deseja eliminar esta etiqueta?",
-    "name": "Nome",
-    "color": "Cor",
-    "parent": "Pai",
-    "info": "As permissões nesta etiqueta serão também aplicadas aos documentos etiquetados com <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span>",
-    "circular_reference_title": "Referência circular",
-    "circular_reference_message": "A hierarquia das etiquetas pai faz um loop, por favor escolha outra etiqueta pai."
-  }
-},
-"group": {
-  "profile": {
-    "members": "Membros",
-    "no_members": "Sem membros",
-    "related_links": "Links relacionados",
-    "edit_group": "Editar grupo {{ name }}"
-  }
-},
-"user": {
-  "profile": {
-    "groups": "Grupos",
-    "quota_used": "Quota utilizada",
-    "percent_used": "{{ percent | number: 0 }}% utilizada",
-    "related_links": "Links relacionados",
-    "document_created": "Documentos criados por {{ username }}",
-    "edit_user": "Editar utilizador {{ username }}"
-  }
-},
+  "group": {
+    "profile": {
+      "members": "Membros",
+      "no_members": "Sem membros",
+      "related_links": "Links relacionados",
+      "edit_group": "Editar grupo {{ name }}"
+    }
+  },
+  "user": {
+    "profile": {
+      "groups": "Grupos",
+      "quota_used": "Quota utilizada",
+      "percent_used": "{{ percent | number: 0 }}% utilizada",
+      "related_links": "Links relacionados",
+      "document_created": "Documentos criados por {{ username }}",
+      "edit_user": "Editar utilizador {{ username }}"
+    }
+  },
   "usergroup": {
     "search_groups": "Pesquisar em grupos",
     "search_users": "Pesquisar em utilizadores",
@@ -270,7 +270,6 @@
     "menu_user_account": "Conta de utilizador",
     "menu_two_factor_auth": "Autenticação de dois fatores",
     "menu_opened_sessions": "Sessões abertas",
-    "menu_file_importer": "Importador de ficheiros em massa",
     "menu_general_settings": "Definições gerais",
     "menu_workflow": "Fluxo de trabalho",
     "menu_users": "Utilizadores",
@@ -323,9 +322,8 @@
         "disable_totp_btn": "Desativar autenticação de dois fatores para este utilizador",
         "disable_totp_title": "Desativar autenticação de dois fatores",
         "disable_totp_message": "Tem a certeza de que deseja desativar a autenticação de dois fatores para este utilizador?"
-},
-"workflow": {
-      }
+      },
+      "workflow": {}
     },
     "workflow": {
       "title": "Configuração de fluxo de trabalho",
@@ -484,18 +482,6 @@
       "value": "Valor",
       "order": "Ordem",
       "new_entry": "Nova entrada"
-    },
-    "fileimporter": {
-      "title": "Importador em massa de ficheiros",
-      "advanced_users": "Para utilizadores avançados!",
-      "need_intro": "Se precisar de:",
-      "need_1": "Importar um diretório de ficheiros de uma só vez",
-      "need_2": "Analisar um diretório à procura de novos ficheiros e importá-los",
-      "line_1": "Vá para <a href=\"https://github.com/sismics/docs/releases\">sismics/docs/releases</a> e descarregue a ferramenta de importação de ficheiros para o seu sistema.",
-      "line_2": "Siga as <a href=\"https://github.com/sismics/docs/tree/master/docs-importer\">instruções aqui</a> para usar esta ferramenta.",
-      "line_3": "Os seus ficheiros serão importados em documentos de acordo com a configuração do importador de ficheiros.",
-      "download": "Descarregar",
-      "instructions": "Instruções"
     }
   },
   "feedback": {

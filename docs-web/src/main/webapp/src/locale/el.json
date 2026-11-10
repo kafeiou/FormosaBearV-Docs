@@ -270,7 +270,6 @@
     "menu_user_account": "Λογαριασμός χρήστη",
     "menu_two_factor_auth": "Επαλήθευση δύο σταδίων",
     "menu_opened_sessions": "Ανοιχτές περιόδοι",
-    "menu_file_importer": "Εισαγωγέας αρχείων όγκου",
     "menu_general_settings": "Γενικές ρυθμίσεις",
     "menu_workflow": "Ροή εργασίας",
     "menu_users": "Χρήστες",
@@ -483,18 +482,6 @@
       "value": "Αξία",
       "order": "Παραγγελία",
       "new_entry": "Νέα καταχώρηση"
-    },
-    "fileimporter": {
-      "title": "Εισαγωγέας όγκου αρχείων",
-      "advanced_users": "Για προχωρημένους χρήστες!",
-      "need_intro": "Αν θέλεις να:",
-      "need_1": "Εισάγεις ένα ευρετήριο αρχείων με τη μια",
-      "need_2": "Σαρώσεις ένα ευρετήριο για νέα αρχεία και να τα εισάγεις",
-      "line_1": "Πήγαινε στο <a href=\"https://github.com/sismics/docs/releases\">sismics/docs/releases</a> και κατέβασε το εγαλείο εισαγωγής αρχείων για το σύστημα σου.",
-      "line_2": "Ακολούθησε τις <a href=\"https://github.com/sismics/docs/tree/master/docs-importer\">οδηγίες εδώ</a> για να χρησιμοποιήσεις αυτό το εργαλείο.",
-      "line_3": "Τα αρχεία σου θα εισηχθούν σε έγγραφα σύμφωνα με τη διαμόρφωση εισαγωγής αρχείου.",
-      "download": "Κατέβασε",
-      "instructions": "Οδηγίες"
     }
   },
   "feedback": {

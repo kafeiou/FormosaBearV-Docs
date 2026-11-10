@@ -270,7 +270,6 @@
     "menu_user_account": "Compte utilisateur",
     "menu_two_factor_auth": "Authentification en deux étapes",
     "menu_opened_sessions": "Sessions ouvertes",
-    "menu_file_importer": "Importateur de fichiers en masse",
     "menu_general_settings": "Paramètres généraux",
     "menu_workflow": "Workflow",
     "menu_users": "Utilisateurs",
@@ -485,18 +484,6 @@
       "value": "Valeur",
       "order": "Ordre",
       "new_entry": "Nouvelle entrée"
-    },
-    "fileimporter": {
-      "title": "Importateur de fichiers en masse",
-      "advanced_users": "Pour les utilisateurs avancés !",
-      "need_intro": "Si vous avez besoin de :",
-      "need_1": "Importer un répertoire en une fois",
-      "need_2": "Analyser un répertoire à la recherche de nouveaux fichiers et les importer",
-      "line_1": "Allez sur <a href=\"https://github.com/sismics/docs/releases\">sismics/docs/releases</a> et téléchargez l'outil d'importation de fichiers pour votre système.",
-      "line_2": "Suivez les <a href=\"https://github.com/sismics/docs/tree/master/docs-importer\">instructions ici</a> pour utiliser cet outil.",
-      "line_3": "Vos fichiers seront importés dans des documents conformément à la configuration de l'importeur.",
-      "download": "Télécharger",
-      "instructions": "Instructions"
     }
   },
   "feedback": {

@@ -270,7 +270,6 @@
     "menu_user_account": "Konto użytkownika",
     "menu_two_factor_auth": "Uwierzytelnienie dwuskładnikowe (M2F)",
     "menu_opened_sessions": "Otwarte sesje",
-    "menu_file_importer": "Wsadowy import plików",
     "menu_general_settings": "Ustawienia główne",
     "menu_workflow": "Przepływ",
     "menu_users": "Użytkownicy",
@@ -483,18 +482,6 @@
       "value": "Wartość",
       "order": "Kolejność",
       "new_entry": "Nowa pozycja"
-    },
-    "fileimporter": {
-      "title": "Wsadowy importer plików",
-      "advanced_users": "Dla zaawansowanych użytkowników!",
-      "need_intro": "Jeśli potrzebujesz:",
-      "need_1": "Importuj katalog plików naraz",
-      "need_2": "Przeskanuj katalog w poszukiwaniu nowych plików i zaimportuj je",
-      "line_1": "Idź do <a href=\"https://github.com/sismics/docs/releases\">sismics/docs/releases</a> i pobierz narzedzie importu dla twojego systemu.",
-      "line_2": "Sprawdź <a href=\"https://github.com/sismics/docs/tree/master/docs-importer\">instrukcję</a> jak używać tego narzędzia.",
-      "line_3": "Twoje pliki zostaną zaimportowane w dokumentach zgodnie z konfiguracją importera plików.",
-      "download": "Pobierz",
-      "instructions": "Instrukcje"
     }
   },
   "feedback": {

@@ -145,14 +145,6 @@ angular.module('docs',
         }
       }
     })
-    .state('settings.fileimporter', {
-      url: '/fileimporter',
-      views: {
-        'settings': {
-          templateUrl: 'partial/docs/settings.fileimporter.html'
-        }
-      }
-    })
     .state('settings.monitoring', {
       url: '/monitoring',
       views: {

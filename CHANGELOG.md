@@ -1,4 +1,4 @@
-﻿[ English ](CHANGELOG.md) | [ 繁體中文 ](CHANGELOG.zh-TW.md)
+[ English ](CHANGELOG.md) | [ 繁體中文 ](CHANGELOG.zh-TW.md)
 
 # FormosaBearV Changelog
 
@@ -81,23 +81,28 @@ This document details the notable changes, security enhancements, architecture i
   - **PostgreSQL JDBC Driver**: Upgraded from `42.6.0` to `42.7.11`.
   - **Apache Directory LDAP Client API**: Upgraded from `2.1.7` to `2.1.8`.
   - **Jersey REST Client**: Upgraded from `3.1.9` to `3.1.10` across all Jersey artifacts.
-- **Frontend & CLI Importer npm Security Fixes**:
-  - Employed npm `overrides` and direct dependency bumps to patch deep transitive vulnerabilities:
-    - `cryptiles`: Upgraded to `3.2.1` (>= 3.1.3).
-    - `hoek`: Upgraded to `4.2.1` / `4.3.1` (>= 4.2.1).
-    - `minimatch`: Upgraded to `3.1.5` (>= 3.1.4).
-    - `ansi-regex`: Upgraded to `3.0.1` (>= 3.0.1).
-    - `brace-expansion`: Upgraded to `1.1.21` (>= 1.1.21).
-    - `tmp`: Upgraded to `0.2.7` (>= 0.2.6).
-    - `lodash`: Locked to `4.18.1` (remediates CVE-2021-23337 command injection and prototype pollution).
-    - `semver`: Locked to `5.7.3` (remediates CVE-2022-25883 ReDoS).
-    - `qs`: Locked to `6.17.1` (remediates CVE-2022-24999 prototype pollution).
-    - `tough-cookie`: Locked to `4.1.4` (remediates CVE-2023-26136 prototype pollution).
-    - `form-data`: Locked to `4.0.6` (remediates CVE-2020-7608 header injection).
-    - `minimist`: Upgraded to `1.2.8` (>= 1.2.6, remediates CVE-2021-44906).
-    - `getobject`: Upgraded to `1.1.1` (> 1.0.0, remediates CVE-2020-28282).
-    - `underscore`: Upgraded to `1.13.8` (> 1.12.1, remediates CVE-2021-23358).
-    - `json-schema`: Upgraded to `0.4.0` (remediates CVE-2021-3918).
+- **Frontend Toolchain Modernization & Deprecated CLI Removal**:
+  - **Complete Removal of Deprecated `docs-importer`**:
+    - Removed the unmaintained legacy standalone Node.js CLI utility `docs-importer/` which depended on the archived `request: ^2.83.0` library.
+    - Cleaned up obsolete UI navigation states and partials (`settings.html`, `app.js`, `settings.fileimporter.html`) and orphaned localization entries across 11 languages, eliminating 12 unfixable inherited vulnerabilities (`boom`, `cryptiles`, `hawk`, `sntp`, `har-validator`, etc.).
+  - **Frontend Build Core & Dependency Upgrades (`docs-web`)**:
+    - Upgraded `grunt` from `^1.0.1` to `^1.6.1` (remediates CVE-2020-7729 arbitrary code execution and CVE-2022-0436 race condition / file overwrite).
+    - Leveraged npm `overrides` to safely lock transitive build dependencies:
+      - `async`: Forced to `^2.6.4` (remediates CVE-2021-43138 prototype pollution).
+      - `clean-css`: Forced to `^4.2.4` (remediates CVE-2020-7789 ReDoS).
+      - `js-yaml`: Forced to `^3.14.1` (remediates CVE-2020-7712 prototype pollution).
+      - `hosted-git-info`: Forced to `^2.8.9` (remediates CVE-2021-23362 ReDoS).
+      - `underscore.string`: Forced to `^3.3.6`.
+      - `uuid`: Forced to `^9.0.1`.
+      - `lodash`: Locked to `4.18.1` (remediates CVE-2021-23337 command injection and prototype pollution).
+      - `semver`: Locked to `5.7.3` (remediates CVE-2022-25883 ReDoS).
+      - `qs`: Locked to `6.17.1` (remediates CVE-2022-24999 prototype pollution).
+      - `tough-cookie`: Locked to `4.1.4` (remediates CVE-2023-26136 prototype pollution).
+      - `form-data`: Locked to `4.0.6` (remediates CVE-2020-7608 header injection).
+      - `minimist`: Upgraded to `1.2.8` (remediates CVE-2021-44906).
+      - `getobject`: Upgraded to `1.1.1` (remediates CVE-2020-28282).
+      - `underscore`: Upgraded to `1.13.8` (remediates CVE-2021-23358).
+      - `json-schema`: Upgraded to `0.4.0` (remediates CVE-2021-3918).
 
 ### 📦 Project Versioning & Artifacts
 - All Maven POMs upgraded to `<version>2.03</version>`.
