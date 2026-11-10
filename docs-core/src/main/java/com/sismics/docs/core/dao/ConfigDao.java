@@ -52,4 +52,17 @@ public class ConfigDao {
             config.setValue(value);
         }
     }
+
+    /**
+     * Deletes a configuration parameter.
+     *
+     * @param id Configuration parameter ID
+     */
+    public void delete(ConfigType id) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Config config = getById(id);
+        if (config != null) {
+            em.remove(config);
+        }
+    }
 }

@@ -14,7 +14,8 @@
     "password_lost_sent_title": "密码重置邮件已发送",
     "password_lost_sent_message": "重置密码的邮件已经发送至<strong>{{ username }}</strong>",
     "password_lost_error_title": "密码重置出错",
-    "password_lost_error_message": "无法发送密码重置邮件，请联系您的管理员进行手动重置"
+    "password_lost_error_message": "无法发送密码重置邮件，请联系您的管理员进行手动重置",
+    "password_lost_ldap_forbidden": "LDAP 域账户不支持通过此处重设密码。请联系您的系统管理员或前往企业目录服务进行密码变更。"
   },
   "passwordlost": {
     "title": "丢失密码",
@@ -399,7 +400,21 @@
       "base_url": "基础网址 (Base URL)",
       "base_url_help": "系统发送重置密码邮件或外部通知时使用的根网址，默认为 http://localhost:8080。",
       "smtp_from_name": "发件人名称 (Sender Name)",
-      "smtp_from_name_help": "邮件发件人显示名称与邮件主题前缀（留空则自动采用系统名称，默认为 FormosaBearV）。"
+      "smtp_from_name_help": "邮件发件人显示名称与邮件主题前缀（留空则自动采用系统名称，默认为 FormosaBearV）。",
+      "smtp_security": "传输加密协议",
+      "smtp_security_auto": "自动判定 (465: SSL / 587: STARTTLS / 其他: 未加密)",
+      "smtp_security_none": "纯明文 / 未加密 (None)",
+      "smtp_security_help": "选择邮件服务器要求的加密协议。连接本机或内网 Relay 建议选择“未加密”或“自动判定”",
+      "smtp_username_help": "SMTP 认证账户（可留空；本机或内网免认证 Relay 无需输入）",
+      "smtp_password_help": "SMTP 认证密码（可留空；本机或内网免认证 Relay 无需输入）",
+      "smtp_updated_title": "SMTP 设置已更新",
+      "smtp_test_to": "测试收件邮箱",
+      "smtp_test_btn": "发送测试邮件",
+      "smtp_test_help": "输入接收测试邮件的电子邮件地址，点击即可即时验证当前 SMTP 连接与验证配置",
+      "smtp_test_success_title": "测试邮件发送成功",
+      "smtp_test_success_msg": "测试邮件已成功发送至 <strong>{{ to }}</strong>！请检查您的收件箱（及垃圾邮件箱）确认收到测试信。",
+      "smtp_test_failed_title": "测试邮件发送失败",
+      "smtp_test_failed_msg": "无法连接至 SMTP 服务器发送测试邮件，请根据下方服务器返回的错误信息进行排查："
     },
     "menu_personal_settings": "个人设置",
     "menu_user_account": "用户帐号",
@@ -459,7 +474,12 @@
         "password_lost_sent_message": "密码重置电子邮件已发送至 <strong>{{ username }}</strong>",
         "disable_totp_btn": "为该用户禁用双因素身份验证",
         "disable_totp_title": "禁用双因素身份验证",
-        "disable_totp_message": "您确定要禁用该用户的双因素身份验证吗？"
+        "disable_totp_message": "您确定要禁用该用户的双因素身份验证吗？",
+        "ldap_user_notice": "此账户为 LDAP 认证账户，密码无法在此直接编辑或重设。如需转由系统本地管理，可点击下方按钮将其转为本地内部账户。",
+        "convert_to_internal_btn": "转为本地内部账户",
+        "convert_to_internal_title": "转换账户认证来源",
+        "convert_to_internal_confirm": "确定要将此 LDAP 账户转为本地内部账户吗？解绑后您需要在保存时为该用户设定本地密码。",
+        "password_lost_error": "申请密码重设时发生错误。"
       }
     },
     "workflow": {
@@ -538,7 +558,10 @@
       "title": "用户<small>帐号</small>",
       "password": "密码",
       "password_confirm": "密码 (确认)",
-      "updated": "帐号更新成功"
+      "updated": "帐号更新成功",
+      "ldap_title": "LDAP 域账户",
+      "ldap_desc": "此账户通过 LDAP 企业目录服务进行身份验证。密码与认证信息由企业域统筹管理，无法在此处修改。",
+      "ldap_password_change_forbidden": "LDAP 账户不允许直接修改密码。"
     },
     "metadata": {
       "title": "自定义元数据配置",

@@ -14,7 +14,8 @@
     "password_lost_sent_title": "Correo de reestablecimiento de contraseña enviado",
     "password_lost_sent_message": "Se ha enviado un correo a <strong>{{ username }}</strong> para reestablecer su contraseña",
     "password_lost_error_title": "Error al reestablecer la contraseña",
-    "password_lost_error_message": "Imposible enviar correo de reestablecimiento de contraseña, por favor, contacte a su administrador para hacerlo manualmente"
+    "password_lost_error_message": "Imposible enviar correo de reestablecimiento de contraseña, por favor, contacte a su administrador para hacerlo manualmente",
+    "password_lost_ldap_forbidden": "Password reset is not supported for LDAP accounts. Please contact your system administrator or use your enterprise directory service to reset your password."
   },
   "passwordlost": {
     "title": "Contraseña olvidada",
@@ -304,7 +305,12 @@
         "password_lost_sent_message": "Un correo de reestablecimiento de contraseña a sido enviado a <strong>{{ username }}</strong>",
         "disable_totp_btn": "Desactivar autenticación en dos pasos para este usuario",
         "disable_totp_title": "Desactivar autenticación en dos pasos",
-        "disable_totp_message": "¿Desea realmente desactivar la autenticación en dos pasos para este usuario?"
+        "disable_totp_message": "¿Desea realmente desactivar la autenticación en dos pasos para este usuario?",
+        "ldap_user_notice": "This account is authenticated via LDAP. Its password cannot be edited or reset directly. If you want to manage this user locally, you can convert it to a local internal account.",
+        "convert_to_internal_btn": "Convert to Local Account",
+        "convert_to_internal_title": "Convert Account to Local",
+        "convert_to_internal_confirm": "Are you sure you want to convert this LDAP account to a local internal account? You will need to set a local password for this user upon saving.",
+        "password_lost_error": "An error occurred while requesting password recovery."
       }
     },
     "workflow": {
@@ -376,7 +382,10 @@
       "title": "Cuenta de usuario",
       "password": "Contraseña",
       "password_confirm": "Contraseña (confirmar)",
-      "updated": "Cuenta actualizada correctamente"
+      "updated": "Cuenta actualizada correctamente",
+      "ldap_title": "LDAP Account",
+      "ldap_desc": "This account is authenticated through LDAP. Password and account credentials are managed by your enterprise directory service and cannot be changed here.",
+      "ldap_password_change_forbidden": "Password change is not permitted for LDAP accounts."
     },
     "config": {
       "title_guest_access": "Acceso invitado",
@@ -405,7 +414,21 @@
       "webhook_event": "Evento",
       "webhook_url": "URL",
       "webhook_create_date": "Fecha creación",
-      "webhook_add": "Añadir Webhook"
+      "webhook_add": "Añadir Webhook",
+      "smtp_security": "Security Protocol",
+      "smtp_security_auto": "Auto-detect (465: SSL / 587: STARTTLS / Other: Plain)",
+      "smtp_security_none": "Plain text / Unencrypted (None)",
+      "smtp_security_help": "Select the security protocol required by your SMTP server. For local or intranet relays, select Plain text or Auto-detect.",
+      "smtp_username_help": "SMTP username (optional; leave blank for unauthenticated local relays)",
+      "smtp_password_help": "SMTP password (optional; leave blank for unauthenticated local relays)",
+      "smtp_updated_title": "SMTP Settings Updated",
+      "smtp_test_to": "Test Recipient",
+      "smtp_test_btn": "Send Test Email",
+      "smtp_test_help": "Enter an email address to receive a test email to verify SMTP connectivity and credentials.",
+      "smtp_test_success_title": "Test Email Sent Successfully",
+      "smtp_test_success_msg": "Test email has been successfully sent to <strong>{{ to }}</strong>! Please check your inbox (and spam folder) to confirm receipt.",
+      "smtp_test_failed_title": "Test Email Failed",
+      "smtp_test_failed_msg": "Unable to connect to the SMTP server or send test email. Please check the error message below:"
     },
     "inbox": {
       "title": "Escaneo bandeja de entrada",

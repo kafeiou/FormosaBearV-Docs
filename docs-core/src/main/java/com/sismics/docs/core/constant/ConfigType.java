@@ -53,6 +53,7 @@ public enum ConfigType {
     SMTP_FROM_NAME,
     SMTP_USERNAME,
     SMTP_PASSWORD,
+    SMTP_SECURITY,
 
     /**
      * Inbox scanning configuration.

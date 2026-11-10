@@ -137,11 +137,54 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
     if (!$scope.smtp.from_name) {
       $scope.smtp.from_name = 'FormosaBearV';
     }
+    if (!$scope.smtp.security) {
+      $scope.smtp.security = 'AUTO';
+    }
+    if (!$scope.smtp.test_to && $rootScope.userInfo && $rootScope.userInfo.email) {
+      $scope.smtp.test_to = $rootScope.userInfo.email;
+    }
   });
 
   // Edit SMTP config
   $scope.editSmtpConfig = function () {
-    Restangular.one('app').post('config_smtp', $scope.smtp);
+    Restangular.one('app').post('config_smtp', $scope.smtp).then(function () {
+      var title = $translate.instant('settings.config.smtp_updated_title');
+      var msg = $translate.instant('settings.config.smtp_updated');
+      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
+      $dialog.messageBox(title, msg, btns);
+    });
+  };
+
+  // Test SMTP connection
+  $scope.testingSmtp = false;
+  $scope.testSmtp = function () {
+    if (!$scope.smtp || !$scope.smtp.test_to) {
+      return;
+    }
+    $scope.testingSmtp = true;
+    Restangular.one('app').post('test_smtp', {
+      to: $scope.smtp.test_to,
+      hostname: $scope.smtp.hostname,
+      port: $scope.smtp.port,
+      security: $scope.smtp.security,
+      username: $scope.smtp.username,
+      password: $scope.smtp.password,
+      from: $scope.smtp.from,
+      from_name: $scope.smtp.from_name
+    }).then(function () {
+      $scope.testingSmtp = false;
+      var title = $translate.instant('settings.config.smtp_test_success_title');
+      var msg = $translate.instant('settings.config.smtp_test_success_msg', { to: $scope.smtp.test_to });
+      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-success' }];
+      $dialog.messageBox(title, msg, btns);
+    }, function (err) {
+      $scope.testingSmtp = false;
+      var title = $translate.instant('settings.config.smtp_test_failed_title');
+      var errDetail = err && err.data && err.data.message ? err.data.message : (err && err.statusText ? err.statusText : 'Unknown error');
+      var msg = $translate.instant('settings.config.smtp_test_failed_msg') + '<br/><br/><div class="alert alert-danger" style="margin-bottom: 0; word-break: break-all; font-family: monospace; font-size: 12px; text-align: left;">' + errDetail + '</div>';
+      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
+      $dialog.messageBox(title, msg, btns);
+    });
   };
 
   // Edit general config

@@ -14,7 +14,8 @@
     "password_lost_sent_title": "發送密碼重置郵件",
     "password_lost_sent_message": "一封電子郵件已經發送到<strong>{{username}}</ strong>以重置您的密碼",
     "password_lost_error_title": "密碼重置錯誤",
-    "password_lost_error_message": "無法發送密碼重置電子郵件，請聯繫您的管理員進行手動重置"
+    "password_lost_error_message": "無法發送密碼重置電子郵件，請聯繫您的管理員進行手動重置",
+    "password_lost_ldap_forbidden": "LDAP 網域帳號不支援透過此處重設密碼。請聯絡您的系統管理員或至企業目錄服務進行密碼變更。"
   },
   "passwordlost": {
     "title": "忘記密碼",
@@ -399,7 +400,21 @@
       "base_url": "基礎網址 (Base URL)",
       "base_url_help": "系統寄送重設密碼信件或外部通知時所使用的根網址，預設為 http://localhost:8080。",
       "smtp_from_name": "寄件者名稱 (Sender Name)",
-      "smtp_from_name_help": "郵件寄件者顯示名稱與信件主旨前綴（留空則自動採用系統名稱，預設為 FormosaBearV）。"
+      "smtp_from_name_help": "郵件寄件者顯示名稱與信件主旨前綴（留空則自動採用系統名稱，預設為 FormosaBearV）。",
+      "smtp_security": "傳輸加密協定",
+      "smtp_security_auto": "自動判定 (465: SSL / 587: STARTTLS / 其他: 未加密)",
+      "smtp_security_none": "純平文 / 未加密 (None)",
+      "smtp_security_help": "選擇郵件伺服器要求的加密協定。連線本機或內網 Relay 建議選擇「未加密」或「自動判定」",
+      "smtp_username_help": "SMTP 認證帳號（可留空；本機或內網免認證 Relay 不需輸入）",
+      "smtp_password_help": "SMTP 認證密碼（可留空；本機或內網免認證 Relay 不需輸入）",
+      "smtp_updated_title": "SMTP 設定已更新",
+      "smtp_test_to": "測試收件信箱",
+      "smtp_test_btn": "發送測試信",
+      "smtp_test_help": "輸入欲接收測試信件的電子郵件地址，點擊即可即時驗證目前 SMTP 連線與驗證設定",
+      "smtp_test_success_title": "測試信件發送成功",
+      "smtp_test_success_msg": "測試郵件已成功發送至 <strong>{{ to }}</strong>！請檢查您的收件匣（及垃圾郵件匣）確認已收到測試信。",
+      "smtp_test_failed_title": "測試信件發送失敗",
+      "smtp_test_failed_msg": "無法連線至 SMTP 伺服器發送測試信件，請根據下方伺服器回傳之錯誤訊息進行檢查："
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "帳號",
@@ -459,7 +474,12 @@
         "password_lost_sent_message": "重置密碼電子郵件已發送至 <strong>{{ username }}</strong>",
         "disable_totp_btn": "停用該使用者的雙因素驗證",
         "disable_totp_title": "停用雙因素驗證",
-        "disable_totp_message": "您確定要為此使用者停用雙因素驗證嗎？"
+        "disable_totp_message": "您確定要為此使用者停用雙因素驗證嗎？",
+        "ldap_user_notice": "此帳號為 LDAP 認證帳號，密碼無法在此直接編輯或重設。如需轉由系統本地管理，可點擊下方按鈕將其轉為本地內部帳號。",
+        "convert_to_internal_btn": "轉為本地內部帳號",
+        "convert_to_internal_title": "轉換帳號認證來源",
+        "convert_to_internal_confirm": "確定要將此 LDAP 帳號轉為本地內部帳號嗎？解綁後您需要在儲存時為該使用者設定本地密碼。",
+        "password_lost_error": "申請密碼重設時發生錯誤。"
       }
     },
     "workflow": {
@@ -538,7 +558,10 @@
       "title": "帳號<small>帳號</ small>",
       "password": "密碼",
       "password_confirm": "密碼 (確認)",
-      "updated": "帳號更新成功"
+      "updated": "帳號更新成功",
+      "ldap_title": "LDAP 網域帳號",
+      "ldap_desc": "此帳號透過 LDAP 企業目錄服務進行身分驗證。密碼與認證資訊由企業網域統籌管理，無法在此處修改。",
+      "ldap_password_change_forbidden": "LDAP 帳號不允許直接修改密碼。"
     },
     "metadata": {
       "title": "自訂屬性",

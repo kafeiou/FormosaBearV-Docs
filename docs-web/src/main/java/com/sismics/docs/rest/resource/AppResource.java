@@ -38,6 +38,7 @@ import com.sismics.rest.exception.ClientException;
 import com.sismics.rest.exception.ForbiddenClientException;
 import com.sismics.rest.exception.ServerException;
 import com.sismics.rest.util.ValidationUtil;
+import com.sismics.util.EmailUtil;
 import com.sismics.util.JsonUtil;
 import com.sismics.util.context.ThreadLocalContext;
 import com.sismics.util.log4j.LogCriteria;
@@ -401,6 +402,13 @@ public class AppResource extends BaseResource {
             response.add("from_name", fromNameConfig.getValue());
         }
 
+        Config securityConfig = configDao.getById(ConfigType.SMTP_SECURITY);
+        if (securityConfig == null || Strings.isNullOrEmpty(securityConfig.getValue())) {
+            response.add("security", "AUTO");
+        } else {
+            response.add("security", securityConfig.getValue());
+        }
+
         return Response.ok().entity(response.build()).build();
     }
 
@@ -434,7 +442,8 @@ public class AppResource extends BaseResource {
                                @FormParam("username") String username,
                                @FormParam("password") String password,
                                @FormParam("from") String from,
-                               @FormParam("from_name") String fromName) {
+                               @FormParam("from_name") String fromName,
+                               @FormParam("security") String security) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -451,11 +460,19 @@ public class AppResource extends BaseResource {
         if (!Strings.isNullOrEmpty(portStr)) {
             configDao.update(ConfigType.SMTP_PORT, portStr);
         }
-        if (!Strings.isNullOrEmpty(username)) {
-            configDao.update(ConfigType.SMTP_USERNAME, username);
+        if (username != null) {
+            if (username.trim().isEmpty()) {
+                configDao.delete(ConfigType.SMTP_USERNAME);
+            } else {
+                configDao.update(ConfigType.SMTP_USERNAME, username.trim());
+            }
         }
-        if (!Strings.isNullOrEmpty(password)) {
-            configDao.update(ConfigType.SMTP_PASSWORD, password);
+        if (password != null) {
+            if (password.trim().isEmpty()) {
+                configDao.delete(ConfigType.SMTP_PASSWORD);
+            } else {
+                configDao.update(ConfigType.SMTP_PASSWORD, password.trim());
+            }
         }
         if (!Strings.isNullOrEmpty(from)) {
             configDao.update(ConfigType.SMTP_FROM, from);
@@ -463,8 +480,60 @@ public class AppResource extends BaseResource {
         if (fromName != null) {
             configDao.update(ConfigType.SMTP_FROM_NAME, fromName.trim());
         }
+        if (!Strings.isNullOrEmpty(security)) {
+            configDao.update(ConfigType.SMTP_SECURITY, security.trim().toUpperCase());
+        }
 
         return Response.ok().build();
+    }
+
+    /**
+     * Send a test email to verify SMTP configuration.
+     *
+     * @param to Target email address
+     * @param hostname Hostname (optional override)
+     * @param portStr Port (optional override)
+     * @param security Security mode (optional override)
+     * @param username Username (optional override)
+     * @param password Password (optional override)
+     * @param from From address (optional override)
+     * @param fromName From name (optional override)
+     * @return Response
+     */
+    @POST
+    @Path("test_smtp")
+    public Response testSmtp(@FormParam("to") String to,
+                             @FormParam("hostname") String hostname,
+                             @FormParam("port") String portStr,
+                             @FormParam("security") String security,
+                             @FormParam("username") String username,
+                             @FormParam("password") String password,
+                             @FormParam("from") String from,
+                             @FormParam("from_name") String fromName) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        ValidationUtil.validateEmail(to, "to");
+        Integer port = null;
+        if (!Strings.isNullOrEmpty(portStr)) {
+            port = ValidationUtil.validateInteger(portStr, "port");
+        }
+
+        try {
+            EmailUtil.sendTestEmail(to, hostname, port, security, username, password, from, fromName);
+            return Response.ok().entity(Json.createObjectBuilder().add("status", "ok").build()).build();
+        } catch (Exception e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            if (e.getCause() != null && e.getCause().getMessage() != null && !errorMsg.contains(e.getCause().getMessage())) {
+                errorMsg += " (" + e.getCause().getMessage() + ")";
+            }
+            JsonObjectBuilder resp = Json.createObjectBuilder();
+            resp.add("status", "error");
+            resp.add("message", errorMsg);
+            return Response.status(Response.Status.BAD_REQUEST).entity(resp.build()).build();
+        }
     }
 
     /**

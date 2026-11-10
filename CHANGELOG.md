@@ -40,6 +40,13 @@ This document details the notable changes, security enhancements, architecture i
   - Frontend UI displays `[LDAP]` badges on user list and edit forms, hiding inapplicable password inputs.
 
 ### ✨ New Features & System Improvements
+- **SMTP Enhancements, Security Protocols & Real-Time Test Tool**:
+  - **Multiple Encryption Protocols**: Added `ConfigType.SMTP_SECURITY` supporting `AUTO` (smart auto-detection), `STARTTLS`, `SSL/TLS`, and `NONE` (plaintext) modes to adapt to all public and private mail relays.
+  - **Anonymous / Unauthenticated Relay Support**: Added full support for local or intranet SMTP servers without username/password authentication (e.g. `localhost:25`, Postfix). Leaving credentials blank cleanly bypasses authentication.
+  - **Real-Time SMTP Test Tool**: Added a recipient test email field and "Send Test Email" button in Admin Settings > SMTP Settings (via `POST /api/app/test_smtp`). Allows administrators to immediately verify connection, TLS handshakes, and email delivery with rich feedback and detailed error diagnostics.
+- **Exhaustive Localization & Missing Key Resolution**:
+  - Conducted an exhaustive project-wide translation audit and eliminated all 9 genuine missing keys across all 12 localization files (covering LDAP status labels, password reset restrictions, internal account conversions, and SMTP testing dialogs).
+  - Fixed raw translation placeholders (`settings.account.ldap_title`, `settings.account.ldap_desc`, and `login.password_lost_ldap_forbidden`) previously displayed to LDAP users.
 - **Web-Configurable Base URL**:
   - Added `ConfigType.BASE_URL` with management in Admin Settings > General Settings (default `http://localhost:8080`).
   - Eliminated strict requirement on `DOCS_BASE_URL` environment variable.

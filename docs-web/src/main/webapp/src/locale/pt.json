@@ -14,7 +14,8 @@
     "password_lost_sent_title": "Email de recuperação de palavra-passe enviado",
     "password_lost_sent_message": "Foi enviado um email para <strong>{{ username }}</strong> para redefinir a sua palavra-passe",
     "password_lost_error_title": "Erro na recuperação de palavra-passe",
-    "password_lost_error_message": "Não foi possível enviar um email de recuperação de palavra-passe. Por favor contacte o seu administrador para uma redefinição manual"
+    "password_lost_error_message": "Não foi possível enviar um email de recuperação de palavra-passe. Por favor contacte o seu administrador para uma redefinição manual",
+    "password_lost_ldap_forbidden": "Password reset is not supported for LDAP accounts. Please contact your system administrator or use your enterprise directory service to reset your password."
   },
   "passwordlost": {
     "title": "Perdeu a palavra-passe",
@@ -321,7 +322,12 @@
         "password_lost_sent_message": "Foi enviado um email de reset de password para <strong>{{ username }}</strong>",
         "disable_totp_btn": "Desativar autenticação de dois fatores para este utilizador",
         "disable_totp_title": "Desativar autenticação de dois fatores",
-        "disable_totp_message": "Tem a certeza de que deseja desativar a autenticação de dois fatores para este utilizador?"
+        "disable_totp_message": "Tem a certeza de que deseja desativar a autenticação de dois fatores para este utilizador?",
+        "ldap_user_notice": "This account is authenticated via LDAP. Its password cannot be edited or reset directly. If you want to manage this user locally, you can convert it to a local internal account.",
+        "convert_to_internal_btn": "Convert to Local Account",
+        "convert_to_internal_title": "Convert Account to Local",
+        "convert_to_internal_confirm": "Are you sure you want to convert this LDAP account to a local internal account? You will need to set a local password for this user upon saving.",
+        "password_lost_error": "An error occurred while requesting password recovery."
       },
       "workflow": {}
     },
@@ -395,7 +401,10 @@
       "title": "Conta de utilizador",
       "password": "Palavra-passe",
       "password_confirm": "Palavra-passe (confirmação)",
-      "updated": "Conta atualizada com sucesso"
+      "updated": "Conta atualizada com sucesso",
+      "ldap_title": "LDAP Account",
+      "ldap_desc": "This account is authenticated through LDAP. Password and account credentials are managed by your enterprise directory service and cannot be changed here.",
+      "ldap_password_change_forbidden": "Password change is not permitted for LDAP accounts."
     },
     "config": {
       "title_guest_access": "Acesso de convidado",
@@ -424,7 +433,21 @@
       "webhook_event": "Evento",
       "webhook_url": "URL",
       "webhook_create_date": "Data de criação",
-      "webhook_add": "Adicionar um webhook"
+      "webhook_add": "Adicionar um webhook",
+      "smtp_security": "Security Protocol",
+      "smtp_security_auto": "Auto-detect (465: SSL / 587: STARTTLS / Other: Plain)",
+      "smtp_security_none": "Plain text / Unencrypted (None)",
+      "smtp_security_help": "Select the security protocol required by your SMTP server. For local or intranet relays, select Plain text or Auto-detect.",
+      "smtp_username_help": "SMTP username (optional; leave blank for unauthenticated local relays)",
+      "smtp_password_help": "SMTP password (optional; leave blank for unauthenticated local relays)",
+      "smtp_updated_title": "SMTP Settings Updated",
+      "smtp_test_to": "Test Recipient",
+      "smtp_test_btn": "Send Test Email",
+      "smtp_test_help": "Enter an email address to receive a test email to verify SMTP connectivity and credentials.",
+      "smtp_test_success_title": "Test Email Sent Successfully",
+      "smtp_test_success_msg": "Test email has been successfully sent to <strong>{{ to }}</strong>! Please check your inbox (and spam folder) to confirm receipt.",
+      "smtp_test_failed_title": "Test Email Failed",
+      "smtp_test_failed_msg": "Unable to connect to the SMTP server or send test email. Please check the error message below:"
     },
     "metadata": {
       "title": "Configuração de metadados personalizados",

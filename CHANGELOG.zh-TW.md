@@ -42,6 +42,13 @@
     - 前端介面（帳號設定、使用者列表與編輯頁面）自動顯示 `[LDAP]` 徽章，隱藏不適用的密碼修改輸入框與重設按鈕。
 
 ### ✨ 新增功能與系統改進 (New Features & System Improvements)
+- **SMTP 電子郵件傳輸強化與即時測試工具 (SMTP Enhancements & Test Tool)**：
+  - **多元傳輸加密模式**：新增 `ConfigType.SMTP_SECURITY`，提供 `AUTO`（智慧自動）、`STARTTLS`、`SSL/TLS` 與 `NONE`（明文純文字）四種連線協定，相容各類公私有郵件伺服器。
+  - **本機/內網無認證轉發 (Anonymous Relay)**：完整支援本機或企業內部無帳號密碼的 SMTP Relay（如 `localhost:25`、Postfix 等），留空帳號與密碼時系統自動略過憑證驗證，實現免帳密發信。
+  - **後台即時發信測試工具**：在「系統設定 > SMTP 設定」新增收件信箱輸入欄位與【發送測試信】按鈕（呼叫 `POST /api/app/test_smtp`），可在儲存前即時測試 SMTP 連線、TLS 握手與郵件發送，並於畫面即時顯示成功提示或詳細錯誤訊息（包含 Socket 連線逾時與伺服器拒絕原因）。
+- **全系統 12 國語言在地化文字完整補全 (Exhaustive Localization Fixes)**：
+  - 徹底清查並補齊 12 國語系檔案中遺漏之 9 處關鍵翻譯鍵值（涵蓋 LDAP 狀態提示、忘記密碼錯誤訊息、帳號轉換內部認證，以及 SMTP 測試工具相關字串）。
+  - 徹底修復 LDAP 使用者於帳號設定出現 `settings.account.ldap_title`、`settings.account.ldap_desc` 與忘記密碼時出現 `login.password_lost_ldap_forbidden` 之未翻譯代碼問題。
 - **後台基礎網址 (Base URL) 可視化維護**：
   - 新增 `ConfigType.BASE_URL`，於「系統設定 > 一般設定」提供輸入介面，預設為 `http://localhost:8080`。
   - 徹底擺脫對作業系統環境變數 `DOCS_BASE_URL` 的強制依賴，發送信件或外部連結開箱即用。

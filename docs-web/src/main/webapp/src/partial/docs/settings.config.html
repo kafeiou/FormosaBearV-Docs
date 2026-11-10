@@ -211,31 +211,46 @@
 
 <h2 translate="settings.config.title_smtp"></h2>
 <form class="form-horizontal" name="smtpForm" novalidate>
-  <div class="form-group" ng-show="smtp.hasOwnProperty('hostname')" ng-class="{ 'has-error': !smtpForm.hostname.$valid && smtpForm.$dirty }">
+  <div class="form-group" ng-class="{ 'has-error': !smtpForm.hostname.$valid && smtpForm.$dirty }">
     <label class="col-sm-2 control-label" for="smtpHostname">{{ 'settings.config.smtp_hostname' | translate }}</label>
     <div class="col-sm-7">
-      <input name="hostname" type="text" ng-disabled="!smtp.hasOwnProperty('hostname')" class="form-control" id="smtpHostname" ng-model="smtp.hostname" />
+      <input name="hostname" type="text" class="form-control" id="smtpHostname" ng-model="smtp.hostname" placeholder="localhost" />
     </div>
   </div>
 
-  <div class="form-group" ng-show="smtp.hasOwnProperty('port')" ng-class="{ 'has-error': !smtpForm.port.$valid && smtpForm.$dirty }">
+  <div class="form-group" ng-class="{ 'has-error': !smtpForm.port.$valid && smtpForm.$dirty }">
     <label class="col-sm-2 control-label" for="smtpPort">{{ 'settings.config.smtp_port' | translate }}</label>
     <div class="col-sm-7">
-      <input name="port" type="number" ng-disabled="!smtp.hasOwnProperty('port')" class="form-control" id="smtpPort" ng-model="smtp.port" />
+      <input name="port" type="number" class="form-control" id="smtpPort" ng-model="smtp.port" placeholder="25" />
     </div>
   </div>
 
-  <div class="form-group" ng-show="smtp.hasOwnProperty('username')">
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="smtpSecurity">{{ 'settings.config.smtp_security' | translate }}</label>
+    <div class="col-sm-7">
+      <select name="security" class="form-control" id="smtpSecurity" ng-model="smtp.security">
+        <option value="AUTO">{{ 'settings.config.smtp_security_auto' | translate }}</option>
+        <option value="STARTTLS">STARTTLS (Port 587 / 25)</option>
+        <option value="SSL">SSL / TLS (Port 465)</option>
+        <option value="NONE">{{ 'settings.config.smtp_security_none' | translate }}</option>
+      </select>
+      <span class="help-block">{{ 'settings.config.smtp_security_help' | translate }}</span>
+    </div>
+  </div>
+
+  <div class="form-group">
     <label class="col-sm-2 control-label" for="smtpUsername">{{ 'settings.config.smtp_username' | translate }}</label>
     <div class="col-sm-7">
-      <input name="username" type="text" ng-disabled="!smtp.hasOwnProperty('username')" class="form-control" id="smtpUsername" ng-model="smtp.username" />
+      <input name="username" type="text" class="form-control" id="smtpUsername" ng-model="smtp.username" />
+      <span class="help-block">{{ 'settings.config.smtp_username_help' | translate }}</span>
     </div>
   </div>
 
-  <div class="form-group" ng-show="smtp.hasOwnProperty('password')">
+  <div class="form-group">
     <label class="col-sm-2 control-label" for="smtpPassword">{{ 'settings.config.smtp_password' | translate }}</label>
     <div class="col-sm-7">
-      <input name="password" type="password" ng-disabled="!smtp.hasOwnProperty('password')" class="form-control" id="smtpPassword" ng-model="smtp.password" />
+      <input name="password" type="password" class="form-control" id="smtpPassword" ng-model="smtp.password" />
+      <span class="help-block">{{ 'settings.config.smtp_password_help' | translate }}</span>
     </div>
   </div>
 
@@ -258,10 +273,27 @@
   </div>
 
   <div class="form-group">
-    <div class="col-sm-offset-2 col-sm-10">
+    <div class="col-sm-offset-2 col-sm-7">
       <button type="submit" class="btn btn-primary" ng-click="editSmtpConfig()" ng-disabled="!smtpForm.$valid">
         <span class="fas fa-pencil-alt"></span> {{ 'save' | translate }}
       </button>
+    </div>
+  </div>
+
+  <hr style="margin: 25px 0;" />
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="smtpTestTo">{{ 'settings.config.smtp_test_to' | translate }}</label>
+    <div class="col-sm-7">
+      <div class="input-group">
+        <input name="testTo" type="email" class="form-control" id="smtpTestTo" ng-model="smtp.test_to" placeholder="admin@example.com" />
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-info" ng-click="testSmtp()" ng-disabled="!smtp.test_to || testingSmtp">
+            <span class="fas fa-paper-plane" ng-class="{ 'fa-spin': testingSmtp }"></span> {{ 'settings.config.smtp_test_btn' | translate }}
+          </button>
+        </span>
+      </div>
+      <span class="help-block">{{ 'settings.config.smtp_test_help' | translate }}</span>
     </div>
   </div>
 </form>
