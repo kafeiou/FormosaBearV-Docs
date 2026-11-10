@@ -1,4 +1,4 @@
-[ English ](CHANGELOG.md) | [ 繁體中文 ](CHANGELOG.zh-TW.md)
+﻿[ English ](CHANGELOG.md) | [ 繁體中文 ](CHANGELOG.zh-TW.md)
 
 # FormosaBearV Changelog
 
@@ -30,6 +30,26 @@ This document details the notable changes, security enhancements, architecture i
   - Changed default administrator password from `admin` to `superSecure`.
   - Updated database initialization script [dbupdate-000-0.sql](file:///W:/developer/project/github/teedydocs/docs-core/src/main/resources/db/update/dbupdate-000-0.sql) with a 10-round BCrypt hash (`$2a$10$iGnrUPOrJfn.cowMyfrSfOow5vD0nxHK8JAyIfxbztA8RtLL/IhmC`).
   - Synchronized [Constants.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/constant/Constants.java#L23), test suites, and 5-language documentation.
+- **Authentication Source Tagging & Dual-Password Prevention**:
+  - Added `USE_AUTH_SOURCE_C varchar(20) default 'INTERNAL'` column to `T_USER` (database version upgraded to 36 via [dbupdate-036-0.sql](file:///W:/developer/project/github/teedydocs/docs-core/src/main/resources/db/update/dbupdate-036-0.sql)).
+  - Implemented 4-layer defense in depth to prevent simultaneous valid LDAP and local passwords:
+    1. [InternalAuthenticationHandler.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/InternalAuthenticationHandler.java): Rejects local password authentication when `auth_source == "LDAP"`.
+    2. [LdapAuthenticationHandler.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/LdapAuthenticationHandler.java): Automatically marks authenticated users with `auth_source = "LDAP"`, while `admin` is permanently locked to `INTERNAL`.
+    3. [UserResource.java](file:///W:/developer/project/github/teedydocs/docs-web/src/main/java/com/sismics/docs/rest/resource/UserResource.java): Forbids password self-service changes or recovery requests for LDAP accounts (`LdapUserPasswordChangeForbidden` & `LdapUserPasswordResetForbidden`).
+    4. Admin user edit supports "Convert to Local Account" dialog and API, unlinking LDAP and resetting a new local password.
+  - Frontend UI displays `[LDAP]` badges on user list and edit forms, hiding inapplicable password inputs.
+
+### ✨ New Features & System Improvements
+- **Web-Configurable Base URL**:
+  - Added `ConfigType.BASE_URL` with management in Admin Settings > General Settings (default `http://localhost:8080`).
+  - Eliminated strict requirement on `DOCS_BASE_URL` environment variable.
+  - Built-in guardrails: automatically prepends `http://` if protocol is missing and strips trailing slashes to prevent double-slash email link URLs.
+- **Email Sender Name & Branding**:
+  - Added `ConfigType.SMTP_FROM_NAME` with management in Admin Settings > SMTP Settings (default `FormosaBearV`).
+  - Fully replaced hardcoded `Teedy` branding across sender display name, subject prefix, and email template header banner.
+  - Implemented smart fallback: SMTP Sender Name ➔ Theme Application Name ➔ Default `FormosaBearV`.
+- **Dynamic Email Localization**:
+  - Outbound email subjects and templates dynamically resolve according to system default language (e.g. Traditional Chinese `chi_tra` ➔ `zh_TW`, subject `FormosaBearV - 請重新設置密碼`).
 
 ### 🚀 Portable Server & Runtime Improvements
 - **Console Output ASCII Standardization**:

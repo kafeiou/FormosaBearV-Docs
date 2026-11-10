@@ -161,6 +161,9 @@ public class UserResource extends BaseResource {
 
         // Change the password
         if (StringUtils.isNotBlank(password)) {
+            if ("LDAP".equals(user.getAuthSource())) {
+                throw new ClientException("LdapUserPasswordChangeForbidden", "Password cannot be changed for LDAP accounts");
+            }
             user.setPassword(password);
             userDao.updatePassword(user, principal.getId());
         }
@@ -201,7 +204,8 @@ public class UserResource extends BaseResource {
         @FormParam("password") String password,
         @FormParam("email") String email,
         @FormParam("storage_quota") String storageQuotaStr,
-        @FormParam("disabled") Boolean disabled) {
+        @FormParam("disabled") Boolean disabled,
+        @FormParam("auth_source") String authSource) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -242,10 +246,22 @@ public class UserResource extends BaseResource {
                 user.setDisableDate(null);
             }
         }
+        if (StringUtils.isNotBlank(authSource)) {
+            if ("INTERNAL".equalsIgnoreCase(authSource)) {
+                user.setAuthSource("INTERNAL");
+            } else if ("LDAP".equalsIgnoreCase(authSource)) {
+                if (!Constants.ADMIN_USER_ID.equals(user.getId()) && !"admin".equalsIgnoreCase(username)) {
+                    user.setAuthSource("LDAP");
+                }
+            }
+        }
         user = userDao.update(user, principal.getId());
 
         // Change the password
         if (StringUtils.isNotBlank(password)) {
+            if ("LDAP".equals(user.getAuthSource())) {
+                throw new ClientException("LdapUserPasswordChangeForbidden", "Password cannot be changed for LDAP accounts");
+            }
             user.setPassword(password);
             userDao.updatePassword(user, principal.getId());
         }
@@ -612,7 +628,9 @@ public class UserResource extends BaseResource {
                     .add("storage_quota", user.getStorageQuota())
                     .add("storage_current", user.getStorageCurrent())
                     .add("totp_enabled", user.getTotpKey() != null)
-                    .add("onboarding", user.isOnboarding());
+                    .add("onboarding", user.isOnboarding())
+                    .add("auth_source", user.getAuthSource() != null ? user.getAuthSource() : "INTERNAL")
+                    .add("is_ldap", "LDAP".equals(user.getAuthSource()));
 
             // Base functions
             JsonArrayBuilder baseFunctions = Json.createArrayBuilder();
@@ -687,7 +705,9 @@ public class UserResource extends BaseResource {
                 .add("totp_enabled", user.getTotpKey() != null)
                 .add("storage_quota", user.getStorageQuota())
                 .add("storage_current", user.getStorageCurrent())
-                .add("disabled", user.getDisableDate() != null);
+                .add("disabled", user.getDisableDate() != null)
+                .add("auth_source", user.getAuthSource() != null ? user.getAuthSource() : "INTERNAL")
+                .add("is_ldap", "LDAP".equals(user.getAuthSource()));
         return Response.ok().entity(response.build()).build();
     }
 
@@ -752,7 +772,9 @@ public class UserResource extends BaseResource {
                     .add("storage_quota", userDto.getStorageQuota())
                     .add("storage_current", userDto.getStorageCurrent())
                     .add("create_date", userDto.getCreateTimestamp())
-                    .add("disabled", userDto.getDisableTimestamp() != null));
+                    .add("disabled", userDto.getDisableTimestamp() != null)
+                    .add("auth_source", userDto.getAuthSource() != null ? userDto.getAuthSource() : "INTERNAL")
+                    .add("is_ldap", "LDAP".equals(userDto.getAuthSource())));
         }
 
         JsonObjectBuilder response = Json.createObjectBuilder()
@@ -1036,6 +1058,9 @@ public class UserResource extends BaseResource {
             return response;
         }
         UserDto user = userDtoList.get(0);
+        if ("LDAP".equals(user.getAuthSource())) {
+            throw new ClientException("LdapUserPasswordResetForbidden", "Password reset is not supported for LDAP accounts");
+        }
 
         // Create the password recovery key
         PasswordRecoveryDao passwordRecoveryDao = new PasswordRecoveryDao();
@@ -1092,6 +1117,9 @@ public class UserResource extends BaseResource {
 
         UserDao userDao = new UserDao();
         User user = userDao.getActiveByUsername(passwordRecovery.getUsername());
+        if (user != null && "LDAP".equals(user.getAuthSource())) {
+            throw new ClientException("LdapUserPasswordResetForbidden", "Password reset is not supported for LDAP accounts");
+        }
 
         // Change the password
         user.setPassword(password);

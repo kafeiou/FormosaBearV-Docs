@@ -1,4 +1,4 @@
-[ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
+﻿[ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
 # FormosaBearV (v2.03)
 
@@ -10,7 +10,8 @@
 
 ## Key Upgrades in v2.03
 
-- **Hardened Security**: Patched LDAP injection and Stored XSS vulnerabilities; upgraded default admin password to `superSecure`.
+- **Hardened Security**: Patched LDAP injection and Stored XSS vulnerabilities; tagged user authentication source (`auth_source`) to prevent dual-password backdoor risks; upgraded default admin password to `superSecure`.
+- **Web-Configurable Base URL & Mail Branding**: Integrated Base URL (default `http://localhost:8080`) and Sender Name into Admin Settings without requiring environment variables; all system emails are fully branded as `FormosaBearV`.
 - **Portable Server Improvements**: Standardized startup scripts to pure English ASCII (eliminating Windows terminal code page issues) with strict Java 21+ validation and pre-configured Jetty 12 modules.
 - **Standards-Compliant Filenames**: Full RFC 5987 / RFC 6266 UTF-8 encoded filename support on file download and preview.
 
@@ -126,7 +127,7 @@ If no PostgreSQL configuration is provided, an embedded H2 2.3 database is used 
 
 - **Default admin credentials**: username `admin`, password `superSecure` (change immediately in production).
 - **Data volume**: mount a persistent volume to `/data`.
-- **Base URL**: configure `DOCS_BASE_URL` (e.g., `https://docs.example.com`) for external link generation.
+- **Base URL**: defaults to `http://localhost:8080`, directly configurable in Admin Settings under General Settings, or customizable via `DOCS_BASE_URL`.
 
 ### Environment Variables
 

@@ -1,4 +1,4 @@
-[ English ](CHANGELOG.md) | [ 繁體中文 ](CHANGELOG.zh-TW.md)
+﻿[ English ](CHANGELOG.md) | [ 繁體中文 ](CHANGELOG.zh-TW.md)
 
 # FormosaBearV 版本更新紀錄 (Changelog)
 
@@ -30,6 +30,28 @@
   - 系統初次安裝之預設管理員密碼自弱密碼 `admin` 全面升級為高強度預設密碼 `superSecure`。
   - 資料庫初始化腳本 [dbupdate-000-0.sql](file:///W:/developer/project/github/teedydocs/docs-core/src/main/resources/db/update/dbupdate-000-0.sql) 更新為 10 輪 BCrypt 雜湊值（`$2a$10$iGnrUPOrJfn.cowMyfrSfOow5vD0nxHK8JAyIfxbztA8RtLL/IhmC`）。
   - 同步更新系統常數 [Constants.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/constant/Constants.java#L23)、自動化測試套件與五國語言說明手冊。
+- **LDAP 認證來源標記與雙重密碼後門阻絕 (Authentication Source Tagging & Dual-Password Prevention)**
+  - **問題描述**：LDAP 帳號若透過管理員或特定 API 設置了本地密碼，會造成該帳號同時接受 LDAP 密碼與本地密碼登入，形成「雙密碼同時有效」之後門與身分驗證混淆風險。
+  - **修復內容**：
+    - 在 `T_USER` 表新增 `USE_AUTH_SOURCE_C varchar(20) default 'INTERNAL'` 欄位（資料庫版本升級為 36：[dbupdate-036-0.sql](file:///W:/developer/project/github/teedydocs/docs-core/src/main/resources/db/update/dbupdate-036-0.sql)）。
+    - 建立四道防禦縱深：
+      1. [InternalAuthenticationHandler.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/InternalAuthenticationHandler.java)：凡帳號標記為 `LDAP`，直接拒絕本地密碼驗證。
+      2. [LdapAuthenticationHandler.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/LdapAuthenticationHandler.java)：LDAP 驗證成功時自動標記帳號認證來源為 `LDAP`；`admin` 帳號永遠鎖定為 `INTERNAL` 保護。
+      3. [UserResource.java](file:///W:/developer/project/github/teedydocs/docs-web/src/main/java/com/sismics/docs/rest/resource/UserResource.java)：嚴格阻絕 LDAP 帳號自行修改密碼或透過「忘記密碼」申請重設信件（拋出 `LdapUserPasswordChangeForbidden` 與 `LdapUserPasswordResetForbidden`）。
+      4. 管理員後台編輯支援「轉為本地帳號 (Convert to Local Account)」對話框與 API，將認證來源解綁轉為 `INTERNAL` 並重設新密碼。
+    - 前端介面（帳號設定、使用者列表與編輯頁面）自動顯示 `[LDAP]` 徽章，隱藏不適用的密碼修改輸入框與重設按鈕。
+
+### ✨ 新增功能與系統改進 (New Features & System Improvements)
+- **後台基礎網址 (Base URL) 可視化維護**：
+  - 新增 `ConfigType.BASE_URL`，於「系統設定 > 一般設定」提供輸入介面，預設為 `http://localhost:8080`。
+  - 徹底擺脫對作業系統環境變數 `DOCS_BASE_URL` 的強制依賴，發送信件或外部連結開箱即用。
+  - 內建智慧防呆機制：自動補全 `http://` 協定，自動清除尾端多餘斜線 `/` 防止雙斜線。
+- **郵件寄件者名稱 (Sender Name) 與系統品牌化**：
+  - 新增 `ConfigType.SMTP_FROM_NAME`，於「系統設定 > SMTP 設定」提供自訂輸入介面，預設為 `FormosaBearV`。
+  - 信件寄件者顯示名稱、郵件主旨前綴與郵件橫幅標題全面替換舊有寫死的 `Teedy`。
+  - 具備智慧回退連動：優先使用 SMTP 寄件者名稱 ➔ 佈景主題系統名稱 (Theme Name) ➔ 預設 `FormosaBearV`。
+- **郵件語系動態對應**：
+  - 發送通知與密碼重設信件時，自動對應後台設定的系統預設語言（如繁體中文 `chi_tra` 自動對應為 `zh_TW` 語系，信件主旨為 `FormosaBearV - 請重新設置密碼`）。
 
 ### 🚀 免安裝可攜伺服器完善 (Portable Server Improvements)
 - **終端訊息全面純英文化**：

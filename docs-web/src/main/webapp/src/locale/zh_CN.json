@@ -395,7 +395,11 @@
       "title_file_duplicate": "允许重复文件名称上传 (file.duplicate)",
       "message_file_duplicate": "控制同一位用户是否可以上传相同文件名称的新文件。",
       "enable_file_duplicate": "启用允许重复文件名",
-      "disable_file_duplicate": "禁止重复文件名上传"
+      "disable_file_duplicate": "禁止重复文件名上传",
+      "base_url": "基础网址 (Base URL)",
+      "base_url_help": "系统发送重置密码邮件或外部通知时使用的根网址，默认为 http://localhost:8080。",
+      "smtp_from_name": "发件人名称 (Sender Name)",
+      "smtp_from_name_help": "邮件发件人显示名称与邮件主题前缀（留空则自动采用系统名称，默认为 FormosaBearV）。"
     },
     "menu_personal_settings": "个人设置",
     "menu_user_account": "用户帐号",

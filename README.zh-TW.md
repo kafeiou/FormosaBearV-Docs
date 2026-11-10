@@ -1,4 +1,4 @@
-[ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
+﻿[ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
 # FormosaBearV (v2.03)
 
@@ -10,7 +10,8 @@
 
 ## v2.03 重大升級亮點
 
-- **全面安全防禦強化**：修復 LDAP Injection 與儲存型 XSS 漏洞，預設管理員密碼升級為 `superSecure`。
+- **全面安全防禦強化**：修復 LDAP Injection 與儲存型 XSS 漏洞，標記帳號認證來源 (`auth_source`) 防堵雙密碼後門漏洞，預設管理員密碼升級為 `superSecure`。
+- **後台基礎網址與郵件品牌自訂**：免除環境變數設定，可直接在後台維護基礎網址（預設 `http://localhost:8080`）與郵件寄件者名稱，信件全面品牌化為 `FormosaBearV`。
 - **免安裝可攜伺服器優化**：啟動腳本全面純英文化（根除 Windows 終端亂碼），嚴格校驗 Java 21+ 執行環境，內建 Jetty 12 開箱即用配置。
 - **標準化檔名編碼**：檔案下載與預覽全面相容 RFC 5987 / RFC 6266 UTF-8 國際化檔名規範。
 
@@ -126,7 +127,7 @@ docker build -t formosabearv-docs:2.03 .
 
 - **預設管理員帳號密碼**：帳號 `admin`，密碼 `superSecure`（正式環境請於首次登入後立即變更）。
 - **資料儲存磁碟卷**：請將持久化磁碟掛載至容器內的 `/data`。
-- **基礎 URL**：設定 `DOCS_BASE_URL`（例如 `https://docs.example.com`）以供系統產生正確的對外文件連結。
+- **基礎 URL**：預設為 `http://localhost:8080`，可直接於後台「系統設定 > 一般設定」維護，亦可透過 `DOCS_BASE_URL` 環境變數自訂。
 
 ### 常見環境變數一覽
 

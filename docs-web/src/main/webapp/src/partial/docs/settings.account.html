@@ -31,7 +31,11 @@
     </div>
   </div>
 </div>
-<form class="form-horizontal" name="editUserForm" novalidate autocomplete="off">
+<div class="alert alert-info" ng-if="userInfo.auth_source == 'LDAP'">
+  <h4 style="margin-top: 0;"><span class="fas fa-id-card"></span> {{ 'settings.account.ldap_title' | translate }}</h4>
+  <p>{{ 'settings.account.ldap_desc' | translate }}</p>
+</div>
+<form class="form-horizontal" name="editUserForm" novalidate autocomplete="off" ng-if="userInfo.auth_source != 'LDAP'">
   <div class="form-group" ng-class="{ 'has-error': !editUserForm.accountPassword.$valid && editUserForm.$dirty, success: editUserForm.accountPassword.$valid }">
     <label class="col-sm-2 control-label" for="inputAccountPassword">{{ 'settings.account.password' | translate }}</label>
     <div class="col-sm-7">

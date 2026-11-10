@@ -31,6 +31,11 @@ public class Constants {
     public static final int DEFAULT_BCRYPT_WORK = 10;
 
     /**
+     * Administrator user ID.
+     */
+    public static final String ADMIN_USER_ID = "admin";
+
+    /**
      * Guest user ID.
      */
     public static final String GUEST_USER_ID = "guest";

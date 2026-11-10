@@ -395,7 +395,11 @@
       "title_file_duplicate": "Allow Duplicate File Names (file.duplicate)",
       "message_file_duplicate": "Controls whether the same user is allowed to upload multiple files with the same file name.",
       "enable_file_duplicate": "Enable Duplicate File Names",
-      "disable_file_duplicate": "Disallow Duplicate File Names"
+      "disable_file_duplicate": "Disallow Duplicate File Names",
+      "base_url": "Base URL",
+      "base_url_help": "The root URL used by the system for email links and notifications (defaults to http://localhost:8080).",
+      "smtp_from_name": "Sender Name",
+      "smtp_from_name_help": "Sender display name and email subject prefix (falls back to application name if empty, defaults to FormosaBearV)."
     },
     "menu_personal_settings": "Personal settings",
     "menu_user_account": "User account",

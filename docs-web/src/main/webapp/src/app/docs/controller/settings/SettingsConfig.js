@@ -8,8 +8,9 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
   Restangular.one('app').get().then(function (data) {
     $rootScope.app = data;
     $scope.general = {
-      default_language: data.default_language
-    }
+      default_language: data.default_language,
+      base_url: data.base_url || 'http://localhost:8080'
+    };
   });
 
   // Enable/disable guest login
@@ -133,6 +134,9 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
   // Load SMTP config
   Restangular.one('app/config_smtp').get().then(function (data) {
     $scope.smtp = data;
+    if (!$scope.smtp.from_name) {
+      $scope.smtp.from_name = 'FormosaBearV';
+    }
   });
 
   // Edit SMTP config

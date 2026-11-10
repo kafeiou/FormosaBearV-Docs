@@ -18,6 +18,7 @@
           <td>
             <span ng-if="!user.disabled">{{ user.username }}</span>
             <s ng-if="user.disabled">{{ user.username }}</s>
+            <span class="label label-info" ng-if="user.auth_source == 'LDAP'" style="font-size: 10px; margin-left: 4px;">LDAP</span>
             <span class="fas fa-lock" ng-show="user.totp_enabled" uib-tooltip="{{ 'settings.user.totp_enabled' | translate }}"></span>
           </td>
           <td>{{ user.create_date | date: dateFormat }}</td>

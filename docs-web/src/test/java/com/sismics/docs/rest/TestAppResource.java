@@ -491,4 +491,56 @@ public class TestAppResource extends BaseJerseyTest {
         ldapServer.stop();
         directoryService.shutdown();
     }
+
+    /**
+     * Test Base URL configuration and SMTP from_name setting.
+     */
+    @Test
+    public void testBaseUrlAndMailSettings() {
+        String adminToken = adminToken();
+
+        // 1. Initial check: base_url defaults to http://localhost:8080
+        JsonObject json = target().path("/app").request().get(JsonObject.class);
+        Assert.assertEquals("http://localhost:8080", json.getString("base_url"));
+
+        // 2. Check SMTP from_name defaults to FormosaBearV
+        json = target().path("/app/config_smtp").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("FormosaBearV", json.getString("from_name"));
+
+        // 3. Update Base URL with trailing slashes and missing http protocol to test auto-normalization
+        Response response = target().path("/app/config").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("default_language", "eng")
+                        .param("base_url", "my-docs.example.com:8443///")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(response.getStatus()));
+
+        json = target().path("/app").request().get(JsonObject.class);
+        Assert.assertEquals("http://my-docs.example.com:8443", json.getString("base_url"));
+
+        // 4. Update SMTP from_name
+        response = target().path("/app/config_smtp").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("from_name", "Taiwan Bear Docs Center")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(response.getStatus()));
+
+        json = target().path("/app/config_smtp").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("Taiwan Bear Docs Center", json.getString("from_name"));
+
+        // 5. Restore back to default
+        target().path("/app/config").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("default_language", "eng")
+                        .param("base_url", "http://localhost:8080")));
+        target().path("/app/config_smtp").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("from_name", "FormosaBearV")));
+    }
 }

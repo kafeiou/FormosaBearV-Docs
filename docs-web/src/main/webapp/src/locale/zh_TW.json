@@ -395,7 +395,11 @@
       "title_file_duplicate": "允許重複檔案名稱上傳 (file.duplicate)",
       "message_file_duplicate": "控制同一位使用者是否可以上傳相同檔案名稱的新檔案。",
       "enable_file_duplicate": "啟用允許重複檔名",
-      "disable_file_duplicate": "禁止重複檔名上傳"
+      "disable_file_duplicate": "禁止重複檔名上傳",
+      "base_url": "基礎網址 (Base URL)",
+      "base_url_help": "系統寄送重設密碼信件或外部通知時所使用的根網址，預設為 http://localhost:8080。",
+      "smtp_from_name": "寄件者名稱 (Sender Name)",
+      "smtp_from_name_help": "郵件寄件者顯示名稱與信件主旨前綴（留空則自動採用系統名稱，預設為 FormosaBearV）。"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "帳號",

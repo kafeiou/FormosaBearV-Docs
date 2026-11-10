@@ -128,32 +128,26 @@ public class EmailUtil {
             // Recipient
             email.addTo(recipientUser.getEmail(), recipientUser.getUsername());
 
-            // Application name
-            Config themeConfig = configDao.getById(ConfigType.THEME);
-            String appName = "Teedy";
-            if (themeConfig != null) {
-                try (JsonReader reader = Json.createReader(new StringReader(themeConfig.getValue()))) {
-                    JsonObject themeJson = reader.readObject();
-                    appName = themeJson.getString("name", "Teedy");
-                }
+            // Application name / Sender name
+            String appName = ConfigUtil.getMailAppName();
+
+            // From email address
+            String fromAddress = "no-reply@localhost";
+            try {
+                fromAddress = ConfigUtil.getConfigStringValue(ConfigType.SMTP_FROM);
+            } catch (Exception ignored) {
             }
+            email.setFrom(fromAddress, appName);
 
-            // From email address (defined only by configuration value in the database)
-            email.setFrom(ConfigUtil.getConfigStringValue(ConfigType.SMTP_FROM), appName);
-
-            // Locale (defined only by environment variable)
-            java.util.Locale userLocale = LocaleUtil.getLocale(System.getenv(Constants.DEFAULT_LANGUAGE_ENV));
+            // Locale
+            java.util.Locale userLocale = resolveLocale();
 
             // Subject and content
             email.setSubject(appName + " - " + subject);
             email.setTextMsg(MessageUtil.getMessage(userLocale, "email.no_html.error"));
 
             // Add automatic parameters
-            String baseUrl = System.getenv(Constants.BASE_URL_ENV);
-            if (Strings.isNullOrEmpty(baseUrl)) {
-                log.error("DOCS_BASE_URL environnement variable needs to be set for proper email links");
-                baseUrl = ""; // At least the mail will be sent...
-            }
+            String baseUrl = ConfigUtil.getBaseUrl();
             paramMap.put("base_url", baseUrl);
             paramMap.put("app_name", appName);
 
@@ -169,6 +163,31 @@ public class EmailUtil {
     }
 
     /**
+     * Resolves the locale to use for outbound system emails.
+     * Priority:
+     * 1. Database configuration (T_CONFIG: DEFAULT_LANGUAGE)
+     * 2. Environment variable (DOCS_DEFAULT_LANGUAGE)
+     * 3. Fallback to English
+     *
+     * @return Resolved Locale
+     */
+    private static java.util.Locale resolveLocale() {
+        String lang = null;
+        try {
+            ConfigDao configDao = new ConfigDao();
+            Config langConfig = configDao.getById(ConfigType.DEFAULT_LANGUAGE);
+            if (langConfig != null && !Strings.isNullOrEmpty(langConfig.getValue())) {
+                lang = langConfig.getValue();
+            }
+        } catch (Exception ignored) {
+        }
+        if (Strings.isNullOrEmpty(lang)) {
+            lang = System.getenv(Constants.DEFAULT_LANGUAGE_ENV);
+        }
+        return LocaleUtil.getLocale(lang);
+    }
+
+    /**
      * Sending an email to a user.
      *
      * @param templateName Template name
@@ -176,7 +195,7 @@ public class EmailUtil {
      * @param paramMap Email parameters
      */
     public static void sendEmail(String templateName, UserDto recipientUser, Map<String, Object> paramMap) {
-        java.util.Locale userLocale = LocaleUtil.getLocale(System.getenv(Constants.DEFAULT_LANGUAGE_ENV));
+        java.util.Locale userLocale = resolveLocale();
         String subject = MessageUtil.getMessage(userLocale, "email.template." + templateName + ".subject");
         sendEmail(templateName, recipientUser, subject, paramMap);
     }

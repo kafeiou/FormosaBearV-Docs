@@ -21,6 +21,50 @@ public class LocaleUtil {
             return Locale.ENGLISH;
         }
 
+        // Map OCR 3-letter / system language codes to Java Locale
+        switch (localeCode.toLowerCase()) {
+            case "chi_tra":
+            case "zh_tw":
+            case "zht":
+                return new Locale("zh", "TW");
+            case "chi_sim":
+            case "zh_cn":
+            case "zhs":
+                return new Locale("zh", "CN");
+            case "eng":
+            case "en":
+                return Locale.ENGLISH;
+            case "fra":
+            case "fr":
+                return Locale.FRENCH;
+            case "deu":
+            case "de":
+                return Locale.GERMAN;
+            case "spa":
+            case "es":
+                return new Locale("es");
+            case "ita":
+            case "it":
+                return Locale.ITALIAN;
+            case "por":
+            case "pt":
+                return new Locale("pt");
+            case "rus":
+            case "ru":
+                return new Locale("ru");
+            case "pol":
+            case "pl":
+                return new Locale("pl");
+            case "jpn":
+            case "ja":
+                return Locale.JAPANESE;
+            case "kor":
+            case "ko":
+                return Locale.KOREAN;
+            default:
+                break;
+        }
+
         String[] localeCodeArray = localeCode.split("_");
         String language = localeCodeArray[0];
         String country = "";

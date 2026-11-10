@@ -31,6 +31,11 @@ public enum ConfigType {
     DEFAULT_LANGUAGE,
 
     /**
+     * Base URL for external links and emails.
+     */
+    BASE_URL,
+
+    /**
      * File storage, deletion, duplication and encryption settings.
      */
     FILE_DELETE,
@@ -45,6 +50,7 @@ public enum ConfigType {
     SMTP_HOSTNAME,
     SMTP_PORT,
     SMTP_FROM,
+    SMTP_FROM_NAME,
     SMTP_USERNAME,
     SMTP_PASSWORD,
 

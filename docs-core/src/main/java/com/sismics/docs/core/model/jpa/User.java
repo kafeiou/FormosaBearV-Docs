@@ -95,6 +95,12 @@ public class User implements Loggable {
     @Column(name = "USE_DISABLEDATE_D")
     private Date disableDate;
 
+    /**
+     * Authentication source (INTERNAL, LDAP).
+     */
+    @Column(name = "USE_AUTH_SOURCE_C", nullable = false, length = 20)
+    private String authSource = "INTERNAL";
+
     public String getId() {
         return id;
     }
@@ -210,6 +216,15 @@ public class User implements Loggable {
 
     public User setOnboarding(boolean onboarding) {
         this.onboarding = onboarding;
+        return this;
+    }
+
+    public String getAuthSource() {
+        return authSource;
+    }
+
+    public User setAuthSource(String authSource) {
+        this.authSource = authSource;
         return this;
     }
 

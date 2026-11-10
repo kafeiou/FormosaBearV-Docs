@@ -48,6 +48,11 @@ public class UserDto {
      */
     private String totpKey;
 
+    /**
+     * Authentication source (INTERNAL, LDAP).
+     */
+    private String authSource;
+
     public String getId() {
         return id;
     }
@@ -111,6 +116,15 @@ public class UserDto {
 
     public void setTotpKey(String totpKey) {
         this.totpKey = totpKey;
+    }
+
+    public String getAuthSource() {
+        return authSource;
+    }
+
+    public UserDto setAuthSource(String authSource) {
+        this.authSource = authSource;
+        return this;
     }
 
     @Override

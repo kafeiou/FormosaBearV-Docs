@@ -106,7 +106,7 @@ public class AppResource extends BaseResource {
             log.warn("Missing api.min_version in config bundle, fallback to default: " + e.getMessage());
         }
         Boolean guestLogin = ConfigUtil.getConfigBooleanValue(ConfigType.GUEST_LOGIN);
-        Boolean ocrEnabled = ConfigUtil.getConfigBooleanValue(ConfigType.OCR_ENABLED, true);
+        Boolean ocrEnabled = ConfigUtil.getConfigBooleanValue(ConfigType.OCR_ENABLED, false);
         String defaultLanguage = ConfigUtil.getConfigStringValue(ConfigType.DEFAULT_LANGUAGE);
         UserDao userDao = new UserDao();
         DocumentDao documentDao = new DocumentDao();
@@ -122,6 +122,7 @@ public class AppResource extends BaseResource {
                 .add("guest_login", guestLogin)
                 .add("ocr_enabled", ocrEnabled)
                 .add("default_language", defaultLanguage)
+                .add("base_url", ConfigUtil.getBaseUrl())
                 .add("file_delete", ConfigUtil.isFileDelete())
                 .add("file_duplicate", ConfigUtil.canFileDuplicate())
                 .add("file_download", ConfigUtil.canFileDownload())
@@ -167,6 +168,25 @@ public class AppResource extends BaseResource {
         configDao.update(ConfigType.GUEST_LOGIN, enabled.toString());
 
         return Response.ok().build();
+    }
+
+    /**
+     * Get OCR configuration.
+     *
+     * @return Response
+     */
+    @GET
+    @Path("ocr")
+    public Response getOcr() {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        Boolean ocrEnabled = ConfigUtil.getConfigBooleanValue(ConfigType.OCR_ENABLED, false);
+        JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("enabled", ocrEnabled);
+        return Response.ok().entity(response.build()).build();
     }
 
     /**
@@ -287,7 +307,8 @@ public class AppResource extends BaseResource {
      */
     @POST
     @Path("config")
-    public Response config(@FormParam("default_language") String defaultLanguage) {
+    public Response config(@FormParam("default_language") String defaultLanguage,
+                           @FormParam("base_url") String baseUrl) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -299,6 +320,10 @@ public class AppResource extends BaseResource {
 
         ConfigDao configDao = new ConfigDao();
         configDao.update(ConfigType.DEFAULT_LANGUAGE, defaultLanguage);
+
+        if (!Strings.isNullOrEmpty(baseUrl)) {
+            configDao.update(ConfigType.BASE_URL, ConfigUtil.normalizeBaseUrl(baseUrl));
+        }
 
         return Response.ok().build();
     }
@@ -369,6 +394,13 @@ public class AppResource extends BaseResource {
             response.add("from", fromConfig.getValue());
         }
 
+        Config fromNameConfig = configDao.getById(ConfigType.SMTP_FROM_NAME);
+        if (fromNameConfig == null || Strings.isNullOrEmpty(fromNameConfig.getValue())) {
+            response.add("from_name", ConfigUtil.getMailAppName());
+        } else {
+            response.add("from_name", fromNameConfig.getValue());
+        }
+
         return Response.ok().entity(response.build()).build();
     }
 
@@ -401,7 +433,8 @@ public class AppResource extends BaseResource {
                                @FormParam("port") String portStr,
                                @FormParam("username") String username,
                                @FormParam("password") String password,
-                               @FormParam("from") String from) {
+                               @FormParam("from") String from,
+                               @FormParam("from_name") String fromName) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -426,6 +459,9 @@ public class AppResource extends BaseResource {
         }
         if (!Strings.isNullOrEmpty(from)) {
             configDao.update(ConfigType.SMTP_FROM, from);
+        }
+        if (fromName != null) {
+            configDao.update(ConfigType.SMTP_FROM_NAME, fromName.trim());
         }
 
         return Response.ok().build();

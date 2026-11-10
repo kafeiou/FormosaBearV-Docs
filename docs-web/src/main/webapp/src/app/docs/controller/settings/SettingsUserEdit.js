@@ -93,6 +93,14 @@ angular.module('docs').controller('SettingsUserEdit', function($scope, $dialog, 
           var msg = $translate.instant('settings.user.edit.password_lost_sent_message', { username: $stateParams.username });
           var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
           $dialog.messageBox(title, msg, btns);
+      }, function(err) {
+          var title = $translate.instant('settings.user.edit.password_lost_sent_title');
+          var msg = $translate.instant('settings.user.edit.password_lost_error');
+          if (err && err.data && err.data.type === 'LdapUserPasswordResetForbidden') {
+              msg = $translate.instant('login.password_lost_ldap_forbidden');
+          }
+          var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
+          $dialog.messageBox(title, msg, btns);
       });
   };
 
@@ -109,6 +117,27 @@ angular.module('docs').controller('SettingsUserEdit', function($scope, $dialog, 
         Restangular.one('user/' + $stateParams.username + '/disable_totp').post('').then(function() {
           $scope.user.totp_enabled = false;
         });
+      }
+    });
+  };
+
+  /**
+   * Convert LDAP user to internal user.
+   */
+  $scope.convertToInternal = function () {
+    var title = $translate.instant('settings.user.edit.convert_to_internal_title');
+    var msg = $translate.instant('settings.user.edit.convert_to_internal_confirm');
+    var btns = [
+      { result: 'cancel', label: $translate.instant('cancel') },
+      { result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-warning' }
+    ];
+
+    $dialog.messageBox(title, msg, btns, function (result) {
+      if (result === 'ok') {
+        $scope.user.auth_source = 'INTERNAL';
+        if ($scope.editUserForm) {
+          $scope.editUserForm.$setDirty();
+        }
       }
     });
   };

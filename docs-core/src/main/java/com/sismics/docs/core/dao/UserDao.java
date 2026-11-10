@@ -87,6 +87,9 @@ public class UserDao {
         }
         
         // Create the user
+        if (user.getAuthSource() == null) {
+            user.setAuthSource("INTERNAL");
+        }
         user.setCreateDate(new Date());
         user.setPassword(hashPassword(user.getPassword()));
         user.setPrivateKey(EncryptionUtil.generatePrivateKey());
@@ -120,6 +123,9 @@ public class UserDao {
         userDb.setStorageCurrent(user.getStorageCurrent());
         userDb.setTotpKey(user.getTotpKey());
         userDb.setDisableDate(user.getDisableDate());
+        if (user.getAuthSource() != null) {
+            userDb.setAuthSource(user.getAuthSource());
+        }
 
         // Create audit log
         AuditLogUtil.create(userDb, AuditLogType.UPDATE, userId);
@@ -339,7 +345,7 @@ public class UserDao {
         Map<String, Object> parameterMap = new HashMap<>();
         List<String> criteriaList = new ArrayList<>();
         
-        StringBuilder sb = new StringBuilder("select u.USE_ID_C as c0, u.USE_USERNAME_C as c1, u.USE_EMAIL_C as c2, u.USE_CREATEDATE_D as c3, u.USE_STORAGECURRENT_N as c4, u.USE_STORAGEQUOTA_N as c5, u.USE_TOTPKEY_C as c6, u.USE_DISABLEDATE_D as c7");
+        StringBuilder sb = new StringBuilder("select u.USE_ID_C as c0, u.USE_USERNAME_C as c1, u.USE_EMAIL_C as c2, u.USE_CREATEDATE_D as c3, u.USE_STORAGECURRENT_N as c4, u.USE_STORAGEQUOTA_N as c5, u.USE_TOTPKEY_C as c6, u.USE_DISABLEDATE_D as c7, u.USE_AUTH_SOURCE_C as c8");
         sb.append(" from T_USER u ");
         
         // Add search criterias
@@ -387,6 +393,8 @@ public class UserDao {
             if (o[i] != null) {
                 userDto.setDisableTimestamp(((Timestamp) o[i]).getTime());
             }
+            i++;
+            userDto.setAuthSource((String) o[i++]);
             userDtoList.add(userDto);
         }
         return userDtoList;

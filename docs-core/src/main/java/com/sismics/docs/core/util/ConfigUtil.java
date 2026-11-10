@@ -1,12 +1,18 @@
 package com.sismics.docs.core.util;
 
+import java.io.StringReader;
 import java.util.ResourceBundle;
 
+import com.google.common.base.Strings;
+import com.sismics.docs.core.constant.Constants;
 import com.sismics.docs.core.constant.ConfigType;
 import com.sismics.docs.core.dao.ConfigDao;
 import com.sismics.docs.core.model.jpa.Config;
 import com.sismics.util.context.ThreadLocalContext;
 
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
@@ -235,5 +241,91 @@ public class ConfigUtil {
         } catch (IllegalStateException e) {
             return defaultValue;
         }
+    }
+
+    /**
+     * Normalizes a Base URL by trimming, ensuring protocol prefix, and removing trailing slashes.
+     *
+     * @param url Input URL
+     * @return Normalized Base URL
+     */
+    public static String normalizeBaseUrl(String url) {
+        if (Strings.isNullOrEmpty(url)) {
+            return "http://localhost:8080";
+        }
+        url = url.trim();
+        // If protocol is missing, prepend http://
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "http://" + url;
+        }
+        // Strip trailing slashes
+        url = url.replaceAll("/+$", "");
+        return url;
+    }
+
+    /**
+     * Returns the application base URL used for email links and external share links.
+     * Priority:
+     * 1. Database configuration (T_CONFIG: BASE_URL)
+     * 2. Environment variable (DOCS_BASE_URL)
+     * 3. System property (docs.base_url)
+     * 4. Default to http://localhost:8080 (or detected port)
+     *
+     * @return Base URL
+     */
+    public static String getBaseUrl() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config config = configDao.getById(ConfigType.BASE_URL);
+                if (config != null && !Strings.isNullOrEmpty(config.getValue())) {
+                    return normalizeBaseUrl(config.getValue());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        String envBaseUrl = System.getenv(Constants.BASE_URL_ENV);
+        if (!Strings.isNullOrEmpty(envBaseUrl)) {
+            return normalizeBaseUrl(envBaseUrl);
+        }
+        String propBaseUrl = System.getProperty("docs.base_url", System.getProperty("base_url"));
+        if (!Strings.isNullOrEmpty(propBaseUrl)) {
+            return normalizeBaseUrl(propBaseUrl);
+        }
+        String port = System.getProperty("jetty.http.port", "8080");
+        return "http://localhost:" + port;
+    }
+
+    /**
+     * Returns the application/sender name used in emails and notifications.
+     * Priority:
+     * 1. Database configuration (T_CONFIG: SMTP_FROM_NAME)
+     * 2. Database configuration (T_CONFIG: THEME name, if not empty and not 'Teedy')
+     * 3. Default to FormosaBearV
+     *
+     * @return Mail application name
+     */
+    public static String getMailAppName() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config fromNameConfig = configDao.getById(ConfigType.SMTP_FROM_NAME);
+                if (fromNameConfig != null && !Strings.isNullOrEmpty(fromNameConfig.getValue())) {
+                    return fromNameConfig.getValue().trim();
+                }
+                Config themeConfig = configDao.getById(ConfigType.THEME);
+                if (themeConfig != null && !Strings.isNullOrEmpty(themeConfig.getValue())) {
+                    try (JsonReader reader = Json.createReader(new StringReader(themeConfig.getValue()))) {
+                        JsonObject themeJson = reader.readObject();
+                        String themeName = themeJson.getString("name", null);
+                        if (!Strings.isNullOrEmpty(themeName) && !"Teedy".equalsIgnoreCase(themeName.trim())) {
+                            return themeName.trim();
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return "FormosaBearV";
     }
 }

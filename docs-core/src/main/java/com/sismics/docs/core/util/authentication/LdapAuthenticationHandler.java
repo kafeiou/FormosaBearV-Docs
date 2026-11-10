@@ -98,6 +98,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
             user = new User();
             user.setRoleId(Constants.DEFAULT_USER_ROLE);
             user.setUsername(username);
+            user.setAuthSource("LDAP");
             user.setPassword(UUID.randomUUID().toString()); // No authentication using the internal database
             Attribute mailAttribute = userEntry.get("mail");
             if (mailAttribute == null || mailAttribute.get() == null) {
@@ -133,6 +134,18 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
             } catch (Exception e) {
                 log.error("Error while creating the internal user", e);
                 return null;
+            }
+        } else {
+            // Existing user authenticated via LDAP
+            // Never convert the built-in admin account to LDAP to preserve break-glass emergency access
+            if (!Constants.ADMIN_USER_ID.equals(user.getId()) && !"admin".equalsIgnoreCase(username)) {
+                if (!"LDAP".equals(user.getAuthSource())) {
+                    log.info("Migrating user \"" + username + "\" auth_source to LDAP and resetting local password");
+                    user.setAuthSource("LDAP");
+                    user.setPassword(UUID.randomUUID().toString());
+                    userDao.updatePassword(user, "admin");
+                    userDao.update(user, "admin");
+                }
             }
         }
 

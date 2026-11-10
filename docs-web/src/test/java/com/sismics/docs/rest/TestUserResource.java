@@ -501,4 +501,114 @@ public class TestUserResource extends BaseJerseyTest {
                 .delete();
         Assert.assertEquals(Response.Status.OK, Response.Status.fromStatusCode(response.getStatus()));
     }
+
+    /**
+     * Test LDAP auth_source protection and hybrid auth isolation.
+     */
+    @Test
+    public void testLdapAuthSourceSecurity() {
+        String adminToken = adminToken();
+
+        // 1. Create a normal user ldap_user
+        clientUtil.createUser("ldap_user");
+        String userToken = clientUtil.login("ldap_user", "12345678", false);
+
+        // Check GET /user info
+        JsonObject userInfo = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("INTERNAL", userInfo.getString("auth_source"));
+        Assert.assertFalse(userInfo.getBoolean("is_ldap"));
+
+        // 2. Admin sets auth_source = LDAP for ldap_user
+        Response response = target().path("/user/ldap_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("auth_source", "LDAP")));
+        Assert.assertEquals(Response.Status.OK, Response.Status.fromStatusCode(response.getStatus()));
+
+        // Check GET /user/ldap_user view
+        JsonObject view = target().path("/user/ldap_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("LDAP", view.getString("auth_source"));
+        Assert.assertTrue(view.getBoolean("is_ldap"));
+
+        // 3. LDAP user cannot change password via POST /user (self-service)
+        response = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form()
+                        .param("password", "newpassword123")));
+        Assert.assertEquals(Response.Status.BAD_REQUEST, Response.Status.fromStatusCode(response.getStatus()));
+        JsonObject errJson = response.readEntity(JsonObject.class);
+        Assert.assertEquals("LdapUserPasswordChangeForbidden", errJson.getString("type"));
+
+        // 4. Admin cannot change password for LDAP user without converting to INTERNAL
+        response = target().path("/user/ldap_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("password", "newpassword123")));
+        Assert.assertEquals(Response.Status.BAD_REQUEST, Response.Status.fromStatusCode(response.getStatus()));
+        errJson = response.readEntity(JsonObject.class);
+        Assert.assertEquals("LdapUserPasswordChangeForbidden", errJson.getString("type"));
+
+        // 5. LDAP user requesting password recovery is forbidden
+        response = target().path("/user/password_lost").request()
+                .post(Entity.form(new Form()
+                        .param("username", "ldap_user")));
+        Assert.assertEquals(Response.Status.BAD_REQUEST, Response.Status.fromStatusCode(response.getStatus()));
+        errJson = response.readEntity(JsonObject.class);
+        Assert.assertEquals("LdapUserPasswordResetForbidden", errJson.getString("type"));
+
+        // 6. InternalAuthenticationHandler & REST login blocks LDAP user from local login
+        response = target().path("/user/login").request()
+                .post(Entity.form(new Form()
+                        .param("username", "ldap_user")
+                        .param("password", "12345678")
+                        .param("remember", "false")));
+        Assert.assertEquals(Response.Status.FORBIDDEN, Response.Status.fromStatusCode(response.getStatus()));
+
+        com.sismics.docs.core.util.TransactionUtil.handle(() -> {
+            com.sismics.docs.core.util.authentication.InternalAuthenticationHandler internalHandler =
+                    new com.sismics.docs.core.util.authentication.InternalAuthenticationHandler();
+            com.sismics.docs.core.model.jpa.User authResult = internalHandler.authenticate("ldap_user", "12345678");
+            Assert.assertNull("LDAP user must not authenticate with internal password", authResult);
+        });
+
+        // 7. Admin cannot convert built-in admin to LDAP
+        response = target().path("/user/admin").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("auth_source", "LDAP")));
+        Assert.assertEquals(Response.Status.OK, Response.Status.fromStatusCode(response.getStatus()));
+        JsonObject adminView = target().path("/user/admin").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("INTERNAL", adminView.getString("auth_source"));
+        Assert.assertFalse(adminView.getBoolean("is_ldap"));
+
+        // 8. Admin converts ldap_user back to INTERNAL and assigns new password
+        response = target().path("/user/ldap_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("auth_source", "INTERNAL")
+                        .param("password", "newpassword123")));
+        Assert.assertEquals(Response.Status.OK, Response.Status.fromStatusCode(response.getStatus()));
+
+        // Check view again
+        view = target().path("/user/ldap_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("INTERNAL", view.getString("auth_source"));
+        Assert.assertFalse(view.getBoolean("is_ldap"));
+
+        // User can now log in with the new local password!
+        String newLoginToken = clientUtil.login("ldap_user", "newpassword123", false);
+        Assert.assertNotNull(newLoginToken);
+
+        // Clean up
+        target().path("/user/ldap_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+    }
 }

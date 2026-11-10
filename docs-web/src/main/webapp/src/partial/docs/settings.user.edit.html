@@ -1,8 +1,21 @@
 <span class="fas fa-circle-notch fa-spin" ng-show="!user && isEdit()"></span>
 
 <div ng-show="user || !isEdit()">
-  <h2 ng-show="isEdit()" translate="settings.user.edit.edit_user_title" translate-values="{ username: user.username }"></h2>
+  <h2 ng-show="isEdit()">
+    <span translate="settings.user.edit.edit_user_title" translate-values="{ username: user.username }"></span>
+    <span class="label label-info" ng-if="user.auth_source == 'LDAP'" style="font-size: 14px; vertical-align: middle; margin-left: 8px;">LDAP</span>
+    <span class="label label-default" ng-if="user.auth_source != 'LDAP' && user.username != 'guest'" style="font-size: 14px; vertical-align: middle; margin-left: 8px;">INTERNAL</span>
+  </h2>
   <h2 ng-show="!isEdit()" translate="settings.user.edit.add_user_title"></h2>
+
+  <div class="alert alert-info" ng-if="isEdit() && user.auth_source == 'LDAP'">
+    <p><span class="fas fa-id-card"></span> {{ 'settings.user.edit.ldap_user_notice' | translate }}</p>
+    <div style="margin-top: 10px;">
+      <button type="button" class="btn btn-warning btn-sm" ng-click="convertToInternal()">
+        <span class="fas fa-unlink"></span> {{ 'settings.user.edit.convert_to_internal_btn' | translate }}
+      </button>
+    </div>
+  </div>
 
   <form class="form-horizontal" name="editUserForm" novalidate autocomplete="off">
     <div class="form-group" ng-class="{ 'has-error': !editUserForm.userUsername.$valid && editUserForm.$dirty, success: editUserForm.userUsername.$valid }">
@@ -61,7 +74,7 @@
       </div>
     </div>
 
-    <div class="form-group" ng-if="user.username != 'guest'"
+    <div class="form-group" ng-if="user.username != 'guest' && user.auth_source != 'LDAP'"
       ng-class="{ 'has-error': !editUserForm.userPassword.$valid && editUserForm.$dirty, success: editUserForm.userPassword.$valid }">
       <label class="col-sm-2 control-label" for="inputUserPassword">{{ 'settings.user.edit.password' | translate }}</label>
       <div class="col-sm-7">
@@ -77,7 +90,7 @@
       </div>
     </div>
 
-    <div class="form-group" ng-if="user.username != 'guest'"
+    <div class="form-group" ng-if="user.username != 'guest' && user.auth_source != 'LDAP'"
       ng-class="{ 'has-error': !editUserForm.passwordconfirm.$valid && editUserForm.$dirty, success: editUserForm.passwordconfirm.$valid }">
       <label class="col-sm-2 control-label" for="inputPasswordConfirm">{{ 'settings.user.edit.password_confirm' | translate }}</label>
       <div class="col-sm-7">
@@ -115,7 +128,7 @@
 
     <div class="form-group">
       <div class="col-sm-offset-2 col-sm-10">
-        <button type="button" class="btn btn-info" ng-click="passwordReset()" ng-show="isEdit() && user.username != 'guest'">
+        <button type="button" class="btn btn-info" ng-click="passwordReset()" ng-show="isEdit() && user.username != 'guest' && user.auth_source != 'LDAP'">
           <span class="fas fa-redo-alt"></span> {{ 'settings.user.edit.password_reset_btn' | translate }}
         </button>
       </div>

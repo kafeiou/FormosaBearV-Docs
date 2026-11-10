@@ -67,9 +67,12 @@ angular.module('docs').controller('Login', function(Restangular, $scope, $rootSc
         var msg = $translate.instant('login.password_lost_sent_message', { username: username });
         var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
         $dialog.messageBox(title, msg, btns);
-      }, function () {
+      }, function (err) {
         var title = $translate.instant('login.password_lost_error_title');
         var msg = $translate.instant('login.password_lost_error_message');
+        if (err && err.data && err.data.type === 'LdapUserPasswordResetForbidden') {
+          msg = $translate.instant('login.password_lost_ldap_forbidden');
+        }
         var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
         $dialog.messageBox(title, msg, btns);
       });

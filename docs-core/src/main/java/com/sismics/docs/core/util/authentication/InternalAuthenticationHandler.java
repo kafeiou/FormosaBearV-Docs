@@ -14,6 +14,10 @@ public class InternalAuthenticationHandler implements AuthenticationHandler {
     @Override
     public User authenticate(String username, String password) {
         UserDao userDao = new UserDao();
-        return userDao.authenticate(username, password);
+        User user = userDao.authenticate(username, password);
+        if (user != null && "LDAP".equals(user.getAuthSource())) {
+            return null;
+        }
+        return user;
     }
 }
