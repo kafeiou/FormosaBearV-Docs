@@ -91,13 +91,13 @@
                 <span class="fas fa-ellipsis-v"></span>
               </button>
               <ul class="dropdown-menu" uib-dropdown-menu>
-                <li ng-if="canDownload()">
+                <li ng-if="canDownload(file, document)">
                   <a ng-href="../api/file/{{ file.id }}/data" target="_blank">
                     <span class="fas fa-download"></span>
                     {{ 'download' | translate }}
                   </a>
                 </li>
-                <li role="separator" class="divider" ng-if="canDownload()"></li>
+                <li role="separator" class="divider" ng-if="canDownload(file, document)"></li>
                 <li>
                   <a href ng-click="renameFile(file,document.title)">
                     <span class="fas fa-pencil-alt"></span>
@@ -183,13 +183,13 @@
             <span class="fas fa-ellipsis-v"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu>
-            <li ng-if="canDownload()">
+            <li ng-if="canDownload(file, document)">
               <a ng-href="../api/file/{{ file.id }}/data" target="_blank">
                 <span class="fas fa-download"></span>
                 {{ 'download' | translate }}
               </a>
             </li>
-            <li role="separator" class="divider" ng-if="canDownload()"></li>
+            <li role="separator" class="divider" ng-if="canDownload(file, document)"></li>
             <li>
               <a href ng-click="renameFile(file,document.title)">
                 <span class="fas fa-pencil-alt"></span>

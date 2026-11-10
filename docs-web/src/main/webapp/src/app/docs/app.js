@@ -674,11 +674,31 @@ angular.module('docs',
  * Global download permission helper.
  */
 .run(function ($rootScope, Restangular) {
-  $rootScope.canDownload = function() {
-    if ($rootScope.app && $rootScope.app.file_download === false) {
-      return false;
+  $rootScope.canDownload = function(file, document) {
+    if (!$rootScope.app || $rootScope.app.file_download !== false) {
+      return true;
     }
-    return true;
+    if ($rootScope.userInfo && $rootScope.userInfo.base_functions && $rootScope.userInfo.base_functions.indexOf('ADMIN') !== -1) {
+      return true;
+    }
+    var doc = document || $rootScope.currentDocument;
+    if (doc) {
+      if (doc.can_download !== undefined) {
+        return doc.can_download;
+      }
+      if ($rootScope.userInfo && doc.creator && $rootScope.userInfo.username === doc.creator) {
+        return true;
+      }
+      if (doc.allow_download) {
+        return true;
+      }
+    }
+    if (file) {
+      if ($rootScope.userInfo && file.creator && $rootScope.userInfo.username === file.creator) {
+        return true;
+      }
+    }
+    return false;
   };
 
   if (!$rootScope.app) {

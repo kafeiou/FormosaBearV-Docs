@@ -43,7 +43,17 @@ angular.module('docs').controller('SettingsUserEdit', function($scope, $dialog, 
     
     promise.then(function () {
       $scope.loadUsers();
-      $state.go('settings.user');
+      if ($scope.isEdit()) {
+        Restangular.one('user', $stateParams.username).get().then(function (data) {
+          data.storage_quota /= 1000000;
+          $scope.user = data;
+          if ($scope.editUserForm) {
+            $scope.editUserForm.$setPristine();
+          }
+        });
+      } else {
+        $state.go('settings.user');
+      }
     }, function (e) {
       if (e.data.type === 'AlreadyExistingUsername') {
         var title = $translate.instant('settings.user.edit.edit_user_failed_title');

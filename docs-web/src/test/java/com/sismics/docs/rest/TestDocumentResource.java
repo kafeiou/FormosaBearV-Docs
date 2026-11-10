@@ -1001,4 +1001,162 @@ public class TestDocumentResource extends BaseJerseyTest {
         Assert.assertEquals("BOOLEAN", meta.getString("type"));
         Assert.assertTrue(meta.getBoolean("value"));
     }
+
+    /**
+     * Test document-level download permission and global download matrix.
+     */
+    @Test
+    public void testDocumentDownloadPermission() throws Exception {
+        // Login admin
+        String adminToken = clientUtil.login("admin", "superSecure", false);
+
+        // Create user_uploader and user_collab
+        clientUtil.createUser("user_uploader");
+        String uploaderToken = clientUtil.login("user_uploader");
+        clientUtil.createUser("user_collab");
+        String collabToken = clientUtil.login("user_collab");
+
+        // 1. Uploader creates a document with allow_download = false (default)
+        JsonObject jsonDoc = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, uploaderToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Doc Restricted")
+                        .param("language", "eng")
+                        .param("allow_download", "false")), JsonObject.class);
+        String docId = jsonDoc.getString("id");
+
+        // Grant WRITE ACL to user_collab
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, uploaderToken)
+                .put(Entity.form(new Form()
+                        .param("source", docId)
+                        .param("perm", "WRITE")
+                        .param("type", "USER")
+                        .param("target", "user_collab")), JsonObject.class);
+
+        // Upload a file to the document
+        String fileId = clientUtil.addFileToDocument(FILE_DOCUMENT_TXT, uploaderToken, docId);
+
+        // Create public share for this document
+        JsonObject shareJson = target().path("/share").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, uploaderToken)
+                .put(Entity.form(new Form()
+                        .param("id", docId)
+                        .param("name", "Public Share")), JsonObject.class);
+        String shareId = shareJson.getString("id");
+
+        // Set global download to false
+        target().path("/app/file_download").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "false")));
+
+        try {
+            // (1) Admin can download all files and ZIP
+            Response res = target().path("/file/" + fileId + "/data").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+            res = target().path("/file/zip").queryParam("id", docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+            // (2) Creator/uploader can download own file and ZIP
+            res = target().path("/file/" + fileId + "/data").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, uploaderToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+            res = target().path("/file/zip").queryParam("id", docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, uploaderToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+            // (3) Non-creator (collab) cannot download file (HTTP 403) and cannot download ZIP (HTTP 403)
+            res = target().path("/file/" + fileId + "/data").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get();
+            Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(res.getStatus()));
+
+            res = target().path("/file/zip").queryParam("id", docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get();
+            Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(res.getStatus()));
+
+            // Public share visitor cannot download (HTTP 403)
+            res = target().path("/file/" + fileId + "/data")
+                    .queryParam("share", shareId)
+                    .request()
+                    .get();
+            Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(res.getStatus()));
+
+            // Online preview / thumbnail remains accessible!
+            res = target().path("/file/" + fileId + "/data")
+                    .queryParam("size", "web")
+                    .request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+            // (4) Collaborator tries to modify allow_download to true -> ignored / blocked
+            target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .post(Entity.form(new Form()
+                            .param("title", "Doc Restricted Collab Edit")
+                            .param("language", "eng")
+                            .param("allow_download", "true")));
+
+            JsonObject docDetails = target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get(JsonObject.class);
+            Assert.assertFalse(docDetails.getBoolean("allow_download"));
+            Assert.assertFalse(docDetails.getBoolean("can_download"));
+
+            // (5) Uploader enables allow_download = true
+            target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, uploaderToken)
+                    .post(Entity.form(new Form()
+                            .param("title", "Doc Downloadable")
+                            .param("language", "eng")
+                            .param("allow_download", "true")));
+
+            docDetails = target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get(JsonObject.class);
+            Assert.assertTrue(docDetails.getBoolean("allow_download"));
+            Assert.assertTrue(docDetails.getBoolean("can_download"));
+
+            // Now collab CAN download file and ZIP
+            res = target().path("/file/" + fileId + "/data").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+            res = target().path("/file/zip").queryParam("id", docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+            // Now public share visitor CAN download file and ZIP
+            res = target().path("/file/" + fileId + "/data")
+                    .queryParam("share", shareId)
+                    .request()
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+            res = target().path("/file/zip")
+                    .queryParam("id", docId)
+                    .queryParam("share", shareId)
+                    .request()
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+        } finally {
+            // Restore global file download to true
+            target().path("/app/file_download").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                    .post(Entity.form(new Form().param("enabled", "true")));
+        }
+    }
 }

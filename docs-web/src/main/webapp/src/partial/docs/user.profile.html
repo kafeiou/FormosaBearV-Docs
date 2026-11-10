@@ -11,12 +11,16 @@
 
 <h4>{{ 'user.profile.quota_used' | translate }}</h4>
 <div class="row">
-  <div class="col-md-6">
+  <div class="col-md-6" ng-if="user.storage_quota > 0">
     <div class="progress" translate-attr="{ title: 'user.profile.percent_used' }" translate-values="{ percent: user.storage_current / user.storage_quota * 100 }">
       <div class="progress-bar" ng-style="{ 'width': (user.storage_current / user.storage_quota * 100) + '%' }">
         <span class="sr-only" translate="user.profile.percent_used" translate-values="{ percent: user.storage_current / user.storage_quota * 100 }"></span>
       </div>
     </div>
+  </div>
+  <div class="col-md-6" ng-if="user.storage_quota <= 0">
+    <span class="label label-success" style="font-size: 13px;">{{ 'user.profile.unlimited' | translate }}</span>
+    <span class="text-muted small ml-10">({{ user.storage_current / 1000000 | number: 0 }} MB {{ 'user.profile.used' | translate }})</span>
   </div>
 </div>
 

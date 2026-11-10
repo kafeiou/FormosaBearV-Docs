@@ -92,6 +92,7 @@
     "page_size_30": "每页30列",
     "upgrade_quota": "如需要升级您的限额, 请联系管理员",
     "quota": "{{ current | number: 0 }}MB ({{ current | number: 1 }}%) 已使用 {{ total | number: 0 }}MB",
+    "quota_unlimited": "{{ current | number: 0 }}MB 已使用（无限制）",
     "count": "找到{{ count }}个文件",
     "last_updated": "最后更新 {{ date | timeAgo: dateFormat }}",
     "view": {
@@ -174,7 +175,10 @@
       "format_placeholder": "资源的文件格式, 物理介质或维度",
       "source_placeholder": "从中导出所描述的资源的相关来源",
       "uploading_files": "文档上传中...",
-      "rename_error": "文档异动失败"
+      "rename_error": "文档异动失败",
+      "allow_download": "允许文件下载",
+      "allow_download_desc": "若系统开启全局禁止下载，勾选后具读取权限者仍可下载此文件之档案与 ZIP",
+      "allow_download_help": "仅文件创建者与管理员可变更此设置"
     },
     "default": {
       "upload_pending": "等待中...",
@@ -314,6 +318,8 @@
       "groups": "群组",
       "quota_used": "已使用配额",
       "percent_used": "{{ percent | number: 0 }}% 已使用",
+      "unlimited": "无限制",
+      "used": "已使用",
       "related_links": "相关链接",
       "document_created": "文档由 {{ username }} 创建",
       "edit_user": "编辑 {{ username }} 用户"
@@ -465,7 +471,8 @@
         "email": "邮箱",
         "groups": "群组",
         "storage_quota": "存储限额",
-        "storage_quota_placeholder": "存储限额 (in MB)",
+        "storage_quota_placeholder": "存储限额 (单位MB，输入 0 代表无限制)",
+        "storage_quota_help": "输入 0 代表容量无限制 (Unlimited)",
         "password": "密码",
         "password_confirm": "密码 (确认)",
         "disabled": "禁用用户",

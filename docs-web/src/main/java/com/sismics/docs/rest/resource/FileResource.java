@@ -9,7 +9,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -31,6 +33,7 @@ import com.sismics.docs.core.event.DocumentUpdatedAsyncEvent;
 import com.sismics.docs.core.event.FileDeletedAsyncEvent;
 import com.sismics.docs.core.event.FileUpdatedAsyncEvent;
 import com.sismics.docs.core.model.context.AppContext;
+import com.sismics.docs.core.model.jpa.Document;
 import com.sismics.docs.core.model.jpa.File;
 import com.sismics.docs.core.model.jpa.User;
 import com.sismics.docs.core.util.ConfigUtil;
@@ -673,6 +676,11 @@ public class FileResource extends BaseResource {
         // Get the file
         File file = findFile(fileId, shareId);
 
+        // Check download permission when downloading raw data
+        if (size == null && !checkDownloadAllowed(file, null)) {
+            throw new ForbiddenClientException();
+        }
+
         // Get the stored file
         UserDao userDao = new UserDao();
         java.nio.file.Path storedFile;
@@ -865,6 +873,16 @@ public class FileResource extends BaseResource {
             throw new NotFoundException();
         }
 
+        // Check download permission
+        if (!ConfigUtil.canFileDownload()) {
+            boolean allowed = hasBaseFunction(BaseFunction.ADMIN) ||
+                    (principal.getId() != null && principal.getId().equals(documentDto.getUserId())) ||
+                    documentDto.isAllowDownload();
+            if (!allowed) {
+                throw new ForbiddenClientException();
+            }
+        }
+
         // Get files associated with this document
         FileDao fileDao = new FileDao();
         final List<File> fileList = fileDao.getByDocumentId(principal.getId(), documentId);
@@ -894,10 +912,18 @@ public class FileResource extends BaseResource {
     public Response zip(
             @FormParam("files") List<String> filesIdsList) {
         authenticate();
-        if (!ConfigUtil.canFileDownload() && !hasBaseFunction(BaseFunction.ADMIN)) {
-            throw new ForbiddenClientException();
-        }
         List<File> fileList = findFiles(filesIdsList);
+        if (!ConfigUtil.canFileDownload() && !hasBaseFunction(BaseFunction.ADMIN)) {
+            Map<String, Document> docCache = new HashMap<>();
+            DocumentDao documentDao = new DocumentDao();
+            for (File file : fileList) {
+                Document doc = file.getDocumentId() != null ?
+                        docCache.computeIfAbsent(file.getDocumentId(), documentDao::getById) : null;
+                if (!checkDownloadAllowed(file, doc)) {
+                    throw new ForbiddenClientException();
+                }
+            }
+        }
         return sendZippedFiles("files", fileList);
     }
 
@@ -996,6 +1022,37 @@ public class FileResource extends BaseResource {
                 throw new ForbiddenClientException();
             }
         }
+    }
+
+    /**
+     * Checks if downloading the given file is allowed under the download authorization matrix.
+     *
+     * @param file File to check
+     * @param document Optional document instance, if already fetched
+     * @return true if allowed, false otherwise
+     */
+    private boolean checkDownloadAllowed(File file, Document document) {
+        if (ConfigUtil.canFileDownload()) {
+            return true;
+        }
+        if (hasBaseFunction(BaseFunction.ADMIN)) {
+            return true;
+        }
+        if (principal.getId() != null && principal.getId().equals(file.getUserId())) {
+            return true;
+        }
+        if (document == null && file.getDocumentId() != null) {
+            document = new DocumentDao().getById(file.getDocumentId());
+        }
+        if (document != null) {
+            if (principal.getId() != null && principal.getId().equals(document.getUserId())) {
+                return true;
+            }
+            if (document.isAllowDownload()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

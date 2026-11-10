@@ -17,6 +17,7 @@ angular.module('share').controller('Share', function($scope, $state, $stateParam
   Restangular.one('document', $stateParams.documentId).get({ share: $stateParams.shareId })
       .then(function (data) {
         $scope.document = data;
+        $scope.$root.document = data;
       }, function (response) {
         if (response.status === 403) {
           $state.go('403');

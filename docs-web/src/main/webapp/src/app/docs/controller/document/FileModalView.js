@@ -32,11 +32,10 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
   };
 
 
-  $scope.canDownload = function() {
-    if ($rootScope.app && $rootScope.app.file_download === false) {
-      return false;
-    }
-    return true;
+  $scope.canDownload = function(file, document) {
+    var f = file || $scope.file;
+    var d = document || $scope.document || $rootScope.currentDocument;
+    return $rootScope.canDownload(f, d);
   };
 
   if (!$rootScope.app) {
@@ -219,6 +218,11 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
 
   // Load files
   var documentId = $stateParams.docId || $stateParams.id;
+  if (documentId) {
+    Restangular.one('document', documentId).get().then(function (doc) {
+      $scope.document = doc;
+    });
+  }
   Restangular.one('file/list').get({ id: documentId }).then(function (data) {
     $scope.files = data.files;
     setFile(data.files);

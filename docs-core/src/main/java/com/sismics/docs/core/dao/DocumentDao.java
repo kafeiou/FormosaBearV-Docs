@@ -90,7 +90,9 @@ public class DocumentDao {
         StringBuilder sb = new StringBuilder("select distinct d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_DESCRIPTION_C, d.DOC_SUBJECT_C, d.DOC_IDENTIFIER_C, d.DOC_PUBLISHER_C, d.DOC_FORMAT_C, d.DOC_SOURCE_C, d.DOC_TYPE_C, d.DOC_COVERAGE_C, d.DOC_RIGHTS_C, d.DOC_CREATEDATE_D, d.DOC_UPDATEDATE_D, d.DOC_LANGUAGE_C, d.DOC_IDFILE_C,");
         sb.append(" (select count(s.SHA_ID_C) from T_SHARE s, T_ACL ac where ac.ACL_SOURCEID_C = d.DOC_ID_C and ac.ACL_TARGETID_C = s.SHA_ID_C and ac.ACL_DELETEDATE_D is null and s.SHA_DELETEDATE_D is null) shareCount, ");
         sb.append(" (select count(f.FIL_ID_C) from T_FILE f where f.FIL_DELETEDATE_D is null and f.FIL_IDDOC_C = d.DOC_ID_C) fileCount, ");
-        sb.append(" u.USE_USERNAME_C ");
+        sb.append(" u.USE_USERNAME_C, ");
+        sb.append(" d.DOC_ALLOW_DOWNLOAD_B, ");
+        sb.append(" d.DOC_IDUSER_C ");
         sb.append(" from T_DOCUMENT d ");
         sb.append(" join T_USER u on d.DOC_IDUSER_C = u.USE_ID_C ");
         sb.append(" where d.DOC_ID_C = :id and d.DOC_DELETEDATE_D is null ");
@@ -124,7 +126,16 @@ public class DocumentDao {
         documentDto.setFileId((String) o[i++]);
         documentDto.setShared(((Number) o[i++]).intValue() > 0);
         documentDto.setFileCount(((Number) o[i++]).intValue());
-        documentDto.setCreator((String) o[i]);
+        documentDto.setCreator((String) o[i++]);
+        Object allowDownloadObj = o[i++];
+        if (allowDownloadObj instanceof Boolean) {
+            documentDto.setAllowDownload((Boolean) allowDownloadObj);
+        } else if (allowDownloadObj instanceof Number) {
+            documentDto.setAllowDownload(((Number) allowDownloadObj).intValue() != 0);
+        } else if (allowDownloadObj != null) {
+            documentDto.setAllowDownload(Boolean.parseBoolean(String.valueOf(allowDownloadObj)));
+        }
+        documentDto.setUserId((String) o[i]);
         return documentDto;
     }
     
@@ -217,6 +228,7 @@ public class DocumentDao {
         documentDb.setCreateDate(document.getCreateDate());
         documentDb.setLanguage(document.getLanguage());
         documentDb.setFileId(document.getFileId());
+        documentDb.setAllowDownload(document.isAllowDownload());
         documentDb.setUpdateDate(new Date());
         
         // Create audit log

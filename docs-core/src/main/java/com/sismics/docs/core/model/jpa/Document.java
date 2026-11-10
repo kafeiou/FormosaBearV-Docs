@@ -108,6 +108,12 @@ public class Document implements Loggable {
     private Date createDate;
 
     /**
+     * Whether downloading is allowed even when global download is disabled.
+     */
+    @Column(name = "DOC_ALLOW_DOWNLOAD_B", nullable = false)
+    private boolean allowDownload = false;
+
+    /**
      * Creation date.
      */
     @Column(name = "DOC_UPDATEDATE_D", nullable = false)
@@ -255,6 +261,14 @@ public class Document implements Loggable {
 
     public void setUpdateDate(Date updateDate) {
         this.updateDate = updateDate;
+    }
+
+    public boolean isAllowDownload() {
+        return allowDownload;
+    }
+
+    public void setAllowDownload(boolean allowDownload) {
+        this.allowDownload = allowDownload;
     }
 
     @Override

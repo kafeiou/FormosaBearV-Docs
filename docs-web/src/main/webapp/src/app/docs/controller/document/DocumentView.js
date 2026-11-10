@@ -7,6 +7,7 @@ angular.module('docs').controller('DocumentView', function ($scope, $rootScope, 
   // Load document data from server
   Restangular.one('document', $stateParams.id).get().then(function (data) {
     $scope.document = data;
+    $rootScope.currentDocument = data;
   }, function (response) {
     $scope.error = response;
   });

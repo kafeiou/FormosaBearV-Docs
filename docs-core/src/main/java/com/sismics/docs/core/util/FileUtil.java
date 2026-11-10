@@ -163,10 +163,10 @@ public class FileUtil {
             throw new IOException("ErrorGuessMime", e);
         }
 
-        // Validate user quota
+        // Validate user quota (quota <= 0 means unlimited)
         UserDao userDao = new UserDao();
         User user = userDao.getById(userId);
-        if (user.getStorageCurrent() + fileSize > user.getStorageQuota()) {
+        if (user.getStorageQuota() > 0 && user.getStorageCurrent() + fileSize > user.getStorageQuota()) {
             throw new IOException("QuotaReached");
         }
 

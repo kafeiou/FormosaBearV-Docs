@@ -1,4 +1,4 @@
-﻿{
+{
   "login": {
     "username": "Użytkownik",
     "password": "Hasło",
@@ -166,7 +166,10 @@
       "publisher_placeholder": "Podmiot odpowiedzialny za udostępnienie zasobu",
       "format_placeholder": "Format pliku, nośnik fizyczny lub wymiary zasobu",
       "source_placeholder": "Powiązany zasób, z którego pochodzi opisany zasób",
-      "uploading_files": "Przesyłanie plików..."
+      "uploading_files": "Przesyłanie plików...",
+      "allow_download": "Zezwól na pobieranie plików",
+      "allow_download_desc": "Jeśli globalne pobieranie jest wyłączone, użytkownicy z prawem do odczytu nadal mogą pobierać pliki i archiwum ZIP tego dokumentu",
+      "allow_download_help": "Tylko twórca dokumentu i administratorzy mogą zmieniać to ustawienie"
     },
     "default": {
       "upload_pending": "Oczekiwanie...",
@@ -197,7 +200,8 @@
       "title": "Udostępnij dokument",
       "message": "Nazwa udostępnienie, jeśli chcesz udostępnić wiele razy ten sam dokument.",
       "submit": "Udostępnij"
-    }
+    },
+    "quota_unlimited": "{{ current | number: 0 }}MB used (Unlimited)"
   },
   "file": {
     "view": {
@@ -254,7 +258,9 @@
       "percent_used": "{{ percent | number: 0 }}% w użyciu",
       "related_links": "Powiązane linki",
       "document_created": "Dokumenty utworzone przez {{ username }}",
-      "edit_user": "Edytuj użytkownika {{ username }}"
+      "edit_user": "Edytuj użytkownika {{ username }}",
+      "unlimited": "Unlimited",
+      "used": "used"
     }
   },
   "usergroup": {
@@ -327,7 +333,8 @@
         "convert_to_internal_btn": "Convert to Local Account",
         "convert_to_internal_title": "Convert Account to Local",
         "convert_to_internal_confirm": "Are you sure you want to convert this LDAP account to a local internal account? You will need to set a local password for this user upon saving.",
-        "password_lost_error": "An error occurred while requesting password recovery."
+        "password_lost_error": "An error occurred while requesting password recovery.",
+        "storage_quota_help": "Enter 0 for unlimited storage"
       }
     },
     "workflow": {

@@ -27,6 +27,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import com.google.common.collect.Lists;
 import com.sismics.docs.core.constant.AclType;
 import com.sismics.docs.core.constant.AuditLogType;
+import com.sismics.docs.rest.constant.BaseFunction;
 import com.sismics.docs.core.constant.ConfigType;
 import com.sismics.docs.core.constant.Constants;
 import com.sismics.docs.core.constant.PermType;
@@ -191,6 +192,7 @@ public class DocumentResource extends BaseResource {
 
         JsonObjectBuilder document = createDocumentObjectBuilder(documentDto)
                 .add("creator", documentDto.getCreator())
+                .add("creator_id", JsonUtil.nullable(documentDto.getUserId()))
                 .add("coverage", JsonUtil.nullable(documentDto.getCoverage()))
                 .add("file_count", documentDto.getFileCount())
                 .add("format", JsonUtil.nullable(documentDto.getFormat()))
@@ -199,7 +201,12 @@ public class DocumentResource extends BaseResource {
                 .add("rights", JsonUtil.nullable(documentDto.getRights()))
                 .add("source", JsonUtil.nullable(documentDto.getSource()))
                 .add("subject", JsonUtil.nullable(documentDto.getSubject()))
-                .add("type", JsonUtil.nullable(documentDto.getType()));
+                .add("type", JsonUtil.nullable(documentDto.getType()))
+                .add("allow_download", documentDto.isAllowDownload())
+                .add("can_download", ConfigUtil.canFileDownload() ||
+                        hasBaseFunction(BaseFunction.ADMIN) ||
+                        (principal.getId() != null && principal.getId().equals(documentDto.getUserId())) ||
+                        documentDto.isAllowDownload());
 
         List<TagDto> tagDtoList = null;
         if (principal.isAnonymous()) {
@@ -698,7 +705,8 @@ public class DocumentResource extends BaseResource {
             @FormParam("metadata_id") List<String> metadataIdList,
             @FormParam("metadata_value") List<String> metadataValueList,
             @FormParam("language") String language,
-            @FormParam("create_date") String createDateStr) {
+            @FormParam("create_date") String createDateStr,
+            @FormParam("allow_download") Boolean allowDownload) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -734,6 +742,13 @@ public class DocumentResource extends BaseResource {
         document.setCoverage(coverage);
         document.setRights(rights);
         document.setLanguage(language);
+        // Only document creator or ADMIN can update allow_download
+        if (allowDownload != null) {
+            boolean canChangeAllowDownload = document.getUserId().equals(principal.getId()) || hasBaseFunction(BaseFunction.ADMIN);
+            if (canChangeAllowDownload) {
+                document.setAllowDownload(allowDownload);
+            }
+        }
         if (createDate == null) {
             document.setCreateDate(new Date());
         } else {
@@ -820,7 +835,8 @@ public class DocumentResource extends BaseResource {
             @FormParam("metadata_id") List<String> metadataIdList,
             @FormParam("metadata_value") List<String> metadataValueList,
             @FormParam("language") String language,
-            @FormParam("create_date") String createDateStr) {
+            @FormParam("create_date") String createDateStr,
+            @FormParam("allow_download") Boolean allowDownload) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -867,6 +883,13 @@ public class DocumentResource extends BaseResource {
         document.setCoverage(coverage);
         document.setRights(rights);
         document.setLanguage(language);
+        // Only document creator or ADMIN can update allow_download
+        if (allowDownload != null) {
+            boolean canChangeAllowDownload = document.getUserId().equals(principal.getId()) || hasBaseFunction(BaseFunction.ADMIN);
+            if (canChangeAllowDownload) {
+                document.setAllowDownload(allowDownload);
+            }
+        }
         if (createDate == null) {
             document.setCreateDate(new Date());
         } else {

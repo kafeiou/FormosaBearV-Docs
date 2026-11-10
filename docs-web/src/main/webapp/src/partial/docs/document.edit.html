@@ -78,6 +78,21 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="inputAllowDownload">{{ 'document.edit.allow_download' | translate }}</label>
+        <div class="col-sm-10">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" id="inputAllowDownload" ng-model="document.allow_download" ng-disabled="!canEditAllowDownload || fileIsUploading" />
+              {{ 'document.edit.allow_download_desc' | translate }}
+            </label>
+          </div>
+          <p class="help-block text-muted" ng-if="!canEditAllowDownload">
+            <i class="fas fa-lock"></i> {{ 'document.edit.allow_download_help' | translate }}
+          </p>
+        </div>
+      </div>
+
       <!-- Custom metadata -->
       <div class="form-group"
            ng ng-repeat="meta in document.metadata"

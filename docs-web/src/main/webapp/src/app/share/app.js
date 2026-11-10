@@ -212,11 +212,18 @@ angular.module('share',
  * Global download permission helper for share app.
  */
 angular.module('share').run(function ($rootScope, Restangular) {
-  $rootScope.canDownload = function () {
-    if ($rootScope.app && $rootScope.app.file_download === false) {
-      return false;
+  $rootScope.canDownload = function (file, document) {
+    if (!$rootScope.app || $rootScope.app.file_download !== false) {
+      return true;
     }
-    return true;
+    var doc = document || $rootScope.document;
+    if (doc) {
+      if (doc.can_download !== undefined) {
+        return doc.can_download;
+      }
+      return !!doc.allow_download;
+    }
+    return false;
   };
 
   if (!$rootScope.app) {

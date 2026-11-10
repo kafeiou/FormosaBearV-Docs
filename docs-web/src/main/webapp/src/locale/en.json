@@ -92,6 +92,7 @@
     "page_size_30": "30 per page",
     "upgrade_quota": "To upgrade your quota, ask your administrator",
     "quota": "{{ current | number: 0 }}MB ({{ percent | number: 1 }}%) used on {{ total | number: 0 }}MB",
+    "quota_unlimited": "{{ current | number: 0 }}MB used (Unlimited)",
     "count": "{{ count }} document{{ count > 1 ? 's' : '' }} found",
     "last_updated": "Last updated {{ date | timeAgo: dateFormat }}",
     "view": {
@@ -174,7 +175,10 @@
       "format_placeholder": "The file format, physical medium, or dimensions of the resource",
       "source_placeholder": "A related resource from which the described resource is derived",
       "uploading_files": "Uploading files...",
-      "rename_error": "File rename failed"
+      "rename_error": "File rename failed",
+      "allow_download": "Allow file download",
+      "allow_download_desc": "If global download is disabled, users with read access can still download files and ZIP of this document when checked",
+      "allow_download_help": "Only the document creator and administrators can change this setting"
     },
     "default": {
       "upload_pending": "Pending...",
@@ -314,6 +318,8 @@
       "groups": "Groups",
       "quota_used": "Quota used",
       "percent_used": "{{ percent | number: 0 }}% Used",
+      "unlimited": "Unlimited",
+      "used": "used",
       "related_links": "Related links",
       "document_created": "Documents created by {{ username }}",
       "edit_user": "Edit {{ username }} user"
@@ -465,7 +471,8 @@
         "email": "E-mail",
         "groups": "Groups",
         "storage_quota": "Storage quota",
-        "storage_quota_placeholder": "Storage quota (in MB)",
+        "storage_quota_placeholder": "Storage quota (in MB, enter 0 for unlimited)",
+        "storage_quota_help": "Enter 0 for unlimited storage",
         "password": "Password",
         "password_confirm": "Password (confirm)",
         "disabled": "Disabled user",

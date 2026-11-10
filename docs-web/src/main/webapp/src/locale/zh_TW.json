@@ -92,6 +92,7 @@
     "page_size_30": "每頁30列",
     "upgrade_quota": "如需要擴充檔案容量, 請聯繫管理員",
     "quota": "{{ current | number: 0 }}MB ({{ current | number: 1 }}%) 已使用 {{ total | number: 0 }}MB",
+    "quota_unlimited": "{{ current | number: 0 }}MB 已使用（無限制）",
     "count": "有 {{ count }} 份文件",
     "last_updated": "最後更新 {{ date | timeAgo: dateFormat }}",
     "view": {
@@ -174,7 +175,10 @@
       "format_placeholder": "文件格式",
       "source_placeholder": "出處",
       "uploading_files": "檔案上傳中...",
-      "rename_error": "檔案異動失敗"
+      "rename_error": "檔案異動失敗",
+      "allow_download": "允許檔案下載",
+      "allow_download_desc": "若系統開啟全域禁止下載，勾選後具讀取權限者仍可下載此文件之檔案與 ZIP",
+      "allow_download_help": "僅文件建立者與管理員可變更此設定"
     },
     "default": {
       "upload_pending": "等待中...",
@@ -314,6 +318,8 @@
       "groups": "群組",
       "quota_used": "已使用配額",
       "percent_used": "{{ percent | number: 0 }}% 已使用",
+      "unlimited": "無限制",
+      "used": "已使用",
       "related_links": "相關連接",
       "document_created": "文件由 {{ username }} 建立",
       "edit_user": "編輯 {{ username }} 帳號"
@@ -465,7 +471,8 @@
         "email": "郵件",
         "groups": "群組",
         "storage_quota": "儲存限額",
-        "storage_quota_placeholder": "儲存限額 (單位MB)",
+        "storage_quota_placeholder": "儲存限額 (單位MB，輸入 0 代表無限制)",
+        "storage_quota_help": "輸入 0 代表容量無限制 (Unlimited)",
         "password": "密碼",
         "password_confirm": "密碼 (確認)",
         "disabled": "禁用",

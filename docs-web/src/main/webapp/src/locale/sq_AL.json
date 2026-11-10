@@ -1,4 +1,4 @@
-﻿{
+{
   "login": {
     "username": "Emri i përdoruesit",
     "password": "Fjalëkalimi",
@@ -166,7 +166,10 @@
       "publisher_placeholder": "Një subjekt përgjegjës për vënien në dispozicion të burimit",
       "format_placeholder": "Formati i skedarit, mediumi fizik ose dimensionet e burimit",
       "source_placeholder": "Një burim i lidhur nga i cili rrjedh burimi i përshkruar",
-      "uploading_files": "Skedarët po ngarkohen..."
+      "uploading_files": "Skedarët po ngarkohen...",
+      "allow_download": "Lejo shkarkimin e skedarëve",
+      "allow_download_desc": "Nëse shkarkimi global është i çaktivizuar, përdoruesit me qasje leximi mund të shkarkojnë skedarët dhe ZIP-in e këtij dokumenti",
+      "allow_download_help": "Vetëm krijuesi i dokumentit dhe administratorët mund ta ndryshojnë këtë cilësim"
     },
     "default": {
       "upload_pending": "Në pritje...",
@@ -197,7 +200,8 @@
       "title": "Ndani dokumentin",
       "message": "Emërtoni ndarjen nëse dëshironi të ndani disa herë të njëjtin dokument.",
       "submit": "Shpërndaje"
-    }
+    },
+    "quota_unlimited": "{{ current | number: 0 }}MB used (Unlimited)"
   },
   "file": {
     "view": {
@@ -254,7 +258,9 @@
       "percent_used": "{{ percent | number: 0 }}% e përdorur",
       "related_links": "Lidhje të ngjashme",
       "document_created": "Dokumentet e krijuara nga {{ username }}",
-      "edit_user": "Redakto {{ username }} përdorues"
+      "edit_user": "Redakto {{ username }} përdorues",
+      "unlimited": "Unlimited",
+      "used": "used"
     }
   },
   "usergroup": {
@@ -328,7 +334,8 @@
         "convert_to_internal_btn": "Convert to Local Account",
         "convert_to_internal_title": "Convert Account to Local",
         "convert_to_internal_confirm": "Are you sure you want to convert this LDAP account to a local internal account? You will need to set a local password for this user upon saving.",
-        "password_lost_error": "An error occurred while requesting password recovery."
+        "password_lost_error": "An error occurred while requesting password recovery.",
+        "storage_quota_help": "Enter 0 for unlimited storage"
       }
     },
     "workflow": {

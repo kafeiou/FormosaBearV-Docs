@@ -22,7 +22,7 @@
   </div>
   
   <div class="btn-group pull-right">
-    <button type="button" class="btn btn-default" ng-if="canDownload()" uib-tooltip="Download this file" tooltip-append-to-body="true" ng-click="openFile()">
+    <button type="button" class="btn btn-default" ng-if="canDownload(file, document)" uib-tooltip="Download this file" tooltip-append-to-body="true" ng-click="openFile()">
       <span class="fas fa-download"></span>
     </button>
     <button type="button" class="btn btn-default" uib-tooltip="Show text content" tooltip-append-to-body="true" ng-click="openFileContent()">

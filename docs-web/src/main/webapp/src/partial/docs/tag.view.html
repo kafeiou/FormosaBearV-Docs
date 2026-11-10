@@ -161,7 +161,7 @@
                      title="{{ file.name || ('v' + (file.version + 1) + '.0') }}">
                   {{ file.name || ('v' + (file.version + 1) + '.0') }}
                 </div>
-                <div class="v-align" ng-if="canDownload()">
+                <div class="v-align" ng-if="canDownload(file, document)">
                   <a class="btn btn-xs btn-default"
                      ng-href="../api/file/{{ file.id }}/data"
                      target="_blank"

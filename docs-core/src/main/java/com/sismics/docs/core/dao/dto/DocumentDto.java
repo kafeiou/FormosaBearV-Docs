@@ -97,6 +97,16 @@ public class DocumentDto {
     private String creator;
 
     /**
+     * Creator user ID.
+     */
+    private String userId;
+
+    /**
+     * Whether downloading is allowed when global download is disabled.
+     */
+    private boolean allowDownload;
+
+    /**
      * A route is active.
      */
     private boolean activeRoute;
@@ -246,6 +256,22 @@ public class DocumentDto {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public boolean isAllowDownload() {
+        return allowDownload;
+    }
+
+    public void setAllowDownload(boolean allowDownload) {
+        this.allowDownload = allowDownload;
     }
 
     public boolean isActiveRoute() {

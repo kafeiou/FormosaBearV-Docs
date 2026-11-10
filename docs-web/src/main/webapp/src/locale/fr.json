@@ -1,4 +1,4 @@
-﻿{
+{
   "login": {
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
@@ -166,7 +166,10 @@
       "publisher_placeholder": "Nom de la personne, de l'organisation ou du service à l'origine de la publication du document",
       "format_placeholder": "Type MIME, ou format physique du document",
       "source_placeholder": "Ressource dont dérive le document",
-      "uploading_files": "Envoi des fichiers..."
+      "uploading_files": "Envoi des fichiers...",
+      "allow_download": "Autoriser le téléchargement de fichiers",
+      "allow_download_desc": "Si le téléchargement global est désactivé, les utilisateurs disposant d'un accès en lecture peuvent toujours télécharger les fichiers et le ZIP de ce document",
+      "allow_download_help": "Seul le créateur du document et les administrateurs peuvent modifier ce paramètre"
     },
     "default": {
       "upload_pending": "En attente...",
@@ -197,7 +200,8 @@
       "title": "Partager un document",
       "message": "Nommez le partage si vous souhaitez partager plusieurs fois le même document.",
       "submit": "Partager"
-    }
+    },
+    "quota_unlimited": "{{ current | number: 0 }}MB used (Unlimited)"
   },
   "file": {
     "view": {
@@ -254,7 +258,9 @@
       "percent_used": "{{ percent | number: 0 }}% utilisé",
       "related_links": "Liens relatifs",
       "document_created": "Documents créés par {{ username }}",
-      "edit_user": "Modifier l'utilisateur {{ username }}"
+      "edit_user": "Modifier l'utilisateur {{ username }}",
+      "unlimited": "Unlimited",
+      "used": "used"
     }
   },
   "usergroup": {
@@ -328,7 +334,8 @@
         "convert_to_internal_btn": "Convert to Local Account",
         "convert_to_internal_title": "Convert Account to Local",
         "convert_to_internal_confirm": "Are you sure you want to convert this LDAP account to a local internal account? You will need to set a local password for this user upon saving.",
-        "password_lost_error": "An error occurred while requesting password recovery."
+        "password_lost_error": "An error occurred while requesting password recovery.",
+        "storage_quota_help": "Enter 0 for unlimited storage"
       }
     },
     "workflow": {

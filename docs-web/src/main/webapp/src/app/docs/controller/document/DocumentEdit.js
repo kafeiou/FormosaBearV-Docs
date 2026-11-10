@@ -3,12 +3,26 @@
 /**
  * Document edition controller.
  */
-angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $q, $http, $state, $stateParams, Restangular, $translate) {
+angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $q, $http, $state, $stateParams, Restangular, $translate, User) {
   // Alerts
   $scope.alerts = [];
 
   // Vocabularies
   $scope.vocabularies = [];
+
+  // Can edit allow download permission flag
+  $scope.canEditAllowDownload = false;
+  var updateCanEditAllowDownload = function() {
+    if (!$scope.isEdit()) {
+      $scope.canEditAllowDownload = true;
+      return;
+    }
+    User.userInfo().then(function(user) {
+      var isAdmin = user && user.base_functions && user.base_functions.indexOf('ADMIN') !== -1;
+      var isCreator = user && $scope.document && user.username === $scope.document.creator;
+      $scope.canEditAllowDownload = !!(isAdmin || isCreator);
+    });
+  };
 
   // Orphan files to add
   $scope.orphanFiles = [];
@@ -60,8 +74,10 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
       tags: [],
       relations: [],
       language: language,
-      metadata: []
+      metadata: [],
+      allow_download: false
     };
+    $scope.canEditAllowDownload = true;
 
     // Get custom metadata list
     Restangular.one('metadata').get({
@@ -114,6 +130,10 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
       }
       return val;
     });
+
+    if ($scope.document) {
+      document.allow_download = !!$scope.document.allow_download;
+    }
 
     // Send to server
     if ($scope.isEdit()) {
@@ -250,6 +270,7 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
   if ($scope.isEdit()) {
     Restangular.one('document', $stateParams.id).get().then(function(data) {
       $scope.document = data;
+      updateCanEditAllowDownload();
     });
   } else {
     $scope.resetForm();

@@ -323,8 +323,14 @@
       <!--<a class="text-center"><span class="fas fa-plus"></span> Add this search query on the home</a>-->
 
       <div class="pull-left small text-muted" title="{{ 'document.upgrade_quota' | translate }}"
+           ng-if="userInfo.storage_quota > 0"
            translate="document.quota"
            translate-values="{ current: userInfo.storage_current / 1000000, percent: userInfo.storage_current / userInfo.storage_quota * 100, total: userInfo.storage_quota / 1000000 }">
+      </div>
+      <div class="pull-left small text-muted"
+           ng-if="userInfo.storage_quota <= 0"
+           translate="document.quota_unlimited"
+           translate-values="{ current: userInfo.storage_current / 1000000 }">
       </div>
 
       <div class="text-right small text-muted">

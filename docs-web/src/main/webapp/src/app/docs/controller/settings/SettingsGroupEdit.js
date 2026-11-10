@@ -60,7 +60,16 @@ angular.module('docs').controller('SettingsGroupEdit', function($scope, $dialog,
     promise.then(function() {
       $scope.loadGroups();
       if ($scope.isEdit()) {
-        $state.go('settings.group');
+        if ($stateParams.name !== group.name) {
+          $state.go('settings.group.edit', { name: group.name });
+        } else {
+          Restangular.one('group', $stateParams.name).get().then(function(data) {
+            $scope.group = data;
+            if ($scope.editGroupForm) {
+              $scope.editGroupForm.$setPristine();
+            }
+          });
+        }
       } else {
         // Go to edit this group to add members
         $state.go('settings.group.edit', { name: group.name });

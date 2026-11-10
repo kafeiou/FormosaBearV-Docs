@@ -9,7 +9,7 @@
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu">
-            <li ng-if="canDownload()">
+            <li ng-if="canDownload(null, document)">
               <a ng-href="../api/file/zip?id={{ document.id }}&share={{ $stateParams.shareId }}">
                 <span class="fas fa-download"></span>
                 {{ 'document.view.download_files' | translate }}
