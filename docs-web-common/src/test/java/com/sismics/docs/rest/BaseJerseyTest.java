@@ -65,7 +65,7 @@ public abstract class BaseJerseyTest extends JerseyTest {
     private Wiser wiser;
 
     public String adminToken() {
-        return clientUtil.login("admin", "admin", false);
+        return clientUtil.login("admin", "superSecure", false);
     }
 
     @Override

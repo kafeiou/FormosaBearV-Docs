@@ -16,9 +16,9 @@ public class Constants {
     public static final String DEFAULT_TIMEZONE_ID = "Europe/London";
     
     /**
-     * Administrator's default password ("admin").
+     * Administrator's default password ("superSecure").
      */
-    public static final String DEFAULT_ADMIN_PASSWORD = "$2y$10$xg0EEKVUehutDI1m6qQhVeFz7SMQMl1jQzjf2KkVsR2c7aV2vyyjK";
+    public static final String DEFAULT_ADMIN_PASSWORD = "$2a$10$iGnrUPOrJfn.cowMyfrSfOow5vD0nxHK8JAyIfxbztA8RtLL/IhmC";
 
     /**
      * Administrator's default email.

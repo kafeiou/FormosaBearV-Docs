@@ -5,15 +5,15 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
 echo "=========================================================="
-echo "  FormosaBearV (v2.02) Portable Package Builder"
+echo "  FormosaBearV (v2.03) Portable Package Builder"
 echo "=========================================================="
 
 JETTY_ZIP="$DIR/tools/jetty/jetty-home-12.1.14.zip"
-WAR_FILE="$DIR/docs-web/target/docs-web-2.02.war"
+WAR_FILE="$DIR/docs-web/target/docs-web-2.03.war"
 OUTPUT_DIR="$DIR/target"
-OUTPUT_ZIP="$OUTPUT_DIR/FormosaBearV-docs-2.02-portable.zip"
+OUTPUT_ZIP="$OUTPUT_DIR/FormosaBearV-docs-2.03-portable.zip"
 STAGING_ROOT="$OUTPUT_DIR/portable-staging"
-BUNDLE_DIR="$STAGING_ROOT/FormosaBearV-docs-2.02-portable"
+BUNDLE_DIR="$STAGING_ROOT/FormosaBearV-docs-2.03-portable"
 
 # 1. Base Jetty ZIP
 mkdir -p "$DIR/tools/jetty"
@@ -63,7 +63,7 @@ echo "[4/5] 初始化 Jetty 模組與佈署應用程式..."
     if [ -n "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ]; then
         JAVA_BIN="$JAVA_HOME/bin/java"
     fi
-    "$JAVA_BIN" -jar "jetty-home/start.jar" --create-startd --add-modules=ee10-deploy,http >/dev/null 2>&1
+    "$JAVA_BIN" -jar "jetty-home/start.jar" --create-startd --add-modules=ee10-deploy,http >/dev/null 2>&1 || true
 )
 
 mkdir -p "$BUNDLE_DIR/webapps"
@@ -84,6 +84,13 @@ rm -f "$OUTPUT_ZIP"
     cd "$BUNDLE_DIR"
     zip -q -r "$OUTPUT_ZIP" .
 )
+
+# Also sync to unzipped directory in output directory for immediate local use
+UNZIPPED_TARGET="$OUTPUT_DIR/FormosaBearV-docs-2.03-portable"
+rm -rf "$UNZIPPED_TARGET"
+mkdir -p "$UNZIPPED_TARGET"
+cp -r "$BUNDLE_DIR"/* "$UNZIPPED_TARGET"/
+
 rm -rf "$STAGING_ROOT"
 
 echo "=========================================================="

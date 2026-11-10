@@ -150,7 +150,7 @@ public class BackupService {
                 zos.putNextEntry(new ZipEntry("manifest.json"));
                 JsonObject manifestJson = Json.createObjectBuilder()
                         .add("app", "FormosaBearV Docs")
-                        .add("version", "2.02")
+                        .add("version", "2.03")
                         .add("exportDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()))
                         .add("databaseDriver", EMF.getDriver())
                         .build();
@@ -171,7 +171,7 @@ public class BackupService {
                     }
                 }
                 JsonObject configJson = Json.createObjectBuilder()
-                        .add("version", "2.02")
+                        .add("version", "2.03")
                         .add("fileEncrypt", ConfigUtil.isFileEncrypt())
                         .add("fileEncryptLocked", ConfigUtil.isFileEncryptLocked())
                         .add("fileDelete", ConfigUtil.isFileDelete())

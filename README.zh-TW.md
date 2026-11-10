@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.02)
+# FormosaBearV (v2.03)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -8,44 +8,26 @@
 
 > **分支說明 (Fork Notice)**：本專案分支出自 [https://github.com/sismics/docs](https://github.com/sismics/docs) (版本 `1.12`)，自 **`2.01`** 起進行全面現代化架構重構與獨立維護。
 
+## v2.03 重大升級亮點
+
+- **全面安全防禦強化**：修復 LDAP Injection 與儲存型 XSS 漏洞，預設管理員密碼升級為 `superSecure`。
+- **免安裝可攜伺服器優化**：啟動腳本全面純英文化（根除 Windows 終端亂碼），嚴格校驗 Java 21+ 執行環境，內建 Jetty 12 開箱即用配置。
+- **標準化檔名編碼**：檔案下載與預覽全面相容 RFC 5987 / RFC 6266 UTF-8 國際化檔名規範。
+
 ## v2.02 重大升級亮點
 
-- **完整系統備份與還原 (Full System Backup & Restore)**：
-  - 以串流方式即時匯出標準 ZIP 備份檔（`FormosaBearV-docs_backup_YYYYMMDD_HHmmss.zip`），完全不佔用伺服器暫存硬碟空間。
-  - 具備跨資料庫相容性的 ANSI SQL 資料庫匯出檔 (`dump.sql`)，完美支援 **H2 與 PostgreSQL** 之間的無縫資料遷移。
-  - 匯出完整系統設定檔 (`config.json`)，妥善保存檔案加密模式、重複檔名規則、回收區軟刪除與下載權限設定。
-  - 完整打包實體儲存檔案（`storage/` 與 `delete/` 目錄），支援還原完整性驗證。
-  - 具備交易自動復原 (Transactional Rollback)、Zip Slip 路徑穿越攻擊防護、高風險操作確認提示，以及還原後背景自動重建 Lucene 全文搜尋索引。
-- **Office 文件多頁互動式預覽 (Multi-Page Office Previews)**：
-  - 採用 Mozilla PDF.js 核心引擎，支援在瀏覽器中對 **PowerPoint 簡報 (`.pptx`)** 進行逐頁翻頁閱讀，以及對 **Word 文件 (`.docx`, `.odt`)** 進行逐頁檢視。
-  - 自動於背景產生高畫質多頁 PDF 預覽暫存 (`_pdf`)，後續檢視秒開不卡頓。
-  - 預覽視窗內建安全保護：防右鍵功能表選單鎖定、禁止拖曳與隱藏列印按鈕。
-- **強化的下載限制與安全防護 (Hardened Download Suppression)**：
-  - 全域禁止下載權限開關 (`canDownload()`)，全面貫穿文件卡片、表格清單、右鍵操作選單與標籤視圖。
-  - 提供系統層級管理設定，可全面關閉檔案下載功能，同時保留完整的線上多頁閱讀能力。
-- **階層式標籤權限與樹狀選擇器 (Hierarchical Tag Permissions & Tree Selector)**：
-  - 支援標籤父子繼承，子標籤自動繼承祖先標籤之讀取/寫入權限，並支援「中斷繼承」鎖定專屬權限。
-  - 標籤管理、標籤編輯與文件標籤彈窗全面導入**階層式樹狀下拉選擇器**，支援節點層層展開/收合、完整路徑麵包屑顯示、關鍵字即時搜尋過濾，以及防止循環相依之防呆機制。
-- **WAR 部署儲存持久化 (WAR Deployment Storage Persistence)**：
-  - 修正原版預設記憶體 H2 資料庫問題，確保每次 WAR 重新部署時資料庫永久寫入實體硬碟（Windows 位於 `%APPDATA%\FormosaBearV\Docs\db\docs.mv.db`，Linux 位於 `/var/docs/db/`）。
-  - 詳細架構與目錄結構請參閱：[`STORAGE.zh-TW.md`](STORAGE.zh-TW.md)。
-  - 巨量資料備份維運請參閱：[`BACKUP_GUIDE.zh-TW.md`](BACKUP_GUIDE.zh-TW.md)。
-- **免 Docker 綠色免安裝可攜版一鍵打包機制 (Docker-Free Portable Edition)**：
-  - 專案相對目錄全自包含打包腳本（Windows 雙擊 `package-portable.bat`、Linux/macOS 執行 `./package-portable.sh`），自動將 Jetty 12.1.14 與系統核心 WAR 打包成完全免安裝的綠色發行包（`target/FormosaBearV-docs-2.02-portable.zip`，約 143 MB）。
-  - 資料完全自包含：內建 H2 資料庫、文件儲存與 Lucene 索引自動收納在解壓後的 `data/` 目錄中（透過 `-Ddocs.home`），不污染系統暫存區與 AppData，隨身碟拔了就能帶走！
-  - 智慧啟動腳本（`start.bat` / `start.sh`）：自動搜尋多路徑 Java 21、埠號衝突防呆、自動喚起預設瀏覽器開啟頁面，並提供平順安全關閉腳本（`stop.bat` / `stop.sh`）。
-  - 內建五國語言快速上手說明書（`README.txt`，含繁體中文、英文、簡體中文、日本語、越南語）。
+- **完整系統備份與還原**：串流即時匯出標準 ZIP 備份，支援 H2 / PostgreSQL 跨資料庫遷移與安全復原機制。
+- **Office 文件多頁互動式預覽**：整合 Mozilla PDF.js 引擎，支援在瀏覽器中對 PPTX、DOCX、ODT 進行線上翻頁檢視。
+- **階層式標籤權限管理**：支援標籤父子權限繼承、中斷繼承安全邊界與階層式樹狀選擇器。
+- **全域禁止下載開關**：提供系統層級開關，可在保留線上閱讀的同時嚴禁檔案下載。
+- **免安裝可攜版打包機制**：提供一鍵打包腳本，自動將 Jetty 12 與 WAR 打包為隨身碟即開即用的綠色發行包。
 
 ## v2.01 重大升級亮點
 
-- 全面提升至 **Java 21 (LTS)** 執行階段與編譯基準
-- 升級至 **Eclipse Jetty 12.1.14 (`ee10`)** 與 **Jakarta Servlet 6.0**
-- 升級至 **Jersey 3.1.9** (Jakarta RESTful Web Services 3.1)
-- 升級至 **H2 Database 2.3.232**，具備舊版 DDL 自動相容轉換機制 (`H2Dialect`)
-- 升級前端架構至 **AngularJS 1.8.3** 與 **jQuery 3.7.1**
-- **內建開源 Pan-CJK 字型 (`Noto Sans CJK TC`)**：開箱即用支援繁體中文、簡體中文、日文、韓文與英數排版渲染於 DOCX、PPTX、ODT 與 PDF 縮圖
-- **增強型標籤導航與管理介面**：支援樹狀可展開/收合層級導航與子資料夾/文件計數徽章
-- **Web 端儲存設定維護**（可在 **設置 -> 設定** 管理 `file.delete`、`file.duplicate`，以及 `file.encrypt` 首次初始化鎖定）
+- 全面提升至 **Java 21 (LTS)**、**Eclipse Jetty 12.1 (`ee10`)**、**Jersey 3.1** 與 **H2 Database 2.3**。
+- 前端架構升級至 **AngularJS 1.8.3** 與 **jQuery 3.7.1**。
+- 內建開源 Pan-CJK 字型（`Noto Sans CJK TC`），支援中日韓字元排版渲染。
+- 支援增強型樹狀標籤導航與 Web 端儲存設定維護。
 
 ## 核心功能特色
 
@@ -90,10 +72,10 @@ mvn clean package -DskipTests
 ```
 *(或執行 `mvn clean install -DskipTests`)*
 
-本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-2.02.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
+本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-2.03.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
 
 ```text
-docs-web/target/docs-web-2.02.war
+docs-web/target/docs-web-2.03.war
 ```
 
 ### 打包免安裝可攜綠色版（無需 Docker）
@@ -111,7 +93,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 此腳本會自動讀取 `tools/jetty/` 專案基底 Jetty 12 ZIP（缺少時自動從 Maven 中央倉庫下載），自動編譯 WAR 並組裝所有模組與腳本，最終產出：
 
 ```text
-target/FormosaBearV-docs-2.02-portable.zip
+target/FormosaBearV-docs-2.03-portable.zip
 ```
 
 解壓後只要電腦有安裝 Java 21，雙擊 `start.bat`（或執行 `./start.sh`）即可直接秒速啟動！
@@ -135,14 +117,14 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # 第二步：建置 Docker 映像檔（或直接使用 docker compose）
-docker build -t formosabearv-docs:2.02 .
+docker build -t formosabearv-docs:2.03 .
 ```
 
 專案內建 `Dockerfile`，包含 OpenJDK 21、Jetty 12.1 (`ee10`)、Tesseract OCR、`ffmpeg` 與 `mediainfo`，預設接聽 `8080` 連接埠。
 
 若未指定 PostgreSQL 連線資訊，系統預設使用嵌入式 H2 2.3 資料庫（建議僅供本機測試評估使用；正式生產環境強烈建議搭配外部 PostgreSQL）。
 
-- **預設管理員帳號密碼**：帳號 `admin`，密碼 `admin`（正式環境請於首次登入後立即變更）。
+- **預設管理員帳號密碼**：帳號 `admin`，密碼 `superSecure`（正式環境請於首次登入後立即變更）。
 - **資料儲存磁碟卷**：請將持久化磁碟掛載至容器內的 `/data`。
 - **基礎 URL**：設定 `DOCS_BASE_URL`（例如 `https://docs.example.com`）以供系統產生正確的對外文件連結。
 

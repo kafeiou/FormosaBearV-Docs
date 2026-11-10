@@ -29,7 +29,7 @@ All dates are returned in UNIX timestamp format in milliseconds.
 
 A call to this endpoint will return a cookie header. Here is a CURL example:
 ```
-curl -i -X POST -d username=admin -d password=admin https://formosabearv.mycompany.com/api/user/login
+curl -i -X POST -d username=admin -d password=superSecure https://formosabearv.mycompany.com/api/user/login
 Set-Cookie: auth_token=64085630-2ae6-415c-9a92-4b22c107eaa4
 ```
 

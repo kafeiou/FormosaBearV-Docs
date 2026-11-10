@@ -1,9 +1,9 @@
-# FormosaBearV Portable Distribution Packaging Script (PowerShell)
+﻿# FormosaBearV Portable Distribution Packaging Script (PowerShell)
 param(
     [string]$JettyZipPath = "$PSScriptRoot\..\tools\jetty\jetty-home-12.1.14.zip",
-    [string]$WarFilePath = "$PSScriptRoot\..\docs-web\target\docs-web-2.02.war",
+    [string]$WarFilePath = "$PSScriptRoot\..\docs-web\target\docs-web-2.03.war",
     [string]$OutputDirectory = "$PSScriptRoot\..\target",
-    [string]$OutputZipName = "FormosaBearV-docs-2.02-portable.zip"
+    [string]$OutputZipName = "FormosaBearV-docs-2.03-portable.zip"
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,13 +17,13 @@ if (-not $JettyZip) {
 }
 $WarFile = (Resolve-Path $WarFilePath -ErrorAction SilentlyContinue)
 if (-not $WarFile) {
-    $WarFile = [System.IO.Path]::GetFullPath("$ProjectRoot\docs-web\target\docs-web-2.02.war")
+    $WarFile = [System.IO.Path]::GetFullPath("$ProjectRoot\docs-web\target\docs-web-2.03.war")
 } else {
     $WarFile = $WarFile.Path
 }
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "  FormosaBearV (v2.02) Portable Package Builder" -ForegroundColor Cyan
+Write-Host "  FormosaBearV (v2.03) Portable Package Builder" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Project Root: $ProjectRoot"
 
@@ -49,7 +49,7 @@ if (-not (Test-Path $JettyZip)) {
 
 # 2. Check or Build docs-web WAR
 if (-not (Test-Path $WarFile)) {
-    Write-Host "[2/5] docs-web-2.02.war not found. Building project with Maven..." -ForegroundColor Yellow
+    Write-Host "[2/5] docs-web-2.03.war not found. Building project with Maven..." -ForegroundColor Yellow
     Push-Location $ProjectRoot
     try {
         & mvn clean package -DskipTests
@@ -65,7 +65,7 @@ if (-not (Test-Path $WarFile)) {
 
 # 3. Assemble Portable Staging Directory
 $StagingRoot = "$OutputDirectory\portable-staging"
-$BundleDir = "$StagingRoot\FormosaBearV-docs-2.02-portable"
+$BundleDir = "$StagingRoot\FormosaBearV-docs-2.03-portable"
 
 if (Test-Path $StagingRoot) {
     Remove-Item -Path $StagingRoot -Recurse -Force
@@ -87,12 +87,48 @@ Remove-Item -Path $TempExtract -Recurse -Force
 Write-Host "[4/5] Initializing Jetty base modules & deploying application..." -ForegroundColor Yellow
 Push-Location $BundleDir
 try {
-    # Initialize start.d with ee10-deploy and http
-    $JavaBin = "java"
-    if ($env:JAVA_HOME -and (Test-Path "$env:JAVA_HOME\bin\java.exe")) {
-        $JavaBin = "$env:JAVA_HOME\bin\java.exe"
+    # Find Java 21+ for start.d initialization
+    $CandidateJdks = @()
+    if ($env:JAVA_HOME) { $CandidateJdks += "$env:JAVA_HOME\bin\java.exe" }
+    $CandidateJdks += @(
+        "W:\developer\jdk-21.0.9\bin\java.exe",
+        "W:\developer\jdk-21\bin\java.exe",
+        "$ProjectRoot\jdk-21.0.9\bin\java.exe",
+        "$ProjectRoot\jdk-21\bin\java.exe",
+        "$env:ProgramFiles\Eclipse Adoptium\jdk-21*\bin\java.exe",
+        "$env:ProgramFiles\Java\jdk-21*\bin\java.exe"
+    )
+    $JavaCmd = Get-Command java.exe -ErrorAction SilentlyContinue
+    if ($JavaCmd) { $CandidateJdks += $JavaCmd.Source }
+
+    $JavaBin = $null
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    try {
+        foreach ($cand in $CandidateJdks) {
+            $resolvedList = Resolve-Path $cand -ErrorAction SilentlyContinue
+            foreach ($r in $resolvedList) {
+                if (Test-Path $r.Path) {
+                    $verOutput = cmd /c "`"$($r.Path)`" -version 2>&1"
+                    if ($verOutput -match 'version "(2[1-9]|[3-9][0-9])\.') {
+                        $JavaBin = $r.Path
+                        break
+                    }
+                }
+            }
+            if ($JavaBin) { break }
+        }
+    } finally {
+        $ErrorActionPreference = $prevEAP
     }
-    & $JavaBin -jar "jetty-home\start.jar" --create-startd --add-modules=ee10-deploy,http | Out-Null
+    if (-not $JavaBin) {
+        throw "Could not find a valid Java 21+ runtime for Jetty 12 initialization. Please set JAVA_HOME to JDK 21+."
+    }
+    Write-Host "       Using Java runtime for initialization: $JavaBin" -ForegroundColor Gray
+    & $JavaBin -jar "jetty-home\start.jar" --create-startd --add-modules=ee10-deploy,http
+    if (-not (Test-Path "$BundleDir\start.d")) {
+        throw "Failed to initialize start.d directory in $BundleDir"
+    }
 } finally {
     Pop-Location
 }
@@ -120,6 +156,15 @@ if (Test-Path $FinalZip) {
 }
 
 Compress-Archive -Path "$BundleDir\*" -DestinationPath $FinalZip -Force
+
+# Also sync to unzipped directory in output directory for immediate local use
+$UnzippedTarget = "$OutputDirectory\FormosaBearV-docs-2.03-portable"
+Write-Host "       Updating extracted folder: $UnzippedTarget..." -ForegroundColor Gray
+if (Test-Path $UnzippedTarget) {
+    Remove-Item -Path $UnzippedTarget -Recurse -Force -ErrorAction SilentlyContinue
+}
+New-Item -ItemType Directory -Path $UnzippedTarget -Force | Out-Null
+Copy-Item -Path "$BundleDir\*" -Destination $UnzippedTarget -Recurse -Force
 
 # Clean up staging directory
 Remove-Item -Path $StagingRoot -Recurse -Force

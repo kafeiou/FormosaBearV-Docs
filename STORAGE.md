@@ -2,7 +2,7 @@
 
 # FormosaBearV Storage Architecture & File Directory Guide
 
-This document explains the on-disk storage locations and directory layout rules for databases, full-text indexes, logs, custom themes, and uploaded documents in **FormosaBearV (v2.02)** (corresponding to backend core classes `com.sismics.docs.core.util.DirectoryUtil` and `FileUtil`).
+This document explains the on-disk storage locations and directory layout rules for databases, full-text indexes, logs, custom themes, and uploaded documents in **FormosaBearV (v2.03)** (corresponding to backend core classes `com.sismics.docs.core.util.DirectoryUtil` and `FileUtil`).
 
 ---
 

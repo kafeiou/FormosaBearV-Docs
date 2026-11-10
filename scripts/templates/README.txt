@@ -1,5 +1,5 @@
 ================================================================================
-  FormosaBearV (v2.02) 免安裝可攜綠色版 (Portable Edition) - 繁體中文
+  FormosaBearV (v2.03) 免安裝可攜綠色版 (Portable Edition) - 繁體中文
 ================================================================================
 
 【環境需求】
@@ -18,7 +18,7 @@
 
 【預設管理者帳號】
   - 帳號：admin
-  - 密碼：admin
+  - 密碼：superSecure
   - 初次登入後請立即前往「個人設定」變更密碼。
 
 【資料儲存說明】
@@ -29,7 +29,7 @@
 
 
 ================================================================================
-  FormosaBearV (v2.02) Portable Edition - English
+  FormosaBearV (v2.03) Portable Edition - English
 ================================================================================
 
 [System Requirements]
@@ -48,7 +48,7 @@
 
 [Default Admin Credentials]
   - Username: admin
-  - Password: admin
+  - Password: superSecure
   - Please change the password immediately after your first login in user settings.
 
 [Storage & Portability]
@@ -59,7 +59,7 @@
 
 
 ================================================================================
-  FormosaBearV (v2.02) 免安装便携绿色版 (Portable Edition) - 简体中文
+  FormosaBearV (v2.03) 免安装便携绿色版 (Portable Edition) - 简体中文
 ================================================================================
 
 【环境需求】
@@ -78,7 +78,7 @@
 
 【默认管理员账号】
   - 账号：admin
-  - 密码：admin
+  - 密码：superSecure
   - 首次登录后请立即前往“个人设置”修改密码。
 
 【数据存储说明】
@@ -89,7 +89,7 @@
 
 
 ================================================================================
-  FormosaBearV (v2.02) ポータブル版 (Portable Edition) - 日本語
+  FormosaBearV (v2.03) ポータブル版 (Portable Edition) - 日本語
 ================================================================================
 
 【動作環境】
@@ -108,7 +108,7 @@
 
 【初期管理者アカウント】
   - ユーザー名: admin
-  - パスワード: admin
+  - パスワード: superSecure
   - 初回ログイン後、直ちに個人設定画面にてパスワードを変更してください。
 
 【データ保存について】
@@ -119,7 +119,7 @@
 
 
 ================================================================================
-  FormosaBearV (v2.02) Bản Di Động Không Cần Cài Đặt (Portable Edition) - Tiếng Việt
+  FormosaBearV (v2.03) Bản Di Động Không Cần Cài Đặt (Portable Edition) - Tiếng Việt
 ================================================================================
 
 [Yêu cầu hệ thống]
@@ -138,7 +138,7 @@
 
 [Tài khoản quản trị mặc định]
   - Tên đăng nhập: admin
-  - Mật khẩu: admin
+  - Mật khẩu: superSecure
   - Vui lòng đổi mật khẩu ngay sau lần đăng nhập đầu tiên trong phần cài đặt cá nhân.
 
 [Lưu trữ dữ liệu & Tính di động]

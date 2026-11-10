@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.02)
+# FormosaBearV (v2.03)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -8,39 +8,26 @@
 
 > **Fork Notice**: This repository is forked from [https://github.com/sismics/docs](https://github.com/sismics/docs) (version `1.12`), modernized and maintained independently starting from version **`2.01`**.
 
+## Key Upgrades in v2.03
+
+- **Hardened Security**: Patched LDAP injection and Stored XSS vulnerabilities; upgraded default admin password to `superSecure`.
+- **Portable Server Improvements**: Standardized startup scripts to pure English ASCII (eliminating Windows terminal code page issues) with strict Java 21+ validation and pre-configured Jetty 12 modules.
+- **Standards-Compliant Filenames**: Full RFC 5987 / RFC 6266 UTF-8 encoded filename support on file download and preview.
+
 ## Key Upgrades in v2.02
 
-- **Full System Backup & Restore**:
-  - Streaming export of complete system backups as a standard ZIP archive (`FormosaBearV-docs_backup_YYYYMMDD_HHmmss.zip`) without consuming server temporary disk space.
-  - Cross-database compatible ANSI SQL database dump (`dump.sql`) supporting seamless migration between **H2 and PostgreSQL**.
-  - System configuration export (`config.json`) preserving encryption mode, duplicate policy, soft delete, and download permissions.
-  - Full-fidelity physical document storage packaging (`storage/` and `delete/` directories).
-  - Safe restore with transactional rollback, Zip Slip path traversal defenses, high-risk confirmation guardrails, and automatic background Lucene full-text search index reconstruction.
-- **Interactive Multi-Page Office Document Previews**:
-  - Full in-browser slide-by-slide viewing for **PowerPoint (`.pptx`)** presentations and page-by-page viewing for **Word (`.docx`, `.odt`)** documents powered by Mozilla PDF.js.
-  - Automatic on-the-fly multi-page PDF generation with server-side caching (`_pdf`) for fast subsequent loads.
-  - Safe previewing with right-click context menu lock, disabled drag, and suppressed print buttons.
-- **Hardened Download Suppression & Security Guardrails**:
-  - Global download permission switch (`canDownload()`) enforced across document card views, table views, three-dot context menus, and tag views.
-  - Administration setting to completely forbid file downloading while maintaining complete multi-page in-browser reading capability.
-- **WAR Deployment Storage Persistence**:
-  - Resolved default in-memory H2 database bundling so that every WAR redeployment persists permanently to disk (`%APPDATA%\FormosaBearV\Docs\db\docs.mv.db` on Windows or `/var/docs/db/` on Linux).
-- **Docker-Free Portable Edition One-Click Packaging**:
-  - Project-relative standalone packaging scripts (`package-portable.bat` for Windows / `package-portable.sh` for Linux/macOS) bundling Eclipse Jetty 12.1.14 and `docs-web-2.02.war` into a zero-installation runnable archive (`target/FormosaBearV-docs-2.02-portable.zip`).
-  - Fully self-contained local storage: automatically isolates database (H2), document storage (`storage/`), and Lucene search indexes inside the extracted `data/` folder (via `-Ddocs.home`), leaving zero residue in system AppData. Flash-drive portable!
-  - Robust startup scripts (`start.bat` / `start.sh`) with intelligent multi-path Java 21 detection, automatic port conflict detection, browser auto-launch, and graceful shutdown (`stop.bat` / `stop.sh`).
-  - Bundled 5-language quick-start manual (`README.txt`) in Traditional Chinese, English, Simplified Chinese, Japanese, and Vietnamese.
+- **Full System Backup & Restore**: Streaming ZIP backups with cross-database (H2 / PostgreSQL) migration support and safe transactional rollback.
+- **Interactive Multi-Page Office Previews**: Full in-browser slide-by-slide viewing for PPTX, DOCX, and ODT documents via Mozilla PDF.js.
+- **Hierarchical Tag Permissions**: Inheritance from ancestor tags, customizable block-inheritance boundaries, and hierarchical tree selectors.
+- **Hardened Download Suppression**: System-level download restrictions while preserving in-browser viewing.
+- **Standalone Portable Distribution**: Zero-installation runnable package bundling Jetty 12 and isolated local data storage.
 
 ## Key Upgrades in v2.01
 
-- **Java 21 (LTS)** runtime and compilation baseline
-- **Eclipse Jetty 12.1.14 (`ee10`)** & **Jakarta Servlet 6.0**
-- **Jersey 3.1.9** (Jakarta RESTful Web Services 3.1)
-- **H2 Database 2.3.232** with automatic legacy DDL transformation (`H2Dialect`)
-- **AngularJS 1.8.3** & **jQuery 3.7.1** with updated third-party frontend libraries
-- **Bundled Pan-CJK Font (`Noto Sans CJK TC`)** for out-of-the-box Traditional/Simplified Chinese, Japanese, Korean, and Latin rendering in DOCX, PPTX, ODT, and PDF thumbnails
-- **Enhanced Tag Browser & Admin UI** with expandable/collapsible hierarchical trees and sub-folder/document count badges
-- **Web-Managed Storage Settings** (`file.delete`, `file.duplicate`, and one-time immutable initialization lock for `file.encrypt` in **Settings -> Configuration**; see [`STORAGE.md`](STORAGE.md) for physical storage architecture details)
+- Modernized runtime baseline: **Java 21 (LTS)**, **Eclipse Jetty 12.1 (`ee10`)**, **Jersey 3.1**, and **H2 Database 2.3**.
+- Updated frontend dependencies to **AngularJS 1.8.3** and **jQuery 3.7.1**.
+- Bundled Pan-CJK font (`Noto Sans CJK TC`) for out-of-the-box CJK rendering.
+- Enhanced hierarchical tag browser and web-managed storage configurations.
 
 ## Features
 
@@ -85,10 +72,10 @@ mvn clean package -DskipTests
 ```
 *(or `mvn clean install -DskipTests`)*
 
-This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.02.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
+This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.03.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
 
 ```text
-docs-web/target/docs-web-2.02.war
+docs-web/target/docs-web-2.03.war
 ```
 
 ### Build Standalone Portable Edition (No Docker Required)
@@ -106,7 +93,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 This automatically downloads the base Jetty 12 ZIP into `tools/jetty/` if absent, compiles the WAR, assembles all modules, and outputs:
 
 ```text
-target/FormosaBearV-docs-2.02-portable.zip
+target/FormosaBearV-docs-2.03-portable.zip
 ```
 
 Simply unzip this package on any computer with Java 21 and run `start.bat` or `./start.sh`!
@@ -130,14 +117,14 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # Step 2: Build the Docker image (or use docker compose)
-docker build -t formosabearv-docs:2.02 .
+docker build -t formosabearv-docs:2.03 .
 ```
 
 A `Dockerfile` is included to build a self-contained container image with OpenJDK 21, Jetty 12.1 (`ee10`), Tesseract OCR, `ffmpeg`, and `mediainfo`, listening on port `8080`.
 
 If no PostgreSQL configuration is provided, an embedded H2 2.3 database is used (suitable for testing only; use PostgreSQL for production deployments).
 
-- **Default admin credentials**: username `admin`, password `admin` (change immediately in production).
+- **Default admin credentials**: username `admin`, password `superSecure` (change immediately in production).
 - **Data volume**: mount a persistent volume to `/data`.
 - **Base URL**: configure `DOCS_BASE_URL` (e.g., `https://docs.example.com`) for external link generation.
 

@@ -4,17 +4,34 @@ set -e
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
-# 1. Check Java
-JAVA_CMD="java"
+# 1. Check for Java 21+ Runtime (from JAVA_HOME or PATH)
+JAVA_CMD=""
+
 if [ -n "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ]; then
-    JAVA_CMD="$JAVA_HOME/bin/java"
+    if "$JAVA_HOME/bin/java" -version 2>&1 | grep -qE 'version "(21|2[2-9])\.'; then
+        JAVA_CMD="$JAVA_HOME/bin/java"
+    fi
 fi
 
-if ! command -v "$JAVA_CMD" >/dev/null 2>&1; then
-    echo "[ERROR] 找不到 Java 執行環境！"
-    echo "本系統需要 Java 21 (JDK 21) 或以上版本。"
-    echo "請前往官方網站下載安裝 OpenJDK 21："
-    echo "https://adoptium.net/temurin/releases/?version=21"
+if [ -z "$JAVA_CMD" ] && command -v java >/dev/null 2>&1; then
+    if java -version 2>&1 | grep -qE 'version "(21|2[2-9])\.'; then
+        JAVA_CMD="java"
+    fi
+fi
+
+if [ -z "$JAVA_CMD" ]; then
+    echo "========================================================"
+    echo "  [ERROR] Java 21+ (JDK 21) Runtime Not Found!"
+    echo "========================================================"
+    echo "  FormosaBearV requires Java 21 or higher to run."
+    echo "  Please install and configure Java 21:"
+    echo ""
+    echo "  1. Download and install OpenJDK 21 or higher:"
+    echo "     https://adoptium.net/temurin/releases/?version=21"
+    echo ""
+    echo "  2. Set JAVA_HOME environment variable to the installation directory,"
+    echo "     or add java to system PATH."
+    echo "========================================================"
     exit 1
 fi
 
@@ -26,8 +43,8 @@ STOP_KEY="formosabearv"
 # Check port occupation
 if command -v lsof >/dev/null 2>&1; then
     if lsof -Pi :"$PORT" -sTCP:LISTEN -t >/dev/null 2>&1; then
-        echo "[WARNING] 連接埠 $PORT 目前已被其他程式佔用！"
-        echo "您可以傳入其他連接埠啟動，例如：./start.sh 8088"
+        echo "[WARNING] Port $PORT is already in use by another process!"
+        echo "You can pass another port, for example: ./start.sh 8088"
     fi
 fi
 
@@ -36,14 +53,20 @@ DOCS_HOME="${DOCS_HOME:-$DIR/data}"
 mkdir -p "$DOCS_HOME"
 
 echo "========================================================"
-echo "  FormosaBearV (v2.02) 免安裝可攜綠色伺服器"
+echo "  FormosaBearV (v2.03) Portable Server"
 echo "========================================================"
-echo "  系統網址：    http://localhost:$PORT/"
-echo "  資料庫路徑：  $DOCS_HOME"
-echo "  停止方式：    執行 ./stop.sh 或按下 Ctrl+C"
+echo "  Web URL:       http://localhost:$PORT/"
+echo "  Data Path:     $DOCS_HOME"
+echo "  Stop Command:  Run ./stop.sh or press Ctrl+C"
 echo "========================================================"
-echo "伺服器啟動中，請稍候..."
+echo "Starting server, please wait..."
 echo ""
+
+# Auto-initialize start.d if not present
+if [ ! -d "$DIR/start.d" ] && [ ! -f "$DIR/start.ini" ]; then
+    echo "[INFO] Initializing Jetty 12 base modules..."
+    "$JAVA_CMD" -jar jetty-home/start.jar --create-startd --add-modules=ee10-deploy,http >/dev/null 2>&1 || true
+fi
 
 # Auto open browser
 (
@@ -55,4 +78,4 @@ echo ""
     fi
 ) &
 
-exec "$JAVA_CMD" -Ddocs.home="$DOCS_HOME" -Djetty.http.port="$PORT" -DSTOP.PORT="$STOP_PORT" -DSTOP.KEY="$STOP_KEY" -jar jetty-home/start.jar
+exec "$JAVA_CMD" -Ddocs.home="$DOCS_HOME" -Djetty.http.port="$PORT" -DSTOP.PORT="$STOP_PORT" -DSTOP.KEY="$STOP_KEY" -jar jetty-home/start.jar --module=ee10-deploy,http

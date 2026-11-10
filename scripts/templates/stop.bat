@@ -4,31 +4,24 @@ cd /d "%~dp0"
 set "BASE_DIR=%~dp0"
 
 set "JAVA_CMD="
-if defined JAVA_HOME if exist "%JAVA_HOME%\bin\java.exe" set "JAVA_CMD=%JAVA_HOME%\bin\java.exe"
 
+rem Check JAVA_HOME first
+if defined JAVA_HOME if exist "%JAVA_HOME%\bin\java.exe" (
+    "%JAVA_HOME%\bin\java.exe" -version 2>&1 | findstr /r "version..2[1-9] version..[3-9][0-9] version..[1-9][0-9][0-9]" >nul 2>&1
+    if not errorlevel 1 set "JAVA_CMD=%JAVA_HOME%\bin\java.exe"
+)
+
+rem Fall back to system PATH
 if not defined JAVA_CMD (
-    for %%d in (
-        "%BASE_DIR%jdk-21"
-        "%BASE_DIR%..\jdk-21"
-        "%BASE_DIR%..\..\jdk-21"
-        "%BASE_DIR%..\..\..\jdk-21.0.9"
-        "%BASE_DIR%..\..\..\jdk-21"
-        "W:\developer\jdk-21.0.9"
-        "W:\developer\jdk-21"
-        "%ProgramFiles%\Eclipse Adoptium\jdk-21*"
-        "%ProgramFiles%\Java\jdk-21*"
-    ) do (
-        if not defined JAVA_CMD if exist "%%~d\bin\java.exe" set "JAVA_CMD=%%~d\bin\java.exe"
+    where java.exe >nul 2>&1
+    if not errorlevel 1 (
+        java.exe -version 2>&1 | findstr /r "version..2[1-9] version..[3-9][0-9] version..[1-9][0-9][0-9]" >nul 2>&1
+        if not errorlevel 1 set "JAVA_CMD=java.exe"
     )
 )
 
 if not defined JAVA_CMD (
-    where java.exe >nul 2>&1
-    if not errorlevel 1 set "JAVA_CMD=java.exe"
-)
-
-if not defined JAVA_CMD (
-    echo [ERROR] Java runtime not found.
+    echo [ERROR] Java 21+ runtime not found. Please set JAVA_HOME to JDK 21+ or add java to PATH.
     pause
     exit /b 1
 )
@@ -44,4 +37,4 @@ if %errorlevel% equ 0 (
 ) else (
     echo [INFO] Stop signal sent. If the server is still running, close its terminal window.
 )
-timeout /t 2 >nul
+ping 127.0.0.1 -n 3 >nul 2>&1

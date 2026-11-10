@@ -93,7 +93,7 @@ public class AppResource extends BaseResource {
     @GET
     public Response info() {
         ResourceBundle configBundle = ConfigUtil.getConfigBundle();
-        String currentVersion = "2.02";
+        String currentVersion = "2.03";
         try {
             currentVersion = configBundle.getString("api.current_version");
         } catch (Exception e) {

@@ -54,7 +54,7 @@ public class ClientUtil {
      */
     public void createUser(String username, int quota, String... groupNameList) {
         // Login admin to create the user
-        String adminToken = login("admin", "admin", false);
+        String adminToken = login("admin", "superSecure", false);
         
         // Create the user
         resource.path("/user").request()
@@ -94,7 +94,7 @@ public class ClientUtil {
      */
     public void createGroup(String name, String parentId) {
         // Login admin to create the group
-        String adminToken = login("admin", "admin", false);
+        String adminToken = login("admin", "superSecure", false);
         
         // Create the group
         resource.path("/group").request()
