@@ -89,8 +89,7 @@ This document details the notable changes, security enhancements, architecture i
     - Upgraded `grunt` from `^1.0.1` to `^1.6.1` (remediates CVE-2020-7729 arbitrary code execution and CVE-2022-0436 race condition / file overwrite).
     - Leveraged npm `overrides` to safely lock transitive build dependencies:
       - `async`: Forced to `^2.6.4` (remediates CVE-2021-43138 prototype pollution).
-      - `clean-css`: Forced to `^4.2.4` (remediates CVE-2020-7789 ReDoS).
-      - `js-yaml`: Forced to `^3.14.1` (remediates CVE-2020-7712 prototype pollution).
+            - `js-yaml`: Forced to `^3.14.1` (remediates CVE-2020-7712 prototype pollution).
       - `hosted-git-info`: Forced to `^2.8.9` (remediates CVE-2021-23362 ReDoS).
       - `underscore.string`: Forced to `^3.3.6`.
       - `uuid`: Forced to `^9.0.1`.

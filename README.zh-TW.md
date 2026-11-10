@@ -11,7 +11,7 @@
 ## v2.03 重大升級亮點
 
 - **全面安全防禦強化**：修復 LDAP Injection 與儲存型 XSS 漏洞，標記帳號認證來源 (`auth_source`) 防堵雙密碼後門漏洞，預設管理員密碼升級為 `superSecure`。
-- **核心與前端套件安全性升級與工具鏈整肅**：全面汰換具資安弱點之舊版套件，包含將 Log4j 遷移至安全維護版 `reload4j 1.2.25`，升級 PostgreSQL 驅動 (42.7.11)、Jsoup (1.23.2)、Commons Compress (1.27.1)、Commons IO (2.18.0)、Guava (33.3.1)、PDFBox (2.0.32)、Bouncy Castle (1.78.1)、FreeMarker (2.3.34)；前端建置核心升級至 `grunt 1.6.1` 並安全鎖定相依套件（`async`, `clean-css`, `js-yaml`, `hosted-git-info`, `uuid` 等）；同時徹底廢除並移除舊版命令列上傳工具 `docs-importer`（消除其引發之 12 項無法修復之歷史相依漏洞），大幅強化軟體供應鏈安全。
+- **核心與前端套件安全性升級與工具鏈整肅**：全面汰換具資安弱點之舊版套件，包含將 Log4j 遷移至安全維護版 `reload4j 1.2.25`，升級 PostgreSQL 驅動 (42.7.11)、Jsoup (1.23.2)、Commons Compress (1.27.1)、Commons IO (2.18.0)、Guava (33.3.1)、PDFBox (2.0.32)、Bouncy Castle (1.78.1)、FreeMarker (2.3.34)；前端建置核心升級至 `grunt 1.6.1` 並安全鎖定相依套件（`async`, `js-yaml`, `hosted-git-info`, `uuid` 等）；同時徹底廢除並移除舊版命令列上傳工具 `docs-importer`（消除其引發之 12 項無法修復之歷史相依漏洞），大幅強化軟體供應鏈安全。
 - **後台基礎網址與郵件品牌自訂**：免除環境變數設定，可直接在後台維護基礎網址（預設 `http://localhost:8080`）與郵件寄件者名稱，信件全面品牌化為 `FormosaBearV`。
 - **免安裝可攜伺服器優化**：啟動腳本全面純英文化（根除 Windows 終端亂碼），嚴格校驗 Java 21+ 執行環境，內建 Jetty 12 開箱即用配置。
 - **標準化檔名編碼**：檔案下載與預覽全面相容 RFC 5987 / RFC 6266 UTF-8 國際化檔名規範。
