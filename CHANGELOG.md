@@ -64,6 +64,41 @@ This document details the notable changes, security enhancements, architecture i
 - **Automatic Unzipped Directory Synchronization**:
   - The portable packaging script automatically extracts and syncs the distribution directly into `target/FormosaBearV-docs-2.03-portable/` alongside the ZIP archive for immediate local testing.
 
+### 🔒 Dependency Vulnerability Mitigation & Security Upgrades
+- **Log4j 1.x EOL Remediation**:
+  - Completely replaced `log4j:log4j:1.2.17` with `ch.qos.reload4j:reload4j:1.2.25` and updated the SLF4J binding to `org.slf4j:slf4j-reload4j:1.7.36`.
+  - Fully remediated all known Log4j 1.2.17 CVEs (including CVE-2019-17571 SocketServer RCE, CVE-2022-23307 Chainsaw, CVE-2022-23305 JDBCAppender, CVE-2022-23302 JMSSink, and CVE-2021-4104 JMSAppender).
+  - Excluded transitive `commons-logging` and `log4j:1.2.12` from `subethasmtp-wiser` in root `pom.xml`, ensuring complete removal of legacy `log4j:log4j` from the dependency tree.
+- **Backend Drivers & Framework Upgrades**:
+  - **Jsoup HTML Parser**: Upgraded from `1.15.4` to `1.23.2` to resolve XSS and attribute parsing vulnerabilities.
+  - **Apache Commons Compress**: Upgraded from `1.22` to `1.27.1` (remediates CVE-2024-26308, CVE-2024-25710, CVE-2023-42503 DoS and OOM).
+  - **Commons IO**: Upgraded from `2.11.0` to `2.18.0` (remediates CVE-2024-47554 DoS).
+  - **Google Guava**: Upgraded from `31.1-jre` to `33.3.1-jre` (remediates CVE-2023-2976 temporary directory security issue).
+  - **Apache PDFBox**: Upgraded from `2.0.29` to `2.0.32` (remediates CVE-2024-34750 infinite loop DoS).
+  - **FreeMarker Template Engine**: Upgraded from `2.3.32` to `2.3.34` (remediates CVE-2024-36779 SSRF and file disclosure).
+  - **Square OkHttp**: Upgraded from `4.10.0` to `4.12.0` (remediates CVE-2023-3782 certificate bypass).
+  - **Bouncy Castle**: Migrated from legacy `bcprov-jdk15on:1.70` to modern `bcprov-jdk18on:1.78.1` (remediates CVE-2024-29857 RSA DoS and CVE-2023-33201 LDAP injection).
+  - **PostgreSQL JDBC Driver**: Upgraded from `42.6.0` to `42.7.11`.
+  - **Apache Directory LDAP Client API**: Upgraded from `2.1.7` to `2.1.8`.
+  - **Jersey REST Client**: Upgraded from `3.1.9` to `3.1.10` across all Jersey artifacts.
+- **Frontend & CLI Importer npm Security Fixes**:
+  - Employed npm `overrides` and direct dependency bumps to patch deep transitive vulnerabilities:
+    - `cryptiles`: Upgraded to `3.2.1` (>= 3.1.3).
+    - `hoek`: Upgraded to `4.2.1` / `4.3.1` (>= 4.2.1).
+    - `minimatch`: Upgraded to `3.1.5` (>= 3.1.4).
+    - `ansi-regex`: Upgraded to `3.0.1` (>= 3.0.1).
+    - `brace-expansion`: Upgraded to `1.1.21` (>= 1.1.21).
+    - `tmp`: Upgraded to `0.2.7` (>= 0.2.6).
+    - `lodash`: Locked to `4.18.1` (remediates CVE-2021-23337 command injection and prototype pollution).
+    - `semver`: Locked to `5.7.3` (remediates CVE-2022-25883 ReDoS).
+    - `qs`: Locked to `6.17.1` (remediates CVE-2022-24999 prototype pollution).
+    - `tough-cookie`: Locked to `4.1.4` (remediates CVE-2023-26136 prototype pollution).
+    - `form-data`: Locked to `4.0.6` (remediates CVE-2020-7608 header injection).
+    - `minimist`: Upgraded to `1.2.8` (>= 1.2.6, remediates CVE-2021-44906).
+    - `getobject`: Upgraded to `1.1.1` (> 1.0.0, remediates CVE-2020-28282).
+    - `underscore`: Upgraded to `1.13.8` (> 1.12.1, remediates CVE-2021-23358).
+    - `json-schema`: Upgraded to `0.4.0` (remediates CVE-2021-3918).
+
 ### 📦 Project Versioning & Artifacts
 - All Maven POMs upgraded to `<version>2.03</version>`.
 - Frontend `package.json` and `package-lock.json` updated to `"version": "2.0.3"`.

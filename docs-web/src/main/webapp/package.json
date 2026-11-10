@@ -49,5 +49,22 @@
     "grunt-htmlrefs": "^0.5.0",
     "grunt-ng-annotate": "^2.0.2",
     "grunt-text-replace": "^0.4.0"
+  },
+  "overrides": {
+    "ansi-regex": "^3.0.1",
+    "brace-expansion": "^1.1.21",
+    "cryptiles": "^3.1.4",
+    "form-data": "^4.0.1",
+    "getobject": "^1.0.2",
+    "hoek": "^4.2.1",
+    "json-schema": "^0.4.0",
+    "lodash": "^4.17.21",
+    "minimatch": "^3.1.5",
+    "minimist": "^1.2.8",
+    "qs": "^6.13.0",
+    "semver": "^5.7.2",
+    "tmp": "^0.2.7",
+    "tough-cookie": "^4.1.4",
+    "underscore": "^1.13.7"
   }
 }

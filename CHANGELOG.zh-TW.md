@@ -66,6 +66,41 @@
 - **解壓目錄自動同步**：
   - 打包腳本在產出 `target/FormosaBearV-docs-2.03-portable.zip` 的同時，自動同步最新內容至 `target/FormosaBearV-docs-2.03-portable/`，免除本機測試需手動解壓的繁瑣步驟。
 
+### 🔒 相依套件安全性全面升級 (Security Vulnerability Upgrades)
+- **Log4j 1.x 終止維護漏洞修復**：
+  - 將專案中之 `log4j:log4j:1.2.17` 全面替換為 `ch.qos.reload4j:reload4j:1.2.25`，並將 SLF4J 橋接器升級為 `org.slf4j:slf4j-reload4j:1.7.36`。
+  - 徹底消除 Log4j 1.2.17 累積之高風險 CVE 漏洞（包含 CVE-2019-17571 SocketServer RCE、CVE-2022-23307 Chainsaw、CVE-2022-23305 JDBCAppender、CVE-2022-23302 JMSSink、CVE-2021-4104 JMSAppender）。
+  - 於根 `pom.xml` 中為 `subethasmtp-wiser` 增加排除條件，杜絕間接引入之 `commons-logging` 與 `log4j:1.2.12`，保證依賴樹乾淨。
+- **後端核心驅動與框架升級**：
+  - **Jsoup HTML 解析器**：由 `1.15.4` 升級至 `1.23.2`，修復屬性與 XSS 繞過漏洞。
+  - **Apache Commons Compress**：由 `1.22` 升級至 `1.27.1`，修復 CVE-2024-26308、CVE-2024-25710、CVE-2023-42503 解壓縮 OOM 與無限迴圈 DoS。
+  - **Commons IO**：由 `2.11.0` 升級至 `2.18.0`，修復 CVE-2024-47554 未受控資源消耗。
+  - **Google Guava**：由 `31.1-jre` 升級至 `33.3.1-jre`，修復 CVE-2023-2976 不安全暫存目錄建立。
+  - **Apache PDFBox**：由 `2.0.29` 升級至 `2.0.32`，修復 CVE-2024-34750 異常 PDF 解析 DoS。
+  - **FreeMarker 範本引擎**：由 `2.3.32` 升級至 `2.3.34`，修復 CVE-2024-36779 範本注入與任意檔案讀取。
+  - **Square OkHttp**：由 `4.10.0` 升級至 `4.12.0`，修復 CVE-2023-3782 憑證驗證繞過。
+  - **Bouncy Castle 加密庫**：由 `bcprov-jdk15on:1.70` 全面遷移至 `bcprov-jdk18on:1.78.1`，修復 CVE-2024-29857 RSA 解析 DoS 與 CVE-2023-33201 LDAP 注入。
+  - **PostgreSQL JDBC 驅動**：由 `42.6.0` 升級至 `42.7.11`。
+  - **Apache Directory LDAP Client API**：由 `2.1.7` 升級至 `2.1.8`。
+  - **Jersey REST Client**：由 `3.1.9` 升級至 `3.1.10`（連帶同步 Jersey 全套核心元件）。
+- **前端與命令列匯入工具 (npm) 弱點修復**：
+  - 透過 `package.json` 的 `overrides` 機制與直接相依版本調整，解決深度間接相依之原型污染與安全問題：
+    - `cryptiles`：升級至 `3.2.1`（>= 3.1.3）。
+    - `hoek`：升級至 `4.2.1` / `4.3.1`（>= 4.2.1）。
+    - `minimatch`：升級至 `3.1.5`（>= 3.1.4）。
+    - `ansi-regex`：升級至 `3.0.1`（>= 3.0.1）。
+    - `brace-expansion`：升級至 `1.1.21`（>= 1.1.21）。
+    - `tmp`：升級至 `0.2.7`（>= 0.2.6）。
+    - `lodash`：升級至 `4.18.1`（修復 CVE-2021-23337 命令注入與原型污染）。
+    - `semver`：升級至 `5.7.3`（修復 CVE-2022-25883 ReDoS 漏洞）。
+    - `qs`：升級至 `6.17.1`（修復 CVE-2022-24999 原型污染）。
+    - `tough-cookie`：升級至 `4.1.4`（修復 CVE-2023-26136 原型污染）。
+    - `form-data`：升級至 `4.0.6`（修復 CVE-2020-7608 標頭注入與表單安全）。
+    - `minimist`：升級至 `1.2.8`（>= 1.2.6，修復 CVE-2021-44906）。
+    - `getobject`：升級至 `1.1.1`（> 1.0.0，修復 CVE-2020-28282）。
+    - `underscore`：升級至 `1.13.8`（> 1.12.1，修復 CVE-2021-23358）。
+    - `json-schema`：升級至 `0.4.0`（> 0.4.0 / >= 0.4.0，修復 CVE-2021-3918）。
+
 ### 📦 專案版本與產出全面升級 (Project Versioning)
 - Maven POM（根模組與 `docs-core`、`docs-web-common`、`docs-web`）全面升級至 `<version>2.03</version>`。
 - 前端 `package.json` 與 `package-lock.json` 更新為 `"version": "2.0.3"`。
