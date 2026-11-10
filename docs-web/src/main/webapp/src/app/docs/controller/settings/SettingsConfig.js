@@ -159,6 +159,10 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
   $scope.testingSmtp = false;
   $scope.testSmtp = function () {
     if (!$scope.smtp || !$scope.smtp.test_to) {
+      var title = $translate.instant('settings.config.smtp_test_failed_title');
+      var msg = $translate.instant('validation.email');
+      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
+      $dialog.messageBox(title, msg, btns);
       return;
     }
     $scope.testingSmtp = true;

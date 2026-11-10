@@ -285,15 +285,16 @@
   <div class="form-group">
     <label class="col-sm-2 control-label" for="smtpTestTo">{{ 'settings.config.smtp_test_to' | translate }}</label>
     <div class="col-sm-7">
-      <div class="input-group">
-        <input name="testTo" type="email" class="form-control" id="smtpTestTo" ng-model="smtp.test_to" placeholder="admin@example.com" />
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-info" ng-click="testSmtp()" ng-disabled="!smtp.test_to || testingSmtp">
-            <span class="fas fa-paper-plane" ng-class="{ 'fa-spin': testingSmtp }"></span> {{ 'settings.config.smtp_test_btn' | translate }}
-          </button>
-        </span>
+      <div class="form-inline">
+        <input name="testTo" type="email" class="form-control" id="smtpTestTo" ng-model="smtp.test_to"
+               placeholder="admin@example.com" style="width: 260px; max-width: 100%; display: inline-block; vertical-align: middle;" />
+        <button type="button" class="btn btn-primary" ng-click="testSmtp()" ng-disabled="testingSmtp"
+                style="margin-left: 12px; font-size: 14px; display: inline-block; vertical-align: middle;">
+          <span class="fas fa-paper-plane" ng-class="{ 'fa-spin': testingSmtp }"></span>
+          <span>{{ 'settings.config.smtp_test_btn' | translate }}</span>
+        </button>
       </div>
-      <span class="help-block">{{ 'settings.config.smtp_test_help' | translate }}</span>
+      <span class="help-block" style="margin-top: 6px;">{{ 'settings.config.smtp_test_help' | translate }}</span>
     </div>
   </div>
 </form>
