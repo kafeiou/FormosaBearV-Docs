@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.03)
+# FormosaBearV (v2.04)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -8,50 +8,17 @@
 
 > **Fork Notice**: This repository is forked from [https://github.com/sismics/docs](https://github.com/sismics/docs) (version `1.12`), modernized and maintained independently starting from version **`2.01`**.
 
-## Key Upgrades in v2.03
-
-- **Hardened Security**: Patched LDAP injection and Stored XSS vulnerabilities; tagged user authentication source (`auth_source`) to prevent dual-password backdoor risks; upgraded default admin password to `superSecure`.
-- **Dependency Security Upgrades and Toolchain Modernization**: Remediated critical security vulnerabilities by migrating from EOL Log4j to maintained `reload4j 1.2.25`, upgrading PostgreSQL JDBC (42.7.11), Jsoup (1.23.2), Commons Compress (1.27.1), Commons IO (2.18.0), Guava (33.3.1), PDFBox (2.0.32), Bouncy Castle (1.78.1), FreeMarker (2.3.34); upgraded frontend build core to `grunt 1.6.1` and secured transitive dependencies (`async`, `js-yaml`, `hosted-git-info`, `uuid`, etc.); and completely deprecated and removed the legacy standalone `docs-importer` CLI tool (eliminating 12 unfixable inherited vulnerabilities) to reinforce software supply chain security.
-- **Web-Configurable Base URL & Mail Branding**: Integrated Base URL (default `http://localhost:8080`) and Sender Name into Admin Settings without requiring environment variables; all system emails are fully branded as `FormosaBearV`.
-- **SMTP Enhancements & Real-Time Test Tool**: Full support for SSL, STARTTLS, and plaintext security protocols, unauthenticated local/intranet mail relay, and a built-in admin test tool for instant connection verification.
-- **Complete Localization Across 12 Languages**: Exhaustive translation audit eliminating missing translation keys across all supported languages, including complete LDAP and notification strings.
-- **Portable Server Improvements**: Standardized startup scripts to pure English ASCII (eliminating Windows terminal code page issues) with strict Java 21+ validation and pre-configured Jetty 12 modules.
-- **Standards-Compliant Filenames**: Full RFC 5987 / RFC 6266 UTF-8 encoded filename support on file download and preview.
-
-## Key Upgrades in v2.02
-
-- **Full System Backup & Restore**: Streaming ZIP backups with cross-database (H2 / PostgreSQL) migration support and safe transactional rollback.
-- **Interactive Multi-Page Office Previews**: Full in-browser slide-by-slide viewing for PPTX, DOCX, and ODT documents via Mozilla PDF.js.
-- **Hierarchical Tag Permissions**: Inheritance from ancestor tags, customizable block-inheritance boundaries, and hierarchical tree selectors.
-- **Hardened Download Suppression**: System-level download restrictions while preserving in-browser viewing.
-- **Standalone Portable Distribution**: Zero-installation runnable package bundling Jetty 12 and isolated local data storage.
-
-## Key Upgrades in v2.01
-
-- Modernized runtime baseline: **Java 21 (LTS)**, **Eclipse Jetty 12.1 (`ee10`)**, **Jersey 3.1**, and **H2 Database 2.3**.
-- Updated frontend dependencies to **AngularJS 1.8.3** and **jQuery 3.7.1**.
-- Bundled Pan-CJK font (`Noto Sans CJK TC`) for out-of-the-box CJK rendering.
-- Enhanced hierarchical tag browser and web-managed storage configurations.
-
 ## Features
 
-- Responsive web user interface
-- Optical Character Recognition (OCR) via Tesseract
-- LDAP authentication
-- Support for image, PDF, ODT, DOCX, and PPTX files
-- Video file support and thumbnail extraction
-- Full-text search with suggestions and highlighting (Apache Lucene)
-- Dublin Core metadata and custom user-defined metadata
-- Document review workflow system
-- 256-bit AES encryption of stored files
-- File versioning
-- Nested tag system
-- Document import from email (EML format) and automatic IMAP inbox scanning
-- User and hierarchical group permission system
-- Two-factor authentication (TOTP)
-- Audit log, comments, and per-user storage quotas
-- Document sharing via URL
-- RESTful Web API and outgoing Webhooks
+- **Modern Architecture & Portable Deployment**: Built on Java 21 (LTS) and Eclipse Jetty 12, supporting standard WAR deployment, Docker containers, and a zero-install Standalone Portable Edition.
+- **Multi-Format & Interactive Office Previews**: Supports images, videos, PDF, ODT, DOCX, and PPTX with in-browser multi-page previewing and bundled Pan-CJK font rendering.
+- **Full-Text Search & OCR**: Powered by Apache Lucene (with instant suggestions and highlighting) and integrated Tesseract Optical Character Recognition.
+- **Hierarchical Tags & Permission Inheritance**: Multi-level nested tag tree navigation with automatic ancestor permission inheritance and customizable security boundaries.
+- **Granular Document & Download Security**: User/group access control, system-wide and per-document download authorization controls (allowing view-only access while preventing file exfiltration), and 256-bit AES storage encryption.
+- **Enterprise Authentication**: Supports internal authentication, LDAP directory integration, and Two-Factor Authentication (TOTP).
+- **Full System Backup, Restore & Migration**: Streaming full-system ZIP backup and restore with cross-database migration support between H2 and PostgreSQL.
+- **Document Lifecycle & Collaboration**: File versioning, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas, and URL sharing.
+- **Automated Import & Integration**: EML email import, automated IMAP inbox scanning, customizable SMTP notifications, RESTful Web API, and outgoing Webhooks.
 
 ## Building and Running from Source
 
@@ -76,10 +43,10 @@ mvn clean package -DskipTests
 ```
 *(or `mvn clean install -DskipTests`)*
 
-This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.03.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
+This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.04.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
 
 ```text
-docs-web/target/docs-web-2.03.war
+docs-web/target/docs-web-2.04.war
 ```
 
 ### Build Standalone Portable Edition (No Docker Required)
@@ -97,7 +64,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 This automatically downloads the base Jetty 12 ZIP into `tools/jetty/` if absent, compiles the WAR, assembles all modules, and outputs:
 
 ```text
-target/FormosaBearV-docs-2.03-portable.zip
+target/FormosaBearV-docs-2.04-portable.zip
 ```
 
 Simply unzip this package on any computer with Java 21 and run `start.bat` or `./start.sh`!
@@ -121,7 +88,7 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # Step 2: Build the Docker image (or use docker compose)
-docker build -t formosabearv-docs:2.03 .
+docker build -t formosabearv-docs:2.04 .
 ```
 
 A `Dockerfile` is included to build a self-contained container image with OpenJDK 21, Jetty 12.1 (`ee10`), Tesseract OCR, `ffmpeg`, and `mediainfo`, listening on port `8080`.

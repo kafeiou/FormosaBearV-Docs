@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.03)
+# FormosaBearV (v2.04)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -8,50 +8,17 @@
 
 > **分支說明 (Fork Notice)**：本專案分支出自 [https://github.com/sismics/docs](https://github.com/sismics/docs) (版本 `1.12`)，自 **`2.01`** 起進行全面現代化架構重構與獨立維護。
 
-## v2.03 重大升級亮點
-
-- **全面安全防禦強化**：修復 LDAP Injection 與儲存型 XSS 漏洞，標記帳號認證來源 (`auth_source`) 防堵雙密碼後門漏洞，預設管理員密碼升級為 `superSecure`。
-- **核心與前端套件安全性升級與工具鏈整肅**：全面汰換具資安弱點之舊版套件，包含將 Log4j 遷移至安全維護版 `reload4j 1.2.25`，升級 PostgreSQL 驅動 (42.7.11)、Jsoup (1.23.2)、Commons Compress (1.27.1)、Commons IO (2.18.0)、Guava (33.3.1)、PDFBox (2.0.32)、Bouncy Castle (1.78.1)、FreeMarker (2.3.34)；前端建置核心升級至 `grunt 1.6.1` 並安全鎖定相依套件（`async`, `js-yaml`, `hosted-git-info`, `uuid` 等）；同時徹底廢除並移除舊版命令列上傳工具 `docs-importer`（消除其引發之 12 項無法修復之歷史相依漏洞），大幅強化軟體供應鏈安全。
-- **後台基礎網址與郵件品牌自訂**：免除環境變數設定，可直接在後台維護基礎網址（預設 `http://localhost:8080`）與郵件寄件者名稱，信件全面品牌化為 `FormosaBearV`。
-- **SMTP 電子郵件傳輸強化與即時測試**：支援 SSL、STARTTLS 與純文字等多元傳輸協定，支援免帳號密碼本機無認證發信，並於後台新增即時發信連線測試工具。
-- **全語系在地化完整度提升**：徹底清查並補齊 12 國語系檔案中遺漏之關鍵翻譯，包含 LDAP 帳號設定與系統通知字串全面完善在地化。
-- **免安裝可攜伺服器優化**：啟動腳本全面純英文化（根除 Windows 終端亂碼），嚴格校驗 Java 21+ 執行環境，內建 Jetty 12 開箱即用配置。
-- **標準化檔名編碼**：檔案下載與預覽全面相容 RFC 5987 / RFC 6266 UTF-8 國際化檔名規範。
-
-## v2.02 重大升級亮點
-
-- **完整系統備份與還原**：串流即時匯出標準 ZIP 備份，支援 H2 / PostgreSQL 跨資料庫遷移與安全復原機制。
-- **Office 文件多頁互動式預覽**：整合 Mozilla PDF.js 引擎，支援在瀏覽器中對 PPTX、DOCX、ODT 進行線上翻頁檢視。
-- **階層式標籤權限管理**：支援標籤父子權限繼承、中斷繼承安全邊界與階層式樹狀選擇器。
-- **全域禁止下載開關**：提供系統層級開關，可在保留線上閱讀的同時嚴禁檔案下載。
-- **免安裝可攜版打包機制**：提供一鍵打包腳本，自動將 Jetty 12 與 WAR 打包為隨身碟即開即用的綠色發行包。
-
-## v2.01 重大升級亮點
-
-- 全面提升至 **Java 21 (LTS)**、**Eclipse Jetty 12.1 (`ee10`)**、**Jersey 3.1** 與 **H2 Database 2.3**。
-- 前端架構升級至 **AngularJS 1.8.3** 與 **jQuery 3.7.1**。
-- 內建開源 Pan-CJK 字型（`Noto Sans CJK TC`），支援中日韓字元排版渲染。
-- 支援增強型樹狀標籤導航與 Web 端儲存設定維護。
-
 ## 核心功能特色
 
-- 響應式 Web 操作介面（支援桌機與行動裝置）
-- Tesseract 光學文字辨識 (OCR)
-- LDAP 企業帳號整合認證
-- 支援圖片、PDF、ODT、DOCX 與 PPTX 檔案格式
-- 支援影片格式上傳與自動縮圖擷取
-- Apache Lucene 全文搜尋（支援即時關鍵字建議與內文醒目標示）
-- Dublin Core 標準中繼資料與使用者自訂欄位
-- 文件審核與簽核工作流 (Review Workflow)
-- 256-bit AES 磁碟檔案儲存串流加密
-- 檔案多版本控制 (Versioning)
-- 多層次階層式標籤系統
-- 電子郵件匯入 (EML) 與 IMAP 收件匣自動定時掃描
-- 使用者與群組階層式權限系統
-- 雙因素身分驗證 (2FA / TOTP)
-- 操作稽核日誌 (Audit Log)、文件留言討論與個人儲存配額管理
-- 透過安全分享連結對外公開文件
-- RESTful Web API 與外傳 Webhooks 事件通知
+- **現代化架構與跨平台免安裝部署**：基於 Java 21 (LTS) 與 Eclipse Jetty 12 打造，支援標準 WAR、Docker 容器化與免安裝可攜綠色版（Portable Edition）即開即用。
+- **多格式文件與 Office 線上互動預覽**：支援圖片、影片、PDF、ODT、DOCX 與 PPTX 檔案，整合線上逐頁翻頁預覽與內建中日韓 (Pan-CJK) 字型渲染。
+- **全文檢索與光學文字辨識 (OCR)**：內建 Apache Lucene 全文搜尋（支援即時建議與關鍵字醒目標示）與 Tesseract OCR 自動文字擷取。
+- **階層式標籤與權限繼承管理**：支援多層次樹狀標籤導航、父子標籤權限自動繼承與獨立權限邊界控管。
+- **細粒度文件與下載安全管控**：提供使用者與群組權限、全域與單一文件級別的下載權限控管（可限制僅供線上閱覽、禁止下載外流），以及 256-bit AES 儲存串流加密。
+- **企業級身分驗證與安全防護**：支援本地認證、LDAP 企業目錄整合與雙因素驗證 (2FA / TOTP)。
+- **完整系統備份、還原與跨庫遷移**：支援後台一鍵串流匯出完整系統 ZIP 備份與還原，並支援 H2 與 PostgreSQL 跨資料庫無縫遷移。
+- **文件生命週期與協作工作流**：支援檔案多版本控制、Dublin Core 與自訂中繼資料、審核簽核流程 (Review Workflow)、留言討論、操作稽核日誌、個人儲存配額管理與安全外部連結分享。
+- **自動化匯入與系統整合**：支援 EML 郵件匯入、IMAP 收件匣自動掃描、SMTP 郵件通知、RESTful Web API 與 Webhooks 事件推播。
 
 ## 從原始碼編譯與建置 (Building from Source)
 
@@ -76,10 +43,10 @@ mvn clean package -DskipTests
 ```
 *(或執行 `mvn clean install -DskipTests`)*
 
-本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-2.03.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
+本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-2.04.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
 
 ```text
-docs-web/target/docs-web-2.03.war
+docs-web/target/docs-web-2.04.war
 ```
 
 ### 打包免安裝可攜綠色版（無需 Docker）
@@ -97,7 +64,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 此腳本會自動讀取 `tools/jetty/` 專案基底 Jetty 12 ZIP（缺少時自動從 Maven 中央倉庫下載），自動編譯 WAR 並組裝所有模組與腳本，最終產出：
 
 ```text
-target/FormosaBearV-docs-2.03-portable.zip
+target/FormosaBearV-docs-2.04-portable.zip
 ```
 
 解壓後只要電腦有安裝 Java 21，雙擊 `start.bat`（或執行 `./start.sh`）即可直接秒速啟動！
@@ -121,7 +88,7 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # 第二步：建置 Docker 映像檔（或直接使用 docker compose）
-docker build -t formosabearv-docs:2.03 .
+docker build -t formosabearv-docs:2.04 .
 ```
 
 專案內建 `Dockerfile`，包含 OpenJDK 21、Jetty 12.1 (`ee10`)、Tesseract OCR、`ffmpeg` 與 `mediainfo`，預設接聽 `8080` 連接埠。
