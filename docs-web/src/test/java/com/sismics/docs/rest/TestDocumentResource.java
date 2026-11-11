@@ -1099,7 +1099,7 @@ public class TestDocumentResource extends BaseJerseyTest {
                     .get();
             Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
 
-            // (4) Collaborator tries to modify allow_download to true -> ignored / blocked
+            // (4) Collaborator tries to modify allow_download to true -> ignored / blocked because doc has no tags with WRITE permission
             target().path("/document/" + docId).request()
                     .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
                     .post(Entity.form(new Form()
@@ -1112,6 +1112,57 @@ public class TestDocumentResource extends BaseJerseyTest {
                     .get(JsonObject.class);
             Assert.assertFalse(docDetails.getBoolean("allow_download"));
             Assert.assertFalse(docDetails.getBoolean("can_download"));
+            Assert.assertFalse(docDetails.getBoolean("can_change_allow_download"));
+
+            // (4b) Collaborator creates a tag and binds it to document. Since collaborator has WRITE on bound tag, they can now toggle allow_download!
+            JsonObject collabTagJson = target().path("/tag").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .put(Entity.form(new Form()
+                            .param("name", "CollabTag")
+                            .param("color", "#ff5500")), JsonObject.class);
+            String collabTagId = collabTagJson.getString("id");
+
+            // Attach tag to document
+            target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .post(Entity.form(new Form()
+                            .param("title", "Doc With Collab Tag")
+                            .param("language", "eng")
+                            .param("tags", collabTagId)));
+
+            docDetails = target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get(JsonObject.class);
+            Assert.assertTrue(docDetails.getBoolean("can_change_allow_download"));
+            Assert.assertEquals("user_collab", docDetails.getJsonArray("tags").getJsonObject(0).getString("creator"));
+
+            // Now collab modifies allow_download = true -> should succeed!
+            target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .post(Entity.form(new Form()
+                            .param("title", "Doc Allowed by Tag Editor")
+                            .param("language", "eng")
+                            .param("tags", collabTagId)
+                            .param("allow_download", "true")));
+
+            docDetails = target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get(JsonObject.class);
+            Assert.assertTrue(docDetails.getBoolean("allow_download"));
+            Assert.assertTrue(docDetails.getBoolean("can_download"));
+
+            // Reset allow_download to false by collab
+            target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .post(Entity.form(new Form()
+                            .param("title", "Doc Reset by Tag Editor")
+                            .param("language", "eng")
+                            .param("tags", collabTagId)
+                            .param("allow_download", "false")));
+            docDetails = target().path("/document/" + docId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get(JsonObject.class);
+            Assert.assertFalse(docDetails.getBoolean("allow_download"));
 
             // (5) Uploader enables allow_download = true
             target().path("/document/" + docId).request()

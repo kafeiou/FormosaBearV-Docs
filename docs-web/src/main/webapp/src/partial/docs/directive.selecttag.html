@@ -1,7 +1,9 @@
 <div class="select-tag-wrapper">
   <ul class="list-inline" ng-show="tags && tags.length > 0" style="margin-bottom: 8px;">
     <li ng-repeat="tag in tags" style="margin-bottom: 4px;">
-      <span class="label label-info" ng-style="{ 'background': tag.color }" invert-text-color="{{ tag.color }}" style="font-size: 90%; padding: 4px 8px; display: inline-block;">
+      <span class="label label-info" ng-style="{ 'background': tag.color }" invert-text-color="{{ tag.color }}"
+            uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true"
+            style="font-size: 90%; padding: 4px 8px; display: inline-block;">
         {{ tag.name }}
         <span class="fas fa-times" style="cursor: pointer; margin-left: 4px;" ng-click="deleteTag(tag)" ng-show="!ngDisabled"></span>
       </span>
@@ -13,7 +15,8 @@
            ng-attr-placeholder="{{ 'directive.selecttag.typeahead' | translate }}"
            ng-model="input" ng-disabled="ngDisabled"
            autocomplete="off"
-           uib-typeahead="tag as tag.fullLabel for tag in allTags | filter: $viewValue"
+           uib-typeahead="tag as tag.name for tag in allTags | filter: $viewValue"
+           typeahead-template-url="selectTagTypeaheadTemplate.html"
            typeahead-on-select="addTag($item)" />
     <span class="input-group-btn">
       <button type="button" class="btn" ng-class="showTree ? 'btn-info' : 'btn-default'"

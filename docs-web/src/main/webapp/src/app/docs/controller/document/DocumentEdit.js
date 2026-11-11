@@ -17,6 +17,10 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
       $scope.canEditAllowDownload = true;
       return;
     }
+    if ($scope.document && $scope.document.can_change_allow_download !== undefined) {
+      $scope.canEditAllowDownload = !!$scope.document.can_change_allow_download;
+      return;
+    }
     User.userInfo().then(function(user) {
       var isAdmin = user && user.base_functions && user.base_functions.indexOf('ADMIN') !== -1;
       var isCreator = user && $scope.document && user.username === $scope.document.creator;

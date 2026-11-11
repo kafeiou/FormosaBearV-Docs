@@ -112,6 +112,9 @@ public class TagResource extends BaseResource {
             if (tagIdSet.contains(tagDto.getParentId())) {
                 item.add("parent", tagDto.getParentId());
             }
+            if (tagDto.getCreator() != null) {
+                item.add("creator", tagDto.getCreator());
+            }
             items.add(item);
         }
         

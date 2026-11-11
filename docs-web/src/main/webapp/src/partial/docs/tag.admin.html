@@ -8,7 +8,8 @@
     <span class="tag-tree-toggle-placeholder" ng-if="!hasChildren(tag.id)"></span>
     <span class="fas fa-tag" ng-style="{ 'color': tag.color }"></span>
     <span class="fas fa-lock text-warning" ng-if="tag.inherit_acl === false" uib-tooltip="{{ 'tag.broken_inheritance' | translate }}" style="margin-left: 3px; font-size: 11px;"></span>
-    <a href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }">
+    <a href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }"
+       uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
       {{ tag.name }}
     </a>
     <span class="tag-order-actions ml-10" ng-if="canManageTags">

@@ -169,7 +169,7 @@
       "uploading_files": "Envoi des fichiers...",
       "allow_download": "Autoriser le téléchargement de fichiers",
       "allow_download_desc": "Si le téléchargement global est désactivé, les utilisateurs disposant d'un accès en lecture peuvent toujours télécharger les fichiers et le ZIP de ce document",
-      "allow_download_help": "Seul le créateur du document et les administrateurs peuvent modifier ce paramètre"
+      "allow_download_help": "Seuls le créateur du document, les administrateurs ou les utilisateurs disposant d'autorisations de modification d'étiquette peuvent modifier ce paramètre"
     },
     "default": {
       "upload_pending": "En attente...",
@@ -241,7 +241,8 @@
       "info": "Les permissions sur ce tag seront également appliquées aux documents taggés avec <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span>",
       "circular_reference_title": "Référence circulaire",
       "circular_reference_message": "La hiérarchie des tags parents forment une boucle, veuillez choisir un autre parent."
-    }
+    },
+    "created_by": "Créé par : {{ creator }}"
   },
   "group": {
     "profile": {

@@ -3,10 +3,10 @@
   <div class="clearfix">
     <ol class="breadcrumb breadcrumb-navigation pull-left" style="margin-bottom: 5px; padding-left: 0;">
       <li ng-repeat="bTag in getTagBreadcrumb()" ng-class="{ active: bTag.id == tag.id }">
-        <a class="label" ng-style="{ 'background-color': bTag.color }" invert-text-color="{{ bTag.color }}" ng-if="bTag.id != tag.id" href="#/tag/{{ bTag.id }}">
+        <a class="label" ng-style="{ 'background-color': bTag.color }" invert-text-color="{{ bTag.color }}" ng-if="bTag.id != tag.id" href="#/tag/{{ bTag.id }}" uib-tooltip="{{ getTagTooltip(bTag) }}" tooltip-append-to-body="true">
           {{ bTag.name }}
         </a>
-        <span class="label" ng-style="{ 'background-color': bTag.color }" invert-text-color="{{ bTag.color }}" ng-if="bTag.id == tag.id" style="font-size: 105%;">
+        <span class="label" ng-style="{ 'background-color': bTag.color }" invert-text-color="{{ bTag.color }}" ng-if="bTag.id == tag.id" style="font-size: 105%;" uib-tooltip="{{ getTagTooltip(bTag) }}" tooltip-append-to-body="true">
           <span class="fas fa-tag"></span>&nbsp;{{ bTag.name }}
         </span>
       </li>
@@ -26,6 +26,7 @@
        class="label mr-10"
        ng-style="{ 'background-color': child.color }"
        invert-text-color="{{ child.color }}"
+       uib-tooltip="{{ getTagTooltip(child) }}" tooltip-append-to-body="true"
        style="display: inline-block; margin-bottom: 4px;">
       <span class="fas fa-tag"></span> {{ child.name }}
       <span ng-if="hasChildren(child.id)">&nbsp;<span class="far fa-folder"></span> {{ getChildrenTags(child.id).length }}</span>

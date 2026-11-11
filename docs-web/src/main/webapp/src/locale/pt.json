@@ -169,7 +169,7 @@
       "uploading_files": "A carregar ficheiros...",
       "allow_download": "Permitir download de arquivos",
       "allow_download_desc": "Se o download global estiver desativado, os usuários com acesso de leitura ainda poderão baixar arquivos e ZIP deste documento",
-      "allow_download_help": "Apenas o criador do documento e os administradores podem alterar esta configuração"
+      "allow_download_help": "Apenas o criador do documento, administradores ou usuários com permissões de edição de tags podem alterar esta configuração"
     },
     "default": {
       "upload_pending": "Pendente...",
@@ -241,7 +241,8 @@
       "info": "As permissões nesta etiqueta serão também aplicadas aos documentos etiquetados com <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span>",
       "circular_reference_title": "Referência circular",
       "circular_reference_message": "A hierarquia das etiquetas pai faz um loop, por favor escolha outra etiqueta pai."
-    }
+    },
+    "created_by": "Criado por: {{ creator }}"
   },
   "group": {
     "profile": {

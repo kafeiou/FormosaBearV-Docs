@@ -293,6 +293,21 @@ public class DocumentResource extends BaseResource {
             document.add("files", filesArrayBuilder);
         }
 
+        // Add can_change_allow_download permission flag
+        boolean canChangeAllowDownload = hasBaseFunction(BaseFunction.ADMIN) ||
+                (principal.getId() != null && principal.getId().equals(documentDto.getUserId()));
+        if (!canChangeAllowDownload && tagDtoList != null && !principal.isAnonymous()) {
+            AclDao aclDao = new AclDao();
+            List<String> targetIdList = getTargetIdList(null);
+            for (TagDto tagDto : tagDtoList) {
+                if (aclDao.checkPermission(tagDto.getId(), PermType.WRITE, targetIdList)) {
+                    canChangeAllowDownload = true;
+                    break;
+                }
+            }
+        }
+        document.add("can_change_allow_download", canChangeAllowDownload);
+
         return Response.ok().entity(document.build()).build();
     }
 
@@ -742,12 +757,8 @@ public class DocumentResource extends BaseResource {
         document.setCoverage(coverage);
         document.setRights(rights);
         document.setLanguage(language);
-        // Only document creator or ADMIN can update allow_download
         if (allowDownload != null) {
-            boolean canChangeAllowDownload = document.getUserId().equals(principal.getId()) || hasBaseFunction(BaseFunction.ADMIN);
-            if (canChangeAllowDownload) {
-                document.setAllowDownload(allowDownload);
-            }
+            document.setAllowDownload(allowDownload);
         }
         if (createDate == null) {
             document.setCreateDate(new Date());
@@ -883,9 +894,28 @@ public class DocumentResource extends BaseResource {
         document.setCoverage(coverage);
         document.setRights(rights);
         document.setLanguage(language);
-        // Only document creator or ADMIN can update allow_download
+        // Only document creator, ADMIN, or users with WRITE permission on any bound tag can update allow_download
         if (allowDownload != null) {
             boolean canChangeAllowDownload = document.getUserId().equals(principal.getId()) || hasBaseFunction(BaseFunction.ADMIN);
+            if (!canChangeAllowDownload) {
+                TagDao tagDao = new TagDao();
+                List<TagDto> boundTags = tagDao.findByCriteria(new TagCriteria().setDocumentId(document.getId()), null);
+                List<String> targetIdList = getTargetIdList(null);
+                for (TagDto t : boundTags) {
+                    if (aclDao.checkPermission(t.getId(), PermType.WRITE, targetIdList)) {
+                        canChangeAllowDownload = true;
+                        break;
+                    }
+                }
+                if (!canChangeAllowDownload && tagList != null) {
+                    for (String tagId : tagList) {
+                        if (aclDao.checkPermission(tagId, PermType.WRITE, targetIdList)) {
+                            canChangeAllowDownload = true;
+                            break;
+                        }
+                    }
+                }
+            }
             if (canChangeAllowDownload) {
                 document.setAllowDownload(allowDownload);
             }
@@ -1140,10 +1170,17 @@ public class DocumentResource extends BaseResource {
     private static JsonArrayBuilder createTagsArrayBuilder(List<TagDto> tagDtoList) {
         JsonArrayBuilder tags = Json.createArrayBuilder();
         for (TagDto tagDto : tagDtoList) {
-            tags.add(Json.createObjectBuilder()
+            JsonObjectBuilder b = Json.createObjectBuilder()
                     .add("id", tagDto.getId())
                     .add("name", tagDto.getName())
-                    .add("color", tagDto.getColor()));
+                    .add("color", tagDto.getColor());
+            if (tagDto.getCreator() != null) {
+                b.add("creator", tagDto.getCreator());
+            }
+            if (tagDto.getParentId() != null) {
+                b.add("parent", tagDto.getParentId());
+            }
+            tags.add(b);
         }
         return tags;
     }

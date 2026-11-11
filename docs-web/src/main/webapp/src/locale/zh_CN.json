@@ -178,7 +178,7 @@
       "rename_error": "文档异动失败",
       "allow_download": "允许文件下载",
       "allow_download_desc": "若系统开启全局禁止下载，勾选后具读取权限者仍可下载此文件之档案与 ZIP",
-      "allow_download_help": "仅文件创建者与管理员可变更此设置"
+      "allow_download_help": "Only the document creator, administrators, or users with tag edit permissions can change this setting"
     },
     "default": {
       "upload_pending": "等待中...",
@@ -303,7 +303,8 @@
     "collapse_files": "收起文件",
     "expand_all_files": "展开所有文件",
     "collapse_all_files": "收起所有文件",
-    "tree_filter_placeholder": "搜索筛选标签..."
+    "tree_filter_placeholder": "搜索筛选标签...",
+    "created_by": "Created by: {{ creator }}"
   },
   "group": {
     "profile": {

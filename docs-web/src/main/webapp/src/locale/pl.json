@@ -169,7 +169,7 @@
       "uploading_files": "Przesyłanie plików...",
       "allow_download": "Zezwól na pobieranie plików",
       "allow_download_desc": "Jeśli globalne pobieranie jest wyłączone, użytkownicy z prawem do odczytu nadal mogą pobierać pliki i archiwum ZIP tego dokumentu",
-      "allow_download_help": "Tylko twórca dokumentu i administratorzy mogą zmieniać to ustawienie"
+      "allow_download_help": "Tylko twórca dokumentu, administratorzy lub użytkownicy z uprawnieniami do edycji etykiet mogą zmienić to ustawienie"
     },
     "default": {
       "upload_pending": "Oczekiwanie...",
@@ -241,7 +241,8 @@
       "info": "Uprawnienia do tej etykiety zostaną zastosowane do dokumentów oznaczonych <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span>",
       "circular_reference_title": "Zapętlone odwołanie",
       "circular_reference_message": "Hierarchia nadrzędnej etykiety tworzy pętlę, proszę wybrać innego rodzica."
-    }
+    },
+    "created_by": "Utworzony przez: {{ creator }}"
   },
   "group": {
     "profile": {

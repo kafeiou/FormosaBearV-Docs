@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 /**
  * Tag selection directive.
@@ -10,7 +10,7 @@ angular.module('docs').directive('selectTag', function($templateCache) {
         '<i class="fas" ng-class="isExpanded(node) ? \'fa-caret-down\' : \'fa-caret-right\'"></i>' +
       '</span>' +
       '<span class="select-tag-toggle-placeholder" ng-if="!node.children || node.children.length === 0"></span>' +
-      '<span class="select-tag-item" ng-click="toggleTagSelection(node, $event)">' +
+      '<span class="select-tag-item" ng-click="toggleTagSelection(node, $event)" uib-tooltip="{{ getTagTooltip(node) }}" tooltip-append-to-body="true">' +
         '<i class="far" ng-class="isSelected(node) ? \'fa-check-square text-primary\' : \'fa-square text-muted\'" style="margin-right: 6px;"></i>' +
         '<span class="label label-info" ng-style="{ \'background\': node.color }" invert-text-color="{{ node.color }}">{{ node.name }}</span>' +
         '<span class="text-muted small" style="margin-left: 6px;" ng-if="node.children && node.children.length > 0">' +
@@ -21,6 +21,15 @@ angular.module('docs').directive('selectTag', function($templateCache) {
     '<ul class="list-unstyled select-tag-children" ng-if="node.children && node.children.length > 0" ng-show="isExpanded(node)">' +
       '<li ng-repeat="node in node.children" ng-show="matchesFilter(node)" ng-include="\'selectTagNodeRenderer.html\'"></li>' +
     '</ul>'
+  );
+
+  $templateCache.put('selectTagTypeaheadTemplate.html',
+    '<a href="javascript:void(0);" style="display: flex; align-items: center; justify-content: space-between; padding: 4px 10px;">' +
+      '<span class="label label-info" ng-style="{ \'background\': match.model.color }" invert-text-color="{{ match.model.color }}">{{ match.model.name }}</span>' +
+      '<span class="text-muted small" ng-if="match.model.creator" style="margin-left: 12px;">' +
+        '<i class="fas fa-user" style="font-size: 85%;"></i> {{ match.model.creator }}' +
+      '</span>' +
+    '</a>'
   );
 
   return {
@@ -208,7 +217,8 @@ angular.module('docs').directive('selectTag', function($templateCache) {
           $scope.tags.push({
             id: tag.id,
             name: tag.name,
-            color: tag.color
+            color: tag.color,
+            creator: tag.creator
           });
         }
       };
@@ -229,7 +239,8 @@ angular.module('docs').directive('selectTag', function($templateCache) {
             $scope.tags.push({
               id: tag.id,
               name: tag.name,
-              color: tag.color
+              color: tag.color,
+            creator: tag.creator
             });
           }
           $scope.input = '';

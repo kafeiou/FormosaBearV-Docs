@@ -169,7 +169,7 @@
       "uploading_files": "Skedarët po ngarkohen...",
       "allow_download": "Lejo shkarkimin e skedarëve",
       "allow_download_desc": "Nëse shkarkimi global është i çaktivizuar, përdoruesit me qasje leximi mund të shkarkojnë skedarët dhe ZIP-in e këtij dokumenti",
-      "allow_download_help": "Vetëm krijuesi i dokumentit dhe administratorët mund ta ndryshojnë këtë cilësim"
+      "allow_download_help": "Only the document creator, administrators, or users with tag edit permissions can change this setting"
     },
     "default": {
       "upload_pending": "Në pritje...",
@@ -241,7 +241,8 @@
       "info": "Lejet për këtë etiketë do të zbatohen gjithashtu për dokumentet e etiketuara <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span>",
       "circular_reference_title": "Referencë rrethore",
       "circular_reference_message": "Hierarkia e etiketave prind krijon një lak, ju lutemi zgjidhni një prind tjetër."
-    }
+    },
+    "created_by": "Created by: {{ creator }}"
   },
   "group": {
     "profile": {

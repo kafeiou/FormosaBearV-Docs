@@ -260,7 +260,7 @@
             </div>
 
             <div class="tags small">
-              <span class="label label-info" ng-repeat="tag in document.tags" ng-style="{ 'background': tag.color }" invert-text-color="{{ tag.color }}" add-space-between>
+              <span class="label label-info" ng-repeat="tag in document.tags" ng-style="{ 'background': tag.color }" invert-text-color="{{ tag.color }}" uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true" add-space-between>
                 {{ tag.name }}
               </span>
             </div>

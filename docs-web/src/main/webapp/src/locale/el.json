@@ -169,7 +169,7 @@
       "uploading_files": "Ανέβασμα αρχείων...",
       "allow_download": "Να επιτρέπεται η λήψη αρχείων",
       "allow_download_desc": "Εάν η καθολική λήψη είναι απενεργοποιημένη, οι χρήστες με πρόσβαση ανάγνωσης μπορούν ακόμα να κάνουν λήψη αρχείων και ZIP αυτού του εγγράφου",
-      "allow_download_help": "Μόνο ο δημιουργός του εγγράφου και οι διαχειριστές μπορούν να αλλάξουν αυτήν τη ρύθμιση"
+      "allow_download_help": "Only the document creator, administrators, or users with tag edit permissions can change this setting"
     },
     "default": {
       "upload_pending": "Εκκρεμεί...",
@@ -241,7 +241,8 @@
       "info": "Οι άδειες σε αυτή την ετικέτα θα εφαρμοστούν επίσης και στα έγγραφα με ετικέτα <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span>",
       "circular_reference_title": "Κυκλική αναφορά",
       "circular_reference_message": "Η ιεραρχία των μητρικών ετικετών κάνει κύκλο, παρακαλούμε επέλεξε διαφορετικό γονέα."
-    }
+    },
+    "created_by": "Created by: {{ creator }}"
   },
   "group": {
     "profile": {

@@ -169,7 +169,7 @@
       "uploading_files": "Dateien hochladen…",
       "allow_download": "Dateidownload erlauben",
       "allow_download_desc": "Wenn der globale Download deaktiviert ist, können Benutzer mit Lesezugriff Dateien und ZIP dieses Dokuments herunterladen",
-      "allow_download_help": "Nur der Ersteller des Dokuments und Administratoren können diese Einstellung ändern"
+      "allow_download_help": "Nur der Dokumentersteller, Administratoren oder Benutzer mit Tag-Bearbeitungsberechtigungen können diese Einstellung ändern"
     },
     "default": {
       "upload_pending": "Ausstehend…",
@@ -241,7 +241,8 @@
       "info": "Berechtigungen für dieses Tag werden auch auf Dokumente angewendet, die mit einem Tag <span class=\"label label-info\" ng-style=\"{ 'background': color }\">{{ name }}</span> versehen sind",
       "circular_reference_title": "Zirkuläre Referenz",
       "circular_reference_message": "Die Hierarchie der übergeordneten Tags bildet eine Schleife. Bitte wählen Sie ein anderes übergeordnetes Tag."
-    }
+    },
+    "created_by": "Erstellt von: {{ creator }}"
   },
   "group": {
     "profile": {

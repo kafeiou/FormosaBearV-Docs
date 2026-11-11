@@ -74,7 +74,7 @@
     "current_step_name": "當前步驟",
     "title": "文件名稱",
     "description": "說明",
-    "contributors": "投稿者",
+    "contributors": "協編者",
     "language": "語言",
     "creation_date": "建立時間",
     "subject": "主旨",
@@ -178,7 +178,7 @@
       "rename_error": "檔案異動失敗",
       "allow_download": "允許檔案下載",
       "allow_download_desc": "若系統開啟全域禁止下載，勾選後具讀取權限者仍可下載此文件之檔案與 ZIP",
-      "allow_download_help": "僅文件建立者與管理員可變更此設定"
+      "allow_download_help": "僅文件建立者、管理員或具標籤編輯權限者可變更此設定"
     },
     "default": {
       "upload_pending": "等待中...",
@@ -303,7 +303,8 @@
     "collapse_files": "收合檔案",
     "expand_all_files": "展開所有檔案",
     "collapse_all_files": "收合所有檔案",
-    "tree_filter_placeholder": "搜尋篩選標籤..."
+    "tree_filter_placeholder": "搜尋篩選標籤...",
+    "created_by": "建立者：{{ creator }}"
   },
   "group": {
     "profile": {

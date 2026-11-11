@@ -673,7 +673,7 @@ angular.module('docs',
 /**
  * Global download permission helper.
  */
-.run(function ($rootScope, Restangular) {
+.run(function ($rootScope, Restangular, $translate) {
   $rootScope.canDownload = function(file, document) {
     if (!$rootScope.app || $rootScope.app.file_download !== false) {
       return true;
@@ -706,6 +706,16 @@ angular.module('docs',
       $rootScope.app = appData;
     });
   }
+
+  /**
+   * Global tag tooltip helper.
+   */
+  $rootScope.getTagTooltip = function(tag) {
+    if (!tag || !tag.creator) {
+      return '';
+    }
+    return $translate.instant('tag.created_by', { creator: tag.creator });
+  };
 })
 ;
 

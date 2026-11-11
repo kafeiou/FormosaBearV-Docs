@@ -89,7 +89,7 @@
           <td>
             {{ document.title }} ({{ document.file_count }})
             <div class="tags small">
-              <span class="label label-info" ng-repeat="tag in document.tags" ng-style="{ 'background': tag.color }">
+              <span class="label label-info" ng-repeat="tag in document.tags" ng-style="{ 'background': tag.color }" uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
                 {{ tag.name }}
               </span>
             </div>
