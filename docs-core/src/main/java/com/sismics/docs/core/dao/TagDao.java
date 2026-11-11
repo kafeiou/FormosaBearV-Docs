@@ -38,6 +38,20 @@ public class TagDao {
             return null;
         }
     }
+
+    /**
+     * Returns the list of all active tags owned by a user.
+     *
+     * @param userId User ID
+     * @return List of active tags
+     */
+    @SuppressWarnings("unchecked")
+    public List<Tag> findByUserId(String userId) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("select t from Tag t where t.userId = :userId and t.deleteDate is null");
+        q.setParameter("userId", userId);
+        return q.getResultList();
+    }
     
     /**
      * Update tags on a document.
@@ -182,6 +196,9 @@ public class TagDao {
         Tag tagDb = (Tag) q.getSingleResult();
         
         // Update the tag
+        if (tag.getUserId() != null) {
+            tagDb.setUserId(tag.getUserId());
+        }
         tagDb.setName(tag.getName());
         tagDb.setColor(tag.getColor());
         tagDb.setParentId(tag.getParentId());

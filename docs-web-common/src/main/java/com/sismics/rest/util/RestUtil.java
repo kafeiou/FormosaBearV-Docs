@@ -33,6 +33,7 @@ public class RestUtil {
                     .add("processing", FileUtil.isProcessingFile(fileDb.getId()))
                     .add("name", JsonUtil.nullable(fileDb.getName()))
                     .add("version", fileDb.getVersion())
+                    .add("version_label", JsonUtil.nullable(fileDb.getVersionLabel()))
                     .add("mimetype", fileDb.getMimeType())
                     .add("document_id", JsonUtil.nullable(fileDb.getDocumentId()))
                     .add("create_date", fileDb.getCreateDate().getTime())

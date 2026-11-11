@@ -6,6 +6,38 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
+## [v2.04] - 2026-11-11
+
+> **Baseline**: `v2.03` (`1a8bd912`) ➜ `v2.04`
+
+### ✨ New Features & System Improvements
+- **Document Download Authorization Matrix (`DOC_ALLOW_DOWNLOAD_B`, DB v37)** (`ea6d5ba9`, `95d3d14c`):
+  - Added `DOC_ALLOW_DOWNLOAD_B` column to `T_DOCUMENT` via [dbupdate-037-0.sql](file:///W:/developer/project/github/teedydocs/docs-core/src/main/resources/db/update/dbupdate-037-0.sql) (defaulting to `TRUE`).
+  - Document creators, users with direct or tag-inherited document `WRITE` permission, users with `WRITE` permission on any tag attached to the document, and `admin` can toggle `allow_download` per document.
+  - Enforced a unified download authorization matrix across single-file downloads (`GET /api/file/{id}/data` without `size` parameter), batch ZIP exports (`GET /api/file/zip`), and the frontend UI (`canDownload`), preventing unauthorized raw file exfiltration while keeping in-browser document and image previews (`size=web` / `thumb` / `preview`) accessible to read-only users.
+- **Employee Offboarding, Account Deactivation Security & One-Click Asset/Permission Handover**:
+  - **Immediate Session Revocation & Login Blocking**: Deactivating a user account immediately revokes all active authentication tokens (`AuthenticationTokenDao.deleteByUserId`), blocks active sessions in [TokenBasedSecurityFilter.java](file:///W:/developer/project/github/teedydocs/docs-web-common/src/main/java/com/sismics/util/filter/TokenBasedSecurityFilter.java), blocks LDAP sign-in in [LdapAuthenticationHandler.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/LdapAuthenticationHandler.java), and hides deactivated accounts from ACL autocomplete searches (`UserCriteria.active`).
+  - **Asset Summary & Deletion Guard**: `GET /api/user/{username}` returns `owned_document_count`, `owned_tag_count`, and `owned_file_count`. Attempting to delete a user who still owns documents, tags, or files is blocked with `UserHasAssets` (`HTTP 400`) to prevent accidental data loss.
+  - **One-Click Asset & ACL Handover (`POST /api/user/{username}/transfer`)**: Added one-click transfer in User Management to hand over all owned documents (`DocumentDao.transferOwnership`), tags (`TagDao.transferOwnership`), physical/encrypted files and storage quota accounting (`FileUtil.transferFileStorage` & `FileDao.transferOwnership`), active workflow steps (`RouteStepDao.transferActiveSteps`), and **all granted ACL permissions** (`AclDao.copyUserAcls`, ensuring permissions granted by `admin` or third parties on tags/documents are also inherited by the successor).
+- **User-Customizable File Version Label (`FIL_VERSION_LABEL_C`, DB v38) & Version History Enhancements**:
+  - Added `FIL_VERSION_LABEL_C varchar(50)` to `T_FILE` via [dbupdate-038-0.sql](file:///W:/developer/project/github/teedydocs/docs-core/src/main/resources/db/update/dbupdate-038-0.sql), preserving `1.0`/`2.0` labels for existing files while defaulting newly uploaded files and new versions to blank (`null`) so users can define custom version strings (e.g., `001`, `v1.2-draft`, `Rev.A`).
+  - Updated Grid/Tag card views to display `({{ file.version_label }})` only when non-empty, and List view to show `{{ file.version_label }}`.
+  - Redesigned the Version History modal ([file.versions.html](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/partial/docs/file.versions.html), [ModalFileVersions.js](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/app/docs/controller/ModalFileVersions.js)): sorted newest-to-oldest (`orderBy: '-version'`) with `#1`/`#2` sequence numbers, a "Current / 目前版本" badge, full second-level timestamps (`yyyy-MM-dd HH:mm:ss`), and inline version label editing with a dedicated Save button.
+  - Added display toggles (`showVersionMimetype` and `showVersionCreateDate`, hidden by default) in [settings.account.html](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/partial/docs/settings.account.html) and [settings.config.html](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/partial/docs/settings.config.html) to show or hide the MIME Type and Create Date columns in the version history dialog.
+- **Unlimited User Storage Quota (`0` = Unlimited)** (`ea6d5ba9`):
+  - Updated [FileUtil.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/util/FileUtil.java) and User Management UI so setting storage quota to `0` grants unlimited storage capacity.
+- **Global Tag Creator Tooltip (`getTagTooltip`)**:
+  - Added `$rootScope.getTagTooltip(tag)` in [app.js](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/app/docs/app.js) and bound it into [SelectTag.js](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/app/docs/directive/SelectTag.js), displaying the tag creator (`Creator: {{ creator }}` / `建立者：{{ creator }}`) on hover across Tag Management, Tag Browser, Document List/View, and the Tag Selector.
+- **ACL Target Dropdown Selector (`<acl-edit>`)**:
+  - Enhanced [directive.acledit.html](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/partial/docs/directive.acledit.html) and [AclEdit.js](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/app/docs/directive/AclEdit.js) with a zero-length typeahead (`typeahead-min-length="0"`) and dropdown toggle button so administrators and users can browse and click users/groups directly when assigning permissions.
+
+### 🐛 Bug Fixes
+- **ACL `READWRITE` Direct Permission Persistence**: Fixed [AclResource.java](file:///W:/developer/project/github/teedydocs/docs-web/src/main/java/com/sismics/docs/rest/resource/AclResource.java) and [AclDao.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/dao/AclDao.java) (`hasDirectAcl`) so granting `READWRITE` (`READ` + `WRITE` requests in parallel) is not skipped when the target already has inherited or creator permissions.
+- **Storage Quota Unit Conversion & Panel State**: Fixed repeated Byte/MB division when reloading user profiles in User Management, and kept user/group edit panels open after saving.
+- **Input Group Button Text Visibility**: Fixed `.input-group-btn > .btn` inheriting `font-size: 0` from Bootstrap when combined with `.btn:not(...) { font-size: 1em; }` in [main.less](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/style/main.less).
+
+---
+
 ## [v2.03] - 2026-11-10
 
 > **Baseline**: Git Tag `2.02` (`53cc6936`) ➜ `v2.03`

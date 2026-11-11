@@ -104,6 +104,11 @@ public class TokenBasedSecurityFilter extends SecurityFilter {
             return null;
         }
 
-        return new UserDao().getById(authToken.getUserId());
+        User user = new UserDao().getById(authToken.getUserId());
+        if (user == null || user.getDeleteDate() != null || user.getDisableDate() != null) {
+            handleExpiredToken(authTokenDao, authTokenId);
+            return null;
+        }
+        return user;
     }
 }

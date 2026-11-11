@@ -22,6 +22,18 @@ public class AuditLogUtil {
      * @param userId User ID
      */
     public static void create(Loggable loggable, AuditLogType type, String userId) {
+        create(loggable, type, userId, loggable.toMessage());
+    }
+
+    /**
+     * Create an audit log with a custom message.
+     *
+     * @param loggable Loggable entity
+     * @param type Audit log type
+     * @param userId User ID performing the action
+     * @param message Custom audit log message
+     */
+    public static void create(Loggable loggable, AuditLogType type, String userId, String message) {
         if (userId == null) {
             userId = "admin";
         }
@@ -37,7 +49,7 @@ public class AuditLogUtil {
         auditLog.setEntityId(entityId);
         auditLog.setEntityClass(loggable.getClass().getSimpleName());
         auditLog.setType(type);
-        auditLog.setMessage(loggable.toMessage());
+        auditLog.setMessage(message);
         auditLogDao.create(auditLog);
     }
 }

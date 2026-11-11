@@ -1408,6 +1408,23 @@ ul.tag-tree {
   font-size: 0.78em;
 }
 
+.input-group-btn > .btn:not(.btn-xs):not(.btn-sm):not(.btn-lg) {
+  font-size: var(--app-font-size, 14px);
+  min-height: 2.42em;
+}
+
+.input-group-sm > .input-group-btn > .btn,
+.input-group-btn > .btn-sm {
+  font-size: ~"calc(var(--app-font-size, 14px) * 0.86)";
+  height: auto;
+  min-height: 2.42em;
+}
+
+.input-group-xs > .input-group-btn > .btn,
+.input-group-btn > .btn-xs {
+  font-size: ~"calc(var(--app-font-size, 14px) * 0.78)";
+}
+
 .panel-title {
   font-size: 1.14em;
 }

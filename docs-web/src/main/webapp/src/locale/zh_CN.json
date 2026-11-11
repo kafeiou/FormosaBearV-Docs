@@ -237,6 +237,7 @@
     "edit": {
       "title": "编辑档案",
       "name": "文档名称",
+      "version_placeholder": "选填，例如：1.0、1.1、Rev.A",
       "document_name": "更改所属文件名称",
       "document_name_error": "失败!请重新输入，并选择系统弹出之文件列表"
     },
@@ -245,7 +246,8 @@
       "filename": "文档名称",
       "mimetype": "类型",
       "create_date": "创建日期",
-      "version": "版本"
+      "version": "版本",
+      "latest": "当前版本"
     }
   },
   "tag": {
@@ -355,6 +357,9 @@
       "font_medium": "中",
       "font_large": "大",
       "font_xlarge": "特大",
+      "version_history_columns": "历史版本字段显示",
+      "column_hide": "隐藏",
+      "column_show": "显示",
       "title_general": "一般配置",
       "default_language": "新文档的默认语言",
       "application_name": "申请名",
@@ -487,7 +492,24 @@
         "convert_to_internal_btn": "转为本地内部账户",
         "convert_to_internal_title": "转换账户认证来源",
         "convert_to_internal_confirm": "确定要将此 LDAP 账户转为本地内部账户吗？解绑后您需要在保存时为该用户设定本地密码。",
-        "password_lost_error": "申请密码重设时发生错误。"
+        "password_lost_error": "申请密码重设时发生错误。",
+        "transfer_panel_title": "资产统计与所有权移转 (离职交接 / 职务轮调)",
+        "transfer_panel_desc": "可将此账号名下拥有的所有文档、标签、实体文件及进行中签核流程一键过户给另一位在职用户（保留原拥有者之访问权限与贡献者历史记录）。",
+        "owned_assets_label": "目前名下拥有资产",
+        "owned_documents": "{{ count }} 份文档",
+        "owned_tags": "{{ count }} 个标签",
+        "owned_files": "{{ count }} 个文件",
+        "transfer_target_label": "移转接收人",
+        "transfer_target_placeholder": "-- 请选择要接收资产的在职用户 --",
+        "transfer_btn": "移转资产",
+        "transfer_confirm_title": "确认移转所有资产",
+        "transfer_confirm_message": "确定要将“<strong>{{ source }}</strong>”名下的 <strong>{{ documents }}</strong> 份文档、<strong>{{ tags }}</strong> 个标签与 <strong>{{ files }}</strong> 个实体文件（含审核工作流）全数过户给“<strong>{{ target }}</strong>”吗？",
+        "transfer_success_title": "资产移转完成",
+        "transfer_success_message": "已成功将“<strong>{{ source }}</strong>”的资产过户给“<strong>{{ target }}</strong>”：<br/>• 文档：{{ documents }} 份<br/>• 标签：{{ tags }} 个<br/>• 实体文件：{{ files }} 个<br/>• 审核工作流：{{ routes }} 项",
+        "transfer_error_title": "资产移转失败",
+        "transfer_error_message": "移转资产时发生错误，请稍后再试。",
+        "user_has_assets_title": "无法删除尚有资产的用户",
+        "user_has_assets_message": "此账号名下仍拥有 <strong>{{ documents }}</strong> 份文档、<strong>{{ tags }}</strong> 个标签与 <strong>{{ files }}</strong> 个文件。<br/>为防止误删重要数据，请先使用下方“资产统计与所有权移转”功能将资产过户给其他人员后，再执行删除。"
       }
     },
     "workflow": {

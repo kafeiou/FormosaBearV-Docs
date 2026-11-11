@@ -203,6 +203,14 @@ public class TestFileResource extends BaseJerseyTest {
         Assert.assertEquals("PIA00452.jpg", file.getString("name"));
         Assert.assertEquals("image/jpeg", file.getString("mimetype"));
         Assert.assertEquals(0, file.getInt("version"));
+        Assert.assertTrue("Default version_label on newly uploaded file must be null", file.isNull("version_label"));
+
+        // Manually set custom version label on file2Id
+        target().path("/file/" + file2Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, file1Token)
+                .post(Entity.form(new Form()
+                        .param("name", "PIA00452.jpg")
+                        .param("version_label", "1.0")), JsonObject.class);
 
         // Add a new version to a file
         String file3Id;
@@ -231,11 +239,15 @@ public class TestFileResource extends BaseJerseyTest {
                 .get(JsonObject.class);
         files = json.getJsonArray("files");
         Assert.assertEquals(2, files.size());
+        Assert.assertEquals("1.0", files.getJsonObject(0).getString("version_label"));
+        Assert.assertFalse(files.getJsonObject(0).getBoolean("latest_version"));
         file = files.getJsonObject(1);
         Assert.assertEquals(file3Id, file.getString("id"));
         Assert.assertEquals("document.txt", file.getString("name"));
         Assert.assertEquals("text/plain", file.getString("mimetype"));
         Assert.assertEquals(1, file.getInt("version"));
+        Assert.assertTrue("New uploaded version must also have null version_label by default", file.isNull("version_label"));
+        Assert.assertTrue(file.getBoolean("latest_version"));
 
         // Delete the previous version
         json = target().path("/file/" + file2Id).request()
@@ -478,5 +490,122 @@ public class TestFileResource extends BaseJerseyTest {
         return target().path("/user").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
                 .get(JsonObject.class).getJsonNumber("storage_current").longValue();
+    }
+
+    /**
+     * Test custom file version label (version_label defaults to null on upload and new version, editable via POST /file/{id}).
+     *
+     * @throws Exception e
+     */
+    @Test
+    public void testFileVersionLabel() throws Exception {
+        clientUtil.createUser("file_version_user");
+        String token = clientUtil.login("file_version_user");
+        String documentId = clientUtil.createDocument(token);
+
+        // 1. Upload initial file -> version_label must default to null
+        String file1Id;
+        try (InputStream is0 = Resources.getResource("file/document.txt").openStream()) {
+            StreamDataBodyPart streamDataBodyPart = new StreamDataBodyPart("file", is0, "spec-doc.txt");
+            try (FormDataMultiPart multiPart = new FormDataMultiPart()) {
+                JsonObject json = target()
+                        .register(MultiPartFeature.class)
+                        .path("/file").request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                        .put(Entity.entity(
+                                multiPart
+                                        .field("id", documentId)
+                                        .bodyPart(streamDataBodyPart),
+                                MediaType.MULTIPART_FORM_DATA_TYPE), JsonObject.class);
+                file1Id = json.getString("id");
+                Assert.assertNotNull(file1Id);
+            }
+        }
+
+        JsonObject listJson = target().path("/file/list")
+                .queryParam("id", documentId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .get(JsonObject.class);
+        JsonArray files = listJson.getJsonArray("files");
+        Assert.assertEquals(1, files.size());
+        Assert.assertEquals(0, files.getJsonObject(0).getInt("version"));
+        Assert.assertTrue("Default version_label on newly uploaded file must be null",
+                files.getJsonObject(0).isNull("version_label"));
+
+        // 2. Manually set version_label on file1Id
+        target().path("/file/" + file1Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .post(Entity.form(new Form()
+                        .param("name", "spec-doc.txt")
+                        .param("version_label", "1.0")), JsonObject.class);
+
+        listJson = target().path("/file/list")
+                .queryParam("id", documentId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .get(JsonObject.class);
+        Assert.assertEquals("1.0", listJson.getJsonArray("files").getJsonObject(0).getString("version_label"));
+
+        // 3. Upload a new version -> version_label on the new version must also default to null
+        String file2Id;
+        try (InputStream is0 = Resources.getResource("file/document.txt").openStream()) {
+            StreamDataBodyPart streamDataBodyPart = new StreamDataBodyPart("file", is0, "spec-doc.txt");
+            try (FormDataMultiPart multiPart = new FormDataMultiPart()) {
+                JsonObject json = target()
+                        .register(MultiPartFeature.class)
+                        .path("/file").request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                        .put(Entity.entity(
+                                multiPart
+                                        .field("id", documentId)
+                                        .field("previousFileId", file1Id)
+                                        .bodyPart(streamDataBodyPart),
+                                MediaType.MULTIPART_FORM_DATA_TYPE), JsonObject.class);
+                file2Id = json.getString("id");
+                Assert.assertNotNull(file2Id);
+            }
+        }
+
+        // 4. Verify version history endpoint (/file/{id}/versions)
+        JsonObject versionsJson = target().path("/file/" + file2Id + "/versions")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .get(JsonObject.class);
+        JsonArray versionFiles = versionsJson.getJsonArray("files");
+        Assert.assertEquals(2, versionFiles.size());
+        Assert.assertEquals(file1Id, versionFiles.getJsonObject(0).getString("id"));
+        Assert.assertEquals("1.0", versionFiles.getJsonObject(0).getString("version_label"));
+        Assert.assertFalse(versionFiles.getJsonObject(0).getBoolean("latest_version"));
+
+        Assert.assertEquals(file2Id, versionFiles.getJsonObject(1).getString("id"));
+        Assert.assertEquals(1, versionFiles.getJsonObject(1).getInt("version"));
+        Assert.assertTrue("New uploaded version must also have null version_label by default",
+                versionFiles.getJsonObject(1).isNull("version_label"));
+        Assert.assertTrue(versionFiles.getJsonObject(1).getBoolean("latest_version"));
+
+        // 5. Update historical version label from version history modal (sending only version_label without name)
+        target().path("/file/" + file2Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .post(Entity.form(new Form()
+                        .param("version_label", "2.0-final")), JsonObject.class);
+
+        versionsJson = target().path("/file/" + file2Id + "/versions")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .get(JsonObject.class);
+        Assert.assertEquals("2.0-final", versionsJson.getJsonArray("files").getJsonObject(1).getString("version_label"));
+
+        // 6. Clear version_label back to null
+        target().path("/file/" + file2Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .post(Entity.form(new Form()
+                        .param("version_label", "")), JsonObject.class);
+
+        versionsJson = target().path("/file/" + file2Id + "/versions")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .get(JsonObject.class);
+        Assert.assertTrue(versionsJson.getJsonArray("files").getJsonObject(1).isNull("version_label"));
     }
 }

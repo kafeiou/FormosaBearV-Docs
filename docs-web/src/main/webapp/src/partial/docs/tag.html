@@ -11,7 +11,8 @@
     <span ng-if="tag.is_container" class="text-muted" uib-tooltip="{{ 'tag.container_tooltip' | translate }}" style="cursor: not-allowed; font-weight: normal;">
       {{ tag.name }}
     </span>
-    <a ng-if="!tag.is_container" href="#/tag/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }">
+    <a ng-if="!tag.is_container" href="#/tag/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }"
+       uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
       {{ tag.name }}
     </a>
     <span class="text-muted small ml-10">

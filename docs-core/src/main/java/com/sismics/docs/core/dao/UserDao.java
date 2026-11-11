@@ -148,6 +148,9 @@ public class UserDao {
 
         // Update the user
         userDb.setStorageCurrent(user.getStorageCurrent());
+        if (user.getStorageQuota() != null) {
+            userDb.setStorageQuota(user.getStorageQuota());
+        }
     }
     
     /**

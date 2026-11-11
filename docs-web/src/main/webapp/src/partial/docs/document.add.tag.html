@@ -5,7 +5,7 @@
     </span>
     <span class="mr-5" ng-if="!hasChildren(node.id)" style="width: 14px; display: inline-block;"></span>
     <span class="fas fa-tag mr-5" ng-style="{ 'color': node.color }"></span>
-    <span class="flex-grow pointer" ng-click="selectParentTag(node)" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+    <span class="flex-grow pointer" ng-click="selectParentTag(node)" uib-tooltip="{{ getTagTooltip(node) }}" tooltip-append-to-body="true" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
       {{ node.name }}
     </span>
     <span class="badge pull-right" ng-if="hasChildren(node.id)" style="font-size: 10px; padding: 2px 5px; margin-left: 5px;">

@@ -14,11 +14,21 @@ angular.module('docs').controller('SettingsUserEdit', function($scope, $dialog, 
   /**
    * In edit mode, load the current user.
    */
-  if ($scope.isEdit()) {
-    Restangular.one('user', $stateParams.username).get().then(function (data) {
+  $scope.transferData = { targetUsername: '' };
+  $scope.isTransferring = false;
+
+  $scope.reloadCurrentUser = function () {
+    return Restangular.one('user', $stateParams.username).get().then(function (data) {
       data.storage_quota /= 1000000;
       $scope.user = data;
+      if ($scope.editUserForm) {
+        $scope.editUserForm.$setPristine();
+      }
     });
+  };
+
+  if ($scope.isEdit()) {
+    $scope.reloadCurrentUser();
   } else {
     $scope.user = {}; // Very important otherwise ng-if in template will make a new scope variable
   }
@@ -44,13 +54,7 @@ angular.module('docs').controller('SettingsUserEdit', function($scope, $dialog, 
     promise.then(function () {
       $scope.loadUsers();
       if ($scope.isEdit()) {
-        Restangular.one('user', $stateParams.username).get().then(function (data) {
-          data.storage_quota /= 1000000;
-          $scope.user = data;
-          if ($scope.editUserForm) {
-            $scope.editUserForm.$setPristine();
-          }
-        });
+        $scope.reloadCurrentUser();
       } else {
         $state.go('settings.user');
       }
@@ -86,7 +90,82 @@ angular.module('docs').controller('SettingsUserEdit', function($scope, $dialog, 
             var msg = $translate.instant('settings.user.edit.user_used_message', { name: e.data.message });
             var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
             $dialog.messageBox(title, msg, btns);
+          } else if (e.data.type === 'UserHasAssets') {
+            var parts = (e.data.message || '0,0,0').split(',');
+            var title = $translate.instant('settings.user.edit.user_has_assets_title');
+            var msg = $translate.instant('settings.user.edit.user_has_assets_message', {
+              documents: parts[0] || 0,
+              tags: parts[1] || 0,
+              files: parts[2] || 0
+            });
+            var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
+            $dialog.messageBox(title, msg, btns);
           }
+        });
+      }
+    });
+  };
+
+  /**
+   * Returns active users eligible to receive transferred assets.
+   */
+  $scope.getTransferTargets = function () {
+    if (!$scope.users) {
+      return [];
+    }
+    return $scope.users.filter(function (u) {
+      return !u.disabled && u.username !== 'guest' && u.username !== $stateParams.username;
+    });
+  };
+
+  /**
+   * Transfer all owned tags, documents, files, and workflow steps to another active user.
+   */
+  $scope.transferAssets = function () {
+    if (!$scope.transferData.targetUsername) {
+      return;
+    }
+    var targetUsername = $scope.transferData.targetUsername;
+    var title = $translate.instant('settings.user.edit.transfer_confirm_title');
+    var msg = $translate.instant('settings.user.edit.transfer_confirm_message', {
+      source: $stateParams.username,
+      target: targetUsername,
+      documents: ($scope.user && $scope.user.document_count) || 0,
+      tags: ($scope.user && $scope.user.tag_count) || 0,
+      files: ($scope.user && $scope.user.file_count) || 0
+    });
+    var btns = [
+      { result: 'cancel', label: $translate.instant('cancel') },
+      { result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-warning' }
+    ];
+
+    $dialog.messageBox(title, msg, btns, function (result) {
+      if (result === 'ok') {
+        $scope.isTransferring = true;
+        Restangular.one('user/' + $stateParams.username + '/transfer').post('', {
+          target_username: targetUsername
+        }).then(function (res) {
+          $scope.isTransferring = false;
+          $scope.transferData.targetUsername = '';
+          $scope.loadUsers();
+          $scope.reloadCurrentUser();
+          var doneTitle = $translate.instant('settings.user.edit.transfer_success_title');
+          var doneMsg = $translate.instant('settings.user.edit.transfer_success_message', {
+            source: $stateParams.username,
+            target: targetUsername,
+            documents: res.transferred_documents || 0,
+            tags: res.transferred_tags || 0,
+            files: res.transferred_files || 0,
+            routes: res.transferred_routes || 0
+          });
+          var okBtns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
+          $dialog.messageBox(doneTitle, doneMsg, okBtns);
+        }, function (err) {
+          $scope.isTransferring = false;
+          var errTitle = $translate.instant('settings.user.edit.transfer_error_title');
+          var errMsg = (err && err.data && err.data.message) ? err.data.message : $translate.instant('settings.user.edit.transfer_error_message');
+          var okBtns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
+          $dialog.messageBox(errTitle, errMsg, okBtns);
         });
       }
     });

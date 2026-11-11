@@ -6,6 +6,38 @@
 
 ---
 
+## [v2.04] - 2026-11-11
+
+> **基準版本**: `v2.03` (`1a8bd912`) ➜ `v2.04`
+
+### ✨ 新增功能與系統改進 (New Features & System Improvements)
+- **文件下載權限管控矩陣 (`DOC_ALLOW_DOWNLOAD_B`, DB v37)** (`ea6d5ba9`, `95d3d14c`)：
+  - 透過 [dbupdate-037-0.sql](file:///W:/developer/project/github/teedydocs/docs-core/src/main/resources/db/update/dbupdate-037-0.sql) 於 `T_DOCUMENT` 新增 `DOC_ALLOW_DOWNLOAD_B` 欄位（預設 `TRUE`）。
+  - 支援文件建立者、具備文件編輯權限者、具備該文件所掛載任一標籤編輯權限者以及 `admin` 獨立切換每份文件的「允許下載檔案」開關。
+  - 於單檔下載（`GET /api/file/{id}/data` 未帶 `size` 參數）、批次打包下載（`GET /api/file/zip`）與前端介面（`canDownload`）全面實施統一的下載授權矩陣，防止未獲授權之唯讀使用者外流原始檔案，同時完整保留線上翻頁預覽與縮圖檢視能力。
+- **員工離職帳號停用安全防護與資產／權限一鍵交接 (`POST /api/user/{username}/transfer`)**：
+  - **停用即時撤銷連線與登入阻擋**：停用帳號時立即清除該帳號所有登入 Token（`AuthenticationTokenDao.deleteByUserId`），並於 [TokenBasedSecurityFilter.java](file:///W:/developer/project/github/teedydocs/docs-web-common/src/main/java/com/sismics/util/filter/TokenBasedSecurityFilter.java) 及 [LdapAuthenticationHandler.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/LdapAuthenticationHandler.java) 攔截已停用帳號，同時自 ACL 權限指派搜尋清單中自動隱藏（`UserCriteria.active`）。
+  - **名下資產統計與防誤刪保護**：`GET /api/user/{username}` 回傳使用者名下文件數（`owned_document_count`）、標籤數（`owned_tag_count`）與檔案數（`owned_file_count`）；若名下仍有資產則禁止直接刪除帳號（回傳 `UserHasAssets`），並鎖定前端刪除按鈕以防止誤刪。
+  - **資產與 ACL 權限一鍵交接**：於使用者管理頁面提供一鍵移轉功能，將原帳號名下所有文件（`DocumentDao.transferOwnership`）、標籤（`TagDao.transferOwnership`）、實體加密檔案與配額統計（`FileUtil.transferFileStorage`、`FileDao.transferOwnership`）、待簽核工作流步驟（`RouteStepDao.transferActiveSteps`），以及**所有獲授之 ACL 存取／編輯權限**（`AclDao.copyUserAcls`，包含由 `admin` 或他人授予的標籤與文件權限）一併移轉與複製給接手人。
+- **自訂檔案版本標記 (`FIL_VERSION_LABEL_C`, DB v38) 與歷史版本介面強化**：
+  - 透過 [dbupdate-038-0.sql](file:///W:/developer/project/github/teedydocs/docs-core/src/main/resources/db/update/dbupdate-038-0.sql) 於 `T_FILE` 新增 `FIL_VERSION_LABEL_C varchar(50)` 欄位；既有檔案自動保留 `1.0`、`2.0` 標記，新上傳檔案與新版本預設為空白（`null`），讓使用者可自由填入版本文字（如 `001`、`v1.2-draft`、`Rev.A`）。
+  - 網格／標籤卡片檢視僅在有填寫版本標記時顯示 `({{ file.version_label }})`，清單檢視直接顯示 `{{ file.version_label }}`，未填寫時保持留白。
+  - 重新設計歷史版本對話框（[file.versions.html](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/partial/docs/file.versions.html)、[ModalFileVersions.js](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/app/docs/controller/ModalFileVersions.js)）：改由最新至最舊排序（`orderBy: '-version'`），新增 `#序號`、「目前版本」徽章、精確至秒的完整時間（`yyyy-MM-dd HH:mm:ss`），以及列內即時修改版本標記與儲存按鈕。
+  - 於「設定 > 我的帳號」（[settings.account.html](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/partial/docs/settings.account.html)）與「設定 > 一般設定」（[settings.config.html](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/partial/docs/settings.config.html)）新增歷史版本「類型」與「建立日期」欄位顯示開關（預設隱藏，可隨時開啟）。
+- **無上限個人儲存配額 (`0` = 無上限)** (`ea6d5ba9`)：
+  - 更新 [FileUtil.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/util/FileUtil.java) 與使用者管理介面，支援將儲存空間配額設為 `0` 代表無容量限制。
+- **全域標籤建立者懸停提示 (`getTagTooltip`)**：
+  - 於 [app.js](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/app/docs/app.js) 新增全域 `$rootScope.getTagTooltip(tag)` 並綁定至 [SelectTag.js](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/app/docs/directive/SelectTag.js)，在標籤管理、標籤檢視、文件列表／內頁及標籤選擇器懸停時皆會顯示 `建立者：<帳號>`。
+- **權限指派 (`<acl-edit>`) 下拉選單**：
+  - 升級 [directive.acledit.html](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/partial/docs/directive.acledit.html) 與 [AclEdit.js](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/app/docs/directive/AclEdit.js)，支援零字元觸發候選清單（`typeahead-min-length="0"`）與下拉展開按鈕，指派標籤、文件或審核流程權限時可直接點選人員與群組。
+
+### 🐛 問題修復 (Bug Fixes)
+- **修復新增「可編輯 (`READWRITE`)」直接權限漏寫問題**：於 [AclResource.java](file:///W:/developer/project/github/teedydocs/docs-web/src/main/java/com/sismics/docs/rest/resource/AclResource.java) 改用 [AclDao.java](file:///W:/developer/project/github/teedydocs/docs-core/src/main/java/com/sismics/docs/core/dao/AclDao.java) 之 `hasDirectAcl` 檢查，確保前端同時送出 `READ` 與 `WRITE` 時不會因既有繼承或建立者權限而略過直接 ACL 紀錄。
+- **修復儲存配額單位重複換算與面板跳離問題**：修正使用者管理頁面重新載入帳號時 Byte/MB 重複相除的問題，並於儲存使用者或群組後保持編輯面板開啟。
+- **修復輸入框群組按鈕文字無法顯示問題**：修正 [main.less](file:///W:/developer/project/github/teedydocs/docs-web/src/main/webapp/src/style/main.less) 中 `.input-group-btn > .btn` 因繼承 Bootstrap `font-size: 0` 與 `1em` 導致按鈕文字變為 `0px` 的問題。
+
+---
+
 ## [v2.03] - 2026-11-10
 
 > **基準版本**: Git Tag `2.02` (`53cc6936`) ➜ `v2.03`

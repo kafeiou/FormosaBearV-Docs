@@ -160,12 +160,16 @@ public class FileDao {
         }
         
         // Update the file
+        if (file.getUserId() != null) {
+            fileDb.setUserId(file.getUserId());
+        }
         fileDb.setDocumentId(file.getDocumentId());
         fileDb.setName(file.getName());
         fileDb.setContent(file.getContent());
         fileDb.setOrder(file.getOrder());
         fileDb.setMimeType(file.getMimeType());
         fileDb.setVersionId(file.getVersionId());
+        fileDb.setVersionLabel(file.getVersionLabel());
         fileDb.setLatestVersion(file.isLatestVersion());
         fileDb.setSize(file.getSize());
         return file;
@@ -317,7 +321,7 @@ public class FileDao {
      */
     public List<File> getByVersionId(String versionId) {
         EntityManager em = ThreadLocalContext.get().getEntityManager();
-        TypedQuery<File> q = em.createQuery("select f from File f where f.versionId = :versionId and f.deleteDate is null order by f.order asc", File.class);
+        TypedQuery<File> q = em.createQuery("select f from File f where f.versionId = :versionId and f.deleteDate is null order by f.version asc, f.createDate asc", File.class);
         q.setParameter("versionId", versionId);
         return q.getResultList();
     }

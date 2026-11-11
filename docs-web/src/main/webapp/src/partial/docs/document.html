@@ -164,8 +164,8 @@
       <ol class="breadcrumb breadcrumb-navigation pull-left mt-10">
         <li><a href ng-click="navigateToTag()"><span class="fas fa-home"></span></a></li>
         <li ng-repeat="tag in getCurrentNavigation()" ng-class="{ active: tag.id == navigatedTag.id }">
-          <a class="label" ng-style="{ 'background-color': tag.color }" ng-if="tag.id != navigatedTag.id" href ng-click="navigateToTag(tag)">{{ tag.name }}</a>
-          <span class="label" ng-style="{ 'background-color': tag.color }" ng-if="tag.id == navigatedTag.id">{{ tag.name }}</span>
+          <a class="label" ng-style="{ 'background-color': tag.color }" ng-if="tag.id != navigatedTag.id" href ng-click="navigateToTag(tag)" uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">{{ tag.name }}</a>
+          <span class="label" ng-style="{ 'background-color': tag.color }" ng-if="tag.id == navigatedTag.id" uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">{{ tag.name }}</span>
         </li>
       </ol>
 
@@ -219,7 +219,7 @@
           <td class="tree-structure">
             <div class="tree-line"></div>
           </td>
-          <td>
+          <td uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
             <span class="fas fa-tags" ng-style="{ color: tag.color }"></span> {{ tag.name }}
             <span class="text-muted small">{{ getTagChildrenShort(tag) }}</span>
           </td>

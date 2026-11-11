@@ -15,6 +15,25 @@ angular.module('docs').controller('SettingsWorkflowEdit', function($scope, $dial
     handle: '.handle'
   };
 
+  $scope.allTargets = [];
+  $scope.loadAllTargets = function() {
+    Restangular.one('acl/target/search')
+      .get({ search: '' })
+      .then(function(data) {
+        var output = [];
+        output.push.apply(output, _.map(data.users, function(user) {
+          user.type = 'USER';
+          return user;
+        }));
+        output.push.apply(output, _.map(data.groups, function(group) {
+          group.type = 'GROUP';
+          return group;
+        }));
+        $scope.allTargets = output;
+      });
+  };
+  $scope.loadAllTargets();
+
   /**
    * Auto-complete on ACL target.
    */
@@ -22,7 +41,7 @@ angular.module('docs').controller('SettingsWorkflowEdit', function($scope, $dial
     var deferred = $q.defer();
     Restangular.one('acl/target/search')
       .get({
-        search: $viewValue
+        search: $viewValue || ''
       }).then(function(data) {
       var output = [];
 

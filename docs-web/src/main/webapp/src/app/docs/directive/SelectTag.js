@@ -41,7 +41,8 @@ angular.module('docs').directive('selectTag', function($templateCache) {
       ref: '@',
       ngDisabled: '='
     },
-    controller: function($scope, Restangular) {
+    controller: function($scope, $rootScope, Restangular) {
+      $scope.getTagTooltip = $rootScope.getTagTooltip;
       $scope.showTree = false;
       $scope.expandedTags = {};
       $scope.rootTags = [];

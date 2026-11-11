@@ -24,6 +24,58 @@ angular.module('docs').directive('aclEdit', function() {
       
       // Initialize add ACL
       $scope.acl = { perm: 'READ' };
+      $scope.allTargets = [];
+      $scope.targetDropdownOpen = false;
+
+      /**
+       * Load all available ACL targets (users and groups) for dropdown selection.
+       */
+      $scope.loadAllTargets = function() {
+        Restangular.one('acl/target/search')
+          .get({ search: '' })
+          .then(function(data) {
+            var output = [];
+            output.push.apply(output, _.map(data.users, function(user) {
+              user.type = 'USER';
+              return user;
+            }));
+            output.push.apply(output, _.map(data.groups, function(group) {
+              group.type = 'GROUP';
+              return group;
+            }));
+            $scope.allTargets = output;
+          });
+      };
+      $scope.loadAllTargets();
+
+      /**
+       * Select a target from the dropdown list.
+       */
+      $scope.selectTarget = function(target, $event) {
+        if ($event) {
+          $event.preventDefault();
+          $event.stopPropagation();
+        }
+        $scope.acl.target = angular.copy(target);
+        $scope.targetDropdownOpen = false;
+      };
+
+      /**
+       * Filter targets in the dropdown list based on current input.
+       */
+      $scope.filterTargetItem = function(item) {
+        if (!$scope.acl || !$scope.acl.target) {
+          return true;
+        }
+        if (angular.isString($scope.acl.target)) {
+          var q = $scope.acl.target.trim().toLowerCase();
+          if (!q) {
+            return true;
+          }
+          return item.name && item.name.toLowerCase().indexOf(q) !== -1;
+        }
+        return true;
+      };
 
       /**
        * Delete an ACL.
@@ -86,7 +138,7 @@ angular.module('docs').directive('aclEdit', function() {
         var deferred = $q.defer();
         Restangular.one('acl/target/search')
           .get({
-            search: $viewValue
+            search: $viewValue || ''
           }).then(function(data) {
           var output = [];
 

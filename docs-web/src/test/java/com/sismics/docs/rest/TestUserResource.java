@@ -611,4 +611,172 @@ public class TestUserResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .delete();
     }
+
+    /**
+     * Test user offboarding, session revocation, deletion guardrails, and asset handover.
+     */
+    @Test
+    public void testUserAssetTransferAndOffboarding() throws Exception {
+        String adminToken = adminToken();
+
+        // 1. Create departing_user and successor_user (with tight quota of 10 bytes to test auto-expansion)
+        clientUtil.createUser("departing_user");
+        String departingToken = clientUtil.login("departing_user");
+
+        target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .put(Entity.form(new Form()
+                        .param("username", "successor_user")
+                        .param("email", "successor@docs.com")
+                        .param("password", "12345678")
+                        .param("storage_quota", "10")), JsonObject.class);
+        String successorToken = clientUtil.login("successor_user");
+
+        // 2. departing_user creates a tag, a document, and uploads a file
+        JsonObject tagJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, departingToken)
+                .put(Entity.form(new Form()
+                        .param("name", "ProjectAlpha")
+                        .param("color", "#ff0000")), JsonObject.class);
+        String tagId = tagJson.getString("id");
+
+        JsonObject docJson = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, departingToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Handover Spec Document")
+                        .param("language", "eng")
+                        .param("tags", tagId)), JsonObject.class);
+        String docId = docJson.getString("id");
+
+        String fileId = clientUtil.addFileToDocument(FILE_EINSTEIN_ROOSEVELT_LETTER_PNG,
+                departingToken, docId);
+
+        // 2b. admin creates a tag and grants departing_user WRITE permission on it
+        JsonObject adminTagJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .put(Entity.form(new Form()
+                        .param("name", "AdminManagedTag")
+                        .param("color", "#00aa00")), JsonObject.class);
+        String adminTagId = adminTagJson.getString("id");
+
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .put(Entity.form(new Form()
+                        .param("source", adminTagId)
+                        .param("perm", "WRITE")
+                        .param("target", "departing_user")
+                        .param("type", "USER")), JsonObject.class);
+
+        // 3. Check GET /user/departing_user asset counts
+        JsonObject departingView = target().path("/user/departing_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1L, departingView.getJsonNumber("document_count").longValue());
+        Assert.assertEquals(1L, departingView.getJsonNumber("tag_count").longValue());
+        Assert.assertEquals(1L, departingView.getJsonNumber("file_count").longValue());
+        long transferredBytes = departingView.getJsonNumber("storage_current").longValue();
+        Assert.assertTrue(transferredBytes > 10L);
+
+        // 4. Deleting departing_user while holding assets must be blocked with UserHasAssets
+        Response deleteResp = target().path("/user/departing_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+        Assert.assertEquals(Status.BAD_REQUEST, Status.fromStatusCode(deleteResp.getStatus()));
+        JsonObject errJson = deleteResp.readEntity(JsonObject.class);
+        Assert.assertEquals("UserHasAssets", errJson.getString("type"));
+
+        // 5. Disable departing_user -> active session token is immediately invalidated & hidden from ACL search
+        target().path("/user/departing_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("disabled", "true")), JsonObject.class);
+
+        JsonObject sessionCheck = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, departingToken)
+                .get(JsonObject.class);
+        Assert.assertTrue("Disabled user session must be invalidated immediately", sessionCheck.getBoolean("anonymous"));
+
+        JsonObject aclTargets = target().path("/acl/target/search")
+                .queryParam("search", "departing")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(0, aclTargets.getJsonArray("users").size());
+
+        // 6. Transfer all assets from departing_user to successor_user
+        JsonObject transferResp = target().path("/user/departing_user/transfer").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("target_username", "successor_user")), JsonObject.class);
+        Assert.assertEquals("ok", transferResp.getString("status"));
+        Assert.assertEquals(1, transferResp.getInt("transferred_tags"));
+        Assert.assertEquals(1, transferResp.getInt("transferred_documents"));
+        Assert.assertEquals(1, transferResp.getInt("transferred_files"));
+
+        // 7. Verify departing_user now has 0 assets and 0 storage_current
+        departingView = target().path("/user/departing_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(0L, departingView.getJsonNumber("document_count").longValue());
+        Assert.assertEquals(0L, departingView.getJsonNumber("tag_count").longValue());
+        Assert.assertEquals(0L, departingView.getJsonNumber("file_count").longValue());
+        Assert.assertEquals(0L, departingView.getJsonNumber("storage_current").longValue());
+
+        // 8. Verify successor_user has the assets and auto-expanded storage_quota
+        JsonObject successorView = target().path("/user/successor_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1L, successorView.getJsonNumber("document_count").longValue());
+        Assert.assertEquals(1L, successorView.getJsonNumber("tag_count").longValue());
+        Assert.assertEquals(1L, successorView.getJsonNumber("file_count").longValue());
+        Assert.assertEquals(transferredBytes, successorView.getJsonNumber("storage_current").longValue());
+        Assert.assertEquals(10L + transferredBytes, successorView.getJsonNumber("storage_quota").longValue());
+
+        // 9. Verify both successor_user and departing_user personal ACLs exist on the document
+        JsonObject docDetail = target().path("/document/" + docId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, successorToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("successor_user", docDetail.getString("creator"));
+        Assert.assertTrue(docDetail.getBoolean("writable"));
+        JsonArray acls = docDetail.getJsonArray("acls");
+        boolean hasDepartingAcl = false;
+        boolean hasSuccessorWriteAcl = false;
+        for (int i = 0; i < acls.size(); i++) {
+            JsonObject acl = acls.getJsonObject(i);
+            if ("USER".equals(acl.getString("type")) && "departing_user".equals(acl.getString("name"))) {
+                hasDepartingAcl = true;
+            }
+            if ("USER".equals(acl.getString("type")) && "successor_user".equals(acl.getString("name"))
+                    && "WRITE".equals(acl.getString("perm"))) {
+                hasSuccessorWriteAcl = true;
+            }
+        }
+        Assert.assertTrue("Original owner's personal ACL should be preserved", hasDepartingAcl);
+        Assert.assertTrue("Target owner must have direct WRITE ACL", hasSuccessorWriteAcl);
+
+        // 9b. Verify successor_user inherited READ and WRITE permission on adminTagId (created by admin, granted to departing_user)
+        JsonObject adminTagDetail = target().path("/tag/" + adminTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, successorToken)
+                .get(JsonObject.class);
+        Assert.assertTrue("Successor user must inherit WRITE permission on admin's tag", adminTagDetail.getBoolean("writable"));
+        Response updateAdminTagResp = target().path("/tag/" + adminTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, successorToken)
+                .post(Entity.form(new Form()
+                        .param("name", "AdminManagedTagUpdated")
+                        .param("color", "#00bb00")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(updateAdminTagResp.getStatus()));
+
+        // 10. Delete departing_user now succeeds since asset count is 0
+        deleteResp = target().path("/user/departing_user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(deleteResp.getStatus()));
+
+        // 11. Verify successor_user can still download the physical file after departing_user is deleted
+        Response fileDataResp = target().path("/file/" + fileId + "/data").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, successorToken)
+                .get();
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(fileDataResp.getStatus()));
+        byte[] fileBytes = fileDataResp.readEntity(byte[].class);
+        Assert.assertTrue(fileBytes.length > 0);
+    }
 }

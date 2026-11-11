@@ -614,6 +614,28 @@ angular.module('docs',
     applyFontSize(14);
   };
 
+  // Initialize version history column visibility (default hidden: false)
+  var applyShowVersionMimetype = function(show) {
+    $rootScope.showVersionMimetype = !!show;
+    try {
+      localStorage.formosaShowVersionMimetype = $rootScope.showVersionMimetype ? 'true' : 'false';
+    } catch (e) {}
+  };
+  var applyShowVersionCreateDate = function(show) {
+    $rootScope.showVersionCreateDate = !!show;
+    try {
+      localStorage.formosaShowVersionCreateDate = $rootScope.showVersionCreateDate ? 'true' : 'false';
+    } catch (e) {}
+  };
+  applyShowVersionMimetype(localStorage.formosaShowVersionMimetype === 'true');
+  applyShowVersionCreateDate(localStorage.formosaShowVersionCreateDate === 'true');
+  $rootScope.setShowVersionMimetype = function(show) {
+    applyShowVersionMimetype(show);
+  };
+  $rootScope.setShowVersionCreateDate = function(show) {
+    applyShowVersionCreateDate(show);
+  };
+
   // Languages
   $rootScope.acceptedLanguages = [
     { key: 'eng', label: 'English' },

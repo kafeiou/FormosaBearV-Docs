@@ -15,9 +15,9 @@
 - **Full-Text Search & OCR**: Powered by Apache Lucene (with instant suggestions and highlighting) and integrated Tesseract Optical Character Recognition.
 - **Hierarchical Tags & Permission Inheritance**: Multi-level nested tag tree navigation with automatic ancestor permission inheritance and customizable security boundaries.
 - **Granular Document & Download Security**: User/group access control, system-wide and per-document download authorization controls (allowing view-only access while preventing file exfiltration), and 256-bit AES storage encryption.
-- **Enterprise Authentication**: Supports internal authentication, LDAP directory integration, and Two-Factor Authentication (TOTP).
+- **Enterprise Authentication & Offboarding Governance**: Supports internal authentication, LDAP directory integration, Two-Factor Authentication (TOTP), instant session revocation on account deactivation, and one-click asset and permission handover.
 - **Full System Backup, Restore & Migration**: Streaming full-system ZIP backup and restore with cross-database migration support between H2 and PostgreSQL.
-- **Document Lifecycle & Collaboration**: File versioning, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas, and URL sharing.
+- **Document Lifecycle & Collaboration**: File versioning with custom version labels, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas (including unlimited quota support), and URL sharing.
 - **Automated Import & Integration**: EML email import, automated IMAP inbox scanning, customizable SMTP notifications, RESTful Web API, and outgoing Webhooks.
 
 ## Building and Running from Source

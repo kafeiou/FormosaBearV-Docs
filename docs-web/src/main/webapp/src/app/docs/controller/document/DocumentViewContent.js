@@ -170,6 +170,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
     file.create_date = new Date().getTime();
     file.mimetype = uploadedfile.type;
     file.version++;
+    file.version_label = null;
     $scope.uploadFile(uploadedfile, file, previousFileId);
   };
 
@@ -283,15 +284,18 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
       // Rename the file
       Restangular.one('file/' + file.id).post('', {
         name: fileUpdated.name,
-        document_id: fileUpdated.new_document_id
+        document_id: fileUpdated.new_document_id,
+        version_label: fileUpdated.version_label || ''
       }).then(function () {
         if( fileUpdated.new_document_id!=fileUpdated.document_id ){
           $scope.viewDocument(fileUpdated.new_document_id);
           $scope.loadDocuments();
           $scope.loadFiles();
 //            $state.go('document.default');  
-        }else
-        file.name = fileUpdated.name;
+        }else {
+          file.name = fileUpdated.name;
+          file.version_label = fileUpdated.version_label || null;
+        }
       },function(error){
         file.name = $translate.instant('document.edit.rename_error');
       })
@@ -319,8 +323,13 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
       resolve: {
         file: function () {
           return file;
+        },
+        writable: function () {
+          return $scope.document && $scope.document.writable;
         }
       }
-    })
+    }).result.finally(function () {
+      $scope.loadFiles();
+    });
   };
 });

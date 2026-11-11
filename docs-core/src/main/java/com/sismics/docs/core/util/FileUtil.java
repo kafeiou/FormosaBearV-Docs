@@ -315,4 +315,87 @@ public class FileUtil {
             return File.UNKNOWN_SIZE;
         }
     }
+
+    /**
+     * Transfers physical file storage (moving directories in unencrypted mode or re-encrypting in encrypted mode)
+     * and updates the file's userId from sourceUser to targetUser.
+     *
+     * @param file File entity to transfer
+     * @param sourceUser Previous owner
+     * @param targetUser New owner
+     */
+    public static void transferFileOwnership(File file, User sourceUser, User targetUser) {
+        String[] suffixes = new String[] { "", "_web", "_thumb", "_pdf" };
+        if (!ConfigUtil.isFileEncrypt()) {
+            Path oldDir = DirectoryUtil.getStorageDirectory(file);
+            file.setUserId(targetUser.getId());
+            Path newDir = DirectoryUtil.getStorageDirectory(file);
+            if (!oldDir.equals(newDir) && Files.isDirectory(oldDir)) {
+                try {
+                    Files.createDirectories(newDir);
+                    for (String suffix : suffixes) {
+                        Path src = oldDir.resolve(file.getName() + suffix);
+                        Path dst = newDir.resolve(file.getName() + suffix);
+                        if (Files.exists(src)) {
+                            Files.move(src, dst, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    }
+                    // Move any remaining files in oldDir if present
+                    try (java.util.stream.Stream<Path> stream = Files.list(oldDir)) {
+                        for (Path entry : stream.collect( java.util.stream.Collectors.toList())) {
+                            if (Files.isRegularFile(entry)) {
+                                Files.move(entry, newDir.resolve(entry.getFileName()), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                            }
+                        }
+                    }
+                    deleteEmptyDirectoryUpwards(oldDir, DirectoryUtil.getBaseDataDirectory().resolve("storage"));
+                } catch (Exception e) {
+                    log.error("Error moving storage directory for file " + file.getId() + " from " + oldDir + " to " + newDir, e);
+                }
+            }
+        } else {
+            Path storageDir = DirectoryUtil.getStorageDirectory(file);
+            for (String suffix : suffixes) {
+                Path targetPath = storageDir.resolve(file.getName() + suffix);
+                if (Files.exists(targetPath)) {
+                    Path tmpDecrypted = null;
+                    try {
+                        tmpDecrypted = EncryptionUtil.decryptFile(targetPath, sourceUser.getPrivateKey());
+                        try (InputStream encryptedIn = EncryptionUtil.encryptInputStream(Files.newInputStream(tmpDecrypted), targetUser.getPrivateKey())) {
+                            Files.copy(encryptedIn, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    } catch (Exception e) {
+                        log.error("Error re-encrypting file " + file.getId() + suffix + " during ownership transfer", e);
+                    } finally {
+                        if (tmpDecrypted != null && !tmpDecrypted.equals(targetPath)) {
+                            try {
+                                Files.deleteIfExists(tmpDecrypted);
+                            } catch (IOException ignored) {
+                            }
+                        }
+                    }
+                }
+            }
+            file.setUserId(targetUser.getId());
+        }
+    }
+
+    private static void deleteEmptyDirectoryUpwards(Path dir, Path stopAtExclusive) {
+        Path current = dir;
+        while (current != null && !current.equals(stopAtExclusive) && current.startsWith(stopAtExclusive)) {
+            try {
+                if (Files.isDirectory(current)) {
+                    try (java.util.stream.Stream<Path> entries = Files.list(current)) {
+                        if (!entries.findFirst().isPresent()) {
+                            Files.deleteIfExists(current);
+                            current = current.getParent();
+                            continue;
+                        }
+                    }
+                }
+            } catch (IOException ignored) {
+            }
+            break;
+        }
+    }
 }

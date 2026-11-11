@@ -237,6 +237,7 @@
     "edit": {
       "title": "編輯檔案",
       "name": "檔案名稱",
+      "version_placeholder": "選填，例如：1.0、1.1、Rev.A",
       "document_name": "更改所屬文件名稱",
       "document_name_error": "失敗!請重新輸入，並選擇系統彈出之文件列表"
     },
@@ -245,7 +246,8 @@
       "filename": "檔名",
       "mimetype": "類型",
       "create_date": "建立日期",
-      "version": "版本"
+      "version": "版本",
+      "latest": "目前版本"
     }
   },
   "tag": {
@@ -355,6 +357,9 @@
       "font_medium": "中",
       "font_large": "大",
       "font_xlarge": "特大",
+      "version_history_columns": "歷史版本欄位顯示",
+      "column_hide": "隱藏",
+      "column_show": "顯示",
       "title_general": "一般設定",
       "default_language": "新文件預設語言",
       "application_name": "名稱",
@@ -487,7 +492,24 @@
         "convert_to_internal_btn": "轉為本地內部帳號",
         "convert_to_internal_title": "轉換帳號認證來源",
         "convert_to_internal_confirm": "確定要將此 LDAP 帳號轉為本地內部帳號嗎？解綁後您需要在儲存時為該使用者設定本地密碼。",
-        "password_lost_error": "申請密碼重設時發生錯誤。"
+        "password_lost_error": "申請密碼重設時發生錯誤。",
+        "transfer_panel_title": "資產統計與所有權移轉 (離職交接 / 職務輪調)",
+        "transfer_panel_desc": "可將此帳號名下擁有的所有文件、標籤、實體檔案及進行中簽核流程一鍵過戶給另一位在職使用者（保留原擁有者之存取權限與貢獻者歷史紀錄）。",
+        "owned_assets_label": "目前名下擁有資產",
+        "owned_documents": "{{ count }} 份文件",
+        "owned_tags": "{{ count }} 個標籤",
+        "owned_files": "{{ count }} 個檔案",
+        "transfer_target_label": "移轉接收人",
+        "transfer_target_placeholder": "-- 請選擇要接收資產的在職使用者 --",
+        "transfer_btn": "移轉資產",
+        "transfer_confirm_title": "確認移轉所有資產",
+        "transfer_confirm_message": "確定要將「<strong>{{ source }}</strong>」名下的 <strong>{{ documents }}</strong> 份文件、<strong>{{ tags }}</strong> 個標籤與 <strong>{{ files }}</strong> 個實體檔案（含審核工作流）全數過戶給「<strong>{{ target }}</strong>」嗎？",
+        "transfer_success_title": "資產移轉完成",
+        "transfer_success_message": "已成功將「<strong>{{ source }}</strong>」的資產過戶給「<strong>{{ target }}</strong>」：<br/>• 文件：{{ documents }} 份<br/>• 標籤：{{ tags }} 個<br/>• 實體檔案：{{ files }} 個<br/>• 審核工作流：{{ routes }} 項",
+        "transfer_error_title": "資產移轉失敗",
+        "transfer_error_message": "移轉資產時發生錯誤，請稍後再試。",
+        "user_has_assets_title": "無法刪除尚有資產的使用者",
+        "user_has_assets_message": "此帳號名下仍擁有 <strong>{{ documents }}</strong> 份文件、<strong>{{ tags }}</strong> 個標籤與 <strong>{{ files }}</strong> 個檔案。<br/>為防止誤刪公司重要資料，請先使用下方「資產統計與所有權移轉」功能將資產過戶給其他人員後，再執行刪除。"
       }
     },
     "workflow": {

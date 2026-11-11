@@ -135,6 +135,7 @@
              class="label label-info mr-10"
              ng-style="{ 'background': docTag.color }"
              invert-text-color="{{ docTag.color }}"
+             uib-tooltip="{{ getTagTooltip(docTag) }}" tooltip-append-to-body="true"
              style="display: inline-block;">
             {{ docTag.name }}
           </a>
@@ -159,8 +160,8 @@
               <div class="file-info">
                 <div class="v-align file-name pointer"
                      ng-click="openFile(document, file, $event)"
-                     title="{{ file.name || ('v' + (file.version + 1) + '.0') }}">
-                  {{ file.name || ('v' + (file.version + 1) + '.0') }}
+                     title="{{ file.name }}{{ file.version_label ? ' (' + file.version_label + ')' : '' }}">
+                  {{ file.name }}<span ng-if="file.version_label"> ({{ file.version_label }})</span>
                 </div>
                 <div class="v-align" ng-if="canDownload(file, document)">
                   <a class="btn btn-xs btn-default"

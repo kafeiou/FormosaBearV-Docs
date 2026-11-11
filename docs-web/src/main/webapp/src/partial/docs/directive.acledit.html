@@ -25,11 +25,29 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="inputTarget">{{ 'directive.acledit.acl_target' | translate }}</label>
         <div class="col-sm-4">
-          <input required ng-maxlength="50" class="form-control" type="text" id="inputTarget"
-                 ng-attr-placeholder="{{ 'directive.acledit.search_user_group' | translate }}" name="target" ng-model="acl.target" autocomplete="off"
-                 uib-typeahead="target as target.name for target in getTargetAclTypeahead($viewValue)"
-                 typeahead-template-url="partial/docs/directive.typeahead.acl.html"
-                 typeahead-wait-ms="200" />
+          <div class="input-group" uib-dropdown is-open="targetDropdownOpen">
+            <input required ng-maxlength="50" class="form-control" type="text" id="inputTarget"
+                   ng-attr-placeholder="{{ 'directive.acledit.search_user_group' | translate }}" name="target" ng-model="acl.target" autocomplete="off"
+                   uib-typeahead="target as target.name for target in getTargetAclTypeahead($viewValue)"
+                   typeahead-template-url="partial/docs/directive.typeahead.acl.html"
+                   typeahead-min-length="0"
+                   typeahead-wait-ms="150" />
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" uib-dropdown-toggle ng-click="loadAllTargets()">
+                <span class="caret"></span>
+              </button>
+            </span>
+            <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu style="width: 100%; max-height: 260px; overflow-y: auto;">
+              <li ng-repeat="item in allTargets | filter: filterTargetItem">
+                <a href ng-click="selectTarget(item, $event)">
+                  <acl data="item"></acl>
+                </a>
+              </li>
+              <li ng-if="allTargets.length == 0" class="disabled">
+                <a href>{{ 'directive.selecttag.no_tags' | translate }}</a>
+              </li>
+            </ul>
+          </div>
         </div>
         <div class="col-sm-4">
           <span class="btn btn-primary" ng-if="acl.target.type" ng-click="acl.target = null">

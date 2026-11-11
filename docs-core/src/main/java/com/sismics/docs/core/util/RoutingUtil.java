@@ -121,4 +121,75 @@ public class RoutingUtil {
         }
         return null;
     }
+
+    /**
+     * Transfers workflow route models and active route steps from sourceUser to targetUser.
+     *
+     * @param sourceUser Source user
+     * @param targetUser Target user
+     * @param actorUserId Admin user ID performing the transfer
+     * @return Number of updated route models and active route steps
+     */
+    public static int transferUserInRoutes(com.sismics.docs.core.model.jpa.User sourceUser, com.sismics.docs.core.model.jpa.User targetUser, String actorUserId) {
+        int updatedCount = 0;
+        RouteModelDao routeModelDao = new RouteModelDao();
+        AclDao aclDao = new AclDao();
+        List<RouteModel> routeModelList = routeModelDao.findAll();
+        for (RouteModel routeModel : routeModelList) {
+            boolean modified = false;
+            jakarta.json.JsonArrayBuilder newStepsBuilder = Json.createArrayBuilder();
+            try (JsonReader reader = Json.createReader(new StringReader(routeModel.getSteps()))) {
+                JsonArray stepsJson = reader.readArray();
+                for (int order = 0; order < stepsJson.size(); order++) {
+                    JsonObject step = stepsJson.getJsonObject(order);
+                    JsonObject target = step.getJsonObject("target");
+                    AclTargetType routeTargetType = AclTargetType.valueOf(target.getString("type"));
+                    String routeTargetName = target.getString("name");
+                    if (routeTargetType == AclTargetType.USER && sourceUser.getUsername().equals(routeTargetName)) {
+                        jakarta.json.JsonObjectBuilder stepBuilder = Json.createObjectBuilder();
+                        for (String key : step.keySet()) {
+                            if ("target".equals(key)) {
+                                stepBuilder.add("target", Json.createObjectBuilder()
+                                        .add("type", AclTargetType.USER.name())
+                                        .add("name", targetUser.getUsername()));
+                            } else {
+                                stepBuilder.add(key, step.get(key));
+                            }
+                        }
+                        newStepsBuilder.add(stepBuilder);
+                        modified = true;
+                    } else {
+                        newStepsBuilder.add(step);
+                    }
+                }
+            }
+            if (modified) {
+                routeModel.setSteps(newStepsBuilder.build().toString());
+                routeModelDao.update(routeModel, actorUserId);
+                updatedCount++;
+            }
+
+            // If sourceUser had ACL on this RouteModel, ensure targetUser also gets READ/WRITE ACL
+            if (aclDao.checkPermission(routeModel.getId(), PermType.WRITE, Lists.newArrayList(sourceUser.getId()))) {
+                aclDao.ensureDirectUserReadWriteAcl(routeModel.getId(), targetUser.getId(), actorUserId);
+            }
+        }
+
+        // Update active route steps where RTP_IDTARGET_C == sourceUser.getId() and RTP_ENDDATE_D is null
+        jakarta.persistence.EntityManager em = ThreadLocalContext.get().getEntityManager();
+        jakarta.persistence.Query stepQuery = em.createNativeQuery(
+                "update T_ROUTE_STEP set RTP_IDTARGET_C = :targetId where RTP_IDTARGET_C = :sourceId and RTP_ENDDATE_D is null and RTP_DELETEDATE_D is null");
+        stepQuery.setParameter("targetId", targetUser.getId());
+        stepQuery.setParameter("sourceId", sourceUser.getId());
+        updatedCount += stepQuery.executeUpdate();
+
+        // Update temporary ROUTING ACLs from sourceUser to targetUser
+        jakarta.persistence.Query routingAclQuery = em.createNativeQuery(
+                "update T_ACL set ACL_TARGETID_C = :targetId where ACL_TARGETID_C = :sourceId and ACL_TYPE_C = 'ROUTING' and ACL_DELETEDATE_D is null");
+        routingAclQuery.setParameter("targetId", targetUser.getId());
+        routingAclQuery.setParameter("sourceId", sourceUser.getId());
+        routingAclQuery.executeUpdate();
+
+        return updatedCount;
+    }
 }

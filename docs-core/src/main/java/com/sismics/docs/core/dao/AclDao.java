@@ -208,4 +208,101 @@ public class AclDao {
         q.setParameter("dateNow", new Date());
         q.executeUpdate();
     }
+
+    /**
+     * Ensures the specified user has direct READ and WRITE USER ACLs on the given source entity.
+     *
+     * @param sourceId Source entity ID (Document, Tag, or RouteModel)
+     * @param targetUserId Target user ID
+     * @param actorUserId User ID performing the action (for audit logging)
+     */
+    public void ensureDirectUserReadWriteAcl(String sourceId, String targetUserId, String actorUserId) {
+        List<AclDto> existingAcls = getBySourceId(sourceId, AclType.USER);
+        boolean hasRead = false;
+        boolean hasWrite = false;
+        for (AclDto dto : existingAcls) {
+            if (targetUserId.equals(dto.getTargetId())) {
+                if (dto.getPerm() == PermType.READ) {
+                    hasRead = true;
+                } else if (dto.getPerm() == PermType.WRITE) {
+                    hasWrite = true;
+                }
+            }
+        }
+        if (!hasRead) {
+            Acl acl = new Acl();
+            acl.setSourceId(sourceId);
+            acl.setPerm(PermType.READ);
+            acl.setTargetId(targetUserId);
+            acl.setType(AclType.USER);
+            create(acl, actorUserId);
+        }
+        if (!hasWrite) {
+            Acl acl = new Acl();
+            acl.setSourceId(sourceId);
+            acl.setPerm(PermType.WRITE);
+            acl.setTargetId(targetUserId);
+            acl.setType(AclType.USER);
+            create(acl, actorUserId);
+        }
+    }
+
+    /**
+     * Checks whether a direct active ACL with the exact sourceId, perm, targetId, and type exists.
+     *
+     * @param sourceId Source entity ID
+     * @param perm Permission
+     * @param targetId Target entity ID
+     * @param type ACL type
+     * @return True if direct ACL exists
+     */
+    public boolean hasDirectAcl(String sourceId, PermType perm, String targetId, AclType type) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("select count(a.id) from Acl a where a.sourceId = :sourceId and a.perm = :perm and a.targetId = :targetId and a.type = :type and a.deleteDate is null");
+        q.setParameter("sourceId", sourceId);
+        q.setParameter("perm", perm);
+        q.setParameter("targetId", targetId);
+        q.setParameter("type", type);
+        Long count = (Long) q.getSingleResult();
+        return count != null && count > 0;
+    }
+
+    /**
+     * Copies all active ACL permissions granted to sourceUserId over to targetUserId
+     * (covering tags, documents, and route models owned by other users such as admin).
+     * If WRITE permission is present, also ensures READ permission is granted.
+     *
+     * @param sourceUserId Source user ID
+     * @param targetUserId Target user ID
+     * @param actorUserId User ID performing the transfer (for audit logging)
+     * @return Number of new ACL records created for targetUserId
+     */
+    public int copyUserAcls(String sourceUserId, String targetUserId, String actorUserId) {
+        List<Acl> sourceAcls = getByTargetId(sourceUserId);
+        int copied = 0;
+        for (Acl sourceAcl : sourceAcls) {
+            String srcId = sourceAcl.getSourceId();
+            PermType perm = sourceAcl.getPerm();
+            AclType type = sourceAcl.getType() != null ? sourceAcl.getType() : AclType.USER;
+            if (!hasDirectAcl(srcId, perm, targetUserId, type)) {
+                Acl newAcl = new Acl();
+                newAcl.setSourceId(srcId);
+                newAcl.setPerm(perm);
+                newAcl.setTargetId(targetUserId);
+                newAcl.setType(type);
+                create(newAcl, actorUserId);
+                copied++;
+            }
+            if (perm == PermType.WRITE && !hasDirectAcl(srcId, PermType.READ, targetUserId, type)) {
+                Acl readAcl = new Acl();
+                readAcl.setSourceId(srcId);
+                readAcl.setPerm(PermType.READ);
+                readAcl.setTargetId(targetUserId);
+                readAcl.setType(type);
+                create(readAcl, actorUserId);
+                copied++;
+            }
+        }
+        return copied;
+    }
 }

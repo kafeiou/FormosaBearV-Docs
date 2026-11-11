@@ -304,20 +304,35 @@ public class FileResource extends BaseResource {
     @Path("{id: [a-z0-9\\-]+}")
     public Response update(@PathParam("id") String id,
                            @FormParam("name") String name,
-                           @FormParam("document_id") String document_id) {
+                           @FormParam("document_id") String document_id,
+                           @FormParam("version_label") String versionLabel) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
 
         // Get the file
         File file = findFile(id, null);
+        if (file.getDocumentId() != null) {
+            AclDao aclDao = new AclDao();
+            if (!aclDao.checkPermission(file.getDocumentId(), PermType.WRITE, getTargetIdList(null))) {
+                throw new ForbiddenClientException();
+            }
+        }
         // Validate input data
-        name = ValidationUtil.validateLength(name, "name", 1, 200, false);
+        name = ValidationUtil.validateLength(name, "name", 1, 200, true);
+        if (name == null) {
+            name = file.getName();
+        }
+        if (versionLabel != null) {
+            versionLabel = ValidationUtil.validateLength(versionLabel, "version_label", 0, 50, true);
+            file.setVersionLabel(StringUtils.stripToNull(versionLabel));
+        }
 
         FileDao fileDao = new FileDao();
-        boolean bNameNeedToUpdate = true;
+        boolean bNameNeedToUpdate = !StringUtils.equals(name, file.getName())
+                || (document_id != null && !StringUtils.equals(document_id, file.getDocumentId()));
 
-        if( !ConfigUtil.canFileDuplicate() ){
+        if (bNameNeedToUpdate && !ConfigUtil.canFileDuplicate()) {
           List<File> aCheckFile = fileDao.getByUserIdFileName(file.getUserId(),StringUtils.abbreviate(name, 200));
           if(aCheckFile!=null){
             if( aCheckFile.size()==1){
@@ -337,18 +352,22 @@ public class FileResource extends BaseResource {
         }
 
         // file rename 
-        java.nio.file.Path aOriFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());
-        java.nio.file.Path aOriWebFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName()+"_web");
-        java.nio.file.Path aOriThumbFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName()+"_thumb");
-        if( document_id!=null)
-          file.setDocumentId(document_id);
-        java.nio.file.Path aDestFile = DirectoryUtil.getStorageDirectory(file).resolve(name);
-        java.nio.file.Path aDestWebFile = DirectoryUtil.getStorageDirectory(file).resolve(name+"_web");
-        java.nio.file.Path aDestThumbFile = DirectoryUtil.getStorageDirectory(file).resolve(name+"_thumb");
+        if (bNameNeedToUpdate && file.getName() != null) {
+            java.nio.file.Path aOriFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());
+            java.nio.file.Path aOriWebFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName()+"_web");
+            java.nio.file.Path aOriThumbFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName()+"_thumb");
+            if( document_id!=null)
+              file.setDocumentId(document_id);
+            java.nio.file.Path aDestFile = DirectoryUtil.getStorageDirectory(file).resolve(name);
+            java.nio.file.Path aDestWebFile = DirectoryUtil.getStorageDirectory(file).resolve(name+"_web");
+            java.nio.file.Path aDestThumbFile = DirectoryUtil.getStorageDirectory(file).resolve(name+"_thumb");
 
-        aOriFile.toFile().renameTo(aDestFile.toFile());
-        aOriWebFile.toFile().renameTo(aDestWebFile.toFile());
-        aOriThumbFile.toFile().renameTo(aDestThumbFile.toFile());
+            aOriFile.toFile().renameTo(aDestFile.toFile());
+            aOriWebFile.toFile().renameTo(aDestWebFile.toFile());
+            aOriThumbFile.toFile().renameTo(aDestThumbFile.toFile());
+        } else if (document_id != null) {
+            file.setDocumentId(document_id);
+        }
 
         // Update the file
         file.setName(name);
@@ -577,6 +596,8 @@ public class FileResource extends BaseResource {
                     .add("id", fileDb.getId())
                     .add("name", JsonUtil.nullable(fileDb.getName()))
                     .add("version", fileDb.getVersion())
+                    .add("version_label", JsonUtil.nullable(fileDb.getVersionLabel()))
+                    .add("latest_version", fileDb.isLatestVersion())
                     .add("mimetype", fileDb.getMimeType())
                     .add("create_date", fileDb.getCreateDate().getTime()));
         }

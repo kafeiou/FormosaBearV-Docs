@@ -136,6 +136,11 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
                 return null;
             }
         } else {
+            // Reject login if the existing user account has been disabled by an administrator
+            if (user.getDisableDate() != null) {
+                log.warn("Rejected LDAP login for disabled user \"" + username + "\"");
+                return null;
+            }
             // Existing user authenticated via LDAP
             // Never convert the built-in admin account to LDAP to preserve break-glass emergency access
             if (!Constants.ADMIN_USER_ID.equals(user.getId()) && !"admin".equalsIgnoreCase(username)) {

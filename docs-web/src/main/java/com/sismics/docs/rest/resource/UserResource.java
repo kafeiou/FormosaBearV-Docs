@@ -3,6 +3,7 @@ package com.sismics.docs.rest.resource;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sismics.docs.core.constant.AclTargetType;
+import com.sismics.docs.core.constant.AuditLogType;
 import com.sismics.docs.core.constant.ConfigType;
 import com.sismics.docs.core.constant.Constants;
 import com.sismics.docs.core.dao.*;
@@ -15,7 +16,9 @@ import com.sismics.docs.core.event.FileDeletedAsyncEvent;
 import com.sismics.docs.core.event.PasswordLostEvent;
 import com.sismics.docs.core.model.context.AppContext;
 import com.sismics.docs.core.model.jpa.*;
+import com.sismics.docs.core.util.AuditLogUtil;
 import com.sismics.docs.core.util.ConfigUtil;
+import com.sismics.docs.core.util.FileUtil;
 import com.sismics.docs.core.util.RoutingUtil;
 import com.sismics.docs.core.util.authentication.AuthenticationUtil;
 import com.sismics.docs.core.util.jpa.SortCriteria;
@@ -159,6 +162,12 @@ public class UserResource extends BaseResource {
         }
         user = userDao.update(user, principal.getId());
 
+        // If user is disabled, immediately revoke all active authentication tokens
+        if (user.getDisableDate() != null) {
+            AuthenticationTokenDao authTokenDao = new AuthenticationTokenDao();
+            authTokenDao.deleteByUserId(user.getId());
+        }
+
         // Change the password
         if (StringUtils.isNotBlank(password)) {
             if ("LDAP".equals(user.getAuthSource())) {
@@ -256,6 +265,12 @@ public class UserResource extends BaseResource {
             }
         }
         user = userDao.update(user, principal.getId());
+
+        // If user is disabled, immediately revoke all active authentication tokens
+        if (user.getDisableDate() != null) {
+            AuthenticationTokenDao authTokenDao = new AuthenticationTokenDao();
+            authTokenDao.deleteByUserId(user.getId());
+        }
 
         // Change the password
         if (StringUtils.isNotBlank(password)) {
@@ -451,8 +466,14 @@ public class UserResource extends BaseResource {
         // Find linked data
         DocumentDao documentDao = new DocumentDao();
         List<Document> documentList = documentDao.findByUserId(principal.getId());
+        TagDao tagDao = new TagDao();
+        List<Tag> tagList = tagDao.findByUserId(principal.getId());
         FileDao fileDao = new FileDao();
         List<File> fileList = fileDao.findByUserId(principal.getId());
+        if (!documentList.isEmpty() || !tagList.isEmpty() || !fileList.isEmpty()) {
+            throw new ClientException("UserHasAssets",
+                    documentList.size() + "," + tagList.size() + "," + fileList.size());
+        }
 
         // Delete the user
         UserDao userDao = new UserDao();
@@ -517,11 +538,17 @@ public class UserResource extends BaseResource {
             throw new ClientException("UserUsedInRouteModel", routeModelName);
         }
 
-        // Find linked data
+        // Find linked data and block deletion if the user still owns documents, tags, or files
         DocumentDao documentDao = new DocumentDao();
         List<Document> documentList = documentDao.findByUserId(user.getId());
+        TagDao tagDao = new TagDao();
+        List<Tag> tagList = tagDao.findByUserId(user.getId());
         FileDao fileDao = new FileDao();
         List<File> fileList = fileDao.findByUserId(user.getId());
+        if (!documentList.isEmpty() || !tagList.isEmpty() || !fileList.isEmpty()) {
+            throw new ClientException("UserHasAssets",
+                    documentList.size() + "," + tagList.size() + "," + fileList.size());
+        }
 
         // Delete the user
         userDao.delete(user.getUsername(), principal.getId());
@@ -531,6 +558,125 @@ public class UserResource extends BaseResource {
         // Always return OK
         JsonObjectBuilder response = Json.createObjectBuilder()
                 .add("status", "ok");
+        return Response.ok().entity(response.build()).build();
+    }
+
+    /**
+     * Transfers all assets (tags, documents, files, storage quota, and workflow steps)
+     * owned by a user to another active user.
+     *
+     * @param username Source username
+     * @param targetUsername Target username receiving the assets
+     * @return Response with transfer counts
+     */
+    @POST
+    @Path("{username: [a-zA-Z0-9_@.-]+}/transfer")
+    public Response transferAssets(
+            @PathParam("username") String username,
+            @FormParam("target_username") String targetUsername) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        ValidationUtil.validateRequired(targetUsername, "target_username");
+        targetUsername = StringUtils.strip(targetUsername);
+
+        if (Constants.GUEST_USER_ID.equals(username) || Constants.GUEST_USER_ID.equals(targetUsername)) {
+            throw new ClientException("ForbiddenError", "Cannot transfer assets from or to the guest account");
+        }
+
+        UserDao userDao = new UserDao();
+        User sourceUser = userDao.getActiveByUsername(username);
+        if (sourceUser == null) {
+            throw new ClientException("UserNotFound", "Source user does not exist");
+        }
+
+        User targetUser = userDao.getActiveByUsername(targetUsername);
+        if (targetUser == null) {
+            throw new ClientException("TargetUserNotFound", "Target user does not exist");
+        }
+        if (sourceUser.getId().equals(targetUser.getId())) {
+            throw new ClientException("SameUserError", "Cannot transfer assets to the same user");
+        }
+        if (targetUser.getDisableDate() != null) {
+            throw new ClientException("TargetUserDisabled", "Cannot transfer assets to a disabled user");
+        }
+
+        String transferNote = " (" + sourceUser.getUsername() + " -> " + targetUser.getUsername() + ")";
+        AclDao aclDao = new AclDao();
+        TagDao tagDao = new TagDao();
+        DocumentDao documentDao = new DocumentDao();
+        FileDao fileDao = new FileDao();
+
+        // 1. Transfer Tags (update owner, grant targetUser base READ/WRITE ACL, keep sourceUser ACL)
+        List<Tag> tagList = tagDao.findByUserId(sourceUser.getId());
+        for (Tag tag : tagList) {
+            tag.setUserId(targetUser.getId());
+            ThreadLocalContext.get().getEntityManager()
+                    .createQuery("update Tag t set t.userId = :targetUserId where t.id = :id")
+                    .setParameter("targetUserId", targetUser.getId())
+                    .setParameter("id", tag.getId())
+                    .executeUpdate();
+            aclDao.ensureDirectUserReadWriteAcl(tag.getId(), targetUser.getId(), principal.getId());
+            AuditLogUtil.create(tag, AuditLogType.UPDATE, principal.getId(), tag.getName() + transferNote);
+        }
+
+        // 2. Transfer Documents (update owner, grant targetUser base READ/WRITE ACL, keep sourceUser ACL)
+        List<Document> documentList = documentDao.findByUserId(sourceUser.getId());
+        for (Document document : documentList) {
+            document.setUserId(targetUser.getId());
+            ThreadLocalContext.get().getEntityManager()
+                    .createQuery("update Document d set d.userId = :targetUserId where d.id = :id")
+                    .setParameter("targetUserId", targetUser.getId())
+                    .setParameter("id", document.getId())
+                    .executeUpdate();
+            aclDao.ensureDirectUserReadWriteAcl(document.getId(), targetUser.getId(), principal.getId());
+            AuditLogUtil.create(document, AuditLogType.UPDATE, principal.getId(), document.getTitle() + transferNote);
+        }
+
+        // 3. Transfer Physical Files (move directories or re-encrypt, update FIL_IDUSER_C)
+        List<File> fileList = fileDao.findByUserId(sourceUser.getId());
+        long transferredBytes = 0L;
+        for (File file : fileList) {
+            FileUtil.transferFileOwnership(file, sourceUser, targetUser);
+            fileDao.update(file);
+            if (file.getSize() != null && file.getSize() > 0) {
+                transferredBytes += file.getSize();
+            }
+            AuditLogUtil.create(file, AuditLogType.UPDATE, principal.getId(), file.toMessage() + transferNote);
+        }
+
+        // 4. Transfer Storage Usage and auto-expand Target User's Quota if finite and exceeded
+        long sourceStorage = sourceUser.getStorageCurrent() != null ? sourceUser.getStorageCurrent() : 0L;
+        long effectiveTransferredBytes = Math.max(sourceStorage, transferredBytes);
+        long targetCurrent = (targetUser.getStorageCurrent() != null ? targetUser.getStorageCurrent() : 0L) + effectiveTransferredBytes;
+        targetUser.setStorageCurrent(targetCurrent);
+        if (targetUser.getStorageQuota() != null && targetUser.getStorageQuota() > 0) {
+            if (targetCurrent > targetUser.getStorageQuota()) {
+                targetUser.setStorageQuota(targetUser.getStorageQuota() + effectiveTransferredBytes);
+            }
+        }
+        sourceUser.setStorageCurrent(0L);
+        userDao.updateQuota(targetUser);
+        userDao.updateQuota(sourceUser);
+
+        // 5. Transfer Workflow RouteModels and Active RouteSteps
+        int routesTransferred = RoutingUtil.transferUserInRoutes(sourceUser, targetUser, principal.getId());
+
+        // 6. Copy all remaining ACL permissions granted to sourceUser on tags/documents/workflows owned by other users
+        aclDao.copyUserAcls(sourceUser.getId(), targetUser.getId(), principal.getId());
+
+        // 7. Audit logs for both users
+        AuditLogUtil.create(sourceUser, AuditLogType.UPDATE, principal.getId(), sourceUser.getUsername() + " -> " + targetUser.getUsername());
+        AuditLogUtil.create(targetUser, AuditLogType.UPDATE, principal.getId(), sourceUser.getUsername() + " -> " + targetUser.getUsername());
+
+        JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("status", "ok")
+                .add("transferred_documents", documentList.size())
+                .add("transferred_tags", tagList.size())
+                .add("transferred_files", fileList.size())
+                .add("transferred_routes", routesTransferred);
         return Response.ok().entity(response.build()).build();
     }
 
@@ -698,6 +844,13 @@ public class UserResource extends BaseResource {
             groups.add(groupDto.getName());
         }
 
+        DocumentDao documentDao = new DocumentDao();
+        TagDao tagDao = new TagDao();
+        FileDao fileDao = new FileDao();
+        int documentCount = documentDao.findByUserId(user.getId()).size();
+        int tagCount = tagDao.findByUserId(user.getId()).size();
+        int fileCount = fileDao.findByUserId(user.getId()).size();
+
         JsonObjectBuilder response = Json.createObjectBuilder()
                 .add("username", user.getUsername())
                 .add("groups", groups)
@@ -707,7 +860,10 @@ public class UserResource extends BaseResource {
                 .add("storage_current", user.getStorageCurrent())
                 .add("disabled", user.getDisableDate() != null)
                 .add("auth_source", user.getAuthSource() != null ? user.getAuthSource() : "INTERNAL")
-                .add("is_ldap", "LDAP".equals(user.getAuthSource()));
+                .add("is_ldap", "LDAP".equals(user.getAuthSource()))
+                .add("document_count", documentCount)
+                .add("tag_count", tagCount)
+                .add("file_count", fileCount);
         return Response.ok().entity(response.build()).build();
     }
 

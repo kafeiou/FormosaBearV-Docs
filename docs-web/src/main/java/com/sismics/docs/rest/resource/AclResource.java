@@ -97,7 +97,7 @@ public class AclResource extends BaseResource {
         acl.setType(AclType.USER);
         
         // Avoid duplicates
-        if (!aclDao.checkPermission(acl.getSourceId(), acl.getPerm(), Lists.newArrayList(acl.getTargetId()))) {
+        if (!aclDao.hasDirectAcl(acl.getSourceId(), acl.getPerm(), acl.getTargetId(), AclType.USER)) {
             aclDao.create(acl, principal.getId());
 
             // Raise an ACL created event
@@ -220,7 +220,7 @@ public class AclResource extends BaseResource {
         }
         
         // Validate input
-        search = ValidationUtil.validateLength(search, "search", 1, 50, false);
+        search = ValidationUtil.validateLength(search, "search", 0, 50, true);
         
         // Search users
         UserDao userDao = new UserDao();
@@ -228,8 +228,8 @@ public class AclResource extends BaseResource {
         SortCriteria sortCriteria = new SortCriteria(1, true);
         List<UserDto> userDtoList = userDao.findByCriteria(new UserCriteria().setSearch(search), sortCriteria);
         for (UserDto userDto : userDtoList) {
-            // No need to add users who will skip ACL check anyways
-            if (!SecurityUtil.skipAclCheck(Lists.newArrayList(userDto.getId()))) {
+            // Skip disabled users and users who will skip ACL check anyways
+            if (userDto.getDisableTimestamp() == null && !SecurityUtil.skipAclCheck(Lists.newArrayList(userDto.getId()))) {
                 users.add(Json.createObjectBuilder()
                         .add("name", userDto.getUsername()));
             }

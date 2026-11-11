@@ -143,4 +143,46 @@
       </div>
     </div>
   </form>
+
+  <div class="panel panel-default" ng-if="isEdit() && user.username != 'guest'" style="margin-top: 24px;">
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        <span class="fas fa-exchange-alt"></span> {{ 'settings.user.edit.transfer_panel_title' | translate }}
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p class="text-muted">{{ 'settings.user.edit.transfer_panel_desc' | translate }}</p>
+      <div style="margin-bottom: 15px;">
+        <strong>{{ 'settings.user.edit.owned_assets_label' | translate }}：</strong>
+        <span class="label label-primary" style="font-size: 13px; margin-right: 6px;">
+          <span class="fas fa-file-alt"></span> {{ 'settings.user.edit.owned_documents' | translate:{ count: (user.document_count || 0) } }}
+        </span>
+        <span class="label label-info" style="font-size: 13px; margin-right: 6px;">
+          <span class="fas fa-tags"></span> {{ 'settings.user.edit.owned_tags' | translate:{ count: (user.tag_count || 0) } }}
+        </span>
+        <span class="label label-default" style="font-size: 13px;">
+          <span class="fas fa-hdd"></span> {{ 'settings.user.edit.owned_files' | translate:{ count: (user.file_count || 0) } }}
+        </span>
+      </div>
+
+      <div class="form-horizontal">
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label class="col-sm-2 control-label" for="selectTransferTarget">{{ 'settings.user.edit.transfer_target_label' | translate }}</label>
+          <div class="col-sm-7">
+            <select id="selectTransferTarget" class="form-control" ng-model="transferData.targetUsername"
+                    ng-options="u.username as (u.username + (u.email ? ' (' + u.email + ')' : '')) for u in getTransferTargets()">
+              <option value="">{{ 'settings.user.edit.transfer_target_placeholder' | translate }}</option>
+            </select>
+          </div>
+          <div class="col-sm-3">
+            <button type="button" class="btn btn-warning" ng-click="transferAssets()"
+                    ng-disabled="!transferData.targetUsername || isTransferring">
+              <span class="fas" ng-class="{ 'fa-exchange-alt': !isTransferring, 'fa-circle-notch fa-spin': isTransferring }"></span>
+              {{ 'settings.user.edit.transfer_btn' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

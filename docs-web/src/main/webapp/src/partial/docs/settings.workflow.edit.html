@@ -56,12 +56,27 @@
                   </div>
                 </div>
                 <div class="col-xs-6" ng-class="{ 'has-error': !editWorkflowForm['target-' + $index].$valid && editWorkflowForm.$dirty }">
-                  <input required ng-maxlength="50" class="form-control" type="text" id="inputTarget"
-                         ng-attr-placeholder="{{ 'directive.acledit.search_user_group' | translate }}" name="target-{{ $index }}" ng-model="step.target" autocomplete="off"
-                         uib-typeahead="target as target.name for target in getTargetAclTypeahead($viewValue)"
-                         typeahead-template-url="partial/docs/directive.typeahead.acl.html"
-                         typeahead-editable="false"
-                         typeahead-wait-ms="200" />
+                  <div class="input-group" uib-dropdown>
+                    <input required ng-maxlength="50" class="form-control" type="text" id="inputTarget"
+                           ng-attr-placeholder="{{ 'directive.acledit.search_user_group' | translate }}" name="target-{{ $index }}" ng-model="step.target" autocomplete="off"
+                           uib-typeahead="target as target.name for target in getTargetAclTypeahead($viewValue)"
+                           typeahead-template-url="partial/docs/directive.typeahead.acl.html"
+                           typeahead-editable="false"
+                           typeahead-min-length="0"
+                           typeahead-wait-ms="150" />
+                    <span class="input-group-btn">
+                      <button type="button" class="btn btn-default" uib-dropdown-toggle ng-click="loadAllTargets()">
+                        <span class="caret"></span>
+                      </button>
+                    </span>
+                    <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu style="width: 100%; max-height: 260px; overflow-y: auto;">
+                      <li ng-repeat="item in allTargets">
+                        <a href ng-click="step.target = item; $event.preventDefault()">
+                          <acl data="item"></acl>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
                 <div class="col-xs-1">
                   <span class="btn btn-link" ng-click="removeStep(step)">

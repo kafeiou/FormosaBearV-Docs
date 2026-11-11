@@ -215,6 +215,9 @@ public class DocumentDao {
         Document documentDb = q.getSingleResult();
 
         // Update the document
+        if (document.getUserId() != null) {
+            documentDb.setUserId(document.getUserId());
+        }
         documentDb.setTitle(document.getTitle());
         documentDb.setDescription(document.getDescription());
         documentDb.setSubject(document.getSubject());

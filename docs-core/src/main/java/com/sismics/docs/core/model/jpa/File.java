@@ -83,6 +83,12 @@ public class File implements Loggable {
     private Integer version;
 
     /**
+     * User-customizable version label (e.g. "1.0", "v2.0", "Rev.A", or null if unset).
+     */
+    @Column(name = "FIL_VERSION_LABEL_C", length = 50)
+    private String versionLabel;
+
+    /**
      * True if it's the latest version of the file.
      */
     @Column(name = "FIL_LATESTVERSION_B", nullable = false)
@@ -200,6 +206,15 @@ public class File implements Loggable {
 
     public File setVersion(Integer version) {
         this.version = version;
+        return this;
+    }
+
+    public String getVersionLabel() {
+        return versionLabel;
+    }
+
+    public File setVersionLabel(String versionLabel) {
+        this.versionLabel = versionLabel;
         return this;
     }
 

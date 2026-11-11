@@ -84,7 +84,7 @@
 
         <div class="file-info">
           <div></div>
-          <div class="v-align file-name" ng-if="file.name" title="{{ file.name }} (v{{ file.version + 1 }}.0)">{{ file.name }}</div>
+          <div class="v-align file-name" ng-if="file.name" title="{{ file.name }}{{ file.version_label ? ' (' + file.version_label + ')' : '' }}">{{ file.name }}<span ng-if="file.version_label"> ({{ file.version_label }})</span></div>
           <div class="v-align" ng-show="document.writable">
             <div uib-dropdown>
               <button class="btn btn-default" uib-dropdown-toggle>
@@ -175,8 +175,8 @@
               uib-tooltip="{{ 'document.view.content.file_processing_indicator' | translate }}"></span>
       </td>
       <td>{{ file.mimetype }}</td>
-      <td>{{ file.size | filesize }}</td>
-      <td>v{{ file.version + 1 }}.0</td>
+      <td>{{ file. size | filesize }}</td>
+      <td>{{ file.version_label }}</td>
       <td ng-show="document.writable">
         <div uib-dropdown>
           <button class="btn btn-default" uib-dropdown-toggle>

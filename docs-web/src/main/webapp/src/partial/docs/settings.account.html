@@ -13,7 +13,7 @@
       </div>
     </div>
   </div>
-  <div class="form-group" style="margin-bottom: 0;">
+  <div class="form-group" style="margin-bottom: 10px;">
     <label class="col-sm-2 control-label">{{ 'settings.config.font_size' | translate }}</label>
     <div class="col-sm-10">
       <div class="btn-group" style="margin-right: 10px;">
@@ -27,6 +27,29 @@
         <button type="button" class="btn btn-default" ng-click="changeFontSize(-1)" ng-disabled="fontSize <= 12">A-</button>
         <span class="btn btn-default disabled">{{ fontSize }}px ({{ fontScalePercent }}%)</span>
         <button type="button" class="btn btn-default" ng-click="changeFontSize(1)" ng-disabled="fontSize >= 22">A+</button>
+      </div>
+    </div>
+  </div>
+  <div class="form-group" style="margin-bottom: 0;">
+    <label class="col-sm-2 control-label">{{ 'settings.config.version_history_columns' | translate }}</label>
+    <div class="col-sm-10">
+      <span style="margin-right: 6px; font-weight: 600;">{{ 'file.versions.mimetype' | translate }}：</span>
+      <div class="btn-group" style="margin-right: 20px;">
+        <button type="button" class="btn" ng-class="!showVersionMimetype ? 'btn-primary' : 'btn-default'" ng-click="setShowVersionMimetype(false)">
+          {{ 'settings.config.column_hide' | translate }}
+        </button>
+        <button type="button" class="btn" ng-class="showVersionMimetype ? 'btn-primary' : 'btn-default'" ng-click="setShowVersionMimetype(true)">
+          {{ 'settings.config.column_show' | translate }}
+        </button>
+      </div>
+      <span style="margin-right: 6px; font-weight: 600;">{{ 'file.versions.create_date' | translate }}：</span>
+      <div class="btn-group">
+        <button type="button" class="btn" ng-class="!showVersionCreateDate ? 'btn-primary' : 'btn-default'" ng-click="setShowVersionCreateDate(false)">
+          {{ 'settings.config.column_hide' | translate }}
+        </button>
+        <button type="button" class="btn" ng-class="showVersionCreateDate ? 'btn-primary' : 'btn-default'" ng-click="setShowVersionCreateDate(true)">
+          {{ 'settings.config.column_show' | translate }}
+        </button>
       </div>
     </div>
   </div>

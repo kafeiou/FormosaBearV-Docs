@@ -373,6 +373,7 @@ angular.module('docs').controller('Document', function ($scope, $rootScope, $tim
       Restangular.one('tag').put(tag).then(function (data) {
         // Add the new tag to the list
         tag.id = data.id;
+        tag.creator = $rootScope.userInfo ? $rootScope.userInfo.username : undefined;
         tag.children = [];
         $scope.tags.push(tag);
       })

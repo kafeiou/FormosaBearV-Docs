@@ -145,6 +145,29 @@
       </div>
     </div>
   </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">{{ 'settings.config.version_history_columns' | translate }}</label>
+    <div class="col-sm-8">
+      <span style="margin-right: 6px; font-weight: 600;">{{ 'file.versions.mimetype' | translate }}：</span>
+      <div class="btn-group" style="margin-right: 20px;">
+        <button type="button" class="btn" ng-class="!showVersionMimetype ? 'btn-primary' : 'btn-default'" ng-click="setShowVersionMimetype(false)">
+          {{ 'settings.config.column_hide' | translate }}
+        </button>
+        <button type="button" class="btn" ng-class="showVersionMimetype ? 'btn-primary' : 'btn-default'" ng-click="setShowVersionMimetype(true)">
+          {{ 'settings.config.column_show' | translate }}
+        </button>
+      </div>
+      <span style="margin-right: 6px; font-weight: 600;">{{ 'file.versions.create_date' | translate }}：</span>
+      <div class="btn-group">
+        <button type="button" class="btn" ng-class="!showVersionCreateDate ? 'btn-primary' : 'btn-default'" ng-click="setShowVersionCreateDate(false)">
+          {{ 'settings.config.column_hide' | translate }}
+        </button>
+        <button type="button" class="btn" ng-class="showVersionCreateDate ? 'btn-primary' : 'btn-default'" ng-click="setShowVersionCreateDate(true)">
+          {{ 'settings.config.column_show' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 <form class="form-horizontal" name="editColorForm" novalidate>
   <div class="form-group">

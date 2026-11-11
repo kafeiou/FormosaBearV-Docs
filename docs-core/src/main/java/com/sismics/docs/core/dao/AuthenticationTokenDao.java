@@ -111,15 +111,28 @@ public class AuthenticationTokenDao {
     }
     
     /**
-     * Deletes all authentication tokens of an user.
+     * Deletes all authentication tokens of an user except the specified one.
      * 
-     * @param userId
+     * @param userId User ID
+     * @param id Token ID to keep
      */
     public void deleteByUserId(String userId, String id) {
         EntityManager em = ThreadLocalContext.get().getEntityManager();
         Query q = em.createQuery("delete AuthenticationToken a where a.userId = :userId and a.id != :id");
         q.setParameter("userId", userId);
         q.setParameter("id", id);
+        q.executeUpdate();
+    }
+
+    /**
+     * Deletes all authentication tokens of a user.
+     *
+     * @param userId User ID
+     */
+    public void deleteByUserId(String userId) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("delete AuthenticationToken a where a.userId = :userId");
+        q.setParameter("userId", userId);
         q.executeUpdate();
     }
 }
