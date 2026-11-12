@@ -19,6 +19,7 @@
 - **Full System Backup, Restore & Migration**: Streaming full-system ZIP backup and restore with cross-database migration support between H2 and PostgreSQL.
 - **Document Lifecycle & Collaboration**: File versioning with custom version labels, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas (including unlimited quota support), and URL sharing.
 - **Automated Import & Integration**: EML email import, automated IMAP inbox scanning, customizable SMTP notifications, RESTful Web API, and outgoing Webhooks.
+- **Multilingual User Interface**: Comprehensive internationalization covering 14 languages (English, French, German, Spanish, Italian, Portuguese, Polish, Russian, Greek, Albanian, Japanese, Vietnamese, Traditional Chinese, and Simplified Chinese).
 
 ## Building and Running from Source
 

@@ -572,6 +572,44 @@ angular.module('yaru22.angular-timeago').config(["timeAgoSettings", function(tim
       '九十一', '九十二', '九十三', '九十四', '九十五', '九十六', '九十七', '九十八', '九十九', '一百',
     ]
   };
+  timeAgoSettings.strings['ja'] = {
+    prefixAgo: null,
+    prefixFromNow: null,
+    suffixAgo: '前',
+    suffixFromNow: '後',
+    seconds: '1分未満',
+    minute: '約1分',
+    minutes: '%d分',
+    hour: '約1時間',
+    hours: '約%d時間',
+    day: '約1日',
+    days: '%d日',
+    month: '約1ヶ月',
+    months: '%dヶ月',
+    year: '約1年',
+    years: '%d年',
+    wordSeparator: '',
+    numbers: []
+  };
+  timeAgoSettings.strings['vi'] = {
+    prefixAgo: 'cách đây',
+    prefixFromNow: 'từ bây giờ',
+    suffixAgo: null,
+    suffixFromNow: null,
+    seconds: 'chưa đến một phút',
+    minute: 'khoảng một phút',
+    minutes: '%d phút',
+    hour: 'khoảng một tiếng',
+    hours: 'khoảng %d tiếng',
+    day: 'một ngày',
+    days: '%d ngày',
+    month: 'khoảng một tháng',
+    months: '%d tháng',
+    year: 'khoảng một năm',
+    years: '%d năm',
+    wordSeparator: ' ',
+    numbers: []
+  };
 }]);
 
 'use strict';

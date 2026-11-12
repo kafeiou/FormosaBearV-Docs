@@ -20,6 +20,15 @@
   - 於 [ConfigType.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/constant/ConfigType.java) 與 [ConfigUtil.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/ConfigUtil.java) 新增浮水印啟用開關與日期格式設定，並於 [AppResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/AppResource.java) 擴充 `GET /api/app` 回傳欄位與 `POST /api/app/config_watermark` 管理端點。
   - 於內部預覽與外部公開分享預覽頁面（[FileModalView.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/document/FileModalView.js)、[file.view.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/file.view.html)）的 PDF 互動式逐頁畫布與圖片預覽上方，疊加不阻擋滑鼠操作（`pointer-events: none`）的半透明斜向重複平鋪 SVG 浮水印覆蓋層。
   - 浮水印內容自動顯示「當前登入使用者帳號 + 英文格式日期」（未登入之公開分享頁面顯示 `Guest`），無論瀏覽器語系為何，日期與月份名稱一律強制以英文（`en-US`）格式化輸出；並於「設定 > 一般設定」（[settings.config.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.config.html)、[SettingsConfig.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/settings/SettingsConfig.js)）提供開關切換、常用英文日期格式快速套用按鈕（如 `dd MMM yyyy`、`MMM dd, yyyy`、`yyyy-MM-dd`、`dd MMMM yyyy HH:mm`）與即時預覽。
+- **新增日文（`ja`）與越南文（`vi`）完整語系支援**：
+  - 新增日文（[ja.json](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/locale/ja.json)、[angular-locale_ja.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/locale/angular-locale_ja.js)）與越南文（[vi.json](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/locale/vi.json)、[angular-locale_vi.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/locale/angular-locale_vi.js)）全翻譯語系包，達成 100% 翻譯鍵值覆蓋（共 723 個鍵值，零缺漏）。
+  - 於前端主程式與公開分享頁面（[app.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/app.js)、[share/app.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/share/app.js)）註冊 `ja` 與 `vi` 可用語系鍵及瀏覽器語系自動偵測對應規則。
+  - 於登入頁面與分享頁面（[index.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/index.html)、[share.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/share.html)）之語言切換選單新增「日本語」與「Tiếng Việt」。
+  - 於 [angular.timeago.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/lib/angular.timeago.js) 擴充日文與越南文相對時間字串對應字典。
+- **頁尾超連結品牌網址更新**：
+  - 更新全數 14 個語系檔中的 `footer_sismics` 屬性，超連結網址全面替換為 `https://kafeiou.pw`。
+- **維護與專案清理**：
+  - 移除已無使用的快照建置產物 `build/docs-NoFileEncrypt_1.12-SNAPSHOT.war`。
 
 ---
 

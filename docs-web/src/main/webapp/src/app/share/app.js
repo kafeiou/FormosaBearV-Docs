@@ -61,7 +61,7 @@ angular.module('share',
         prefix: 'locale/',
         suffix: '.json?@build.date@'
       })
-      .registerAvailableLanguageKeys(['en', 'es', 'pt', 'fr', 'de', 'el', 'ru', 'it', 'pl', 'zh_CN', 'zh_TW', 'sq_AL'], {
+      .registerAvailableLanguageKeys(['en', 'es', 'pt', 'fr', 'de', 'el', 'ru', 'it', 'pl', 'zh_CN', 'zh_TW', 'sq_AL', 'ja', 'vi'], {
         'en_*': 'en',
         'es_*': 'es',
         'pt_*': 'pt',
@@ -71,6 +71,8 @@ angular.module('share',
         'ru_*': 'ru',
         'it_*': 'it',
         'pl_*': 'pl',
+        'ja_*': 'ja',
+        'vi_*': 'vi',
         '*': 'en'
       })
       .fallbackLanguage('en');

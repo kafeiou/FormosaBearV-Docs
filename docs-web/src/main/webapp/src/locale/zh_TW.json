@@ -59,7 +59,7 @@
     "search_before_update_date": "在此日期之前更新",
     "search_after_update_date": "在此日期之後更新",
     "search_tags": "標籤",
-    "search_shared": "僅共享文件",
+    "search_shared": "僅分享文件",
     "search_workflow": "分配給我的工作流程",
     "search_clear": "清除",
     "any_language": "任何語言",
@@ -100,7 +100,7 @@
       "delete_comment_message": "您是否確認刪除此留言?",
       "delete_document_title": "刪除文件",
       "delete_document_message": "您是否確認刪除此文件?",
-      "shared_document_title": "共享文件",
+      "shared_document_title": "分享文件",
       "shared_document_message": "您可以直接通過發送連結來分享文件. 注意：任何有連結的人員均可查看文件.<br/><input class=\"form-control share-link\" type=\"text\" readonly=\"readonly\" value=\"{{ link }}\" onclick=\"this.select(); document.execCommand('copy');\" />",
       "not_found": "未找到文件",
       "forbidden": "無權限",
@@ -191,7 +191,7 @@
       "add_files": "新增檔案",
       "add_new_document": "新增文件",
       "latest_activity": "最新活動",
-      "footer_sismics": "<span class=\"fas fa-heart\"></span> 由 <a href=\"https://www.sismics.com\" target=\"_blank\">Sismics</a> 精心製作",
+      "footer_sismics": "<span class=\"fas fa-heart\"></span> 由 <a href=\"https://kafeiou.pw\" target=\"_blank\">Sismics</a> 精心製作",
       "api_documentation": "API說明文件",
       "feedback": "歡迎回饋意見",
       "workflow_document_list": "指派給您的文件",
@@ -207,9 +207,9 @@
       "millimeter": "公釐"
     },
     "share": {
-      "title": "共享文件",
-      "message": "如果您想要多次共享相同文件，請設定名稱。",
-      "submit": "共享"
+      "title": "分享文件",
+      "message": "如果您想要多次分享相同文件，請設定名稱。",
+      "submit": "分享"
     },
     "page_size_50": "每頁50列",
     "page_size_100": "每頁100列"
@@ -727,9 +727,9 @@
   "app_share": {
     "403": {
       "title": "未經授權",
-      "message": "您正在查看的文件已經被取消共享"
+      "message": "您正在查看的文件已經被取消分享"
     },
-    "main": "請求文件共享的連結來存取該文件"
+    "main": "請求文件分享的連結來存取該文件"
   },
   "directive": {
     "acledit": {
@@ -782,7 +782,7 @@
     "WRITE": "修改",
     "USER": "帳號",
     "GROUP": "群組",
-    "SHARE": "已共享",
+    "SHARE": "已分享",
     "source": "來源標籤",
     "target": "對象",
     "perm": "權限"
@@ -843,8 +843,8 @@
   "no": "No",
   "ok": "確認",
   "cancel": "取消",
-  "share": "共享",
-  "unshare": "不共享",
+  "share": "分享",
+  "unshare": "不分享",
   "close": "關閉",
   "add": "新增",
   "open": "打開",
