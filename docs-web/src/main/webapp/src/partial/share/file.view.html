@@ -19,5 +19,8 @@
 
 
 <div class="text-center" ng-if="$stateParams.fileId">
-  <img ng-src="../api/file/{{ $stateParams.fileId }}/data?size=web&share={{ $stateParams.shareId }}" oncontextmenu="return false;" ondragstart="return false;" draggable="false" style="user-select: none; -webkit-user-select: none;" />
+  <div style="position: relative; display: inline-block; max-width: 100%;">
+    <img ng-src="../api/file/{{ $stateParams.fileId }}/data?size=web&share={{ $stateParams.shareId }}" oncontextmenu="return false;" ondragstart="return false;" draggable="false" style="max-width: 100%; height: auto; display: block; user-select: none; -webkit-user-select: none;" />
+    <div class="watermark-overlay" ng-if="isWatermarkEnabled()" ng-style="getWatermarkStyle()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; user-select: none; -webkit-user-select: none; z-index: 5;"></div>
+  </div>
 </div>

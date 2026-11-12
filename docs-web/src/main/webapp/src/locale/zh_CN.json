@@ -426,7 +426,15 @@
       "smtp_test_success_title": "测试邮件发送成功",
       "smtp_test_success_msg": "测试邮件已成功发送至 <strong>{{ to }}</strong>！请检查您的收件箱（及垃圾邮件箱）确认收到测试信。",
       "smtp_test_failed_title": "测试邮件发送失败",
-      "smtp_test_failed_msg": "无法连接至 SMTP 服务器发送测试邮件，请根据下方服务器返回的错误信息进行排查："
+      "smtp_test_failed_msg": "无法连接至 SMTP 服务器发送测试邮件，请根据下方服务器返回的错误信息进行排查：",
+      "title_preview_watermark": "文档预览水印",
+      "message_preview_watermark": "控制在线文档预览（PDF 与图片）是否叠加半透明斜向水印覆盖层。启用时会自动显示“当前用户账号 + 英文格式日期”，防止截图外泄并利于追溯。",
+      "enable_preview_watermark": "启用文档预览水印",
+      "disable_preview_watermark": "停用文档预览水印",
+      "watermark_date_format": "日期格式 (英文)",
+      "watermark_date_format_help": "设置水印日期格式（例如 dd MMM yyyy、MMM dd, yyyy、yyyy-MM-dd），日期与月份一律强制以英文格式输出。",
+      "watermark_preview_label": "水印预览示例",
+      "watermark_saved": "水印设置已保存"
     },
     "menu_personal_settings": "个人设置",
     "menu_user_account": "用户帐号",
@@ -456,7 +464,16 @@
       "default_storage": "LDAP 用户的默认存储空间",
       "saved": "成功保存 LDAP 配置",
       "default_group": "預設群组",
-      "default_groupmembership": "\"群组\"栏位名"
+      "default_groupmembership": "\"群组\"栏位名",
+      "multi_help": "支持配置多组 LDAP 目录服务器。用户登录时，系统将按优先顺序（#1、#2…）依次向已启用的服务器进行验证，直到验证成功为止。",
+      "add_server": "添加 LDAP 服务器",
+      "remove_server": "移除服务器",
+      "server_name": "服务器名称",
+      "move_up": "上移优先顺序",
+      "move_down": "下移优先顺序",
+      "status_enabled": "已启用",
+      "status_disabled": "已停用",
+      "no_servers": "当前尚未配置任何 LDAP 服务器，请点击“添加 LDAP 服务器”进行添加。"
     },
     "user": {
       "title": "用户 <small>管理</small>",

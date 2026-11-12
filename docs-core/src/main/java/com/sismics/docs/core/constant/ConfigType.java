@@ -45,6 +45,12 @@ public enum ConfigType {
     FILE_ENCRYPT_LOCKED,
 
     /**
+     * Document preview watermark settings.
+     */
+    PREVIEW_WATERMARK_ENABLED,
+    PREVIEW_WATERMARK_DATE_FORMAT,
+
+    /**
      * SMTP server configuration.
      */
     SMTP_HOSTNAME,

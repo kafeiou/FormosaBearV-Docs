@@ -113,6 +113,52 @@
   <button ng-if="app.file_download" class="btn btn-danger" ng-click="changeFileDownload(false)">{{ 'settings.config.disable_file_download' | translate }}</button>
 </div>
 
+<h3>
+  <span translate="settings.config.title_preview_watermark"></span>
+  <span class="label" ng-class="{ 'label-success': app.preview_watermark_enabled, 'label-danger': !app.preview_watermark_enabled }">
+    {{ (app.preview_watermark_enabled ? 'enabled' : 'disabled') | translate }}
+  </span>
+</h3>
+<p translate="settings.config.message_preview_watermark"></p>
+<div ng-if="app" class="mb-19">
+  <div style="margin-bottom: 12px;">
+    <button ng-if="!app.preview_watermark_enabled" class="btn btn-primary" ng-click="changePreviewWatermark(true)">{{ 'settings.config.enable_preview_watermark' | translate }}</button>
+    <button ng-if="app.preview_watermark_enabled" class="btn btn-danger" ng-click="changePreviewWatermark(false)">{{ 'settings.config.disable_preview_watermark' | translate }}</button>
+  </div>
+  <form class="form-horizontal" name="watermarkForm" ng-if="app.preview_watermark_enabled" novalidate style="margin-top: 10px;">
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="watermarkDateFormat">{{ 'settings.config.watermark_date_format' | translate }}</label>
+      <div class="col-sm-5">
+        <input name="watermarkDateFormat" type="text" class="form-control" id="watermarkDateFormat"
+               ng-model="watermark.date_format" maxlength="100" placeholder="dd MMM yyyy" />
+        <span class="help-block">{{ 'settings.config.watermark_date_format_help' | translate }}</span>
+      </div>
+      <div class="col-sm-5">
+        <div class="btn-group btn-group-sm" style="margin-bottom: 6px;">
+          <button type="button" class="btn btn-default" ng-click="watermark.date_format = 'dd MMM yyyy'">dd MMM yyyy</button>
+          <button type="button" class="btn btn-default" ng-click="watermark.date_format = 'MMM dd, yyyy'">MMM dd, yyyy</button>
+          <button type="button" class="btn btn-default" ng-click="watermark.date_format = 'dd-MMM-yyyy'">dd-MMM-yyyy</button>
+          <button type="button" class="btn btn-default" ng-click="watermark.date_format = 'yyyy-MM-dd'">yyyy-MM-dd</button>
+        </div>
+        <div>
+          <span class="text-muted">{{ 'settings.config.watermark_preview_label' | translate }}:</span>
+          <code>{{ getWatermarkPreviewText() }}</code>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="button" class="btn btn-primary" ng-click="saveWatermarkConfig()">
+          <span class="fas fa-pencil-alt"></span> {{ 'save' | translate }}
+        </button>
+        <span class="text-success" ng-if="watermarkSaved" style="margin-left: 10px;">
+          <span class="fas fa-check"></span> {{ 'settings.config.watermark_saved' | translate }}
+        </span>
+      </div>
+    </div>
+  </form>
+</div>
+
 <h2 translate="settings.config.title_theme"></h2>
 <div class="form-horizontal" style="margin-bottom: 15px;">
   <div class="form-group">

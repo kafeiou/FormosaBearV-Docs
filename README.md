@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.04)
+# FormosaBearV (v2.05)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -11,11 +11,11 @@
 ## Features
 
 - **Modern Architecture & Portable Deployment**: Built on Java 21 (LTS) and Eclipse Jetty 12, supporting standard WAR deployment, Docker containers, and a zero-install Standalone Portable Edition.
-- **Multi-Format & Interactive Office Previews**: Supports images, videos, PDF, ODT, DOCX, and PPTX with in-browser multi-page previewing and bundled Pan-CJK font rendering.
+- **Multi-Format & Interactive Office Previews**: Supports images, videos, PDF, ODT, DOCX, and PPTX with in-browser multi-page previewing, dynamic anti-leak watermark overlay, and bundled Pan-CJK font rendering.
 - **Full-Text Search & OCR**: Powered by Apache Lucene (with instant suggestions and highlighting) and integrated Tesseract Optical Character Recognition.
 - **Hierarchical Tags & Permission Inheritance**: Multi-level nested tag tree navigation with automatic ancestor permission inheritance and customizable security boundaries.
 - **Granular Document & Download Security**: User/group access control, system-wide and per-document download authorization controls (allowing view-only access while preventing file exfiltration), and 256-bit AES storage encryption.
-- **Enterprise Authentication & Offboarding Governance**: Supports internal authentication, LDAP directory integration, Two-Factor Authentication (TOTP), instant session revocation on account deactivation, and one-click asset and permission handover.
+- **Enterprise Authentication & Offboarding Governance**: Supports internal authentication, multi-LDAP directory failover integration, Two-Factor Authentication (TOTP), instant session revocation on account deactivation, and one-click asset and permission handover.
 - **Full System Backup, Restore & Migration**: Streaming full-system ZIP backup and restore with cross-database migration support between H2 and PostgreSQL.
 - **Document Lifecycle & Collaboration**: File versioning with custom version labels, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas (including unlimited quota support), and URL sharing.
 - **Automated Import & Integration**: EML email import, automated IMAP inbox scanning, customizable SMTP notifications, RESTful Web API, and outgoing Webhooks.
@@ -43,10 +43,10 @@ mvn clean package -DskipTests
 ```
 *(or `mvn clean install -DskipTests`)*
 
-This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.04.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
+This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.05.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
 
 ```text
-docs-web/target/docs-web-2.04.war
+docs-web/target/docs-web-2.05.war
 ```
 
 ### Build Standalone Portable Edition (No Docker Required)
@@ -64,7 +64,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 This automatically downloads the base Jetty 12 ZIP into `tools/jetty/` if absent, compiles the WAR, assembles all modules, and outputs:
 
 ```text
-target/FormosaBearV-docs-2.04-portable.zip
+target/FormosaBearV-docs-2.05-portable.zip
 ```
 
 Simply unzip this package on any computer with Java 21 and run `start.bat` or `./start.sh`!
@@ -88,7 +88,7 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # Step 2: Build the Docker image (or use docker compose)
-docker build -t formosabearv-docs:2.04 .
+docker build -t formosabearv-docs:2.05 .
 ```
 
 A `Dockerfile` is included to build a self-contained container image with OpenJDK 21, Jetty 12.1 (`ee10`), Tesseract OCR, `ffmpeg`, and `mediainfo`, listening on port `8080`.

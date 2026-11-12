@@ -6,6 +6,23 @@
 
 ---
 
+## [v2.05] - 2026-11-12
+
+> **基準版本**: `v2.04` (`3462d002`) ➜ `v2.05`
+
+### ✨ 新增功能與系統改進 (New Features & System Improvements)
+- **多組 LDAP 企業目錄驗證與優先順序自動備援 (`T_LDAP_CONFIG`, DB v39)**：
+  - 透過 [dbupdate-039-0.sql](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/resources/db/update/dbupdate-039-0.sql) 建立 `T_LDAP_CONFIG` 資料表，並新增 [LdapConfig.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/model/jpa/LdapConfig.java) 實體與 [LdapConfigDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/dao/LdapConfigDao.java)；升級時自動將 `T_CONFIG` 既有單一 LDAP 設定無縫遷移至 `T_LDAP_CONFIG`，同時納入 [BackupService.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/service/BackupService.java) 完整系統備份與還原流程。
+  - 重構 [LdapAuthenticationHandler.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/LdapAuthenticationHandler.java) 支援依優先順序（`LDC_ORDER_N`）逐一對已啟用的 LDAP 伺服器進行連線與驗證；當特定伺服器查無帳號、密碼不符或連線逾時，自動切換至下一順位的 LDAP 伺服器繼續嘗試，同時完整保留 RFC 4515 特殊字元轉義防護與停用帳號攔截機制。
+  - 擴充 [AppResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/AppResource.java) 之 `GET /api/app/config_ldap` 與 `POST /api/app/config_ldap`，支援多組伺服器陣列（`servers` / `servers_json`）讀寫，並向下相容舊版單一伺服器表單參數。
+  - 全新設計「設定 > LDAP 驗證」管理介面（[settings.ldap.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.ldap.html)、[SettingsLdap.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/settings/SettingsLdap.js)），支援新增、編輯、獨立啟用／停用、上下調整驗證優先順序（`#1`、`#2`…）及刪除多組 LDAP 伺服器。
+- **文件線上預覽動態浮水印覆蓋層與可配置英文日期格式 (`PREVIEW_WATERMARK_ENABLED` & `PREVIEW_WATERMARK_DATE_FORMAT`)**：
+  - 於 [ConfigType.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/constant/ConfigType.java) 與 [ConfigUtil.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/ConfigUtil.java) 新增浮水印啟用開關與日期格式設定，並於 [AppResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/AppResource.java) 擴充 `GET /api/app` 回傳欄位與 `POST /api/app/config_watermark` 管理端點。
+  - 於內部預覽與外部公開分享預覽頁面（[FileModalView.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/document/FileModalView.js)、[file.view.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/file.view.html)）的 PDF 互動式逐頁畫布與圖片預覽上方，疊加不阻擋滑鼠操作（`pointer-events: none`）的半透明斜向重複平鋪 SVG 浮水印覆蓋層。
+  - 浮水印內容自動顯示「當前登入使用者帳號 + 英文格式日期」（未登入之公開分享頁面顯示 `Guest`），無論瀏覽器語系為何，日期與月份名稱一律強制以英文（`en-US`）格式化輸出；並於「設定 > 一般設定」（[settings.config.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.config.html)、[SettingsConfig.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/settings/SettingsConfig.js)）提供開關切換、常用英文日期格式快速套用按鈕（如 `dd MMM yyyy`、`MMM dd, yyyy`、`yyyy-MM-dd`、`dd MMMM yyyy HH:mm`）與即時預覽。
+
+---
+
 ## [v2.04] - 2026-11-11
 
 > **基準版本**: `v2.03` (`1a8bd912`) ➜ `v2.04`

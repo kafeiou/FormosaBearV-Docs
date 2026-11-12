@@ -1,14 +1,17 @@
 package com.sismics.docs.rest.resource;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Appender;
@@ -23,11 +26,13 @@ import com.sismics.docs.core.dao.ConfigDao;
 import com.sismics.docs.core.dao.DocumentDao;
 import com.sismics.docs.core.dao.FileDao;
 import com.sismics.docs.core.dao.GroupDao;
+import com.sismics.docs.core.dao.LdapConfigDao;
 import com.sismics.docs.core.dao.UserDao;
 import com.sismics.docs.core.event.RebuildIndexAsyncEvent;
 import com.sismics.docs.core.model.context.AppContext;
 import com.sismics.docs.core.model.jpa.Config;
 import com.sismics.docs.core.model.jpa.File;
+import com.sismics.docs.core.model.jpa.LdapConfig;
 import com.sismics.docs.core.service.InboxService;
 import com.sismics.docs.core.util.ConfigUtil;
 import com.sismics.docs.core.util.DirectoryUtil;
@@ -46,8 +51,12 @@ import com.sismics.util.log4j.LogEntry;
 import com.sismics.util.log4j.MemoryAppender;
 
 import jakarta.json.Json;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonValue;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.ws.rs.FormParam;
@@ -129,6 +138,8 @@ public class AppResource extends BaseResource {
                 .add("file_download", ConfigUtil.canFileDownload())
                 .add("file_encrypt", ConfigUtil.isFileEncrypt())
                 .add("file_encrypt_locked", ConfigUtil.isFileEncryptLocked())
+                .add("preview_watermark_enabled", ConfigUtil.isPreviewWatermarkEnabled())
+                .add("preview_watermark_date_format", ConfigUtil.getPreviewWatermarkDateFormat())
                 .add("storage_path", DirectoryUtil.getBaseDataDirectory().toAbsolutePath().toString())
                 .add("queued_tasks", AppContext.getInstance().getQueuedTaskCount())
                 .add("total_memory", Runtime.getRuntime().totalMemory())
@@ -325,6 +336,35 @@ public class AppResource extends BaseResource {
         if (!Strings.isNullOrEmpty(baseUrl)) {
             configDao.update(ConfigType.BASE_URL, ConfigUtil.normalizeBaseUrl(baseUrl));
         }
+
+        return Response.ok().build();
+    }
+
+    /**
+     * Configure document preview watermark settings.
+     *
+     * @param enabled If true, enable preview watermark
+     * @param dateFormat English date format pattern
+     * @return Response
+     */
+    @POST
+    @Path("config_watermark")
+    public Response configWatermark(@FormParam("enabled") Boolean enabled,
+                                    @FormParam("date_format") String dateFormat) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+        ValidationUtil.validateRequired(enabled, "enabled");
+
+        ConfigDao configDao = new ConfigDao();
+        configDao.update(ConfigType.PREVIEW_WATERMARK_ENABLED, enabled.toString());
+
+        String normalizedFormat = (dateFormat == null || dateFormat.trim().isEmpty())
+                ? ConfigUtil.DEFAULT_PREVIEW_WATERMARK_DATE_FORMAT
+                : dateFormat.trim();
+        ValidationUtil.validateLength(normalizedFormat, "date_format", 1, 100, false);
+        configDao.update(ConfigType.PREVIEW_WATERMARK_DATE_FORMAT, normalizedFormat);
 
         return Response.ok().build();
     }
@@ -986,73 +1026,95 @@ public class AppResource extends BaseResource {
         }
         checkBaseFunction(BaseFunction.ADMIN);
 
-        ConfigDao configDao = new ConfigDao();
-        Config enabled = configDao.getById(ConfigType.LDAP_ENABLED);
+        LdapConfigDao ldapConfigDao = new LdapConfigDao();
+        List<LdapConfig> serverList = ldapConfigDao.findAll();
+        GroupDao groupDao = new GroupDao();
+        JsonArrayBuilder serversJson = Json.createArrayBuilder();
+
+        for (LdapConfig cfg : serverList) {
+            String sGroupId = Strings.nullToEmpty(cfg.getDefaultGroup());
+            if (!sGroupId.isEmpty() && groupDao.getActiveById(sGroupId) == null) {
+                sGroupId = "";
+            }
+            serversJson.add(Json.createObjectBuilder()
+                    .add("id", cfg.getId())
+                    .add("name", Strings.nullToEmpty(cfg.getName()))
+                    .add("order", cfg.getOrder() != null ? cfg.getOrder() : 0)
+                    .add("enabled", cfg.isEnabled())
+                    .add("host", Strings.nullToEmpty(cfg.getHost()))
+                    .add("port", cfg.getPort() != null ? cfg.getPort() : 389)
+                    .add("usessl", cfg.isUseSsl())
+                    .add("admin_dn", Strings.nullToEmpty(cfg.getAdminDn()))
+                    .add("admin_password", Strings.nullToEmpty(cfg.getAdminPassword()))
+                    .add("base_dn", Strings.nullToEmpty(cfg.getBaseDn()))
+                    .add("filter", Strings.nullToEmpty(cfg.getFilter()))
+                    .add("default_email", Strings.nullToEmpty(cfg.getDefaultEmail()))
+                    .add("default_storage", cfg.getDefaultStorage() != null ? cfg.getDefaultStorage() : 100000000L)
+                    .add("default_groupmembership", Strings.nullToEmpty(cfg.getDefaultGroupMembership()))
+                    .add("default_group", sGroupId));
+        }
 
         JsonObjectBuilder response = Json.createObjectBuilder();
-        if (enabled != null && Boolean.parseBoolean(enabled.getValue())) {
-            String sGroupID = ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_GROUP);
-            GroupDao groupDao = new GroupDao();            
-            com.sismics.docs.core.model.jpa.Group aGroup =  groupDao.getActiveById(sGroupID);
-            if( aGroup  == null)
-              sGroupID = "";
-            // LDAP enabled
-            response.add("enabled", true)
-                    .add("host", ConfigUtil.getConfigStringValue(ConfigType.LDAP_HOST))
-                    .add("port", ConfigUtil.getConfigIntegerValue(ConfigType.LDAP_PORT))
-                    .add("usessl", ConfigUtil.getConfigBooleanValue(ConfigType.LDAP_USESSL))
-                    .add("admin_dn", ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_DN))
-                    .add("admin_password", ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_PASSWORD))
-                    .add("base_dn", ConfigUtil.getConfigStringValue(ConfigType.LDAP_BASE_DN))
-                    .add("filter", ConfigUtil.getConfigStringValue(ConfigType.LDAP_FILTER))
-                    .add("default_email", ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_EMAIL))
-                    .add("default_storage", ConfigUtil.getConfigLongValue(ConfigType.LDAP_DEFAULT_STORAGE))
-                    .add("default_groupmembership", ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP))
-                    .add("default_group", sGroupID);
+        if (!serverList.isEmpty()) {
+            LdapConfig primary = serverList.stream()
+                    .filter(LdapConfig::isEnabled)
+                    .findFirst()
+                    .orElse(serverList.get(0));
+            boolean anyEnabled = serverList.stream().anyMatch(LdapConfig::isEnabled);
+            String sGroupId = Strings.nullToEmpty(primary.getDefaultGroup());
+            if (!sGroupId.isEmpty() && groupDao.getActiveById(sGroupId) == null) {
+                sGroupId = "";
+            }
+            response.add("enabled", anyEnabled)
+                    .add("host", Strings.nullToEmpty(primary.getHost()))
+                    .add("port", primary.getPort() != null ? primary.getPort() : 389)
+                    .add("usessl", primary.isUseSsl())
+                    .add("admin_dn", Strings.nullToEmpty(primary.getAdminDn()))
+                    .add("admin_password", Strings.nullToEmpty(primary.getAdminPassword()))
+                    .add("base_dn", Strings.nullToEmpty(primary.getBaseDn()))
+                    .add("filter", Strings.nullToEmpty(primary.getFilter()))
+                    .add("default_email", Strings.nullToEmpty(primary.getDefaultEmail()))
+                    .add("default_storage", primary.getDefaultStorage() != null ? primary.getDefaultStorage() : 100000000L)
+                    .add("default_groupmembership", Strings.nullToEmpty(primary.getDefaultGroupMembership()))
+                    .add("default_group", sGroupId);
         } else {
-            // LDAP disabled
-            response.add("enabled", false);
+            ConfigDao configDao = new ConfigDao();
+            Config enabled = configDao.getById(ConfigType.LDAP_ENABLED);
+            if (enabled != null && Boolean.parseBoolean(enabled.getValue())) {
+                String sGroupID = ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_GROUP);
+                com.sismics.docs.core.model.jpa.Group aGroup = groupDao.getActiveById(sGroupID);
+                if (aGroup == null) {
+                    sGroupID = "";
+                }
+                response.add("enabled", true)
+                        .add("host", ConfigUtil.getConfigStringValue(ConfigType.LDAP_HOST))
+                        .add("port", ConfigUtil.getConfigIntegerValue(ConfigType.LDAP_PORT))
+                        .add("usessl", ConfigUtil.getConfigBooleanValue(ConfigType.LDAP_USESSL))
+                        .add("admin_dn", ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_DN))
+                        .add("admin_password", ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_PASSWORD))
+                        .add("base_dn", ConfigUtil.getConfigStringValue(ConfigType.LDAP_BASE_DN))
+                        .add("filter", ConfigUtil.getConfigStringValue(ConfigType.LDAP_FILTER))
+                        .add("default_email", ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_EMAIL))
+                        .add("default_storage", ConfigUtil.getConfigLongValue(ConfigType.LDAP_DEFAULT_STORAGE))
+                        .add("default_groupmembership", ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP))
+                        .add("default_group", sGroupID);
+            } else {
+                response.add("enabled", false);
+            }
         }
+        response.add("servers", serversJson);
 
         return Response.ok().entity(response.build()).build();
     }
 
     /**
-     * Configure the LDAP authentication.
-     *
-     * @api {post} /app/config_ldap Configure the LDAP authentication
-     * @apiName PostAppConfigLdap
-     * @apiGroup App
-     * @apiParam {Boolean} enabled LDAP authentication enabled
-     * @apiParam {String} host LDAP server host
-     * @apiParam {Integer} port LDAP server port
-     * @apiParam {Boolean} use SSL (ldaps)
-     * @apiParam {String} admin_dn Admin DN
-     * @apiParam {String} admin_password Admin password
-     * @apiParam {String} base_dn Base DN
-     * @apiParam {String} filter LDAP filter
-     * @apiParam {String} default_email LDAP default email
-     * @apiParam {Integer} default_storage LDAP default storage
-     * @apiError (client) ForbiddenError Access denied
-     * @apiError (client) ValidationError Validation error
-     * @apiPermission admin
-     * @apiVersion 1.9.0
-     *
-     * @param enabled LDAP authentication enabled
-     * @param host LDAP server host
-     * @param portStr LDAP server port
-     * @param usessl LDAP use SSL (ldaps)
-     * @param adminDn Admin DN
-     * @param adminPassword Admin password
-     * @param baseDn Base DN
-     * @param filter LDAP filter
-     * @param defaultEmail LDAP default email
-     * @param defaultStorageStr LDAP default storage
-     * @return Response
+     * Configure the LDAP authentication (supports multiple LDAP servers via servers_json or single legacy form params).
      */
     @POST
     @Path("config_ldap")
-    public Response configLdap(@FormParam("enabled") Boolean enabled,
+    public Response configLdap(@FormParam("servers_json") String serversJsonStr,
+                               @FormParam("enabled") Boolean enabled,
+                               @FormParam("name") String name,
                                @FormParam("host") String host,
                                @FormParam("port") String portStr,
                                @FormParam("usessl") Boolean usessl,
@@ -1070,11 +1132,135 @@ public class AppResource extends BaseResource {
         checkBaseFunction(BaseFunction.ADMIN);
 
         ConfigDao configDao = new ConfigDao();
+        LdapConfigDao ldapConfigDao = new LdapConfigDao();
+
+        if (!Strings.isNullOrEmpty(serversJsonStr)) {
+            JsonArray jsonArray;
+            try (JsonReader reader = Json.createReader(new StringReader(serversJsonStr))) {
+                jsonArray = reader.readArray();
+            } catch (Exception e) {
+                throw new ClientException("ValidationError", "Invalid servers_json format");
+            }
+
+            Set<String> keptIds = new HashSet<>();
+            LdapConfig firstEnabled = null;
+            LdapConfig firstServer = null;
+
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonValue val = jsonArray.get(i);
+                if (val.getValueType() != JsonValue.ValueType.OBJECT) {
+                    continue;
+                }
+                JsonObject obj = val.asJsonObject();
+                String id = obj.containsKey("id") && !obj.isNull("id") ? obj.getString("id") : null;
+                boolean srvEnabled = obj.containsKey("enabled") && !obj.isNull("enabled") && obj.getBoolean("enabled");
+                String srvName = obj.containsKey("name") && !obj.isNull("name") ? obj.getString("name").trim() : "";
+                if (srvName.isEmpty()) {
+                    srvName = "LDAP #" + (i + 1);
+                }
+                String srvHost = obj.containsKey("host") && !obj.isNull("host") ? obj.getString("host").trim() : "";
+                String srvPortStr = obj.containsKey("port") && !obj.isNull("port") ? obj.get("port").toString().replace("\"", "") : "389";
+                boolean srvSsl = obj.containsKey("usessl") && !obj.isNull("usessl") && obj.getBoolean("usessl");
+                String srvAdminDn = obj.containsKey("admin_dn") && !obj.isNull("admin_dn") ? obj.getString("admin_dn").trim() : "";
+                String srvAdminPass = obj.containsKey("admin_password") && !obj.isNull("admin_password") ? obj.getString("admin_password") : "";
+                String srvBaseDn = obj.containsKey("base_dn") && !obj.isNull("base_dn") ? obj.getString("base_dn").trim() : "";
+                String srvFilter = obj.containsKey("filter") && !obj.isNull("filter") ? obj.getString("filter").trim() : "";
+                String srvEmail = obj.containsKey("default_email") && !obj.isNull("default_email") ? obj.getString("default_email").trim() : "";
+                String srvStorageStr = obj.containsKey("default_storage") && !obj.isNull("default_storage") ? obj.get("default_storage").toString().replace("\"", "") : "100000000";
+                String srvGroupAttr = obj.containsKey("default_groupmembership") && !obj.isNull("default_groupmembership") ? obj.getString("default_groupmembership").trim() : "";
+                String srvGroup = obj.containsKey("default_group") && !obj.isNull("default_group") ? obj.getString("default_group").trim() : "";
+
+                if (srvEnabled) {
+                    ValidationUtil.validateLength(srvHost, "host", 1, 250);
+                    ValidationUtil.validateInteger(srvPortStr, "port");
+                    ValidationUtil.validateLength(srvAdminDn, "admin_dn", 1, 250);
+                    ValidationUtil.validateLength(srvAdminPass, "admin_password", 1, 250);
+                    ValidationUtil.validateLength(srvBaseDn, "base_dn", 1, 250);
+                    ValidationUtil.validateLength(srvFilter, "filter", 1, 250);
+                    if (!srvFilter.contains("USERNAME")) {
+                        throw new ClientException("ValidationError", "'filter' must contains 'USERNAME'");
+                    }
+                    ValidationUtil.validateLength(srvEmail, "default_email", 1, 250);
+                    ValidationUtil.validateLong(srvStorageStr, "default_storage");
+                }
+
+                int parsedPort = 389;
+                try {
+                    parsedPort = Integer.parseInt(srvPortStr);
+                } catch (Exception ignored) {
+                }
+                long parsedStorage = 100000000L;
+                try {
+                    parsedStorage = Long.parseLong(srvStorageStr);
+                } catch (Exception ignored) {
+                }
+
+                LdapConfig cfg = new LdapConfig()
+                        .setId(id)
+                        .setName(srvName)
+                        .setOrder(i)
+                        .setEnabled(srvEnabled)
+                        .setHost(srvHost)
+                        .setPort(parsedPort)
+                        .setUseSsl(srvSsl)
+                        .setAdminDn(srvAdminDn)
+                        .setAdminPassword(srvAdminPass)
+                        .setBaseDn(srvBaseDn)
+                        .setFilter(srvFilter)
+                        .setDefaultEmail(srvEmail)
+                        .setDefaultStorage(parsedStorage)
+                        .setDefaultGroupMembership(srvGroupAttr)
+                        .setDefaultGroup(srvGroup);
+
+                if (!Strings.isNullOrEmpty(id) && ldapConfigDao.getActiveById(id) != null) {
+                    ldapConfigDao.update(cfg);
+                    keptIds.add(id);
+                } else {
+                    String newId = ldapConfigDao.create(cfg);
+                    keptIds.add(newId);
+                }
+
+                if (firstServer == null) {
+                    firstServer = cfg;
+                }
+                if (srvEnabled && firstEnabled == null) {
+                    firstEnabled = cfg;
+                }
+            }
+
+            // Soft-delete removed servers
+            for (LdapConfig existing : ldapConfigDao.findAll()) {
+                if (!keptIds.contains(existing.getId())) {
+                    ldapConfigDao.delete(existing.getId());
+                }
+            }
+
+            // Mirror primary server to T_CONFIG for backward compatibility
+            LdapConfig mirror = firstEnabled != null ? firstEnabled : firstServer;
+            if (mirror != null && firstEnabled != null) {
+                configDao.update(ConfigType.LDAP_ENABLED, Boolean.TRUE.toString());
+                configDao.update(ConfigType.LDAP_HOST, mirror.getHost());
+                configDao.update(ConfigType.LDAP_PORT, String.valueOf(mirror.getPort()));
+                configDao.update(ConfigType.LDAP_USESSL, String.valueOf(mirror.isUseSsl()));
+                configDao.update(ConfigType.LDAP_ADMIN_DN, mirror.getAdminDn());
+                configDao.update(ConfigType.LDAP_ADMIN_PASSWORD, mirror.getAdminPassword());
+                configDao.update(ConfigType.LDAP_BASE_DN, mirror.getBaseDn());
+                configDao.update(ConfigType.LDAP_FILTER, mirror.getFilter());
+                configDao.update(ConfigType.LDAP_DEFAULT_EMAIL, mirror.getDefaultEmail());
+                configDao.update(ConfigType.LDAP_DEFAULT_STORAGE, String.valueOf(mirror.getDefaultStorage()));
+                configDao.update(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP, Strings.nullToEmpty(mirror.getDefaultGroupMembership()));
+                configDao.update(ConfigType.LDAP_DEFAULT_GROUP, Strings.nullToEmpty(mirror.getDefaultGroup()));
+            } else {
+                configDao.update(ConfigType.LDAP_ENABLED, Boolean.FALSE.toString());
+            }
+
+            return Response.ok().build();
+        }
 
         if (enabled != null && enabled) {
             // LDAP enabled, validate everything
+            int port = ValidationUtil.validateInteger(portStr, "port");
             ValidationUtil.validateLength(host, "host", 1, 250);
-            ValidationUtil.validateInteger(portStr, "port");
             ValidationUtil.validateLength(adminDn, "admin_dn", 1, 250);
             ValidationUtil.validateLength(adminPassword, "admin_password", 1, 250);
             ValidationUtil.validateLength(baseDn, "base_dn", 1, 250);
@@ -1083,11 +1269,11 @@ public class AppResource extends BaseResource {
                 throw new ClientException("ValidationError", "'filter' must contains 'USERNAME'");
             }
             ValidationUtil.validateLength(defaultEmail, "default_email", 1, 250);
-            ValidationUtil.validateLong(defaultStorageStr, "default_storage");
+            long defaultStorage = ValidationUtil.validateLong(defaultStorageStr, "default_storage");
             configDao.update(ConfigType.LDAP_ENABLED, Boolean.TRUE.toString());
             configDao.update(ConfigType.LDAP_HOST, host);
             configDao.update(ConfigType.LDAP_PORT, portStr);
-            if( usessl == null ) usessl = false;
+            if (usessl == null) usessl = false;
             configDao.update(ConfigType.LDAP_USESSL, usessl.toString());
             configDao.update(ConfigType.LDAP_ADMIN_DN, adminDn);
             configDao.update(ConfigType.LDAP_ADMIN_PASSWORD, adminPassword);
@@ -1095,13 +1281,53 @@ public class AppResource extends BaseResource {
             configDao.update(ConfigType.LDAP_FILTER, filter);
             configDao.update(ConfigType.LDAP_DEFAULT_EMAIL, defaultEmail);
             configDao.update(ConfigType.LDAP_DEFAULT_STORAGE, defaultStorageStr);
-            if( defaultGroupMemberShipStr == null ) defaultGroupMemberShipStr = "";
+            if (defaultGroupMemberShipStr == null) defaultGroupMemberShipStr = "";
             configDao.update(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP, defaultGroupMemberShipStr);
-            if( defaultGroupStr == null ) defaultGroupStr = "";
+            if (defaultGroupStr == null) defaultGroupStr = "";
             configDao.update(ConfigType.LDAP_DEFAULT_GROUP, defaultGroupStr);
+
+            List<LdapConfig> existingList = ldapConfigDao.findAll();
+            String srvName = !Strings.isNullOrEmpty(name) ? name.trim() : "Primary LDAP";
+            if (existingList.isEmpty()) {
+                ldapConfigDao.create(new LdapConfig()
+                        .setName(srvName)
+                        .setOrder(0)
+                        .setEnabled(true)
+                        .setHost(host)
+                        .setPort(port)
+                        .setUseSsl(usessl)
+                        .setAdminDn(adminDn)
+                        .setAdminPassword(adminPassword)
+                        .setBaseDn(baseDn)
+                        .setFilter(filter)
+                        .setDefaultEmail(defaultEmail)
+                        .setDefaultStorage(defaultStorage)
+                        .setDefaultGroupMembership(defaultGroupMemberShipStr)
+                        .setDefaultGroup(defaultGroupStr));
+            } else {
+                LdapConfig primary = existingList.get(0);
+                primary.setName(srvName)
+                        .setEnabled(true)
+                        .setHost(host)
+                        .setPort(port)
+                        .setUseSsl(usessl)
+                        .setAdminDn(adminDn)
+                        .setAdminPassword(adminPassword)
+                        .setBaseDn(baseDn)
+                        .setFilter(filter)
+                        .setDefaultEmail(defaultEmail)
+                        .setDefaultStorage(defaultStorage)
+                        .setDefaultGroupMembership(defaultGroupMemberShipStr)
+                        .setDefaultGroup(defaultGroupStr);
+                ldapConfigDao.update(primary);
+            }
         } else {
             // LDAP disabled
             configDao.update(ConfigType.LDAP_ENABLED, Boolean.FALSE.toString());
+            for (LdapConfig existing : ldapConfigDao.findAll()) {
+                existing.setEnabled(false);
+                ldapConfigDao.update(existing);
+            }
         }
 
         return Response.ok().build();

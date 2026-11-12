@@ -3,13 +3,72 @@
 /**
  * Settings config page controller.
  */
-angular.module('docs').controller('SettingsConfig', function($scope, $rootScope, Restangular, $dialog, $translate) {
+angular.module('docs').controller('SettingsConfig', function($scope, $rootScope, Restangular, $dialog, $translate, $timeout) {
+  var EN_MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var EN_MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var EN_DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var EN_DAYS_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  $scope.formatEnglishDate = function (date, pattern) {
+    var d = date || new Date();
+    var fmt = (pattern && angular.isString(pattern) && pattern.trim().length > 0) ? pattern.trim() : 'dd MMM yyyy';
+    var pad2 = function (n) { return n < 10 ? '0' + n : '' + n; };
+    return fmt.replace(/yyyy|YYYY|yy|YY|MMMM|MMM|MM|M|dddd|ddd|EEEE|EEE|dd|DD|d|D/g, function (token) {
+      switch (token) {
+        case 'yyyy':
+        case 'YYYY':
+          return '' + d.getFullYear();
+        case 'yy':
+        case 'YY':
+          return pad2(d.getFullYear() % 100);
+        case 'MMMM':
+          return EN_MONTHS_FULL[d.getMonth()];
+        case 'MMM':
+          return EN_MONTHS_SHORT[d.getMonth()];
+        case 'MM':
+          return pad2(d.getMonth() + 1);
+        case 'M':
+          return '' + (d.getMonth() + 1);
+        case 'dddd':
+        case 'EEEE':
+          return EN_DAYS_FULL[d.getDay()];
+        case 'ddd':
+        case 'EEE':
+          return EN_DAYS_SHORT[d.getDay()];
+        case 'dd':
+        case 'DD':
+          return pad2(d.getDate());
+        case 'd':
+        case 'D':
+          return '' + d.getDate();
+        default:
+          return token;
+      }
+    });
+  };
+
+  $scope.watermark = {
+    enabled: false,
+    date_format: 'dd MMM yyyy'
+  };
+
+  $scope.getWatermarkPreviewText = function () {
+    var username = ($rootScope.userInfo && $rootScope.userInfo.username && !$rootScope.userInfo.anonymous)
+      ? $rootScope.userInfo.username
+      : 'admin';
+    return username + ' \u00B7 ' + $scope.formatEnglishDate(new Date(), $scope.watermark.date_format);
+  };
+
   // Get the app configuration
   Restangular.one('app').get().then(function (data) {
     $rootScope.app = data;
     $scope.general = {
       default_language: data.default_language,
       base_url: data.base_url || 'http://localhost:8080'
+    };
+    $scope.watermark = {
+      enabled: !!data.preview_watermark_enabled,
+      date_format: data.preview_watermark_date_format || 'dd MMM yyyy'
     };
   });
 
@@ -49,6 +108,46 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
     }).then(function () {
       $scope.app.file_download = enabled;
       $rootScope.app.file_download = enabled;
+    });
+  };
+
+  // Enable/disable document preview watermark
+  $scope.watermarkSaved = false;
+  $scope.changePreviewWatermark = function (enabled) {
+    $scope.watermark.enabled = enabled;
+    var fmt = ($scope.watermark.date_format && $scope.watermark.date_format.trim().length > 0)
+      ? $scope.watermark.date_format.trim()
+      : 'dd MMM yyyy';
+    Restangular.one('app').post('config_watermark', {
+      enabled: enabled,
+      date_format: fmt
+    }).then(function () {
+      $scope.watermark.date_format = fmt;
+      $scope.app.preview_watermark_enabled = enabled;
+      $scope.app.preview_watermark_date_format = fmt;
+      $rootScope.app.preview_watermark_enabled = enabled;
+      $rootScope.app.preview_watermark_date_format = fmt;
+    });
+  };
+
+  // Save document preview watermark date format
+  $scope.saveWatermarkConfig = function () {
+    var fmt = ($scope.watermark.date_format && $scope.watermark.date_format.trim().length > 0)
+      ? $scope.watermark.date_format.trim()
+      : 'dd MMM yyyy';
+    Restangular.one('app').post('config_watermark', {
+      enabled: !!$scope.watermark.enabled,
+      date_format: fmt
+    }).then(function () {
+      $scope.watermark.date_format = fmt;
+      $scope.app.preview_watermark_enabled = !!$scope.watermark.enabled;
+      $scope.app.preview_watermark_date_format = fmt;
+      $rootScope.app.preview_watermark_enabled = !!$scope.watermark.enabled;
+      $rootScope.app.preview_watermark_date_format = fmt;
+      $scope.watermarkSaved = true;
+      $timeout(function () {
+        $scope.watermarkSaved = false;
+      }, 3000);
     });
   };
 

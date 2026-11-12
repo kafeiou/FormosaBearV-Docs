@@ -426,7 +426,15 @@
       "smtp_test_success_title": "測試信件發送成功",
       "smtp_test_success_msg": "測試郵件已成功發送至 <strong>{{ to }}</strong>！請檢查您的收件匣（及垃圾郵件匣）確認已收到測試信。",
       "smtp_test_failed_title": "測試信件發送失敗",
-      "smtp_test_failed_msg": "無法連線至 SMTP 伺服器發送測試信件，請根據下方伺服器回傳之錯誤訊息進行檢查："
+      "smtp_test_failed_msg": "無法連線至 SMTP 伺服器發送測試信件，請根據下方伺服器回傳之錯誤訊息進行檢查：",
+      "title_preview_watermark": "文件預覽浮水印",
+      "message_preview_watermark": "控制線上文件預覽（PDF 與圖片）是否疊加半透明斜向浮水印覆蓋層。啟用時會自動顯示「當前使用者帳號 + 英文格式日期」，防止截圖外流並利於追蹤。",
+      "enable_preview_watermark": "啟用文件預覽浮水印",
+      "disable_preview_watermark": "停用文件預覽浮水印",
+      "watermark_date_format": "日期格式 (英文)",
+      "watermark_date_format_help": "設定浮水印日期格式（例如 dd MMM yyyy、MMM dd, yyyy、yyyy-MM-dd），日期與月份一律強制以英文格式輸出。",
+      "watermark_preview_label": "浮水印預覽範例",
+      "watermark_saved": "浮水印設定已儲存"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "帳號",
@@ -456,7 +464,16 @@
       "default_storage": "可用容量",
       "saved": "LDAP 設定成功",
       "default_group": "預設群組",
-      "default_groupmembership": "\"群組\"欄位名稱"
+      "default_groupmembership": "\"群組\"欄位名稱",
+      "multi_help": "支援設定多組 LDAP 目錄伺服器。使用者登入時，系統將依優先順序（#1、#2…）依序向已啟用的伺服器進行驗證，直到驗證成功為止。",
+      "add_server": "新增 LDAP 伺服器",
+      "remove_server": "移除伺服器",
+      "server_name": "伺服器名稱",
+      "move_up": "上移優先順序",
+      "move_down": "下移優先順序",
+      "status_enabled": "已啟用",
+      "status_disabled": "已停用",
+      "no_servers": "目前尚未設定任何 LDAP 伺服器，請點擊「新增 LDAP 伺服器」進行新增。"
     },
     "user": {
       "title": "使用者 <small>管理</small>",

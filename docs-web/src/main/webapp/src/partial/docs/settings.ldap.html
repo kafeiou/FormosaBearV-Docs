@@ -1,110 +1,157 @@
 <h2 translate="settings.ldap.title"></h2>
+<p class="text-muted" translate="settings.ldap.multi_help"></p>
+
+<div style="margin-bottom: 15px;">
+  <button type="button" class="btn btn-default" ng-click="addServer()">
+    <span class="fas fa-plus"></span> {{ 'settings.ldap.add_server' | translate }}
+  </button>
+</div>
+
 <form class="form-horizontal" name="form" novalidate>
-  <div class="form-group">
-    <label class="col-sm-2 control-label" for="ldapEnabled">{{ 'settings.ldap.enabled' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="enabled" type="checkbox" id="ldapEnabled" ng-model="ldap.enabled" />
-    </div>
+  <div class="alert alert-info" ng-if="servers.length === 0">
+    {{ 'settings.ldap.no_servers' | translate }}
   </div>
 
-  <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !form.hostname.$valid && form.$dirty }">
-    <label class="col-sm-2 control-label" for="ldapHost">{{ 'settings.ldap.host' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="hostname" type="text" class="form-control" id="ldapHost" ng-model="ldap.host" ng-maxlength="250" required />
-    </div>
-  </div>
-
-  <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !form.port.$valid && form.$dirty }">
-    <label class="col-sm-2 control-label" for="ldapPort">{{ 'settings.ldap.port' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="port" type="number" class="form-control" id="ldapPort" ng-model="ldap.port" required />
-    </div>
-  </div>
-
-  <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !form.usessl.$valid && form.$dirty }">
-    <label class="col-sm-2 control-label" for="ldapUseSsl">{{ 'settings.ldap.usessl' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="usessl" type="checkbox" id="ldapUseSsl" ng-model="ldap.usessl" />
-    </div>
-  </div>
-
-  <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !form.adminDn.$valid && form.$dirty }">
-    <label class="col-sm-2 control-label" for="ldapAdminDn">{{ 'settings.ldap.admin_dn' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="adminDn" type="text" class="form-control" id="ldapAdminDn" ng-model="ldap.admin_dn" ng-maxlength="250" required />
-    </div>
-  </div>
-
-  <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !form.adminPassword.$valid && form.$dirty }">
-    <label class="col-sm-2 control-label" for="ldapAdminPassword">{{ 'settings.ldap.admin_password' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="adminPassword" type="password" class="form-control" id="ldapAdminPassword" ng-model="ldap.admin_password" ng-maxlength="250" required />
-    </div>
-  </div>
-
-  <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !form.baseDn.$valid && form.$dirty }">
-    <label class="col-sm-2 control-label" for="ldapBaseDn">{{ 'settings.ldap.base_dn' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="baseDn" type="text" class="form-control" id="ldapBaseDn" ng-model="ldap.base_dn" ng-maxlength="250" required />
-    </div>
-  </div>
-
-  <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !form.filter.$valid && form.$dirty }">
-    <label class="col-sm-2 control-label" for="ldapFilter">{{ 'settings.ldap.filter' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="filter" type="text" class="form-control" id="ldapFilter"
-             ng-pattern="/(USERNAME)+/"
-             ng-model="ldap.filter" ng-maxlength="250" required />
-    </div>
-  </div>
-
-  <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !form.defaultEmail.$valid && form.$dirty }">
-    <label class="col-sm-2 control-label" for="ldapDefaultEmail">{{ 'settings.ldap.default_email' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="defaultEmail" type="text" class="form-control" id="ldapDefaultEmail" ng-model="ldap.default_email" ng-maxlength="250" required />
-    </div>
-  </div>
-
-  <div ng-if="ldap.enabled" class="form-group" >
-    <label class="col-sm-2 control-label" for="ldapDefaultGroupmembership">{{ 'settings.ldap.default_groupmembership' | translate }}</label>
-    <div class="col-sm-7">
-      <input name="defaultGroupmembership" type="text" class="form-control" id="ldapDefaultGroupmembership" ng-model="ldap.default_groupmembership" ng-maxlength="250" />
-    </div>
-  </div>
-  
-
-  <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !form.defaultStorage.$valid && form.$dirty }">
-    <label class="col-sm-2 control-label" for="ldapDefaultStorage">{{ 'settings.ldap.default_storage' | translate }}</label>
-    <div class="col-sm-7">
-      <div class="input-group">
-        <input name="defaultStorage" type="number" id="ldapDefaultStorage" required class="form-control"
-               ng-pattern="/[0-9]*/" ng-model="ldap.default_storage"/>
-        <div class="input-group-addon">{{ 'filter.filesize.mb' | translate }}</div>
+  <div class="panel panel-default" ng-repeat="ldap in servers track by $index" ng-form="serverForm">
+    <div class="panel-heading clearfix">
+      <div class="pull-left" style="line-height: 22px;">
+        <span class="badge">#{{ $index + 1 }}</span>
+        <strong style="margin-left: 6px;">{{ ldap.name || ('LDAP #' + ($index + 1)) }}</strong>
+        <span class="label label-success" ng-if="ldap.enabled" style="margin-left: 6px;">{{ 'settings.ldap.status_enabled' | translate }}</span>
+        <span class="label label-default" ng-if="!ldap.enabled" style="margin-left: 6px;">{{ 'settings.ldap.status_disabled' | translate }}</span>
+      </div>
+      <div class="pull-right">
+        <button type="button" class="btn btn-xs btn-default" ng-click="moveServerUp($index)" ng-disabled="$first" title="{{ 'settings.ldap.move_up' | translate }}">
+          <span class="fas fa-arrow-up"></span>
+        </button>
+        <button type="button" class="btn btn-xs btn-default" ng-click="moveServerDown($index)" ng-disabled="$last" title="{{ 'settings.ldap.move_down' | translate }}">
+          <span class="fas fa-arrow-down"></span>
+        </button>
+        <button type="button" class="btn btn-xs btn-danger" ng-click="removeServer($index)" title="{{ 'settings.ldap.remove_server' | translate }}" style="margin-left: 6px;">
+          <span class="fas fa-trash"></span> {{ 'settings.ldap.remove_server' | translate }}
+        </button>
       </div>
     </div>
 
-    <div class="col-sm-3">
-      <span class="help-block" ng-show="form.default_storage.$error.pattern && form.$dirty">{{ 'validation.number' | translate }}</span>
+    <div class="panel-body">
+      <div class="form-group">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.enabled' | translate }}</label>
+        <div class="col-sm-7">
+          <div class="checkbox">
+            <label>
+              <input name="enabled" type="checkbox" ng-model="ldap.enabled" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-class="{ 'has-error': !serverForm.serverName.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.server_name' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="serverName" type="text" class="form-control" ng-model="ldap.name" ng-maxlength="100" required />
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.hostname.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.host' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="hostname" type="text" class="form-control" ng-model="ldap.host" ng-maxlength="250" required />
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.port.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.port' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="port" type="number" class="form-control" ng-model="ldap.port" required />
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.usessl.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.usessl' | translate }}</label>
+        <div class="col-sm-7">
+          <div class="checkbox">
+            <label>
+              <input name="usessl" type="checkbox" ng-model="ldap.usessl" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.adminDn.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.admin_dn' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="adminDn" type="text" class="form-control" ng-model="ldap.admin_dn" ng-maxlength="250" required />
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.adminPassword.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.admin_password' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="adminPassword" type="password" class="form-control" ng-model="ldap.admin_password" ng-maxlength="250" required />
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.baseDn.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.base_dn' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="baseDn" type="text" class="form-control" ng-model="ldap.base_dn" ng-maxlength="250" required />
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.filter.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.filter' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="filter" type="text" class="form-control"
+                 ng-pattern="/(USERNAME)+/"
+                 ng-model="ldap.filter" ng-maxlength="250" required />
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.defaultEmail.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.default_email' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="defaultEmail" type="text" class="form-control" ng-model="ldap.default_email" ng-maxlength="250" required />
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.default_groupmembership' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="defaultGroupmembership" type="text" class="form-control" ng-model="ldap.default_groupmembership" ng-maxlength="250" />
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.defaultStorage.$valid && form.$dirty }">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.default_storage' | translate }}</label>
+        <div class="col-sm-7">
+          <div class="input-group">
+            <input name="defaultStorage" type="number" required class="form-control"
+                   ng-pattern="/[0-9]*/" ng-model="ldap.default_storage" />
+            <div class="input-group-addon">{{ 'filter.filesize.mb' | translate }}</div>
+          </div>
+        </div>
+        <div class="col-sm-3">
+          <span class="help-block" ng-show="serverForm.defaultStorage.$error.pattern && form.$dirty">{{ 'validation.number' | translate }}</span>
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.default_group' | translate }}</label>
+        <div class="col-sm-7">
+          <select class="form-control" ng-model="ldap.default_group">
+            <option value=""></option>
+            <option ng-repeat="group0 in groups"
+                    ng-if="group0.id != group.name"
+                    ng-selected="ldap.default_group == group0.id"
+                    value="{{ group0.id }}">{{ group0.name }}</option>
+          </select>
+        </div>
+      </div>
     </div>
-  </div>
-
-
-  <div ng-if="ldap.enabled" class="form-group" >
-    <label class="col-sm-2 control-label" for="ldapDefaultGroup">{{ 'settings.ldap.default_group' | translate }}</label>
-    <div class="col-sm-7">
-      <select class="form-control" ng-model="ldap.default_group" id="ldapDefaultGroup">
-        <option value=""></option>
-        <option ng-repeat="group0 in groups"
-                ng-if="group0.id != group.name"
-                ng-selected="ldap.default_group == group0.id"
-                value="{{ group0.id }}">{{ group0.name }}</option>
-      </select>    
-    </div>
-
   </div>
 
   <div class="form-group">
-    <div class="col-sm-offset-2 col-sm-10">
+    <div class="col-sm-10">
       <button type="submit" class="btn btn-primary" ng-click="save()" ng-disabled="!form.$valid">
         <span class="fas fa-pencil-alt"></span> {{ 'save' | translate }}
       </button>

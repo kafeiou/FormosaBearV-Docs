@@ -6,6 +6,23 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
+## [v2.05] - 2026-11-12
+
+> **Baseline**: `v2.04` (`3462d002`) ➜ `v2.05`
+
+### ✨ New Features & System Improvements
+- **Multi-LDAP Directory Authentication & Priority Failover (`T_LDAP_CONFIG`, DB v39)**:
+  - Added the `T_LDAP_CONFIG` table via [dbupdate-039-0.sql](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/resources/db/update/dbupdate-039-0.sql) with JPA entity [LdapConfig.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/model/jpa/LdapConfig.java) and [LdapConfigDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/dao/LdapConfigDao.java), automatically migrating any existing single-LDAP settings from `T_CONFIG` during upgrade and registering `T_LDAP_CONFIG` in [BackupService.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/service/BackupService.java) for full-system backup/restore.
+  - Upgraded [LdapAuthenticationHandler.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/LdapAuthenticationHandler.java) to iterate through all enabled LDAP servers in ascending priority order (`LDC_ORDER_N`). If a user is not found, credentials do not match, or a directory server is unreachable, authentication transparently falls back to the next configured LDAP server (while preserving RFC 4515 filter escaping and immediate blocking of deactivated local accounts).
+  - Upgraded `GET /api/app/config_ldap` and `POST /api/app/config_ldap` in [AppResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/AppResource.java) to support multi-server JSON array payloads (`servers` / `servers_json`) while remaining backward-compatible with legacy single-server form parameters.
+  - Redesigned the LDAP Settings UI ([settings.ldap.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.ldap.html), [SettingsLdap.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/settings/SettingsLdap.js)) to allow adding, editing, enabling/disabling, reordering (`#1`, `#2`, ...), and removing multiple LDAP servers.
+- **Document Preview Watermark Overlay with Configurable English Date Format (`PREVIEW_WATERMARK_ENABLED` & `PREVIEW_WATERMARK_DATE_FORMAT`)**:
+  - Added `PREVIEW_WATERMARK_ENABLED` and `PREVIEW_WATERMARK_DATE_FORMAT` in [ConfigType.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/constant/ConfigType.java) and [ConfigUtil.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/ConfigUtil.java), exposed via `GET /api/app` and `POST /api/app/config_watermark` in [AppResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/AppResource.java).
+  - Added a non-interactive (`pointer-events: none`) repeating diagonal SVG watermark overlay across PDF canvas previews and image previews in both internal and shared views ([FileModalView.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/document/FileModalView.js), [file.view.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/file.view.html)).
+  - Displays `<username> <date>` (falling back to `Guest` for anonymous shared links) where the date is **always formatted in English (`en-US` month/day names)** regardless of browser locale, with customizable format patterns (e.g. `dd MMM yyyy`, `MMM dd, yyyy`, `yyyy-MM-dd`, `dd MMMM yyyy HH:mm`) and live preview in General Settings ([settings.config.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.config.html), [SettingsConfig.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/settings/SettingsConfig.js)).
+
+---
+
 ## [v2.04] - 2026-11-11
 
 > **Baseline**: `v2.03` (`1a8bd912`) ➜ `v2.04`

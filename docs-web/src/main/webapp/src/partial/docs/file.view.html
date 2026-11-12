@@ -74,15 +74,20 @@
     <div ng-if="pdfError" class="alert alert-warning" style="display: inline-block; margin-top: 50px;">
       <span class="fas fa-exclamation-triangle"></span> {{ 'file.view.pdf_error' | translate }}
     </div>
-    <canvas id="pdf-canvas" ng-show="!pdfError" oncontextmenu="return false;" ondragstart="return false;" draggable="false" style="box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 2px; max-width: 100%; display: inline-block; vertical-align: middle; background: #fff; user-select: none; -webkit-user-select: none;"></canvas>
+    <div ng-show="!pdfError" style="position: relative; display: inline-block; max-width: 100%; vertical-align: middle;">
+      <canvas id="pdf-canvas" oncontextmenu="return false;" ondragstart="return false;" draggable="false" style="box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 2px; max-width: 100%; display: block; background: #fff; user-select: none; -webkit-user-select: none;"></canvas>
+      <div class="watermark-overlay" ng-if="isWatermarkEnabled()" ng-style="getWatermarkStyle()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; user-select: none; -webkit-user-select: none; z-index: 5;"></div>
+    </div>
   </div>
 
   <!-- Standard preview for non-PDF (1280px high-res web preview image) -->
-  <img ng-src="../api/file/{{ $stateParams.fileId }}/data?size=web"
-       ng-init="imgError = false"
-       img-error="imgError = true"
-       ng-if="!isPdf() && canDisplayPreview() && !imgError"
-       oncontextmenu="return false;" ondragstart="return false;" draggable="false" style="max-width: 100%; height: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 4px; user-select: none; -webkit-user-select: none;" />
+  <div ng-if="!isPdf() && canDisplayPreview() && !imgError" style="position: relative; display: inline-block; max-width: 100%;">
+    <img ng-src="../api/file/{{ $stateParams.fileId }}/data?size=web"
+         ng-init="imgError = false"
+         img-error="imgError = true"
+         oncontextmenu="return false;" ondragstart="return false;" draggable="false" style="max-width: 100%; height: auto; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 4px; user-select: none; -webkit-user-select: none;" />
+    <div class="watermark-overlay" ng-if="isWatermarkEnabled()" ng-style="getWatermarkStyle()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; user-select: none; -webkit-user-select: none; z-index: 5;"></div>
+  </div>
 
   <!-- Media player -->
   <a href class="video-overlay" ng-if="file && (file.mimetype.substring(0, 6) == 'video/' || file.mimetype.substring(0, 6) == 'audio/')"

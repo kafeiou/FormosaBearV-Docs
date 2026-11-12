@@ -299,7 +299,18 @@
       "filter": "Φίλτρο αναζήτησης (πρέπει να περιέχει ΟΝΟΜΑ ΧΡΗΣΤΗ, πχ. \"(uid=USERNAME)\")",
       "default_email": "Προεπιλεγμένο email για χρήστη LDAP",
       "default_storage": "Προεπιλεγμένη αποθήκευση για χρήστη LDAP",
-      "saved": "Η διαμόρφωση LDAP αποθηκεύτηκε με επιτυχία"
+      "saved": "Η διαμόρφωση LDAP αποθηκεύτηκε με επιτυχία",
+      "default_group": "Default Group",
+      "default_groupmembership": "\"Group\" field name",
+      "multi_help": "Configure one or more LDAP directory servers. During login, enabled servers are queried in priority order (#1, #2, ...) until authentication succeeds.",
+      "add_server": "Add LDAP Server",
+      "remove_server": "Remove Server",
+      "server_name": "Server Name",
+      "move_up": "Move Up Priority",
+      "move_down": "Move Down Priority",
+      "status_enabled": "Enabled",
+      "status_disabled": "Disabled",
+      "no_servers": "No LDAP servers configured. Click \"Add LDAP Server\" to add one."
     },
     "user": {
       "title": "Διοίκηση χρηστών",
@@ -472,7 +483,15 @@
       "smtp_test_success_title": "Test Email Sent Successfully",
       "smtp_test_success_msg": "Test email has been successfully sent to <strong>{{ to }}</strong>! Please check your inbox (and spam folder) to confirm receipt.",
       "smtp_test_failed_title": "Test Email Failed",
-      "smtp_test_failed_msg": "Unable to connect to the SMTP server or send test email. Please check the error message below:"
+      "smtp_test_failed_msg": "Unable to connect to the SMTP server or send test email. Please check the error message below:",
+      "title_preview_watermark": "Document Preview Watermark",
+      "message_preview_watermark": "Controls whether a semi-transparent diagonal watermark overlay (current username + English-formatted date) is displayed on online document previews (PDF & images).",
+      "enable_preview_watermark": "Enable Preview Watermark",
+      "disable_preview_watermark": "Disable Preview Watermark",
+      "watermark_date_format": "Date Format (English)",
+      "watermark_date_format_help": "Configure the watermark date format (e.g. dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Dates are always formatted in English.",
+      "watermark_preview_label": "Watermark Preview",
+      "watermark_saved": "Watermark configuration saved"
     },
     "metadata": {
       "title": "Προσαρμοσμένη διαμόρφωση μεταδεδομένων",

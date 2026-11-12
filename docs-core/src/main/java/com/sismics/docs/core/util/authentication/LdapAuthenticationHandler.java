@@ -1,5 +1,7 @@
 package com.sismics.docs.core.util.authentication;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
@@ -14,19 +16,22 @@ import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
 import com.sismics.docs.core.constant.ConfigType;
 import com.sismics.docs.core.constant.Constants;
 import com.sismics.docs.core.dao.ConfigDao;
 import com.sismics.docs.core.dao.GroupDao;
+import com.sismics.docs.core.dao.LdapConfigDao;
 import com.sismics.docs.core.dao.UserDao;
 import com.sismics.docs.core.model.jpa.Config;
+import com.sismics.docs.core.model.jpa.LdapConfig;
 import com.sismics.docs.core.model.jpa.User;
 import com.sismics.docs.core.model.jpa.UserGroup;
 import com.sismics.docs.core.util.ConfigUtil;
 import com.sismics.util.ClasspathScanner;
 
 /**
- * LDAP authentication handler.
+ * LDAP authentication handler supporting multiple LDAP servers in priority order.
  *
  * @author bgamard
  */
@@ -38,55 +43,110 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
     private static final Logger log = LoggerFactory.getLogger(LdapAuthenticationHandler.class);
 
     /**
-     * Get a LDAP connection.
-     * @return LdapConnection
+     * Build an LdapConnection for a given LdapConfig.
      */
-    private LdapConnection getConnection() {
+    private static LdapConnection createConnection(LdapConfig ldapCfg) {
+        LdapConnectionConfig config = new LdapConnectionConfig();
+        config.setLdapHost(ldapCfg.getHost());
+        config.setLdapPort(ldapCfg.getPort() != null ? ldapCfg.getPort() : 389);
+        config.setUseSsl(ldapCfg.isUseSsl());
+        config.setName(ldapCfg.getAdminDn());
+        config.setCredentials(ldapCfg.getAdminPassword());
+        config.setTimeout(5000L);
+        return new LdapNetworkConnection(config);
+    }
+
+    /**
+     * Retrieve enabled LDAP configurations in priority order, falling back to legacy T_CONFIG if T_LDAP_CONFIG is empty.
+     */
+    private List<LdapConfig> getEnabledConfigs() {
+        LdapConfigDao ldapConfigDao = new LdapConfigDao();
+        List<LdapConfig> allConfigs = ldapConfigDao.findAll();
+        if (!allConfigs.isEmpty()) {
+            return ldapConfigDao.findEnabled();
+        }
+
+        // Backward-compatibility fallback to T_CONFIG if no rows exist in T_LDAP_CONFIG
         ConfigDao configDao = new ConfigDao();
         Config ldapEnabled = configDao.getById(ConfigType.LDAP_ENABLED);
         if (ldapEnabled == null || !Boolean.parseBoolean(ldapEnabled.getValue())) {
-            return null;
+            return new ArrayList<>();
         }
-
-        LdapConnectionConfig config = new LdapConnectionConfig();
-        config.setLdapHost(ConfigUtil.getConfigStringValue(ConfigType.LDAP_HOST));
-        config.setLdapPort(ConfigUtil.getConfigIntegerValue(ConfigType.LDAP_PORT));
-        config.setUseSsl(ConfigUtil.getConfigBooleanValue(ConfigType.LDAP_USESSL));
-        config.setName(ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_DN));
-        config.setCredentials(ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_PASSWORD));
-
-        return new LdapNetworkConnection(config);
+        try {
+            LdapConfig legacy = new LdapConfig()
+                    .setId("legacy-default")
+                    .setName("Primary LDAP")
+                    .setOrder(0)
+                    .setEnabled(true)
+                    .setHost(ConfigUtil.getConfigStringValue(ConfigType.LDAP_HOST))
+                    .setPort(ConfigUtil.getConfigIntegerValue(ConfigType.LDAP_PORT))
+                    .setUseSsl(ConfigUtil.getConfigBooleanValue(ConfigType.LDAP_USESSL, false))
+                    .setAdminDn(ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_DN))
+                    .setAdminPassword(ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_PASSWORD))
+                    .setBaseDn(ConfigUtil.getConfigStringValue(ConfigType.LDAP_BASE_DN))
+                    .setFilter(ConfigUtil.getConfigStringValue(ConfigType.LDAP_FILTER))
+                    .setDefaultEmail(ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_EMAIL))
+                    .setDefaultStorage(ConfigUtil.getConfigLongValue(ConfigType.LDAP_DEFAULT_STORAGE));
+            Config groupCfg = configDao.getById(ConfigType.LDAP_DEFAULT_GROUP);
+            if (groupCfg != null) {
+                legacy.setDefaultGroup(groupCfg.getValue());
+            }
+            Config groupAttrCfg = configDao.getById(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP);
+            if (groupAttrCfg != null) {
+                legacy.setDefaultGroupMembership(groupAttrCfg.getValue());
+            }
+            List<LdapConfig> list = new ArrayList<>();
+            list.add(legacy);
+            return list;
+        } catch (Exception e) {
+            log.warn("Legacy LDAP configuration in T_CONFIG is incomplete", e);
+            return new ArrayList<>();
+        }
     }
 
     @Override
     public User authenticate(String username, String password) {
-        // Fetch and authenticate the user
-        Entry userEntry;
-        String sGroupName = null;
-        try (LdapConnection ldapConnection = getConnection()) {
-            if (ldapConnection == null) {
-                return null;
-            }
-            ldapConnection.bind();
+        List<LdapConfig> enabledConfigs = getEnabledConfigs();
+        if (enabledConfigs.isEmpty()) {
+            return null;
+        }
 
-            // Escape username per RFC 4515 before substitution to prevent LDAP injection (CWE-90).
-            // FilterEncoder.encodeFilterValue() escapes: \ * ( ) \x00 and other metacharacters.
-            String safeUsername = FilterEncoder.encodeFilterValue(username);
-            EntryCursor cursor = ldapConnection.search(ConfigUtil.getConfigStringValue(ConfigType.LDAP_BASE_DN),
-                    ConfigUtil.getConfigStringValue(ConfigType.LDAP_FILTER).replace("USERNAME", safeUsername), SearchScope.SUBTREE);
-            if (cursor.next()) {
-                userEntry = cursor.get();
-                ldapConnection.bind(userEntry.getDn(), password);
-                if( ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP )!=null && userEntry.get(  ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP ))!=null){
-                  sGroupName = userEntry.get(  ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP )).getString();
+        // Escape username per RFC 4515 before substitution to prevent LDAP injection (CWE-90).
+        // FilterEncoder.encodeFilterValue() escapes: \ * ( ) \x00 and other metacharacters.
+        String safeUsername = FilterEncoder.encodeFilterValue(username);
+
+        Entry matchedEntry = null;
+        LdapConfig matchedConfig = null;
+        String sGroupName = null;
+
+        for (LdapConfig ldapCfg : enabledConfigs) {
+            try (LdapConnection ldapConnection = createConnection(ldapCfg)) {
+                ldapConnection.bind();
+
+                try (EntryCursor cursor = ldapConnection.search(
+                        ldapCfg.getBaseDn(),
+                        ldapCfg.getFilter().replace("USERNAME", safeUsername),
+                        SearchScope.SUBTREE)) {
+                    if (cursor.next()) {
+                        Entry candidateEntry = cursor.get();
+                        ldapConnection.bind(candidateEntry.getDn(), password);
+
+                        matchedEntry = candidateEntry;
+                        matchedConfig = ldapCfg;
+                        String groupAttr = ldapCfg.getDefaultGroupMembership();
+                        if (!Strings.isNullOrEmpty(groupAttr) && candidateEntry.get(groupAttr) != null) {
+                            sGroupName = candidateEntry.get(groupAttr).getString();
+                        }
+                        break;
+                    }
                 }
-                
-            } else {
-                // User not found
-                return null;
+            } catch (Exception e) {
+                log.warn("Error authenticating \"{}\" on LDAP server \"{}\" ({}:{}), trying next server if available",
+                        username, ldapCfg.getName(), ldapCfg.getHost(), ldapCfg.getPort(), e);
             }
-        } catch (Exception e) {
-            log.error("Error authenticating \"" + username + "\" using the LDAP", e);
+        }
+
+        if (matchedEntry == null || matchedConfig == null) {
             return null;
         }
 
@@ -94,43 +154,43 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
         User user = userDao.getActiveByUsername(username);
         if (user == null) {
             // The user is valid but never authenticated, create the user now
-            log.info("\"" + username + "\" authenticated for the first time, creating the internal user");
+            log.info("\"{}\" authenticated for the first time via LDAP \"{}\", creating the internal user",
+                    username, matchedConfig.getName());
             user = new User();
             user.setRoleId(Constants.DEFAULT_USER_ROLE);
             user.setUsername(username);
             user.setAuthSource("LDAP");
             user.setPassword(UUID.randomUUID().toString()); // No authentication using the internal database
-            Attribute mailAttribute = userEntry.get("mail");
+            Attribute mailAttribute = matchedEntry.get("mail");
             if (mailAttribute == null || mailAttribute.get() == null) {
-                user.setEmail(ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_EMAIL));
+                user.setEmail(matchedConfig.getDefaultEmail());
             } else {
                 Value value = mailAttribute.get();
                 user.setEmail(value.getString());
             }
-            user.setStorageQuota(ConfigUtil.getConfigLongValue(ConfigType.LDAP_DEFAULT_STORAGE));
+            user.setStorageQuota(matchedConfig.getDefaultStorage());
             try {
-              userDao.create(user, "admin");
-              if( !ConfigUtil.getConfigStringValue( ConfigType.LDAP_DEFAULT_GROUP ).trim().equals("") ){
-                // Add the membership
-                GroupDao groupDao = new GroupDao();
-                UserGroup userGroup = new UserGroup();                
-                userGroup.setGroupId(ConfigUtil.getConfigStringValue( ConfigType.LDAP_DEFAULT_GROUP ));
-                userGroup.setUserId(user.getId());
-                if( groupDao.getActiveById(ConfigUtil.getConfigStringValue( ConfigType.LDAP_DEFAULT_GROUP )) != null )
-                  groupDao.addMember(userGroup);
-              }
-              if( sGroupName!=null ){
-                GroupDao groupDao = new GroupDao();
-                UserGroup userGroup = new UserGroup();                
-                userGroup.setUserId(user.getId());
-                com.sismics.docs.core.model.jpa.Group aGroup = groupDao.getActiveByName(sGroupName);
-                if( aGroup!= null ){
-                  userGroup.setGroupId(aGroup.getId());
-                  groupDao.addMember(userGroup);
+                userDao.create(user, "admin");
+                String defaultGroupId = matchedConfig.getDefaultGroup();
+                if (!Strings.isNullOrEmpty(defaultGroupId) && !defaultGroupId.trim().isEmpty()) {
+                    GroupDao groupDao = new GroupDao();
+                    UserGroup userGroup = new UserGroup();
+                    userGroup.setGroupId(defaultGroupId.trim());
+                    userGroup.setUserId(user.getId());
+                    if (groupDao.getActiveById(defaultGroupId.trim()) != null) {
+                        groupDao.addMember(userGroup);
+                    }
                 }
-
-              }
-
+                if (sGroupName != null) {
+                    GroupDao groupDao = new GroupDao();
+                    UserGroup userGroup = new UserGroup();
+                    userGroup.setUserId(user.getId());
+                    com.sismics.docs.core.model.jpa.Group aGroup = groupDao.getActiveByName(sGroupName);
+                    if (aGroup != null) {
+                        userGroup.setGroupId(aGroup.getId());
+                        groupDao.addMember(userGroup);
+                    }
+                }
             } catch (Exception e) {
                 log.error("Error while creating the internal user", e);
                 return null;

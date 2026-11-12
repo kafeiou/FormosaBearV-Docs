@@ -43,6 +43,83 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
       $rootScope.app = appData;
     });
   }
+
+  var EN_MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var EN_MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var EN_DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var EN_DAYS_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  var formatEnglishDate = function (date, pattern) {
+    var d = date || new Date();
+    var fmt = (pattern && angular.isString(pattern) && pattern.trim().length > 0) ? pattern.trim() : 'dd MMM yyyy';
+    var pad2 = function (n) { return n < 10 ? '0' + n : '' + n; };
+    return fmt.replace(/yyyy|YYYY|yy|YY|MMMM|MMM|MM|M|dddd|ddd|EEEE|EEE|dd|DD|d|D/g, function (token) {
+      switch (token) {
+        case 'yyyy':
+        case 'YYYY':
+          return '' + d.getFullYear();
+        case 'yy':
+        case 'YY':
+          return pad2(d.getFullYear() % 100);
+        case 'MMMM':
+          return EN_MONTHS_FULL[d.getMonth()];
+        case 'MMM':
+          return EN_MONTHS_SHORT[d.getMonth()];
+        case 'MM':
+          return pad2(d.getMonth() + 1);
+        case 'M':
+          return '' + (d.getMonth() + 1);
+        case 'dddd':
+        case 'EEEE':
+          return EN_DAYS_FULL[d.getDay()];
+        case 'ddd':
+        case 'EEE':
+          return EN_DAYS_SHORT[d.getDay()];
+        case 'dd':
+        case 'DD':
+          return pad2(d.getDate());
+        case 'd':
+        case 'D':
+          return '' + d.getDate();
+        default:
+          return token;
+      }
+    });
+  };
+
+  var escapeXml = function (str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  };
+
+  $scope.isWatermarkEnabled = function () {
+    return !!($rootScope.app && $rootScope.app.preview_watermark_enabled);
+  };
+
+  $scope.getWatermarkStyle = function () {
+    if (!$scope.isWatermarkEnabled()) {
+      return {};
+    }
+    var username = ($rootScope.userInfo && $rootScope.userInfo.username && !$rootScope.userInfo.anonymous)
+      ? $rootScope.userInfo.username
+      : 'Guest';
+    var dateStr = formatEnglishDate(new Date(), $rootScope.app.preview_watermark_date_format);
+    var text = escapeXml(username + ' \u00B7 ' + dateStr);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200">' +
+      '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" ' +
+      'fill="rgba(128, 128, 128, 0.24)" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="bold" ' +
+      'transform="rotate(-30 160 100)">' + text + '</text>' +
+      '</svg>';
+    return {
+      'background-image': 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")',
+      'background-repeat': 'repeat',
+      'background-position': 'center center'
+    };
+  };
   $scope.pdfLoading = false;
   $scope.pdfError = false;
   $scope.pdfCurrentPage = 1;

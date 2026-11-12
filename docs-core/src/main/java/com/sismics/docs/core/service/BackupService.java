@@ -55,7 +55,8 @@ public class BackupService {
             "T_ROUTE",
             "T_ROUTE_STEP",
             "T_ROUTE_STEP_VALIDATOR",
-            "T_WEBHOOK"
+            "T_WEBHOOK",
+            "T_LDAP_CONFIG"
     );
 
     /**

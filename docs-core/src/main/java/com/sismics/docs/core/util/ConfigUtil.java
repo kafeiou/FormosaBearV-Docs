@@ -165,6 +165,42 @@ public class ConfigUtil {
         return getBundleBoolean("file.download", true);
     }
 
+    public static final String DEFAULT_PREVIEW_WATERMARK_DATE_FORMAT = "dd MMM yyyy";
+
+    /**
+     * Returns true if document preview watermark is enabled. Default is false.
+     */
+    public static boolean isPreviewWatermarkEnabled() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config config = configDao.getById(ConfigType.PREVIEW_WATERMARK_ENABLED);
+                if (config != null && config.getValue() != null) {
+                    return "1".equals(config.getValue().trim()) || Boolean.parseBoolean(config.getValue().trim());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the date format pattern for document preview watermark. Default is "dd MMM yyyy".
+     */
+    public static String getPreviewWatermarkDateFormat() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config config = configDao.getById(ConfigType.PREVIEW_WATERMARK_DATE_FORMAT);
+                if (config != null && !Strings.isNullOrEmpty(config.getValue()) && !config.getValue().trim().isEmpty()) {
+                    return config.getValue().trim();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return DEFAULT_PREVIEW_WATERMARK_DATE_FORMAT;
+    }
+
     /**
      * Returns the textual value of a configuration parameter.
      *

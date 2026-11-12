@@ -487,6 +487,32 @@ public class TestAppResource extends BaseJerseyTest {
         JsonArray documents = json.getJsonArray("documents");
         Assert.assertEquals(0, documents.size());
 
+        // Multi-LDAP test: Configure 2 LDAP servers (Server 1 with non-matching filter, Server 2 matching)
+        String serversJson = "["
+                + "{\"name\":\"Branch LDAP (No match)\",\"enabled\":true,\"host\":\"localhost\",\"port\":11389,\"usessl\":false,"
+                + "\"admin_dn\":\"uid=admin,ou=system\",\"admin_password\":\"secret\",\"base_dn\":\"o=TEST\","
+                + "\"filter\":\"(&(objectclass=inetOrgPerson)(uid=NONEXISTENT_USERNAME))\",\"default_email\":\"branch@teedy.io\",\"default_storage\":100000000},"
+                + "{\"name\":\"HQ LDAP (Match)\",\"enabled\":true,\"host\":\"localhost\",\"port\":11389,\"usessl\":false,"
+                + "\"admin_dn\":\"uid=admin,ou=system\",\"admin_password\":\"secret\",\"base_dn\":\"o=TEST\","
+                + "\"filter\":\"(&(objectclass=inetOrgPerson)(uid=USERNAME))\",\"default_email\":\"hq@teedy.io\",\"default_storage\":200000000}"
+                + "]";
+        Response multiResp = target().path("/app/config_ldap").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("servers_json", serversJson)));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(multiResp.getStatus()));
+
+        json = target().path("/app/config_ldap").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        JsonArray servers = json.getJsonArray("servers");
+        Assert.assertEquals(2, servers.size());
+        Assert.assertEquals("Branch LDAP (No match)", servers.getJsonObject(0).getString("name"));
+        Assert.assertEquals("HQ LDAP (Match)", servers.getJsonObject(1).getString("name"));
+
+        // Authenticate via fallback to 2nd LDAP server
+        String multiLdapToken = clientUtil.login("ldap1", "secret", false);
+        Assert.assertNotNull(multiLdapToken);
+
         // Stop LDAP server
         ldapServer.stop();
         directoryService.shutdown();
@@ -542,5 +568,52 @@ public class TestAppResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .post(Entity.form(new Form()
                         .param("from_name", "FormosaBearV")));
+    }
+
+    /**
+     * Test document preview watermark configuration.
+     */
+    @Test
+    public void testPreviewWatermarkSettings() {
+        String adminToken = adminToken();
+
+        // 1. Default values in GET /app
+        JsonObject json = target().path("/app").request().get(JsonObject.class);
+        Assert.assertFalse(json.getBoolean("preview_watermark_enabled"));
+        Assert.assertEquals("dd MMM yyyy", json.getString("preview_watermark_date_format"));
+
+        // 2. Non-admin user cannot modify watermark settings
+        clientUtil.createUser("watermark_normal_user");
+        String userToken = clientUtil.login("watermark_normal_user");
+        Response forbiddenResp = target().path("/app/config_watermark").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form()
+                        .param("enabled", "true")
+                        .param("date_format", "MMM dd, yyyy")));
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(forbiddenResp.getStatus()));
+
+        // 3. Admin enables watermark and updates date format
+        Response response = target().path("/app/config_watermark").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("enabled", "true")
+                        .param("date_format", "MMM dd, yyyy")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(response.getStatus()));
+
+        json = target().path("/app").request().get(JsonObject.class);
+        Assert.assertTrue(json.getBoolean("preview_watermark_enabled"));
+        Assert.assertEquals("MMM dd, yyyy", json.getString("preview_watermark_date_format"));
+
+        // 4. Empty date_format falls back to default "dd MMM yyyy"
+        response = target().path("/app/config_watermark").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("enabled", "false")
+                        .param("date_format", "   ")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(response.getStatus()));
+
+        json = target().path("/app").request().get(JsonObject.class);
+        Assert.assertFalse(json.getBoolean("preview_watermark_enabled"));
+        Assert.assertEquals("dd MMM yyyy", json.getString("preview_watermark_date_format"));
     }
 }
