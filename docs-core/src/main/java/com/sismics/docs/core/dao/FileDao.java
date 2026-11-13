@@ -141,6 +141,21 @@ public class FileDao {
         // Create audit log
         AuditLogUtil.create(fileDb, AuditLogType.DELETE, userId);
     }
+
+    /**
+     * Silently deletes a file version without creating an audit log.
+     *
+     * @param id File ID
+     */
+    public void deleteSilently(String id) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+
+        TypedQuery<File> q = em.createQuery("select f from File f where f.id = :id and f.deleteDate is null", File.class);
+        q.setParameter("id", id);
+        File fileDb = q.getSingleResult();
+
+        fileDb.setDeleteDate(new Date());
+    }
     
     /**
      * Update a file.

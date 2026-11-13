@@ -224,7 +224,13 @@
       "swap_confirm": "Möchten Sie Version #{{ version }} ({{ oldName }}) wirklich durch „{{ newName }}“ ersetzen?",
       "swapped": "Ersetzt",
       "swap_error": "Ersetzen der Datei fehlgeschlagen",
-      "path_copied": "Pfad kopiert"
+      "path_copied": "Pfad kopiert",
+      "delete_version": "Löschen",
+      "delete_version_tooltip_permanent": "Diese historische Version dauerhaft von der Festplatte löschen",
+      "delete_version_tooltip_recycle": "Diese historische Version löschen (in Papierkorb verschieben)",
+      "delete_version_confirm_permanent": "Möchten Sie Version #{{ version }} ({{ name }}) wirklich löschen? Die Datei wird dauerhaft von der Festplatte gelöscht.",
+      "delete_version_confirm_recycle": "Möchten Sie Version #{{ version }} ({{ name }}) wirklich löschen? Die Datei wird in das Verzeichnis delete/storage verschoben.",
+      "delete_version_error": "Fehler beim Löschen der Version"
     }
   },
   "tag": {
@@ -579,11 +585,11 @@
     "error_general": "Beim Versuch, Ihre Datei zu importieren, ist ein Fehler aufgetreten. Bitte stellen Sie sicher, dass es sich um eine gültige EML-Datei handelt."
   },
   "app_share": {
-    "main": "Fragen Sie nach einem Link zu einem gemeinsam genutzten Dokument, um darauf zuzugreifen.",
     "403": {
       "title": "Nicht erlaubt",
       "message": "Das Dokument, das Sie anzeigen möchten, ist nicht mehr freigegeben."
-    }
+    },
+    "main": "Fragen Sie nach einem Link zu einem gemeinsam genutzten Dokument, um darauf zuzugreifen."
   },
   "directive": {
     "acledit": {

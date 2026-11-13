@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.io.output.NullOutputStream;
@@ -110,37 +112,28 @@ public class FileUtil {
      * @param file ID of file to delete
      */
     public static void delete(File file) throws IOException {
-        Path storedFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());
-        Path webFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName() + "_web");
-        Path thumbnailFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName() + "_thumb");
-        
-        if (Files.exists(storedFile)) {
-            if( ConfigUtil.isFileDelete() )
-              Files.delete(storedFile);
-            else{
-              java.nio.file.Path aDestFile = DirectoryUtil.getDeleteStorageDirectory(file).resolve(file.getName());
-              storedFile.toFile().renameTo(aDestFile.toFile());
+        Path storageDir = DirectoryUtil.getStorageDirectory(file);
+        if (file.getName() != null) {
+            String[] suffixes = new String[] { "", "_web", "_thumb", "_pdf" };
+            for (String suffix : suffixes) {
+                Path src = storageDir.resolve(file.getName() + suffix);
+                if (Files.exists(src)) {
+                    if (ConfigUtil.isFileDelete()) {
+                        Files.deleteIfExists(src);
+                    } else {
+                        Path destDir = DirectoryUtil.getDeleteStorageDirectory(file);
+                        Files.createDirectories(destDir);
+                        Path dest = destDir.resolve(file.getName() + suffix);
+                        Files.move(src, dest, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
             }
         }
-        if (Files.exists(webFile)) {
-            if( ConfigUtil.isFileDelete() )
-              Files.delete(webFile);
-            else{
-              java.nio.file.Path aDestFile = DirectoryUtil.getDeleteStorageDirectory(file).resolve(file.getName()+"_web");
-              webFile.toFile().renameTo(aDestFile.toFile());
-            }
+        try {
+            Files.deleteIfExists(storageDir);
+        } catch (IOException ignored) {
         }
-        if (Files.exists(thumbnailFile)) {
-            if( ConfigUtil.isFileDelete() )
-              Files.delete(thumbnailFile);
-            else{
-              java.nio.file.Path aDestFile = DirectoryUtil.getDeleteStorageDirectory(file).resolve(file.getName()+"_thumb");
-              thumbnailFile.toFile().renameTo(aDestFile.toFile());  
-            }
-        }
-        Files.delete(DirectoryUtil.getStorageDirectory(file));
-        
-}
+    }
 
     /**
      * Create a new file.
@@ -218,6 +211,22 @@ public class FileUtil {
                 file.setOrder(previousFile.getOrder());
                 file.setVersionId(previousFile.getVersionId());
                 file.setVersion(previousFile.getVersion() + 1);
+                if (!Strings.isNullOrEmpty(previousFile.getName())) {
+                    String prevBaseName = FilenameUtils.getBaseName(previousFile.getName());
+                    if (prevBaseName.isEmpty()) {
+                        prevBaseName = previousFile.getName();
+                    }
+                    String ext = name != null ? FilenameUtils.getExtension(name) : FilenameUtils.getExtension(previousFile.getName());
+                    String inheritedName;
+                    if (!ext.isEmpty()) {
+                        int maxBaseLen = Math.max(1, 200 - 1 - ext.length());
+                        String truncatedBase = prevBaseName.length() > maxBaseLen ? prevBaseName.substring(0, maxBaseLen) : prevBaseName;
+                        inheritedName = StringUtils.abbreviate(truncatedBase + "." + ext, 200);
+                    } else {
+                        inheritedName = StringUtils.abbreviate(prevBaseName, 200);
+                    }
+                    file.setName(inheritedName);
+                }
 
                 // Update the previous file
                 previousFile.setLatestVersion(false);

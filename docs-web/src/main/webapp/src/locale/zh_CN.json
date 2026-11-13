@@ -253,7 +253,13 @@
       "swap_confirm": "确定要以“{{ newName }}”回溯替换版本 #{{ version }}（{{ oldName }}）吗？",
       "swapped": "已替换",
       "swap_error": "替换文件失败",
-      "path_copied": "已复制路径"
+      "path_copied": "已复制路径",
+      "delete_version": "删除",
+      "delete_version_tooltip_permanent": "永久删除此历史版本（直接从磁盘抹除）",
+      "delete_version_tooltip_recycle": "删除此历史版本（移至回收区目录保留）",
+      "delete_version_confirm_permanent": "确定要删除历史版本 #{{ version }}（{{ name }}）吗？当前设置为“直接从磁盘永久删除”，实体文件将被永久抹除且无法恢复。",
+      "delete_version_confirm_recycle": "确定要删除历史版本 #{{ version }}（{{ name }}）吗？当前设置为“移至回收区目录保留”，实体文件将搬移至 delete/storage 回收区目录。",
+      "delete_version_error": "删除历史版本失败"
     }
   },
   "tag": {

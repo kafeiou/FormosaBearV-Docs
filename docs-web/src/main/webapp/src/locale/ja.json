@@ -270,7 +270,13 @@
       "swap_confirm": "バージョン #{{ version }}（{{ oldName }}）を「{{ newName }}」に差し替えますか？",
       "swapped": "差替完了",
       "swap_error": "ファイルの差し替えに失敗しました",
-      "path_copied": "パスをコピーしました"
+      "path_copied": "パスをコピーしました",
+      "delete_version": "削除",
+      "delete_version_tooltip_permanent": "この履歴バージョンをディスクから永久に削除",
+      "delete_version_tooltip_recycle": "この履歴バージョンを削除（ごみ箱ディレクトリへ移動）",
+      "delete_version_confirm_permanent": "履歴バージョン #{{ version }}（{{ name }}）を削除しますか？現在の設定は「ディスクから永久に削除」のため、実体ファイルは完全に抹消され復元できません。",
+      "delete_version_confirm_recycle": "履歴バージョン #{{ version }}（{{ name }}）を削除しますか？現在の設定は「ごみ箱ディレクトリに移動して保持」のため、実体ファイルは delete/storage に移動されます。",
+      "delete_version_error": "履歴バージョンの削除に失敗しました"
     },
     "view": {
       "fit_width": "幅に合わせる",

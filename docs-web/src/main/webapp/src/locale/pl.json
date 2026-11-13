@@ -224,7 +224,13 @@
       "swap_confirm": "Czy na pewno chcesz podmienić wersję #{{ version }} ({{ oldName }}) plikiem „{{ newName }}”?",
       "swapped": "Podmieniono",
       "swap_error": "Nie udało się podmienić pliku",
-      "path_copied": "Skopiowano ścieżkę"
+      "path_copied": "Skopiowano ścieżkę",
+      "delete_version": "Usuń",
+      "delete_version_tooltip_permanent": "Trwale usuń tę wersję historyczną z dysku",
+      "delete_version_tooltip_recycle": "Usuń tę wersję historyczną (przenieś do kosza)",
+      "delete_version_confirm_permanent": "Czy na pewno chcesz usunąć wersję #{{ version }} ({{ name }})? Plik fizyczny zostanie trwale usunięty z dysku.",
+      "delete_version_confirm_recycle": "Czy na pewno chcesz usunąć wersję #{{ version }} ({{ name }})? Plik fizyczny zostanie przeniesiony do delete/storage.",
+      "delete_version_error": "Nie udało się usunąć wersji historycznej"
     }
   },
   "tag": {
@@ -573,11 +579,11 @@
     "error_general": "Wystąpił błąd podczas próby zaimportowania pliku, upewnij się, że jest to prawidłowy plik EML"
   },
   "app_share": {
-    "main": "Poproś o łącze do udostępnionego dokumentu, aby uzyskać do niego dostęp",
     "403": {
       "title": "Brak dostępu",
       "message": "Dokument, który próbujesz wyświetlić, nie jest już udostępniany"
-    }
+    },
+    "main": "Poproś o łącze do udostępnionego dokumentu, aby uzyskać do niego dostęp"
   },
   "directive": {
     "acledit": {

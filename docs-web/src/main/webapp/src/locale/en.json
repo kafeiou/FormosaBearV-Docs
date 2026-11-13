@@ -253,7 +253,13 @@
       "swap_confirm": "Are you sure you want to backtrack version #{{ version }} ({{ oldName }}) with \"{{ newName }}\"?",
       "swapped": "Replaced",
       "swap_error": "Failed to replace file",
-      "path_copied": "Path copied"
+      "path_copied": "Path copied",
+      "delete_version": "Delete",
+      "delete_version_tooltip_permanent": "Permanently delete this historical version from disk",
+      "delete_version_tooltip_recycle": "Delete this historical version (move to recycle directory)",
+      "delete_version_confirm_permanent": "Are you sure you want to delete version #{{ version }} ({{ name }})? Current mode is \"Permanently Delete from Disk\" — the physical file will be permanently erased.",
+      "delete_version_confirm_recycle": "Are you sure you want to delete version #{{ version }} ({{ name }})? Current mode is \"Move to Recycle Directory\" — the physical file will be moved to delete/storage.",
+      "delete_version_error": "Failed to delete historical version"
     }
   },
   "tag": {

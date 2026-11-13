@@ -547,10 +547,10 @@ public class TestFileResource extends BaseJerseyTest {
                 .get(JsonObject.class);
         Assert.assertEquals("1.0", listJson.getJsonArray("files").getJsonObject(0).getString("version_label"));
 
-        // 3. Upload a new version -> version_label on the new version must also default to null
+        // 3. Upload a new version with a different base name -> version_label defaults to null and base name inherits from previous version
         String file2Id;
         try (InputStream is0 = Resources.getResource("file/document.txt").openStream()) {
-            StreamDataBodyPart streamDataBodyPart = new StreamDataBodyPart("file", is0, "spec-doc.txt");
+            StreamDataBodyPart streamDataBodyPart = new StreamDataBodyPart("file", is0, "different-upload-name.txt");
             try (FormDataMultiPart multiPart = new FormDataMultiPart()) {
                 JsonObject json = target()
                         .register(MultiPartFeature.class)
@@ -579,6 +579,7 @@ public class TestFileResource extends BaseJerseyTest {
         Assert.assertFalse(versionFiles.getJsonObject(0).getBoolean("latest_version"));
 
         Assert.assertEquals(file2Id, versionFiles.getJsonObject(1).getString("id"));
+        Assert.assertEquals("spec-doc.txt", versionFiles.getJsonObject(1).getString("name"));
         Assert.assertEquals(1, versionFiles.getJsonObject(1).getInt("version"));
         Assert.assertTrue("New uploaded version must also have null version_label by default",
                 versionFiles.getJsonObject(1).isNull("version_label"));
@@ -669,6 +670,12 @@ public class TestFileResource extends BaseJerseyTest {
                         .param("from_versions", "true")));
         Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), disabledRenameResp.getStatus());
 
+        // Deleting a historical version while file_swap is disabled must fail with 400
+        Response disabledDeleteVerResp = target().path("/file/" + file1Id + "/version").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+        Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), disabledDeleteVerResp.getStatus());
+
         // Admin enables file swap & rename
         target().path("/app/file_swap").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
@@ -678,6 +685,19 @@ public class TestFileResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .get(JsonObject.class);
         Assert.assertTrue(adminVersionsJson.getBoolean("swap_enabled"));
+        Assert.assertTrue(adminVersionsJson.containsKey("file_delete"));
+
+        // Non-privileged user cannot delete a historical version (403 Forbidden)
+        Response unprivDeleteVerResp = target().path("/file/" + file1Id + "/version").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .delete();
+        Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), unprivDeleteVerResp.getStatus());
+
+        // Even privileged user CANNOT delete the current/latest version (400 Bad Request)
+        Response deleteLatestVerResp = target().path("/file/" + file2Id + "/version").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+        Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), deleteLatestVerResp.getStatus());
 
         // Rename historical version #1 (file1Id) in version history
         JsonObject renameResp = target().path("/file/" + file1Id).request()
@@ -724,6 +744,60 @@ public class TestFileResource extends BaseJerseyTest {
                 .get(JsonObject.class);
         Assert.assertEquals("Swapping a file version must not generate any audit log entry",
                 logCountBefore, logsAfter.getJsonArray("logs").size());
+
+        // Delete historical version #1 (file1Id) via privileged user
+        JsonObject deleteVerJson = target().path("/file/" + file1Id + "/version").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete(JsonObject.class);
+        Assert.assertEquals("ok", deleteVerJson.getString("status"));
+
+        // Verify version #1 is removed from version history while current version (file2Id) is re-indexed to version 0 (#1)
+        adminVersionsJson = target().path("/file/" + file2Id + "/versions")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, adminVersionsJson.getJsonArray("files").size());
+        Assert.assertEquals(file2Id, adminVersionsJson.getJsonArray("files").getJsonObject(0).getString("id"));
+        Assert.assertEquals(0, adminVersionsJson.getJsonArray("files").getJsonObject(0).getInt("version"));
+        Assert.assertTrue(adminVersionsJson.getJsonArray("files").getJsonObject(0).getBoolean("latest_version"));
+
+        // Verify deleting a historical version also did not generate any audit log entry
+        logsAfter = target().path("/auditlog")
+                .queryParam("document", documentId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .get(JsonObject.class);
+        Assert.assertEquals("Deleting a historical file version must not generate any audit log entry",
+                logCountBefore, logsAfter.getJsonArray("logs").size());
+
+        // Upload another new version with a different extension -> inherits base name "spec-doc" + new extension ".jpg" and continues at version 1 (#2)
+        String file3Id;
+        try (InputStream is = Resources.getResource(FILE_PIA_00452_JPG).openStream()) {
+            StreamDataBodyPart streamDataBodyPart = new StreamDataBodyPart("file", is, "completely-different.jpg");
+            try (FormDataMultiPart multiPart = new FormDataMultiPart()) {
+                JsonObject json = target()
+                        .register(MultiPartFeature.class)
+                        .path("/file").request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                        .put(Entity.entity(
+                                multiPart
+                                        .field("id", documentId)
+                                        .field("previousFileId", file2Id)
+                                        .bodyPart(streamDataBodyPart),
+                                MediaType.MULTIPART_FORM_DATA_TYPE), JsonObject.class);
+                file3Id = json.getString("id");
+                Assert.assertNotNull(file3Id);
+            }
+        }
+        versionsJson = target().path("/file/" + file3Id + "/versions")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .get(JsonObject.class);
+        Assert.assertEquals(2, versionsJson.getJsonArray("files").size());
+        Assert.assertEquals(0, versionsJson.getJsonArray("files").getJsonObject(0).getInt("version"));
+        Assert.assertEquals("spec-doc.txt", versionsJson.getJsonArray("files").getJsonObject(0).getString("name"));
+        Assert.assertEquals(1, versionsJson.getJsonArray("files").getJsonObject(1).getInt("version"));
+        Assert.assertEquals("spec-doc.jpg", versionsJson.getJsonArray("files").getJsonObject(1).getString("name"));
 
         // Restore default (disabled)
         target().path("/app/file_swap").request()

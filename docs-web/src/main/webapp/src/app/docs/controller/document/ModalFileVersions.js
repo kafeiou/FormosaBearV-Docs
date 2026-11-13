@@ -25,6 +25,7 @@ angular.module('docs').controller('ModalFileVersions', function ($scope, $rootSc
   };
   $scope.privileged = checkClientPrivileged();
   $scope.swapEnabled = false;
+  $scope.fileDelete = !!($rootScope.app && $rootScope.app.file_delete);
 
   $scope.loadVersions = function () {
     Restangular.one('file/' + file.id + '/versions').get().then(function (data) {
@@ -32,7 +33,17 @@ angular.module('docs').controller('ModalFileVersions', function ($scope, $rootSc
         $scope.privileged = !!data.privileged;
       }
       $scope.swapEnabled = !!data.swap_enabled;
+      if (angular.isDefined(data.file_delete)) {
+        $scope.fileDelete = !!data.file_delete;
+      }
       $scope.files = data.files;
+      if (angular.isArray(data.files) && file && file.id) {
+        for (var i = 0; i < data.files.length; i++) {
+          if (data.files[i].id === file.id && angular.isDefined(data.files[i].version)) {
+            file.version = data.files[i].version;
+          }
+        }
+      }
     });
   };
   $scope.loadVersions();
@@ -187,6 +198,32 @@ angular.module('docs').controller('ModalFileVersions', function ($scope, $rootSc
     .error(function (data) {
       verFile.swapping = false;
       verFile.swapError = (data && data.message) ? data.message : $translate.instant('file.versions.swap_error');
+    });
+  };
+
+  $scope.deleteVersion = function (verFile) {
+    if (!$scope.privileged || !$scope.swapEnabled || !verFile || verFile.latest_version) {
+      return;
+    }
+    var confirmKey = $scope.fileDelete
+      ? 'file.versions.delete_version_confirm_permanent'
+      : 'file.versions.delete_version_confirm_recycle';
+    var confirmMsg = $translate.instant(confirmKey, {
+      version: verFile.version + 1,
+      name: verFile.name
+    });
+    if (!$window.confirm(confirmMsg)) {
+      return;
+    }
+
+    verFile.deleting = true;
+    verFile.swapError = null;
+    Restangular.one('file/' + verFile.id + '/version').remove().then(function () {
+      verFile.deleting = false;
+      $scope.loadVersions();
+    }, function (resp) {
+      verFile.deleting = false;
+      verFile.swapError = (resp && resp.data && resp.data.message) ? resp.data.message : $translate.instant('file.versions.delete_version_error');
     });
   };
 

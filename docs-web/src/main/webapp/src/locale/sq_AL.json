@@ -224,7 +224,13 @@
       "swap_confirm": "Jeni i sigurt që dëshironi të zëvendësoni versionin #{{ version }} ({{ oldName }}) me \"{{ newName }}\"?",
       "swapped": "U zëvendësua",
       "swap_error": "Zëvendësimi i skedarit dështoi",
-      "path_copied": "Shtegu u kopjua"
+      "path_copied": "Shtegu u kopjua",
+      "delete_version": "Fshi",
+      "delete_version_tooltip_permanent": "Fshi përgjithmonë këtë version historik nga disku",
+      "delete_version_tooltip_recycle": "Fshi këtë version historik (zhvendos në kosh)",
+      "delete_version_confirm_permanent": "Jeni i sigurt që dëshironi të fshini versionin #{{ version }} ({{ name }})? Skedari fizik do të fshihet përgjithmonë nga disku.",
+      "delete_version_confirm_recycle": "Jeni i sigurt që dëshironi të fshini versionin #{{ version }} ({{ name }})? Skedari fizik do të zhvendoset në delete/storage.",
+      "delete_version_error": "Dështoi fshirja e versionit historik"
     }
   },
   "tag": {

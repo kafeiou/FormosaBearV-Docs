@@ -224,7 +224,13 @@
       "swap_confirm": "Tem certeza de que deseja substituir a versão #{{ version }} ({{ oldName }}) por \"{{ newName }}\"?",
       "swapped": "Substituído",
       "swap_error": "Falha ao substituir o ficheiro",
-      "path_copied": "Caminho copiado"
+      "path_copied": "Caminho copiado",
+      "delete_version": "Excluir",
+      "delete_version_tooltip_permanent": "Excluir permanentemente esta versão histórica do disco",
+      "delete_version_tooltip_recycle": "Excluir esta versão histórica (mover para a lixeira)",
+      "delete_version_confirm_permanent": "Tem certeza de que deseja excluir a versão #{{ version }} ({{ name }})? O arquivo físico será excluído permanentemente do disco.",
+      "delete_version_confirm_recycle": "Tem certeza de que deseja excluir a versão #{{ version }} ({{ name }})? O arquivo físico será movido para delete/storage.",
+      "delete_version_error": "Falha ao excluir a versão histórica"
     }
   },
   "tag": {
@@ -573,11 +579,11 @@
     "error_general": "Ocorreu um erro ao tentar importar o seu ficheiro, por favor certifique-se de que é um ficheiro EML válido"
   },
   "app_share": {
-    "main": "Peça um link de documento partilhado para aceder",
     "403": {
       "title": "Não autorizado",
       "message": "O documento que está a tentar visualizar já não está partilhado"
-    }
+    },
+    "main": "Peça um link de documento partilhado para aceder"
   },
   "directive": {
     "acledit": {

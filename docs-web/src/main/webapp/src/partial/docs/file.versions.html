@@ -77,11 +77,19 @@
           </a>
           <button type="button" class="btn btn-xs" ng-class="file.swapped ? 'btn-success' : 'btn-warning'" ng-if="privileged && swapEnabled"
                   ngf-select="swapVersion($files, file)" ngf-multiple="false"
-                  ng-disabled="file.swapping"
+                  ng-disabled="file.swapping || file.deleting"
                   uib-tooltip="{{ 'file.versions.swap_tooltip' | translate }}" tooltip-append-to-body="true"
                   style="margin-left: 4px;">
             <span class="fas" ng-class="file.swapping ? 'fa-spinner fa-spin' : (file.swapped ? 'fa-check' : 'fa-exchange-alt')"></span>
             {{ (file.swapped ? 'file.versions.swapped' : 'file.versions.swap') | translate }}
+          </button>
+          <button type="button" class="btn btn-xs btn-danger" ng-if="privileged && swapEnabled && !file.latest_version"
+                  ng-click="deleteVersion(file)"
+                  ng-disabled="file.deleting || file.swapping"
+                  uib-tooltip="{{ (fileDelete ? 'file.versions.delete_version_tooltip_permanent' : 'file.versions.delete_version_tooltip_recycle') | translate }}" tooltip-append-to-body="true"
+                  style="margin-left: 4px;">
+            <span class="fas" ng-class="file.deleting ? 'fa-spinner fa-spin' : 'fa-trash'"></span>
+            {{ 'file.versions.delete_version' | translate }}
           </button>
         </td>
       </tr>

@@ -270,7 +270,13 @@
       "swap_confirm": "Bạn có chắc chắn muốn thay thế phiên bản #{{ version }} ({{ oldName }}) bằng \"{{ newName }}\" không?",
       "swapped": "Đã thay thế",
       "swap_error": "Thay thế tệp thất bại",
-      "path_copied": "Đã sao chép đường dẫn"
+      "path_copied": "Đã sao chép đường dẫn",
+      "delete_version": "Xóa",
+      "delete_version_tooltip_permanent": "Xóa vĩnh viễn phiên bản lịch sử này khỏi đĩa",
+      "delete_version_tooltip_recycle": "Xóa phiên bản lịch sử này (chuyển vào thư mục thùng rác)",
+      "delete_version_confirm_permanent": "Bạn có chắc chắn muốn xóa phiên bản #{{ version }} ({{ name }}) không? Chế độ hiện tại là \"Xóa vĩnh viễn khỏi đĩa\" — tập tin vật lý sẽ bị xóa hoàn toàn.",
+      "delete_version_confirm_recycle": "Bạn có chắc chắn muốn xóa phiên bản #{{ version }} ({{ name }}) không? Chế độ hiện tại là \"Chuyển vào thư mục thùng rác\" — tập tin vật lý sẽ được chuyển tới delete/storage.",
+      "delete_version_error": "Xóa phiên bản lịch sử thất bại"
     },
     "view": {
       "fit_width": "Vừa chiều rộng",

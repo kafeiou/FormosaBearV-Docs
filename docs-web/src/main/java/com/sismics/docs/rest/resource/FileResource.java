@@ -663,6 +663,7 @@ public class FileResource extends BaseResource {
         JsonObjectBuilder response = Json.createObjectBuilder()
                 .add("privileged", privileged)
                 .add("swap_enabled", privileged && ConfigUtil.isFileSwapEnabled())
+                .add("file_delete", ConfigUtil.isFileDelete())
                 .add("files", files);
         return Response.ok().entity(response.build()).build();
     }
@@ -749,6 +750,80 @@ public class FileResource extends BaseResource {
                     .add("message", "Error swapping file");
             return Response.status(403).entity(response.build()).build();
         }
+    }
+
+    /**
+     * Silently deletes a historical file version (non-latest) without creating audit logs.
+     * Respects ConfigType.FILE_DELETE (permanent disk deletion vs. moving to delete/storage recycle directory).
+     * Restricted to administrators and tag_editor group members when FILE_SWAP is enabled.
+     *
+     * @api {delete} /file/:id/version Delete a historical file version
+     * @apiName DeleteFileVersion
+     * @apiGroup File
+     * @apiParam {String} id File ID of the historical version to delete
+     * @apiSuccess {String} status Status OK
+     * @param id File ID
+     * @return Response
+     */
+    @DELETE
+    @Path("{id: [a-z0-9\\-]+}/version")
+    public Response deleteVersion(@PathParam("id") String id) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        if (!isPrivilegedUser()) {
+            throw new ForbiddenClientException();
+        }
+        if (!ConfigUtil.isFileSwapEnabled()) {
+            throw new ClientException("FileSwapDisabled", "Silent file version rollback is disabled by the administrator.");
+        }
+
+        File file = findFile(id, null);
+        if (file.isLatestVersion()) {
+            throw new ClientException("CannotDeleteLatestVersion", "The current (latest) version of a file cannot be deleted.");
+        }
+
+        FileDao fileDao = new FileDao();
+        fileDao.deleteSilently(file.getId());
+
+        // Re-index remaining active versions so version numbers stay contiguous (0, 1, 2, ...)
+        if (file.getVersionId() != null) {
+            List<File> remainingVersions = fileDao.getByVersionId(file.getVersionId());
+            for (int i = 0; i < remainingVersions.size(); i++) {
+                File remFile = remainingVersions.get(i);
+                if (remFile.getVersion() == null || remFile.getVersion() != i) {
+                    remFile.setVersion(i);
+                    fileDao.update(remFile);
+                }
+            }
+        }
+
+        // Update owner storage quota
+        UserDao userDao = new UserDao();
+        User owner = userDao.getById(file.getUserId());
+        if (owner != null && file.getSize() != null && file.getSize() > 0) {
+            owner.setStorageCurrent(Math.max(0L, owner.getStorageCurrent() - file.getSize()));
+            userDao.updateQuota(owner);
+        }
+
+        // Delete or move physical file to recycle directory according to ConfigUtil.isFileDelete()
+        try {
+            FileUtil.delete(file);
+        } catch (IOException e) {
+            log.warn("Error removing physical file for deleted version " + file.getId(), e);
+        }
+
+        // Remove from search index
+        try {
+            AppContext.getInstance().getIndexingHandler().deleteDocument(file.getId());
+        } catch (Exception e) {
+            log.warn("Error removing deleted version from search index " + file.getId(), e);
+        }
+
+        JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("status", "ok")
+                .add("file_delete", ConfigUtil.isFileDelete());
+        return Response.ok().entity(response.build()).build();
     }
     
     /**
