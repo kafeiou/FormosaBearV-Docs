@@ -31,6 +31,12 @@ This document details the notable changes, security enhancements, architecture i
 - **Maintenance & Repository Cleanup**:
   - Removed obsolete snapshot build artifact `build/docs-NoFileEncrypt_1.12-SNAPSHOT.war`.
 
+### 🐛 Bug Fixes
+- **Account Settings & User Management Password Update Fix**:
+  - Fixed an issue in [SettingsAccount.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/settings/SettingsAccount.js) where `$scope.user = {}` was uninitialized, causing AngularJS `ng-if` to create an isolated child scope and send an empty payload to `POST /api/user`, which resulted in silent failures where the old password was retained despite receiving a success response.
+  - Added form `ng-submit` bindings across [settings.account.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.account.html) and [settings.user.edit.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.user.edit.html) to support keyboard Enter submissions.
+  - Added proper form `$setPristine()` calls and error alert callbacks to ensure visual feedback accurately reflects operation outcomes.
+
 ---
 
 ## [v2.04] - 2026-11-11

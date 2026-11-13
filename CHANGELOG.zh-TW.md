@@ -31,6 +31,12 @@
 - **維護與專案清理**：
   - 移除已無使用的快照建置產物 `build/docs-NoFileEncrypt_1.12-SNAPSHOT.war`。
 
+### 🐛 錯誤修復 (Bug Fixes)
+- **個人帳號與使用者管理密碼修改修復**：
+  - 修復 [SettingsAccount.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/settings/SettingsAccount.js) 未初始化 `$scope.user = {}`，導致表單被 `ng-if` 包裹時建立獨立子作用域，向 `POST /api/user` 發送空封包並造成後端未實際寫入新密碼（但仍回傳成功）的重大問題。
+  - 於個人帳號設定（[settings.account.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.account.html)）與使用者編輯（[settings.user.edit.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.user.edit.html)）表單補齊 `ng-submit`，支援在密碼輸入框按下 Enter 鍵直接觸發送出。
+  - 補齊儲存成功後的表單狀態重設（`$setPristine()`）與後端錯誤回傳提示，消除輸入框變紅誤導並確保操作反饋明確。
+
 ---
 
 ## [v2.04] - 2026-11-11

@@ -17,7 +17,7 @@
     </div>
   </div>
 
-  <form class="form-horizontal" name="editUserForm" novalidate autocomplete="off">
+  <form class="form-horizontal" name="editUserForm" ng-submit="edit()" novalidate autocomplete="off">
     <div class="form-group" ng-class="{ 'has-error': !editUserForm.userUsername.$valid && editUserForm.$dirty, success: editUserForm.userUsername.$valid }">
       <label class="col-sm-2 control-label" for="inputUserUsername">{{ 'settings.user.edit.username' | translate }}</label>
       <div class="col-sm-7">
@@ -118,7 +118,7 @@
 
     <div class="form-group">
       <div class="col-sm-offset-2 col-sm-10">
-        <button type="submit" class="btn btn-primary" ng-click="edit()" ng-disabled="!editUserForm.$valid">
+        <button type="submit" class="btn btn-primary" ng-disabled="!editUserForm.$valid">
           <span class="fas fa-pencil-alt"></span> {{ isEdit() ? 'save' : 'add' | translate }}
         </button>
         <button type="button" class="btn btn-danger" ng-click="remove()" ng-show="isEdit() && user.username != 'admin' && user.username != 'guest'">
