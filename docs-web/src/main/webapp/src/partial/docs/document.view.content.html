@@ -85,7 +85,7 @@
         <div class="file-info">
           <div></div>
           <div class="v-align file-name" ng-if="file.name" title="{{ file.name }}{{ file.version_label ? ' (' + file.version_label + ')' : '' }}">{{ file.name }}<span ng-if="file.version_label"> ({{ file.version_label }})</span></div>
-          <div class="v-align" ng-show="document.writable">
+          <div class="v-align" ng-show="document.writable || isPrivileged">
             <div uib-dropdown>
               <button class="btn btn-default" uib-dropdown-toggle>
                 <span class="fas fa-ellipsis-v"></span>
@@ -98,20 +98,20 @@
                   </a>
                 </li>
                 <li role="separator" class="divider" ng-if="canDownload(file, document)"></li>
-                <li>
+                <li ng-if="document.writable">
                   <a href ng-click="renameFile(file,document.title)">
                     <span class="fas fa-pencil-alt"></span>
                     {{ 'rename' | translate }}
                   </a>
                 </li>
-                <li>
+                <li ng-if="document.writable">
                   <a href ng-click="processFile(file)">
                     <span class="fas fa-eye"></span>
                     {{ 'document.view.content.reprocess_file' | translate }}
                   </a>
                 </li>
-                <li role="separator" class="divider"></li>
-                <li>
+                <li role="separator" class="divider" ng-if="document.writable"></li>
+                <li ng-if="document.writable">
                   <a href ngf-select
                      ngf-change="uploadNewVersion($files, file)"
                      ngf-multiple="false">
@@ -125,8 +125,8 @@
                     {{ 'document.view.content.open_versions' | translate }}
                   </a>
                 </li>
-                <li role="separator" class="divider"></li>
-                <li>
+                <li role="separator" class="divider" ng-if="document.writable"></li>
+                <li ng-if="document.writable">
                   <a href ng-click="deleteFile(file)">
                     <span class="fas fa-trash text-danger"></span>
                     {{ 'delete' | translate }}
@@ -177,7 +177,7 @@
       <td>{{ file.mimetype }}</td>
       <td>{{ file. size | filesize }}</td>
       <td>{{ file.version_label }}</td>
-      <td ng-show="document.writable">
+      <td ng-show="document.writable || isPrivileged">
         <div uib-dropdown>
           <button class="btn btn-default" uib-dropdown-toggle>
             <span class="fas fa-ellipsis-v"></span>
@@ -190,20 +190,20 @@
               </a>
             </li>
             <li role="separator" class="divider" ng-if="canDownload(file, document)"></li>
-            <li>
+            <li ng-if="document.writable">
               <a href ng-click="renameFile(file,document.title)">
                 <span class="fas fa-pencil-alt"></span>
                 {{ 'rename' | translate }}
               </a>
             </li>
-            <li>
+            <li ng-if="document.writable">
               <a href ng-click="processFile(file)">
                 <span class="fas fa-eye"></span>
                 {{ 'document.view.content.reprocess_file' | translate }}
               </a>
             </li>
-            <li role="separator" class="divider"></li>
-            <li>
+            <li role="separator" class="divider" ng-if="document.writable"></li>
+            <li ng-if="document.writable">
               <a href ngf-select
                  ngf-change="uploadNewVersion($files, file)"
                  ngf-multiple="false">
@@ -217,8 +217,8 @@
                 {{ 'document.view.content.open_versions' | translate }}
               </a>
             </li>
-            <li role="separator" class="divider"></li>
-            <li>
+            <li role="separator" class="divider" ng-if="document.writable"></li>
+            <li ng-if="document.writable">
               <a href ng-click="deleteFile(file)">
                 <span class="fas fa-trash text-danger"></span>
                 {{ 'delete' | translate }}

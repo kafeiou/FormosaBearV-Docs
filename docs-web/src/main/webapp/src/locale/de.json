@@ -218,7 +218,13 @@
       "filename": "Dateiname",
       "mimetype": "Typ",
       "create_date": "Erstellungsdatum",
-      "version": "Version"
+      "version": "Version",
+      "swap": "Ersetzen",
+      "swap_tooltip": "Diese Dateiversion ersetzen",
+      "swap_confirm": "Möchten Sie Version #{{ version }} ({{ oldName }}) wirklich durch „{{ newName }}“ ersetzen?",
+      "swapped": "Ersetzt",
+      "swap_error": "Ersetzen der Datei fehlgeschlagen",
+      "path_copied": "Pfad kopiert"
     }
   },
   "tag": {
@@ -444,6 +450,10 @@
       "ldap_password_change_forbidden": "Password change is not permitted for LDAP accounts."
     },
     "config": {
+      "title_file_swap": "Dateiversions-Rückgriff (Administratoren / tag_editor)",
+      "message_file_swap": "Legt fest, ob Mitglieder der Gruppe administrators oder tag_editor direkt im Versionsverlauf zurückgreifen dürfen. Standardmäßig deaktiviert.",
+      "enable_file_swap": "Rückgriff-Funktion aktivieren",
+      "disable_file_swap": "Rückgriff-Funktion deaktivieren",
       "title_guest_access": "Gastzugang",
       "message_guest_access": "Der Gastzugang ist ein Modus, in dem jeder auf {{appName}} ohne Kennwort zugreifen kann.<br/>Wie ein normaler Benutzer kann der Gastbenutzer nur auf seine Dokumente und diejenigen zugreifen, auf die er über Berechtigungen zugreifen kann.<br/>",
       "enable_guest_access": "Gastzugang aktivieren",

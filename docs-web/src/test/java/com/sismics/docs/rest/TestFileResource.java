@@ -607,5 +607,127 @@ public class TestFileResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
                 .get(JsonObject.class);
         Assert.assertTrue(versionsJson.getJsonArray("files").getJsonObject(1).isNull("version_label"));
+        Assert.assertFalse(versionsJson.getBoolean("privileged"));
+
+        // 7. Non-privileged user cannot swap a file version (403 Forbidden)
+        try (InputStream is = Resources.getResource(FILE_PIA_00452_JPG).openStream()) {
+            StreamDataBodyPart streamDataBodyPart = new StreamDataBodyPart("file", is, "PIA00452.jpg");
+            try (FormDataMultiPart multiPart = new FormDataMultiPart()) {
+                Response forbiddenResp = target()
+                        .register(MultiPartFeature.class)
+                        .path("/file/" + file1Id + "/swap")
+                        .request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                        .post(Entity.entity(multiPart.bodyPart(streamDataBodyPart), MediaType.MULTIPART_FORM_DATA_TYPE));
+                Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), forbiddenResp.getStatus());
+            }
+        }
+
+        // 8. Admin / tag_editor user sees storage_path and can silently swap historical version #1 without audit log
+        String adminToken = clientUtil.login("admin", "superSecure", false);
+        // Grant READ on document to admin so admin can view versions
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .put(Entity.form(new Form()
+                        .param("source", documentId)
+                        .param("perm", "READ")
+                        .param("target", "admin")
+                        .param("type", "USER")), JsonObject.class);
+
+        JsonObject logsBefore = target().path("/auditlog")
+                .queryParam("document", documentId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .get(JsonObject.class);
+        int logCountBefore = logsBefore.getJsonArray("logs").size();
+
+        JsonObject adminVersionsJson = target().path("/file/" + file2Id + "/versions")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertTrue(adminVersionsJson.getBoolean("privileged"));
+        Assert.assertFalse("File swap must be disabled by default", adminVersionsJson.getBoolean("swap_enabled"));
+        Assert.assertTrue(adminVersionsJson.getJsonArray("files").getJsonObject(0).getString("storage_path").contains("spec-doc.txt"));
+
+        // Swap & version rename are rejected while the admin setting is disabled (default)
+        try (InputStream is = Resources.getResource(FILE_PIA_00452_JPG).openStream()) {
+            StreamDataBodyPart streamDataBodyPart = new StreamDataBodyPart("file", is, "PIA00452.jpg");
+            try (FormDataMultiPart multiPart = new FormDataMultiPart()) {
+                Response disabledResp = target()
+                        .register(MultiPartFeature.class)
+                        .path("/file/" + file1Id + "/swap")
+                        .request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                        .post(Entity.entity(multiPart.bodyPart(streamDataBodyPart), MediaType.MULTIPART_FORM_DATA_TYPE));
+                Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), disabledResp.getStatus());
+            }
+        }
+        Response disabledRenameResp = target().path("/file/" + file1Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("name", "renamed-v1.txt")
+                        .param("from_versions", "true")));
+        Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), disabledRenameResp.getStatus());
+
+        // Admin enables file swap & rename
+        target().path("/app/file_swap").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "true")));
+        adminVersionsJson = target().path("/file/" + file2Id + "/versions")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertTrue(adminVersionsJson.getBoolean("swap_enabled"));
+
+        // Rename historical version #1 (file1Id) in version history
+        JsonObject renameResp = target().path("/file/" + file1Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("name", "renamed-v1.txt")
+                        .param("version_label", "1.0")
+                        .param("from_versions", "true")), JsonObject.class);
+        Assert.assertEquals("ok", renameResp.getString("status"));
+        Assert.assertEquals("renamed-v1.txt", renameResp.getString("name"));
+        Assert.assertTrue(renameResp.getString("storage_path").contains("renamed-v1.txt"));
+
+        // Swap historical version #1 (file1Id) from TXT to JPG (arbitrary format swap)
+        try (InputStream is = Resources.getResource(FILE_PIA_00452_JPG).openStream()) {
+            StreamDataBodyPart streamDataBodyPart = new StreamDataBodyPart("file", is, "swapped-v1.jpg");
+            try (FormDataMultiPart multiPart = new FormDataMultiPart()) {
+                JsonObject swapResp = target()
+                        .register(MultiPartFeature.class)
+                        .path("/file/" + file1Id + "/swap")
+                        .request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                        .post(Entity.entity(multiPart.bodyPart(streamDataBodyPart), MediaType.MULTIPART_FORM_DATA_TYPE), JsonObject.class);
+                Assert.assertEquals("ok", swapResp.getString("status"));
+                Assert.assertEquals("swapped-v1.jpg", swapResp.getString("name"));
+                Assert.assertEquals("image/jpeg", swapResp.getString("mimetype"));
+            }
+        }
+
+        // Verify version #1 metadata updated and NO new audit log was created
+        adminVersionsJson = target().path("/file/" + file2Id + "/versions")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        JsonObject v1After = adminVersionsJson.getJsonArray("files").getJsonObject(0);
+        Assert.assertEquals(file1Id, v1After.getString("id"));
+        Assert.assertEquals("swapped-v1.jpg", v1After.getString("name"));
+        Assert.assertEquals("image/jpeg", v1After.getString("mimetype"));
+        Assert.assertTrue(v1After.getString("storage_path").contains("swapped-v1.jpg"));
+
+        JsonObject logsAfter = target().path("/auditlog")
+                .queryParam("document", documentId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, token)
+                .get(JsonObject.class);
+        Assert.assertEquals("Swapping a file version must not generate any audit log entry",
+                logCountBefore, logsAfter.getJsonArray("logs").size());
+
+        // Restore default (disabled)
+        target().path("/app/file_swap").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "false")));
     }
 }

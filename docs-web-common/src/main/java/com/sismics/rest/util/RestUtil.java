@@ -2,6 +2,7 @@ package com.sismics.rest.util;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import com.sismics.docs.core.model.jpa.File;
 import com.sismics.docs.core.util.DirectoryUtil;
@@ -28,10 +29,19 @@ public class RestUtil {
     public static JsonObjectBuilder fileToJsonObjectBuilder(File fileDb) {
         try {
             long fileSize = fileDb.getSize().equals(File.UNKNOWN_SIZE) ? Files.size(DirectoryUtil.getStorageDirectory(fileDb).resolve(fileDb.getName())) : fileDb.getSize();
+            Path baseDataDir = DirectoryUtil.getBaseDataDirectory();
+            Path storedPath = DirectoryUtil.getStorageDirectory(fileDb).resolve(fileDb.getName() != null ? fileDb.getName() : "");
+            String relativePath;
+            try {
+                relativePath = baseDataDir.relativize(storedPath).toString().replace('\\', '/');
+            } catch (Exception e) {
+                relativePath = storedPath.toString().replace('\\', '/');
+            }
             return Json.createObjectBuilder()
                     .add("id", fileDb.getId())
                     .add("processing", FileUtil.isProcessingFile(fileDb.getId()))
                     .add("name", JsonUtil.nullable(fileDb.getName()))
+                    .add("storage_path", relativePath)
                     .add("version", fileDb.getVersion())
                     .add("version_label", JsonUtil.nullable(fileDb.getVersionLabel()))
                     .add("mimetype", fileDb.getMimeType())

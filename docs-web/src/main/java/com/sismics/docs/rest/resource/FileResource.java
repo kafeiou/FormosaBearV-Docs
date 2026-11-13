@@ -27,8 +27,11 @@ import com.sismics.docs.core.constant.PermType;
 import com.sismics.docs.core.dao.AclDao;
 import com.sismics.docs.core.dao.DocumentDao;
 import com.sismics.docs.core.dao.FileDao;
+import com.sismics.docs.core.dao.GroupDao;
 import com.sismics.docs.core.dao.UserDao;
+import com.sismics.docs.core.dao.criteria.GroupCriteria;
 import com.sismics.docs.core.dao.dto.DocumentDto;
+import com.sismics.docs.core.dao.dto.GroupDto;
 import com.sismics.docs.core.event.DocumentUpdatedAsyncEvent;
 import com.sismics.docs.core.event.FileDeletedAsyncEvent;
 import com.sismics.docs.core.event.FileUpdatedAsyncEvent;
@@ -305,16 +308,20 @@ public class FileResource extends BaseResource {
     public Response update(@PathParam("id") String id,
                            @FormParam("name") String name,
                            @FormParam("document_id") String document_id,
-                           @FormParam("version_label") String versionLabel) {
+                           @FormParam("version_label") String versionLabel,
+                           @FormParam("from_versions") Boolean fromVersions) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
 
         // Get the file
         File file = findFile(id, null);
+        boolean privileged = isPrivilegedUser();
+        boolean hasWritePerm = true;
         if (file.getDocumentId() != null) {
             AclDao aclDao = new AclDao();
-            if (!aclDao.checkPermission(file.getDocumentId(), PermType.WRITE, getTargetIdList(null))) {
+            hasWritePerm = aclDao.checkPermission(file.getDocumentId(), PermType.WRITE, getTargetIdList(null));
+            if (!privileged && !hasWritePerm) {
                 throw new ForbiddenClientException();
             }
         }
@@ -323,16 +330,25 @@ public class FileResource extends BaseResource {
         if (name == null) {
             name = file.getName();
         }
+        boolean isNameChanged = !StringUtils.equals(name, file.getName());
+        if (isNameChanged && (!file.isLatestVersion() || !hasWritePerm || Boolean.TRUE.equals(fromVersions))) {
+            if (!privileged) {
+                throw new ForbiddenClientException();
+            }
+            if (!ConfigUtil.isFileSwapEnabled()) {
+                throw new ClientException("FileSwapDisabled", "Silent file version swap and rename is disabled by the administrator.");
+            }
+        }
         if (versionLabel != null) {
             versionLabel = ValidationUtil.validateLength(versionLabel, "version_label", 0, 50, true);
             file.setVersionLabel(StringUtils.stripToNull(versionLabel));
         }
 
         FileDao fileDao = new FileDao();
-        boolean bNameNeedToUpdate = !StringUtils.equals(name, file.getName())
+        boolean bNameNeedToUpdate = isNameChanged
                 || (document_id != null && !StringUtils.equals(document_id, file.getDocumentId()));
 
-        if (bNameNeedToUpdate && !ConfigUtil.canFileDuplicate()) {
+        if (bNameNeedToUpdate && !ConfigUtil.canFileDuplicate() && !(privileged && ConfigUtil.isFileSwapEnabled()) && file.isLatestVersion()) {
           List<File> aCheckFile = fileDao.getByUserIdFileName(file.getUserId(),StringUtils.abbreviate(name, 200));
           if(aCheckFile!=null){
             if( aCheckFile.size()==1){
@@ -353,18 +369,25 @@ public class FileResource extends BaseResource {
 
         // file rename 
         if (bNameNeedToUpdate && file.getName() != null) {
-            java.nio.file.Path aOriFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());
-            java.nio.file.Path aOriWebFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName()+"_web");
-            java.nio.file.Path aOriThumbFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName()+"_thumb");
+            java.nio.file.Path storageDir = DirectoryUtil.getStorageDirectory(file);
+            java.nio.file.Path aOriFile = storageDir.resolve(file.getName());
+            java.nio.file.Path aOriWebFile = storageDir.resolve(file.getName()+"_web");
+            java.nio.file.Path aOriThumbFile = storageDir.resolve(file.getName()+"_thumb");
+            java.nio.file.Path aOriPdfFile = storageDir.resolve(file.getName()+"_pdf");
             if( document_id!=null)
               file.setDocumentId(document_id);
-            java.nio.file.Path aDestFile = DirectoryUtil.getStorageDirectory(file).resolve(name);
-            java.nio.file.Path aDestWebFile = DirectoryUtil.getStorageDirectory(file).resolve(name+"_web");
-            java.nio.file.Path aDestThumbFile = DirectoryUtil.getStorageDirectory(file).resolve(name+"_thumb");
+            java.nio.file.Path destDir = DirectoryUtil.getStorageDirectory(file);
+            java.nio.file.Path aDestFile = destDir.resolve(name);
+            java.nio.file.Path aDestWebFile = destDir.resolve(name+"_web");
+            java.nio.file.Path aDestThumbFile = destDir.resolve(name+"_thumb");
+            java.nio.file.Path aDestPdfFile = destDir.resolve(name+"_pdf");
 
             aOriFile.toFile().renameTo(aDestFile.toFile());
             aOriWebFile.toFile().renameTo(aDestWebFile.toFile());
             aOriThumbFile.toFile().renameTo(aDestThumbFile.toFile());
+            if (Files.exists(aOriPdfFile)) {
+                aOriPdfFile.toFile().renameTo(aDestPdfFile.toFile());
+            }
         } else if (document_id != null) {
             file.setDocumentId(document_id);
         }
@@ -375,7 +398,15 @@ public class FileResource extends BaseResource {
 
         // Always return OK
         JsonObjectBuilder response = Json.createObjectBuilder()
-                .add("status", "ok");
+                .add("status", "ok")
+                .add("name", file.getName());
+        if (privileged) {
+            java.nio.file.Path storedFile = ConfigUtil.isFileEncrypt()
+                    ? DirectoryUtil.getStorageDirectory(file).resolve(file.getId())
+                    : DirectoryUtil.getStorageDirectory(file).resolve(file.getName() != null ? file.getName() : file.getId());
+            String relativePath = DirectoryUtil.getBaseDataDirectory().relativize(storedFile).toString().replace('\\', '/');
+            response.add("storage_path", relativePath);
+        }
         return Response.ok().entity(response.build()).build();
     }
 
@@ -590,21 +621,134 @@ public class FileResource extends BaseResource {
             fileList = fileDao.getByVersionId(file.getVersionId());
         }
 
+        boolean privileged = isPrivilegedUser();
+        java.nio.file.Path baseDataDir = DirectoryUtil.getBaseDataDirectory();
+
         JsonArrayBuilder files = Json.createArrayBuilder();
         for (File fileDb : fileList) {
-            files.add(Json.createObjectBuilder()
+            long fileSize = fileDb.getSize() != null ? fileDb.getSize() : File.UNKNOWN_SIZE;
+            if (fileSize == File.UNKNOWN_SIZE && fileDb.getName() != null) {
+                try {
+                    java.nio.file.Path p = DirectoryUtil.getStorageDirectory(fileDb).resolve(fileDb.getName());
+                    if (Files.exists(p)) {
+                        fileSize = Files.size(p);
+                    }
+                } catch (IOException ignored) {
+                }
+            }
+            JsonObjectBuilder fb = Json.createObjectBuilder()
                     .add("id", fileDb.getId())
+                    .add("processing", FileUtil.isProcessingFile(fileDb.getId()))
                     .add("name", JsonUtil.nullable(fileDb.getName()))
                     .add("version", fileDb.getVersion())
                     .add("version_label", JsonUtil.nullable(fileDb.getVersionLabel()))
                     .add("latest_version", fileDb.isLatestVersion())
                     .add("mimetype", fileDb.getMimeType())
-                    .add("create_date", fileDb.getCreateDate().getTime()));
+                    .add("size", fileSize)
+                    .add("create_date", fileDb.getCreateDate().getTime());
+            if (privileged) {
+                java.nio.file.Path storedPath = DirectoryUtil.getStorageDirectory(fileDb)
+                        .resolve(Strings.nullToEmpty(fileDb.getName()));
+                String relativePath;
+                try {
+                    relativePath = baseDataDir.relativize(storedPath).toString().replace('\\', '/');
+                } catch (Exception e) {
+                    relativePath = storedPath.toString().replace('\\', '/');
+                }
+                fb.add("storage_path", relativePath);
+            }
+            files.add(fb);
         }
 
         JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("privileged", privileged)
+                .add("swap_enabled", privileged && ConfigUtil.isFileSwapEnabled())
                 .add("files", files);
         return Response.ok().entity(response.build()).build();
+    }
+
+    /**
+     * Silently swap/replace an existing file version in-place without creating audit logs.
+     * Restricted to administrators and tag_editor group members.
+     *
+     * @api {post} /file/:id/swap Silently replace an existing file version
+     * @apiName PostFileSwap
+     * @apiGroup File
+     * @apiParam {String} id File ID of the version to replace
+     * @apiParam {String} file Replacement file data (multipart/form-data)
+     * @apiSuccess {String} status Status OK
+     * @param id File ID
+     * @param fileBodyPart New file data
+     * @return Response
+     */
+    @POST
+    @Path("{id: [a-z0-9\\-]+}/swap")
+    @Consumes("multipart/form-data")
+    public Response swap(
+            @PathParam("id") String id,
+            @FormDataParam("file") FormDataBodyPart fileBodyPart) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        if (!isPrivilegedUser()) {
+            throw new ForbiddenClientException();
+        }
+        if (!ConfigUtil.isFileSwapEnabled()) {
+            throw new ClientException("FileSwapDisabled", "Silent file version swap is disabled by the administrator.");
+        }
+
+        ValidationUtil.validateRequired(fileBodyPart, "file");
+
+        File file = findFile(id, null);
+        String language = null;
+        if (file.getDocumentId() != null) {
+            DocumentDao documentDao = new DocumentDao();
+            Document document = documentDao.getById(file.getDocumentId());
+            if (document != null) {
+                language = document.getLanguage();
+            }
+        }
+
+        String name = fileBodyPart.getContentDisposition() != null ?
+                URLDecoder.decode(fileBodyPart.getContentDisposition().getFileName(), StandardCharsets.UTF_8) : file.getName();
+        if (Strings.isNullOrEmpty(name)) {
+            name = file.getName();
+        }
+
+        java.nio.file.Path unencryptedFile;
+        long fileSize;
+        try {
+            unencryptedFile = AppContext.getInstance().getFileService().createTemporaryFile(name);
+            Files.copy(fileBodyPart.getValueAs(InputStream.class), unencryptedFile, StandardCopyOption.REPLACE_EXISTING);
+            fileSize = Files.size(unencryptedFile);
+        } catch (IOException e) {
+            throw new ServerException("StreamError", "Error reading the input file", e);
+        }
+
+        try {
+            File updatedFile = FileUtil.swapFile(file, name, unencryptedFile, fileSize, language);
+
+            JsonObjectBuilder response = Json.createObjectBuilder()
+                    .add("status", "ok")
+                    .add("id", updatedFile.getId())
+                    .add("name", JsonUtil.nullable(updatedFile.getName()))
+                    .add("mimetype", updatedFile.getMimeType())
+                    .add("size", updatedFile.getSize());
+            return Response.ok().entity(response.build()).build();
+        } catch (IOException e) {
+            JsonObjectBuilder response = Json.createObjectBuilder()
+                    .add("status", "FileError")
+                    .add("type", e.getMessage())
+                    .add("message", e.getMessage());
+            return Response.status(403).entity(response.build()).build();
+        } catch (Exception e) {
+            log.error("Error swapping file " + id, e);
+            JsonObjectBuilder response = Json.createObjectBuilder()
+                    .add("status", "FileError")
+                    .add("type", "Exception")
+                    .add("message", "Error swapping file");
+            return Response.status(403).entity(response.build()).build();
+        }
     }
     
     /**
@@ -687,7 +831,8 @@ public class FileResource extends BaseResource {
     public Response data(
             @PathParam("id") final String fileId,
             @QueryParam("share") String shareId,
-            @QueryParam("size") String size) {
+            @QueryParam("size") String size,
+            @QueryParam("silent") Boolean silent) {
         authenticate();
         
         if (size != null && !Lists.newArrayList("web", "thumb", "content").contains(size)) {
@@ -761,7 +906,7 @@ public class FileResource extends BaseResource {
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
         }
 
-        if (size == null) {
+        if (size == null && !(Boolean.TRUE.equals(silent) && isPrivilegedUser())) {
             com.sismics.docs.core.util.AuditLogUtil.create(file, AuditLogType.DOWNLOAD, user.getId());
         }
 
@@ -781,9 +926,8 @@ public class FileResource extends BaseResource {
                 .header(HttpHeaders.CONTENT_TYPE, servedMime)
                 .header("X-Content-Type-Options", "nosniff");
         if (decrypt) {
-            // Cache real files
-            builder.header(HttpHeaders.CACHE_CONTROL, "private")
-                    .header(HttpHeaders.EXPIRES, HttpUtil.buildExpiresHeader(3_600_000L * 24L * 365L));
+            builder.header(HttpHeaders.CACHE_CONTROL, "private, no-cache, must-revalidate")
+                    .header(HttpHeaders.EXPIRES, "0");
         } else {
             // Do not cache the temporary thumbnail
             builder.header(HttpHeaders.CACHE_CONTROL, "no-store, must-revalidate")
@@ -1046,6 +1190,31 @@ public class FileResource extends BaseResource {
     }
 
     /**
+     * Checks if the current authenticated user is a privileged manager
+     * (has ADMIN base function, or belongs to administrators / tag_editor group).
+     *
+     * @return true if privileged
+     */
+    private boolean isPrivilegedUser() {
+        if (principal == null || principal.isAnonymous()) {
+            return false;
+        }
+        if (hasBaseFunction(BaseFunction.ADMIN)) {
+            return true;
+        }
+        GroupDao groupDao = new GroupDao();
+        List<GroupDto> groupDtoList = groupDao.findByCriteria(
+                new GroupCriteria().setUserId(principal.getId()).setRecursive(true), null);
+        for (GroupDto groupDto : groupDtoList) {
+            if ("administrators".equalsIgnoreCase(groupDto.getName())
+                    || "tag_editor".equalsIgnoreCase(groupDto.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Checks if downloading the given file is allowed under the download authorization matrix.
      *
      * @param file File to check
@@ -1056,7 +1225,7 @@ public class FileResource extends BaseResource {
         if (ConfigUtil.canFileDownload()) {
             return true;
         }
-        if (hasBaseFunction(BaseFunction.ADMIN)) {
+        if (isPrivilegedUser()) {
             return true;
         }
         if (principal.getId() != null && principal.getId().equals(file.getUserId())) {

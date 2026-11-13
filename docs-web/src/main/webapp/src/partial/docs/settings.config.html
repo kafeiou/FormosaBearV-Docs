@@ -114,6 +114,18 @@
 </div>
 
 <h3>
+  <span translate="settings.config.title_file_swap"></span>
+  <span class="label" ng-class="{ 'label-success': app.file_swap, 'label-danger': !app.file_swap }">
+    {{ (app.file_swap ? 'enabled' : 'disabled') | translate }}
+  </span>
+</h3>
+<p translate="settings.config.message_file_swap"></p>
+<div ng-if="app" class="mb-19">
+  <button ng-if="!app.file_swap" class="btn btn-primary" ng-click="changeFileSwap(true)">{{ 'settings.config.enable_file_swap' | translate }}</button>
+  <button ng-if="app.file_swap" class="btn btn-danger" ng-click="changeFileSwap(false)">{{ 'settings.config.disable_file_swap' | translate }}</button>
+</div>
+
+<h3>
   <span translate="settings.config.title_preview_watermark"></span>
   <span class="label" ng-class="{ 'label-success': app.preview_watermark_enabled, 'label-danger': !app.preview_watermark_enabled }">
     {{ (app.preview_watermark_enabled ? 'enabled' : 'disabled') | translate }}

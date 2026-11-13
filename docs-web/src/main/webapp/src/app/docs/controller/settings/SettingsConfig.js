@@ -111,6 +111,18 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
     });
   };
 
+  // Enable/disable silent file version swap for privileged users (default disabled)
+  $scope.changeFileSwap = function (enabled) {
+    Restangular.one('app').post('file_swap', {
+      enabled: enabled
+    }).then(function () {
+      $scope.app.file_swap = enabled;
+      if ($rootScope.app) {
+        $rootScope.app.file_swap = enabled;
+      }
+    });
+  };
+
   // Enable/disable document preview watermark
   $scope.watermarkSaved = false;
   $scope.changePreviewWatermark = function (enabled) {

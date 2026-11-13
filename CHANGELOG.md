@@ -25,8 +25,9 @@ This document details the notable changes, security enhancements, architecture i
   - Integrated `ja` and `vi` into client-side routing and automatic browser language detection ([app.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/app.js), [share/app.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/share/app.js)).
   - Added `日本語` and `Tiếng Việt` to language selectors in [index.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/index.html) and [share.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/share.html).
   - Added Japanese and Vietnamese relative time formatting dictionaries to [angular.timeago.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/lib/angular.timeago.js).
-- **Footer Attribution URL Modernization**:
+- **Footer Attribution URL & Taiwan Yushan Login Background**:
   - Updated `footer_sismics` attribution hyperlink across all 14 locale resource files to point to `https://kafeiou.pw`.
+  - Updated the default login background image ([background.jpg](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/resources/image/background.jpg)) to a landscape photograph of Taiwan's Mount Yushan (CC0 1.0 Public Domain).
 - **Maintenance & Repository Cleanup**:
   - Removed obsolete snapshot build artifact `build/docs-NoFileEncrypt_1.12-SNAPSHOT.war`.
 

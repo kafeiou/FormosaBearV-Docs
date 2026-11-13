@@ -264,7 +264,13 @@
       "latest": "Hiện tại",
       "mimetype": "Loại tập tin",
       "title": "Lịch sử phiên bản",
-      "version": "Phiên bản"
+      "version": "Phiên bản",
+      "swap": "Thay thế",
+      "swap_tooltip": "Thay thế phiên bản tệp này",
+      "swap_confirm": "Bạn có chắc chắn muốn thay thế phiên bản #{{ version }} ({{ oldName }}) bằng \"{{ newName }}\" không?",
+      "swapped": "Đã thay thế",
+      "swap_error": "Thay thế tệp thất bại",
+      "path_copied": "Đã sao chép đường dẫn"
     },
     "view": {
       "fit_width": "Vừa chiều rộng",
@@ -518,6 +524,10 @@
       "title_file_duplicate": "Cho phép tải lên trùng tên tập tin (file.duplicate)",
       "title_file_encrypt": "Mã hóa lưu trữ tập tin (file.encrypt)",
       "title_general": "Cấu hình chung",
+      "title_file_swap": "Truy nguyên phiên bản tệp (Quản trị viên / tag_editor)",
+      "message_file_swap": "Kiểm soát việc thành viên nhóm administrators hoặc tag_editor có thể trực tiếp truy nguyên trong lịch sử phiên bản hay không. Mặc định bị tắt.",
+      "enable_file_swap": "Bật tính năng truy nguyên",
+      "disable_file_swap": "Tắt tính năng truy nguyên",
       "title_guest_access": "Quyền truy cập của khách",
       "title_ocr": "Nhận dạng ký tự quang học (OCR)",
       "title_preview_watermark": "Hình mờ xem trước tài liệu",

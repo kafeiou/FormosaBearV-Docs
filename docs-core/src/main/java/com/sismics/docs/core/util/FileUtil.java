@@ -32,6 +32,7 @@ import com.sismics.docs.core.dao.UserDao;
 import com.sismics.docs.core.event.DocumentUpdatedAsyncEvent;
 import com.sismics.docs.core.event.FileCreatedAsyncEvent;
 import com.sismics.docs.core.event.FileDeletedAsyncEvent;
+import com.sismics.docs.core.event.FileUpdatedAsyncEvent;
 import com.sismics.docs.core.model.context.AppContext;
 import com.sismics.docs.core.model.jpa.File;
 import com.sismics.docs.core.model.jpa.User;
@@ -257,6 +258,104 @@ public class FileUtil {
         }
 
         return fileId;
+    }
+
+    /**
+     * Silently swap/replace an existing file (latest or historical version) in-place
+     * without creating a new version or writing an audit log entry.
+     *
+     * @param file Existing File entity to replace
+     * @param name New file name
+     * @param unencryptedFile Temporary path to the uploaded unencrypted file
+     * @param fileSize Size of the new file in bytes
+     * @param language Document language for OCR/extraction (can be null)
+     * @return Updated File entity
+     * @throws Exception e
+     */
+    public static File swapFile(File file, String name, Path unencryptedFile, long fileSize, String language) throws Exception {
+        // Validate mime type
+        String mimeType;
+        try {
+            mimeType = MimeTypeUtil.guessMimeType(unencryptedFile, name);
+        } catch (IOException e) {
+            throw new IOException("ErrorGuessMime", e);
+        }
+
+        // Validate and update owner quota
+        UserDao userDao = new UserDao();
+        User owner = userDao.getById(file.getUserId());
+        long oldSize = (file.getSize() != null && file.getSize() > 0) ? file.getSize() : 0L;
+        long sizeDelta = fileSize - oldSize;
+        if (sizeDelta > 0) {
+            if (owner.getStorageQuota() > 0 && owner.getStorageCurrent() + sizeDelta > owner.getStorageQuota()) {
+                throw new IOException("QuotaReached");
+            }
+            String globalStorageQuotaStr = System.getenv(Constants.GLOBAL_QUOTA_ENV);
+            if (!Strings.isNullOrEmpty(globalStorageQuotaStr)) {
+                long globalStorageQuota = Long.parseLong(globalStorageQuotaStr);
+                long globalStorageCurrent = userDao.getGlobalStorageCurrent();
+                if (globalStorageCurrent + sizeDelta > globalStorageQuota) {
+                    throw new IOException("QuotaReached");
+                }
+            }
+        }
+
+        String finalName = StringUtils.abbreviate(Strings.isNullOrEmpty(name) ? file.getName() : name, 200);
+        Path storageDir = DirectoryUtil.getStorageDirectory(file);
+        Files.createDirectories(storageDir);
+
+        // Remove old physical file and its cached preview/thumbnail derivatives
+        String oldName = file.getName();
+        String[] suffixes = new String[] { "", "_web", "_thumb", "_pdf" };
+        if (!Strings.isNullOrEmpty(oldName)) {
+            for (String suffix : suffixes) {
+                try {
+                    Files.deleteIfExists(storageDir.resolve(oldName + suffix));
+                } catch (IOException ignored) {
+                }
+            }
+        }
+        if (!Strings.isNullOrEmpty(finalName) && !finalName.equals(oldName)) {
+            for (String suffix : suffixes) {
+                try {
+                    Files.deleteIfExists(storageDir.resolve(finalName + suffix));
+                } catch (IOException ignored) {
+                }
+            }
+        }
+
+        // Update file metadata in DB (FileDao.update does NOT create any AuditLog)
+        file.setName(finalName);
+        file.setMimeType(mimeType);
+        file.setSize(fileSize);
+        file.setContent(null);
+        FileDao fileDao = new FileDao();
+        fileDao.update(file);
+
+        // Ensure file encryption mode is permanently locked once any file is stored
+        ConfigUtil.ensureFileEncryptLocked();
+
+        // Save new physical file to storage directory
+        Path newPath = storageDir.resolve(finalName);
+        try (InputStream inputStream = EncryptionUtil.encryptInputStream(Files.newInputStream(unencryptedFile), owner.getPrivateKey())) {
+            Files.copy(inputStream, newPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        // Update owner storage quota
+        long updatedCurrent = Math.max(0L, owner.getStorageCurrent() + sizeDelta);
+        owner.setStorageCurrent(updatedCurrent);
+        userDao.updateQuota(owner);
+
+        // Trigger asynchronous thumbnail/preview generation and text extraction without audit logging
+        startProcessingFile(file.getId());
+        FileUpdatedAsyncEvent fileUpdatedAsyncEvent = new FileUpdatedAsyncEvent();
+        fileUpdatedAsyncEvent.setUserId(file.getUserId());
+        fileUpdatedAsyncEvent.setLanguage(language);
+        fileUpdatedAsyncEvent.setFileId(file.getId());
+        fileUpdatedAsyncEvent.setUnencryptedFile(unencryptedFile);
+        ThreadLocalContext.get().addAsyncEvent(fileUpdatedAsyncEvent);
+
+        return file;
     }
 
     /**

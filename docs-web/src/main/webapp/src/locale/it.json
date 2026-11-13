@@ -218,7 +218,13 @@
       "filename": "Nome file",
       "mimetype": "Tipo",
       "create_date": "Data di creazione",
-      "version": "Versione"
+      "version": "Versione",
+      "swap": "Sostituisci",
+      "swap_tooltip": "Sostituisci questa versione del file",
+      "swap_confirm": "Sei sicuro di voler sostituire la versione #{{ version }} ({{ oldName }}) con \"{{ newName }}\"?",
+      "swapped": "Sostituito",
+      "swap_error": "Sostituzione del file non riuscita",
+      "path_copied": "Percorso copiato"
     }
   },
   "tag": {
@@ -443,6 +449,10 @@
       "ldap_password_change_forbidden": "Password change is not permitted for LDAP accounts."
     },
     "config": {
+      "title_file_swap": "Ripristino retroattivo versione file (Amministratori / tag_editor)",
+      "message_file_swap": "Controlla se i membri del gruppo administrators o tag_editor possono intervenire direttamente nella cronologia delle versioni. Disattivato per impostazione predefinita.",
+      "enable_file_swap": "Attiva funzione retroattiva",
+      "disable_file_swap": "Disattiva funzione retroattiva",
       "title_guest_access": "Accesso come ospite",
       "message_guest_access": "L'accesso come ospite è una modalità nella quale chiunque può accedere {{ appName }} senza password.<br/>Come un normale utente, l'utente ospite può accedere solo ai suoi documenti e a quelli accessibili tramite permessi.<br/>",
       "enable_guest_access": "Abilita accesso ospite",

@@ -165,6 +165,23 @@ public class ConfigUtil {
         return getBundleBoolean("file.download", true);
     }
 
+    /**
+     * Returns true if silent file version swap is allowed for privileged users. Default is false.
+     */
+    public static boolean isFileSwapEnabled() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config config = configDao.getById(ConfigType.FILE_SWAP);
+                if (config != null && config.getValue() != null) {
+                    return "1".equals(config.getValue().trim()) || Boolean.parseBoolean(config.getValue().trim());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return false;
+    }
+
     public static final String DEFAULT_PREVIEW_WATERMARK_DATE_FORMAT = "dd MMM yyyy";
 
     /**

@@ -247,7 +247,13 @@
       "mimetype": "類型",
       "create_date": "建立日期",
       "version": "版本",
-      "latest": "目前版本"
+      "latest": "目前版本",
+      "swap": "抽換",
+      "swap_tooltip": "回溯替換此版本檔案",
+      "swap_confirm": "確定要以「{{ newName }}」回溯替換版本 #{{ version }}（{{ oldName }}）嗎？",
+      "swapped": "已抽換",
+      "swap_error": "抽換檔案失敗",
+      "path_copied": "已複製路徑"
     }
   },
   "tag": {
@@ -345,6 +351,10 @@
       "message_file_download": "控制一般使用者是否可在介面中下載原始檔案。若關閉，使用者僅能透過線上閱讀器檢視文件，不會出現下載按鈕。",
       "enable_file_download": "改為：允許下載檔案",
       "disable_file_download": "改為：禁止下載 (僅供線上檢視)",
+      "title_file_swap": "檔案版本回溯（管理者 / tag_editor）",
+      "message_file_swap": "控制 administrators 或 tag_editor 群組成員是否可在歷史版本中直接回溯。預設為停用。",
+      "enable_file_swap": "啟用回溯功能",
+      "disable_file_swap": "停用回溯功能",
       "title_guest_access": "訪客 <small>權限</small>",
       "message_guest_access": "訪客權限是所有人都能無需密碼即可取得 {{ appName }} 的權限模式.<br/>和其他正常帳號一樣, 訪客權限帳號也只能通過其取得的權限來存取其文件.<br/>",
       "enable_guest_access": "啟用訪客權限",

@@ -218,7 +218,13 @@
       "filename": "Nombre de archivo",
       "mimetype": "Tipo",
       "create_date": "Fecha de creación",
-      "version": "Versión"
+      "version": "Versión",
+      "swap": "Reemplazar",
+      "swap_tooltip": "Reemplazar esta versión de archivo",
+      "swap_confirm": "¿Está seguro de que desea reemplazar la versión #{{ version }} ({{ oldName }}) con \"{{ newName }}\"?",
+      "swapped": "Reemplazado",
+      "swap_error": "Error al reemplazar el archivo",
+      "path_copied": "Ruta copiada"
     }
   },
   "tag": {
@@ -439,6 +445,10 @@
       "ldap_password_change_forbidden": "Password change is not permitted for LDAP accounts."
     },
     "config": {
+      "title_file_swap": "Retroceso de versión de archivo (Administradores / tag_editor)",
+      "message_file_swap": "Controla si los miembros del grupo administrators o tag_editor pueden retroceder directamente en el historial de versiones. Desactivado por defecto.",
+      "enable_file_swap": "Activar función de retroceso",
+      "disable_file_swap": "Desactivar función de retroceso",
       "title_guest_access": "Acceso invitado",
       "message_guest_access": "Acceso invitado es un modo en el que cualquiera puede acceder {{ appName }} sin contraseña.<br/>Como un usuario normal, el invitado solo puede acceder a sus documentos, y aquellos accesibles a través de permisos.<br/>",
       "enable_guest_access": "Activar acceso invitado",

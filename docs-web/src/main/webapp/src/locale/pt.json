@@ -218,7 +218,13 @@
       "filename": "Nome do ficheiro",
       "mimetype": "Tipo",
       "create_date": "Data de criação",
-      "version": "Versão"
+      "version": "Versão",
+      "swap": "Substituir",
+      "swap_tooltip": "Substituir esta versão do arquivo",
+      "swap_confirm": "Tem certeza de que deseja substituir a versão #{{ version }} ({{ oldName }}) por \"{{ newName }}\"?",
+      "swapped": "Substituído",
+      "swap_error": "Falha ao substituir o ficheiro",
+      "path_copied": "Caminho copiado"
     }
   },
   "tag": {
@@ -443,6 +449,10 @@
       "ldap_password_change_forbidden": "Password change is not permitted for LDAP accounts."
     },
     "config": {
+      "title_file_swap": "Retroação de versão de arquivo (Administradores / tag_editor)",
+      "message_file_swap": "Controla se os membros do grupo administrators ou tag_editor podem retroagir diretamente no histórico de versões. Desativado por padrão.",
+      "enable_file_swap": "Ativar função de retroação",
+      "disable_file_swap": "Desativar função de retroação",
       "title_guest_access": "Acesso de convidado",
       "message_guest_access": "O acesso de convidado é um modo em que qualquer pessoa pode aceder ao {{ appName }} sem palavra-passe.<br/> Como um utilizador normal, o utilizador convidado só pode aceder aos seus documentos e aos que têm permissão de acesso. <br/>",
       "enable_guest_access": "Ativar acesso de convidado",

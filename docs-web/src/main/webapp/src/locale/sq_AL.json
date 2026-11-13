@@ -218,7 +218,13 @@
       "filename": "Emri i skedarit",
       "mimetype": "Lloji",
       "create_date": "Data e krijimit",
-      "version": "Version"
+      "version": "Version",
+      "swap": "Zëvendëso",
+      "swap_tooltip": "Zëvendëso këtë version skedari",
+      "swap_confirm": "Jeni i sigurt që dëshironi të zëvendësoni versionin #{{ version }} ({{ oldName }}) me \"{{ newName }}\"?",
+      "swapped": "U zëvendësua",
+      "swap_error": "Zëvendësimi i skedarit dështoi",
+      "path_copied": "Shtegu u kopjua"
     }
   },
   "tag": {
@@ -444,6 +450,10 @@
       "ldap_password_change_forbidden": "Password change is not permitted for LDAP accounts."
     },
     "config": {
+      "title_file_swap": "Kthim prapa i versionit të skedarit (Administratorët / tag_editor)",
+      "message_file_swap": "Kontrollon nëse anëtarët e grupit administrators ose tag_editor mund të kthehen drejtpërdrejt në historikun e versioneve. Çaktivizuar si parazgjedhje.",
+      "enable_file_swap": "Aktivizo funksionin e kthimit prapa",
+      "disable_file_swap": "Çaktivizo funksionin e kthimit prapa",
       "title_guest_access": "Qasja e mysafirëve",
       "message_guest_access": "Qasja e mysafirëve është një mënyrë ku çdokush mund të hyjë {{ appName }} pa fjalëkalim.<br/>Ashtu si një përdorues normal, përdoruesi mysafir mund të qaset vetëm në dokumentet e tij dhe ato të aksesueshme përmes lejeve.<br/>",
       "enable_guest_access": "Aktivizo qasjen e vizitorëve",

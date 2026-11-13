@@ -189,6 +189,14 @@
       "previous": "Предыдущий",
       "next": "Следующий",
       "not_found": "Файл не найден"
+    },
+    "versions": {
+      "swap": "Заменить",
+      "swap_tooltip": "Заменить эту версию файла",
+      "swap_confirm": "Вы уверены, что хотите заменить версию #{{ version }} ({{ oldName }}) файлом «{{ newName }}»?",
+      "swapped": "Заменено",
+      "swap_error": "Не удалось заменить файл",
+      "path_copied": "Путь скопирован"
     }
   },
   "tag": {
@@ -373,6 +381,10 @@
       "ldap_password_change_forbidden": "Password change is not permitted for LDAP accounts."
     },
     "config": {
+      "title_file_swap": "Ретроспектива версий файлов (Администраторы / tag_editor)",
+      "message_file_swap": "Определяет, могут ли участники группы administrators или tag_editor напрямую выполнять ретроспективу в истории версий. По умолчанию отключено.",
+      "enable_file_swap": "Включить функцию ретроспективы",
+      "disable_file_swap": "Отключить функцию ретроспективы",
       "title_guest_access": "Гость <small>доступ</small>",
       "message_guest_access": "Гостевой доступ - это режим, в котором каждый может получить доступ к {{ appName }} без пароля.<br/>Как обычный пользователь, гость может получить доступ только к своим документам и доступным через разрешения.<br/>",
       "enable_guest_access": "Включить гостевой доступ",

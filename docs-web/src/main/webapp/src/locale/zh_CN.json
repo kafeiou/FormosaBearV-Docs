@@ -247,7 +247,13 @@
       "mimetype": "类型",
       "create_date": "创建日期",
       "version": "版本",
-      "latest": "当前版本"
+      "latest": "当前版本",
+      "swap": "替换",
+      "swap_tooltip": "回溯替换此版本文件",
+      "swap_confirm": "确定要以“{{ newName }}”回溯替换版本 #{{ version }}（{{ oldName }}）吗？",
+      "swapped": "已替换",
+      "swap_error": "替换文件失败",
+      "path_copied": "已复制路径"
     }
   },
   "tag": {
@@ -345,6 +351,10 @@
       "message_file_download": "控制一般用户是否可在界面中下载原始文件。若关闭，用户仅能透过在线阅读器浏览文件，不会出现下载按钮。",
       "enable_file_download": "改为：允许下载文件",
       "disable_file_download": "改为：禁止下载 (仅供在线浏览)",
+      "title_file_swap": "文件版本回溯（管理员 / tag_editor）",
+      "message_file_swap": "控制 administrators 或 tag_editor 组成员是否可以在历史版本中直接回溯。默认为禁用。",
+      "enable_file_swap": "启用回溯功能",
+      "disable_file_swap": "禁用回溯功能",
       "title_guest_access": "游客 <small>权限</small>",
       "message_guest_access": "游客权限是所有人都能无需密码即获取 {{ appName }} 的权限模式.<br/>和其他正常用户一样, 游客权限用户也只能通过其获取的权限来访问其文档.<br/>",
       "enable_guest_access": "激活游客权限",

@@ -218,7 +218,13 @@
       "filename": "Nazwa pliku",
       "mimetype": "Rodzaj",
       "create_date": "Data utworzenia",
-      "version": "Wersja"
+      "version": "Wersja",
+      "swap": "Podmień",
+      "swap_tooltip": "Podmień tę wersję pliku",
+      "swap_confirm": "Czy na pewno chcesz podmienić wersję #{{ version }} ({{ oldName }}) plikiem „{{ newName }}”?",
+      "swapped": "Podmieniono",
+      "swap_error": "Nie udało się podmienić pliku",
+      "path_copied": "Skopiowano ścieżkę"
     }
   },
   "tag": {
@@ -443,6 +449,10 @@
       "ldap_password_change_forbidden": "Password change is not permitted for LDAP accounts."
     },
     "config": {
+      "title_file_swap": "Wsteczna korekta wersji pliku (Administratorzy / tag_editor)",
+      "message_file_swap": "Określa, czy członkowie grupy administrators lub tag_editor mogą bezpośrednio korygować wersje w historii wersji. Domyślnie wyłączone.",
+      "enable_file_swap": "Włącz korektę wsteczną",
+      "disable_file_swap": "Wyłącz korektę wsteczną",
       "title_guest_access": "Dostęp gościa",
       "message_guest_access": "Dostęp gościa jest trybem, kiedy każdy może uzyskać dostęp do {{ appName }} bez hasła.<br/>Użyj normalnego użytkownika jeśli chesz, aby gość uzyskał dostęp do dokumentów zgodnie z przypisanymi uprawnieniami.<br/>",
       "enable_guest_access": "Włącz dostęp gościa",

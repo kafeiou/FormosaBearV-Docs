@@ -247,7 +247,13 @@
       "mimetype": "Type",
       "create_date": "Creation date",
       "version": "Version",
-      "latest": "Current"
+      "latest": "Current",
+      "swap": "Swap",
+      "swap_tooltip": "Backtrack this file version",
+      "swap_confirm": "Are you sure you want to backtrack version #{{ version }} ({{ oldName }}) with \"{{ newName }}\"?",
+      "swapped": "Replaced",
+      "swap_error": "Failed to replace file",
+      "path_copied": "Path copied"
     }
   },
   "tag": {
@@ -345,6 +351,10 @@
       "message_file_download": "Controls whether users are allowed to download original files. When disabled, download buttons are hidden and files can only be viewed online.",
       "enable_file_download": "Switch to: Allow File Download",
       "disable_file_download": "Switch to: Disable File Download",
+      "title_file_swap": "File Version Backtrack (Administrators / tag_editor)",
+      "message_file_swap": "Controls whether members of the administrators or tag_editor group may directly backtrack in version history. Disabled by default.",
+      "enable_file_swap": "Enable Backtrack",
+      "disable_file_swap": "Disable Backtrack",
       "title_guest_access": "Guest access",
       "message_guest_access": "Guest access is a mode where anyone can access {{ appName }} without password.<br/>Like a normal user, the guest user can only access its documents and those accessible through permissions.<br/>",
       "enable_guest_access": "Enable guest access",

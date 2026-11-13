@@ -6,6 +6,29 @@
 angular.module('docs').controller('DocumentViewContent', function ($scope, $rootScope, $stateParams, Restangular, $dialog, $state, Upload, $translate, $uibModal, $interval) {
   $scope.displayMode = _.isUndefined(localStorage.fileDisplayMode) ? 'grid' : localStorage.fileDisplayMode;
   $scope.openedFile = undefined;
+  $scope.isPrivileged = false;
+
+  var updatePrivilegedStatus = function (userInfo) {
+    var priv = false;
+    if (userInfo) {
+      if (userInfo.base_functions && userInfo.base_functions.indexOf('ADMIN') !== -1) {
+        priv = true;
+      }
+      if (!priv && userInfo.groups && _.isArray(userInfo.groups)) {
+        _.each(userInfo.groups, function (g) {
+          var gLower = (g || '').toLowerCase();
+          if (gLower === 'administrators' || gLower === 'tag_editor') {
+            priv = true;
+          }
+        });
+      }
+    }
+    $scope.isPrivileged = priv;
+  };
+  updatePrivilegedStatus($rootScope.userInfo);
+  $scope.$watch(function () { return $rootScope.userInfo; }, function (newVal) {
+    updatePrivilegedStatus(newVal);
+  }, true);
 
   var processingPollTimer = null;
 

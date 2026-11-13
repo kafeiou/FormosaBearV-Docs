@@ -25,8 +25,9 @@
   - 於前端主程式與公開分享頁面（[app.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/app.js)、[share/app.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/share/app.js)）註冊 `ja` 與 `vi` 可用語系鍵及瀏覽器語系自動偵測對應規則。
   - 於登入頁面與分享頁面（[index.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/index.html)、[share.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/share.html)）之語言切換選單新增「日本語」與「Tiếng Việt」。
   - 於 [angular.timeago.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/lib/angular.timeago.js) 擴充日文與越南文相對時間字串對應字典。
-- **頁尾超連結品牌網址更新**：
+- **頁尾超連結品牌網址與台灣玉山登入背景圖片更新**：
   - 更新全數 14 個語系檔中的 `footer_sismics` 屬性，超連結網址全面替換為 `https://kafeiou.pw`。
+  - 將預設登入頁面背景圖片（[background.jpg](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/resources/image/background.jpg)）替換為台灣玉山實景風景照（CC0 1.0 公眾領域授權）。
 - **維護與專案清理**：
   - 移除已無使用的快照建置產物 `build/docs-NoFileEncrypt_1.12-SNAPSHOT.war`。
 

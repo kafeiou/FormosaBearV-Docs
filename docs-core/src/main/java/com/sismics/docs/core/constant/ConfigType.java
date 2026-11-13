@@ -45,6 +45,11 @@ public enum ConfigType {
     FILE_ENCRYPT_LOCKED,
 
     /**
+     * Allow privileged users (administrators / tag_editor) to silently swap file versions in-place.
+     */
+    FILE_SWAP,
+
+    /**
      * Document preview watermark settings.
      */
     PREVIEW_WATERMARK_ENABLED,
