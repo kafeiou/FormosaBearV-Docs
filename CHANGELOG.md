@@ -30,6 +30,8 @@ This document details the notable changes, security enhancements, architecture i
   - Added unit and REST regression tests in [TestAuthenticationTokenDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/test/java/com/sismics/docs/core/dao/TestAuthenticationTokenDao.java) and [TestSecurity.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/test/java/com/sismics/docs/rest/TestSecurity.java).
 - **Document Date Search Client Timezone Offset Fix** (upstream issue [sismics/docs#803](https://github.com/sismics/docs/issues/803)):
   - Updated [DocumentSearchCriteriaUtil.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/util/DocumentSearchCriteriaUtil.java) and [Document.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/document/Document.js) to apply client timezone offset (`tz_offset`) when filtering documents by `at:` / `after:` / `before:`.
+- **PostgreSQL `SELECT DISTINCT` Tag List Query Fix**:
+  - Updated [TagDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/dao/TagDao.java) (`findByCriteria`) to include `coalesce(t.TAG_ORDER_N, 999999999) as c8` in the `SELECT DISTINCT` list, resolving `PSQLException: ERROR: for SELECT DISTINCT, ORDER BY expressions must appear in select list` on `/api/tag/list` when running against PostgreSQL (which also prevented the tag management UI from rendering the add-tag controls).
 
 ---
 

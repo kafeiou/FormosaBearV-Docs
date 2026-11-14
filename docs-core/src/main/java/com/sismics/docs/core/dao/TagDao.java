@@ -360,7 +360,7 @@ public class TagDao {
         Map<String, Object> parameterMap = new HashMap<>();
         List<String> criteriaList = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4, t.TAG_ORDER_N as c5, t.TAG_CREATEDATE_D as c6, t.TAG_INHERIT_ACL_B as c7 ");
+        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4, t.TAG_ORDER_N as c5, t.TAG_CREATEDATE_D as c6, t.TAG_INHERIT_ACL_B as c7, coalesce(t.TAG_ORDER_N, 999999999) as c8 ");
         sb.append(" from T_TAG t ");
         sb.append(" join T_USER u on t.TAG_IDUSER_C = u.USE_ID_C ");
 

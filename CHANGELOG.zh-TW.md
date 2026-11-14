@@ -30,6 +30,8 @@
   - 於 [TestAuthenticationTokenDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/test/java/com/sismics/docs/core/dao/TestAuthenticationTokenDao.java) 與 [TestSecurity.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/test/java/com/sismics/docs/rest/TestSecurity.java) 補上對應單元測試與 REST 迴歸測試。
 - **修復文件日期搜尋條件之客戶端時區偏移問題**（上游 Issue [sismics/docs#803](https://github.com/sismics/docs/issues/803)）：
   - 更新 [DocumentSearchCriteriaUtil.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/util/DocumentSearchCriteriaUtil.java) 與 [Document.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/document/Document.js)，於 `at:` / `after:` / `before:` 日期篩選條件中套用客戶端時區偏移量（`tz_offset`）。
+- **修復 PostgreSQL 環境下 `/api/tag/list` `SELECT DISTINCT` 排序語法錯誤**：
+  - 於 [TagDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/dao/TagDao.java) 的 `findByCriteria` 中，將 `coalesce(t.TAG_ORDER_N, 999999999) as c8` 補入 `SELECT DISTINCT` 清單，修復 PostgreSQL 執行標籤列表查詢時報錯 `ERROR: for SELECT DISTINCT, ORDER BY expressions must appear in select list`（連帶導致前端標籤管理無法顯示新增標籤區塊）的問題。
 
 ---
 
