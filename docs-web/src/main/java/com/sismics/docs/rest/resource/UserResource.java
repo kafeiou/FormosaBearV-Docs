@@ -757,8 +757,10 @@ public class UserResource extends BaseResource {
         } else {
             // Update the last connection date
             String authToken = getAuthToken();
-            AuthenticationTokenDao authenticationTokenDao = new AuthenticationTokenDao();
-            authenticationTokenDao.updateLastConnectionDate(authToken);
+            if (authToken != null) {
+                AuthenticationTokenDao authenticationTokenDao = new AuthenticationTokenDao();
+                authenticationTokenDao.updateLastConnectionDate(authToken);
+            }
 
             // Build the response
             response.add("anonymous", false);
@@ -1016,7 +1018,11 @@ public class UserResource extends BaseResource {
 
         // Remove other tokens
         AuthenticationTokenDao authenticationTokenDao = new AuthenticationTokenDao();
-        authenticationTokenDao.deleteByUserId(principal.getId(), authToken);
+        if (authToken != null) {
+            authenticationTokenDao.deleteByUserId(principal.getId(), authToken);
+        } else {
+            authenticationTokenDao.deleteByUserId(principal.getId());
+        }
 
         // Always return OK
         JsonObjectBuilder response = Json.createObjectBuilder()

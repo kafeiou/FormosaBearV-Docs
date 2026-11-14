@@ -1,14 +1,27 @@
 ﻿# FormosaBearV Portable Distribution Packaging Script (PowerShell)
 param(
     [string]$JettyZipPath = "$PSScriptRoot\..\tools\jetty\jetty-home-12.1.14.zip",
-    [string]$WarFilePath = "$PSScriptRoot\..\docs-web\target\docs-web-2.05.war",
+    [string]$WarFilePath = "",
     [string]$OutputDirectory = "$PSScriptRoot\..\target",
-    [string]$OutputZipName = "FormosaBearV-docs-2.05-portable.zip"
+    [string]$OutputZipName = ""
 )
 
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = (Resolve-Path "$PSScriptRoot\..").Path
+[xml]$PomXml = Get-Content -Path "$ProjectRoot\pom.xml" -Raw -Encoding UTF8
+$AppVersion = $PomXml.project.version.Trim()
+if ([string]::IsNullOrWhiteSpace($AppVersion)) {
+    throw "Failed to determine project version from $ProjectRoot\pom.xml."
+}
+
+if ([string]::IsNullOrWhiteSpace($WarFilePath)) {
+    $WarFilePath = "$ProjectRoot\docs-web\target\docs-web-$AppVersion.war"
+}
+if ([string]::IsNullOrWhiteSpace($OutputZipName)) {
+    $OutputZipName = "FormosaBearV-docs-$AppVersion-portable.zip"
+}
+
 $JettyZip = (Resolve-Path $JettyZipPath -ErrorAction SilentlyContinue)
 if (-not $JettyZip) {
     $JettyZip = [System.IO.Path]::GetFullPath("$ProjectRoot\tools\jetty\jetty-home-12.1.14.zip")
@@ -17,13 +30,13 @@ if (-not $JettyZip) {
 }
 $WarFile = (Resolve-Path $WarFilePath -ErrorAction SilentlyContinue)
 if (-not $WarFile) {
-    $WarFile = [System.IO.Path]::GetFullPath("$ProjectRoot\docs-web\target\docs-web-2.05.war")
+    $WarFile = [System.IO.Path]::GetFullPath($WarFilePath)
 } else {
     $WarFile = $WarFile.Path
 }
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "  FormosaBearV (v2.05) Portable Package Builder" -ForegroundColor Cyan
+Write-Host "  FormosaBearV (v$AppVersion) Portable Package Builder" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Project Root: $ProjectRoot"
 
@@ -49,7 +62,7 @@ if (-not (Test-Path $JettyZip)) {
 
 # 2. Check or Build docs-web WAR
 if (-not (Test-Path $WarFile)) {
-    Write-Host "[2/5] docs-web-2.05.war not found. Building project with Maven..." -ForegroundColor Yellow
+    Write-Host "[2/5] $(Split-Path $WarFile -Leaf) not found. Building project with Maven..." -ForegroundColor Yellow
     Push-Location $ProjectRoot
     try {
         & mvn clean package -DskipTests
@@ -65,7 +78,7 @@ if (-not (Test-Path $WarFile)) {
 
 # 3. Assemble Portable Staging Directory
 $StagingRoot = "$OutputDirectory\portable-staging"
-$BundleDir = "$StagingRoot\FormosaBearV-docs-2.05-portable"
+$BundleDir = "$StagingRoot\FormosaBearV-docs-$AppVersion-portable"
 
 if (Test-Path $StagingRoot) {
     Remove-Item -Path $StagingRoot -Recurse -Force
@@ -158,7 +171,7 @@ if (Test-Path $FinalZip) {
 Compress-Archive -Path "$BundleDir\*" -DestinationPath $FinalZip -Force
 
 # Also sync to unzipped directory in output directory for immediate local use
-$UnzippedTarget = "$OutputDirectory\FormosaBearV-docs-2.05-portable"
+$UnzippedTarget = "$OutputDirectory\FormosaBearV-docs-$AppVersion-portable"
 Write-Host "       Updating extracted folder: $UnzippedTarget..." -ForegroundColor Gray
 if (Test-Path $UnzippedTarget) {
     Remove-Item -Path $UnzippedTarget -Recurse -Force -ErrorAction SilentlyContinue

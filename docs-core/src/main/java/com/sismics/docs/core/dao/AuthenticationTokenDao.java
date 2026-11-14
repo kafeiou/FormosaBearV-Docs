@@ -85,6 +85,9 @@ public class AuthenticationTokenDao {
      * @throws Exception
      */
     public void updateLastConnectionDate(String id) {
+        if (id == null || id.isEmpty()) {
+            return;
+        }
         StringBuilder sb = new StringBuilder("update T_AUTHENTICATION_TOKEN ato ");
         sb.append(" set AUT_LASTCONNECTIONDATE_D = :currentDate ");
         sb.append(" where ato.AUT_ID_C = :id");
@@ -117,6 +120,10 @@ public class AuthenticationTokenDao {
      * @param id Token ID to keep
      */
     public void deleteByUserId(String userId, String id) {
+        if (id == null || id.isEmpty()) {
+            deleteByUserId(userId);
+            return;
+        }
         EntityManager em = ThreadLocalContext.get().getEntityManager();
         Query q = em.createQuery("delete AuthenticationToken a where a.userId = :userId and a.id != :id");
         q.setParameter("userId", userId);

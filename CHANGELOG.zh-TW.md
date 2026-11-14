@@ -6,6 +6,33 @@
 
 ---
 
+## [v2.06] - 2026-11-14
+
+> **基準版本**: `v2.05` (`5559ea20`) ➜ `v2.06`
+
+### ✨ 新增功能與系統改進 (New Features & System Improvements)
+- **階層式標籤報表與歸檔匯出**：
+  - 新增 [TagReportService.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/service/TagReportService.java)、[tag_report.ftl](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/resources/tag_report.ftl) 及 [TagResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/TagResource.java) 匯出端點（`GET /api/tag/{id}/export`、`/export/preview`），支援匯出 PDF、HTML、Excel（`.xlsx`）與 JSON ZIP 壓縮歸檔（ZIP 內附英文 `README.md`）。
+  - 新增標籤匯出對話框（[ModalTagExport.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/tag/ModalTagExport.js)、[tag.export.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/tag.export.html)），支援選擇英文（`en`）、繁體中文（`zh_TW`）或簡體中文（`zh_CN`）報表語系。
+- **公開分享匯出控制與文件 PDF 匯出權限控管 (DB v40)**：
+  - 透過 [dbupdate-040-0.sql](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/resources/db/update/dbupdate-040-0.sql) 於 `T_SHARE` 新增 `SHA_ALLOW_EXPORT_B`（`allow_export`）欄位，並整合至 [ShareResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/ShareResource.java)、[DocumentModalShare.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/document/DocumentModalShare.js) 與 [share.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/share/share.html)。
+  - 於 [DocumentResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/DocumentResource.java)（`GET /api/document/{id}/pdf`）與 [FileResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/FileResource.java) 強制檢查下載／匯出授權。
+- **LDAP 支援 STARTTLS / LDAPS 協定與連線測試功能 (DB v41)**（上游 Issue [sismics/docs#788](https://github.com/sismics/docs/issues/788)、[sismics/docs#789](https://github.com/sismics/docs/issues/789)，感謝 [@Strongleong](https://github.com/Strongleong) 與 [@Iweisc](https://github.com/Iweisc)）：
+  - 透過 [dbupdate-041-0.sql](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/resources/db/update/dbupdate-041-0.sql) 於 `T_LDAP_CONFIG` 新增 `LDC_PROTOCOL_C` 欄位，並更新 [LdapAuthenticationHandler.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/LdapAuthenticationHandler.java) 支援 `LDAP`、`LDAPS` 與 `STARTTLS`。
+  - 於 [AppResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/AppResource.java) 新增 `POST /api/app/config_ldap/test` 端點，並於 [SettingsLdap.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/settings/SettingsLdap.js) / [settings.ldap.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.ldap.html) 提供一鍵連線測試按鈕。
+- **可攜版打包腳本版本自動偵測**：
+  - 更新 [package-portable.ps1](file:///W:/developer/project/github/FormosaBearV-Docs/scripts/package-portable.ps1) 自動從根目錄 `pom.xml` 讀取 `<version>`，不再寫死版本號。
+
+### 🐛 錯誤修復 (Bug Fixes)
+- **修復 PostgreSQL 環境啟用 `HeaderBasedSecurityFilter` 時因 `null` Token 導致 `/api/user` 崩潰問題**（上游 Issue [sismics/docs#786](https://github.com/sismics/docs/issues/786)，感謝 [@fmaass](https://github.com/fmaass) 回報）：
+  - 於 [AuthenticationTokenDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/dao/AuthenticationTokenDao.java) 之 `updateLastConnectionDate(String id)` 與 `deleteByUserId(String userId, String id)` 加入 `null`／空字串防呆檢查，避免在 PostgreSQL 執行原生 SQL 時傳入未定型 `null`（`bytea`）參數引發 `PSQLException: ERROR: operator does not exist: character varying = bytea`。
+  - 於 [UserResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/UserResource.java) 的 `GET /api/user` 與 `DELETE /api/user/session` 補上檢查：當請求未攜帶 `auth_token` Cookie（例如使用 `HeaderBasedSecurityFilter` 驗證）時，跳過 `updateLastConnectionDate` 並改呼叫單參數 `deleteByUserId(principal.getId())`。
+  - 於 [TestAuthenticationTokenDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/test/java/com/sismics/docs/core/dao/TestAuthenticationTokenDao.java) 與 [TestSecurity.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/test/java/com/sismics/docs/rest/TestSecurity.java) 補上對應單元測試與 REST 迴歸測試。
+- **修復文件日期搜尋條件之客戶端時區偏移問題**（上游 Issue [sismics/docs#803](https://github.com/sismics/docs/issues/803)）：
+  - 更新 [DocumentSearchCriteriaUtil.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/util/DocumentSearchCriteriaUtil.java) 與 [Document.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/document/Document.js)，於 `at:` / `after:` / `before:` 日期篩選條件中套用客戶端時區偏移量（`tz_offset`）。
+
+---
+
 ## [v2.05] - 2026-11-12
 
 > **基準版本**: `v2.04` (`3462d002`) ➜ `v2.05`

@@ -98,6 +98,22 @@ public class TestSecurity extends BaseJerseyTest {
                 .get()
                 .getStatus());
 
+        // Calling /user and deleting sessions without auth_token cookie must succeed (#786)
+        Response userResponse = target()
+                .path("/user")
+                .request()
+                .header(HeaderBasedSecurityFilter.AUTHENTICATED_USER_HEADER, "header_auth_test")
+                .get();
+        Assert.assertEquals(Status.OK.getStatusCode(), userResponse.getStatus());
+        Assert.assertEquals("header_auth_test", userResponse.readEntity(JsonObject.class).getString("username"));
+
+        Assert.assertEquals(Status.OK.getStatusCode(), target()
+                .path("/user/session")
+                .request()
+                .header(HeaderBasedSecurityFilter.AUTHENTICATED_USER_HEADER, "header_auth_test")
+                .delete()
+                .getStatus());
+
         Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), target()
                 .path("/user/session")
                 .request()

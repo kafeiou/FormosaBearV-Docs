@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.05)
+# FormosaBearV (v2.06)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -13,9 +13,9 @@
 - **現代化架構與跨平台免安裝部署**：基於 Java 21 (LTS) 與 Eclipse Jetty 12 打造，支援標準 WAR、Docker 容器化與免安裝可攜綠色版（Portable Edition）即開即用。
 - **多格式文件與 Office 線上互動預覽**：支援圖片、影片、PDF、ODT、DOCX 與 PPTX 檔案，整合線上逐頁翻頁預覽、動態防洩漏浮水印覆蓋層與內建中日韓 (Pan-CJK) 字型渲染。
 - **全文檢索與光學文字辨識 (OCR)**：內建 Apache Lucene 全文搜尋（支援即時建議與關鍵字醒目標示）與 Tesseract OCR 自動文字擷取。
-- **階層式標籤與權限繼承管理**：支援多層次樹狀標籤導航、父子標籤權限自動繼承與獨立權限邊界控管。
-- **細粒度文件與下載安全管控**：提供使用者與群組權限、全域與單一文件級別的下載權限控管（可限制僅供線上閱覽、禁止下載外流），以及 256-bit AES 儲存串流加密。
-- **企業級身分驗證與離職治理**：支援本地認證、多組 LDAP 企業目錄備援整合、雙因素驗證 (2FA / TOTP)、帳號停用即時連線撤銷，以及員工離職資產與權限一鍵交接。
+- **階層式標籤、權限繼承與報表匯出**：支援多層次樹狀標籤導航、父子標籤權限自動繼承、獨立權限邊界控管，以及階層式標籤報表與歸檔匯出（PDF、HTML、Excel 與 JSON ZIP）。
+- **細粒度文件、分享與下載安全管控**：提供使用者與群組權限、全域與單一文件級別的下載權限控管、公開分享連結匯出限制（可限制僅供線上閱覽、禁止下載檔案或匯出 PDF），以及 256-bit AES 儲存串流加密。
+- **企業級身分驗證與離職治理**：支援本地認證、多組 LDAP 企業目錄備援整合（含 LDAPS / STARTTLS 與連線測試）、雙因素驗證 (2FA / TOTP)、帳號停用即時連線撤銷，以及員工離職資產與權限一鍵交接。
 - **完整系統備份、還原與跨庫遷移**：支援後台一鍵串流匯出完整系統 ZIP 備份與還原，並支援 H2 與 PostgreSQL 跨資料庫無縫遷移。
 - **文件生命週期與協作工作流**：支援檔案多版本控制與自訂版本標記、Dublin Core 與自訂中繼資料、審核簽核流程 (Review Workflow)、留言討論、操作稽核日誌、個人儲存配額管理（含無上限配額）與安全外部連結分享。
 - **自動化匯入與系統整合**：支援 EML 郵件匯入、IMAP 收件匣自動掃描、SMTP 郵件通知、RESTful Web API 與 Webhooks 事件推播。
@@ -44,10 +44,10 @@ mvn clean package -DskipTests
 ```
 *(或執行 `mvn clean install -DskipTests`)*
 
-本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-2.05.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
+本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-2.06.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
 
 ```text
-docs-web/target/docs-web-2.05.war
+docs-web/target/docs-web-2.06.war
 ```
 
 ### 打包免安裝可攜綠色版（無需 Docker）
@@ -65,7 +65,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 此腳本會自動讀取 `tools/jetty/` 專案基底 Jetty 12 ZIP（缺少時自動從 Maven 中央倉庫下載），自動編譯 WAR 並組裝所有模組與腳本，最終產出：
 
 ```text
-target/FormosaBearV-docs-2.05-portable.zip
+target/FormosaBearV-docs-2.06-portable.zip
 ```
 
 解壓後只要電腦有安裝 Java 21，雙擊 `start.bat`（或執行 `./start.sh`）即可直接秒速啟動！
@@ -89,7 +89,7 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # 第二步：建置 Docker 映像檔（或直接使用 docker compose）
-docker build -t formosabearv-docs:2.05 .
+docker build -t formosabearv-docs:2.06 .
 ```
 
 專案內建 `Dockerfile`，包含 OpenJDK 21、Jetty 12.1 (`ee10`)、Tesseract OCR、`ffmpeg` 與 `mediainfo`，預設接聽 `8080` 連接埠。

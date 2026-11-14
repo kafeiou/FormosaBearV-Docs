@@ -6,6 +6,33 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
+## [v2.06] - 2026-11-14
+
+> **Baseline**: `v2.05` (`5559ea20`) ➜ `v2.06`
+
+### ✨ New Features & System Improvements
+- **Hierarchical Tag Report & Archive Export**:
+  - Added [TagReportService.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/service/TagReportService.java), [tag_report.ftl](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/resources/tag_report.ftl), and export endpoints in [TagResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/TagResource.java) (`GET /api/tag/{id}/export` and `/export/preview`), supporting PDF, HTML, Excel (`.xlsx`), and JSON ZIP archive formats with an English `README.md` inside the archive.
+  - Added localized report templates and UI export modal ([ModalTagExport.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/tag/ModalTagExport.js), [tag.export.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/tag.export.html)) supporting `en`, `zh_TW`, and `zh_CN` output languages.
+- **Share Export Control & Document PDF Export Permission (DB v40)**:
+  - Added `SHA_ALLOW_EXPORT_B` (`allow_export`) column to `T_SHARE` via [dbupdate-040-0.sql](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/resources/db/update/dbupdate-040-0.sql), exposed in [ShareResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/ShareResource.java), [DocumentModalShare.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/document/DocumentModalShare.js), and [share.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/share/share.html).
+  - Enforced download/export permission checks in [DocumentResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/DocumentResource.java) (`GET /api/document/{id}/pdf`) and [FileResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/FileResource.java).
+- **LDAP STARTTLS / LDAPS Protocol & Connection Testing (DB v41)** (upstream [sismics/docs#788](https://github.com/sismics/docs/issues/788), [sismics/docs#789](https://github.com/sismics/docs/issues/789); co-authored by [@Strongleong](https://github.com/Strongleong) and [@Iweisc](https://github.com/Iweisc)):
+  - Added `LDC_PROTOCOL_C` column to `T_LDAP_CONFIG` via [dbupdate-041-0.sql](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/resources/db/update/dbupdate-041-0.sql) and updated [LdapAuthenticationHandler.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/authentication/LdapAuthenticationHandler.java) to support `LDAP`, `LDAPS`, and `STARTTLS`.
+  - Added `POST /api/app/config_ldap/test` in [AppResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/AppResource.java) and a connection test button in [SettingsLdap.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/settings/SettingsLdap.js) / [settings.ldap.html](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/partial/docs/settings.ldap.html).
+- **Portable Packaging Script Auto-Versioning**:
+  - Updated [package-portable.ps1](file:///W:/developer/project/github/FormosaBearV-Docs/scripts/package-portable.ps1) to dynamically read `<version>` from root `pom.xml` instead of hardcoding `2.05`.
+
+### 🐛 Bug Fixes
+- **PostgreSQL `HeaderBasedSecurityFilter` Null Token Crash Fix** (upstream issue [sismics/docs#786](https://github.com/sismics/docs/issues/786), reported by [@fmaass](https://github.com/fmaass)):
+  - Guarded `updateLastConnectionDate(String id)` and `deleteByUserId(String userId, String id)` in [AuthenticationTokenDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/dao/AuthenticationTokenDao.java) against `null` or empty token IDs so native SQL queries are never executed with an untyped `null` (`bytea`) parameter on PostgreSQL (`ERROR: operator does not exist: character varying = bytea`).
+  - Updated `GET /api/user` and `DELETE /api/user/session` in [UserResource.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/resource/UserResource.java) to skip `updateLastConnectionDate` and fall back to `deleteByUserId(principal.getId())` when no `auth_token` cookie is present (e.g., under `HeaderBasedSecurityFilter`).
+  - Added unit and REST regression tests in [TestAuthenticationTokenDao.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/test/java/com/sismics/docs/core/dao/TestAuthenticationTokenDao.java) and [TestSecurity.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/test/java/com/sismics/docs/rest/TestSecurity.java).
+- **Document Date Search Client Timezone Offset Fix** (upstream issue [sismics/docs#803](https://github.com/sismics/docs/issues/803)):
+  - Updated [DocumentSearchCriteriaUtil.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/java/com/sismics/docs/rest/util/DocumentSearchCriteriaUtil.java) and [Document.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/app/docs/controller/document/Document.js) to apply client timezone offset (`tz_offset`) when filtering documents by `at:` / `after:` / `before:`.
+
+---
+
 ## [v2.05] - 2026-11-12
 
 > **Baseline**: `v2.04` (`3462d002`) ➜ `v2.05`
