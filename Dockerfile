@@ -45,6 +45,8 @@ RUN apt-get update && apt-get upgrade libgnutls30 -y -q && \
     tesseract-ocr-ukr \
     tesseract-ocr-vie \
     tesseract-ocr-sqi \
+    tesseract-ocr-srp \
+    tesseract-ocr-srp-latn \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 RUN dpkg-reconfigure -f noninteractive tzdata

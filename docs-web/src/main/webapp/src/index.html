@@ -216,6 +216,7 @@
                 <span ng-switch-when="ja">日本語</span>
                 <span ng-switch-when="vi">Tiếng Việt</span>
                 <span ng-switch-when="sq_AL">Shqip</span>
+                <span ng-switch-when="sr">Српски</span>
               </span>
               <span class="caret"></span>
             </a>
@@ -234,6 +235,7 @@
               <li><a href ng-click="changeLanguage('ja')" ng-class="{ 'bg-info': currentLang == 'ja' }">日本語</a></li>
               <li><a href ng-click="changeLanguage('vi')" ng-class="{ 'bg-info': currentLang == 'vi' }">Tiếng Việt</a></li>
               <li><a href ng-click="changeLanguage('sq_AL')" ng-class="{ 'bg-info': currentLang == 'sq_AL' }">Shqip</a></li>
+              <li><a href ng-click="changeLanguage('sr')" ng-class="{ 'bg-info': currentLang == 'sr' }">Српски</a></li>
             </ul>
           </li>
           <li><a href="apidoc/">{{ 'document.default.api_documentation' | translate }}</a></li>

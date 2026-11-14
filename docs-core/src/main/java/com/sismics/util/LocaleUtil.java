@@ -61,6 +61,11 @@ public class LocaleUtil {
             case "kor":
             case "ko":
                 return Locale.KOREAN;
+            case "srp":
+            case "sr":
+                return new Locale("sr");
+            case "srp_latn":
+                return Locale.forLanguageTag("sr-Latn");
             default:
                 break;
         }

@@ -610,6 +610,25 @@ angular.module('yaru22.angular-timeago').config(["timeAgoSettings", function(tim
     wordSeparator: ' ',
     numbers: []
   };
+  timeAgoSettings.strings['sr'] = {
+    prefixAgo: 'пре',
+    prefixFromNow: 'за',
+    suffixAgo: null,
+    suffixFromNow: null,
+    seconds: 'мање од минута',
+    minute: 'око минут',
+    minutes: '%d минута',
+    hour: 'око сат времена',
+    hours: 'око %d сати',
+    day: 'један дан',
+    days: '%d дана',
+    month: 'око месец дана',
+    months: '%d месеци',
+    year: 'око годину дана',
+    years: '%d година',
+    wordSeparator: ' ',
+    numbers: []
+  };
 }]);
 
 'use strict';
