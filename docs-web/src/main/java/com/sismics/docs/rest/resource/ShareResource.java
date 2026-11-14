@@ -54,7 +54,8 @@ public class ShareResource extends BaseResource {
     @PUT
     public Response add(
             @FormParam("id") String documentId,
-            @FormParam("name") String name) {
+            @FormParam("name") String name,
+            @FormParam("allow_export") Boolean allowExport) {
         if (!authenticate() || principal.isGuest()) {
             throw new ForbiddenClientException();
         }
@@ -73,6 +74,7 @@ public class ShareResource extends BaseResource {
         ShareDao shareDao = new ShareDao();
         Share share = new Share();
         share.setName(name);
+        share.setAllowExport(Boolean.TRUE.equals(allowExport));
         shareDao.create(share);
         
         // Create the ACL
@@ -94,7 +96,53 @@ public class ShareResource extends BaseResource {
                 .add("perm", acl.getPerm().name())
                 .add("id", acl.getTargetId())
                 .add("name", JsonUtil.nullable(name))
-                .add("type", AclTargetType.SHARE.toString());
+                .add("type", AclTargetType.SHARE.toString())
+                .add("allow_export", share.isAllowExport());
+        return Response.ok().entity(response.build()).build();
+    }
+
+    /**
+     * Updates a share (e.g. toggling allow_export).
+     *
+     * @param id Share ID
+     * @param allowExport Whether export and file download are allowed
+     * @return Response
+     */
+    @POST
+    @Path("{id: [a-z0-9\\-]+}")
+    public Response update(
+            @PathParam("id") String id,
+            @FormParam("allow_export") Boolean allowExport) {
+        if (!authenticate() || principal.isGuest()) {
+            throw new ForbiddenClientException();
+        }
+
+        AclDao aclDao = new AclDao();
+        List<Acl> aclList = aclDao.getByTargetId(id);
+        if (aclList.isEmpty()) {
+            throw new ClientException("ShareNotFound", MessageFormat.format("Share not found: {0}", id));
+        }
+
+        Acl acl = aclList.get(0);
+        if (!aclDao.checkPermission(acl.getSourceId(), PermType.WRITE, getTargetIdList(null))) {
+            throw new ClientException("DocumentNotFound", MessageFormat.format("Document not found: {0}", acl.getSourceId()));
+        }
+
+        ShareDao shareDao = new ShareDao();
+        Share share = shareDao.getActiveById(id);
+        if (share == null) {
+            throw new ClientException("ShareNotFound", MessageFormat.format("Share not found: {0}", id));
+        }
+
+        if (allowExport != null) {
+            share.setAllowExport(allowExport);
+            shareDao.update(share);
+        }
+
+        JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("status", "ok")
+                .add("id", share.getId())
+                .add("allow_export", share.isAllowExport());
         return Response.ok().entity(response.build()).build();
     }
 

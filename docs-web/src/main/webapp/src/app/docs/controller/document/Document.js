@@ -34,7 +34,8 @@ angular.module('docs').controller('Document', function ($scope, $rootScope, $tim
           limit: $scope.limit,
           sort_column: $scope.sortColumn,
           asc: $scope.asc,
-          search: $scope.search
+          search: $scope.search,
+          tz_offset: new Date().getTimezoneOffset()
         })
         .then(function (data) {
           $scope.documents = data.documents;
@@ -377,6 +378,21 @@ angular.module('docs').controller('Document', function ($scope, $rootScope, $tim
         tag.children = [];
         $scope.tags.push(tag);
       })
+    });
+  };
+
+  /**
+   * Open tag report export modal.
+   */
+  $scope.openTagExportModal = function () {
+    $uibModal.open({
+      templateUrl: 'partial/docs/tag.export.html',
+      controller: 'ModalTagExport',
+      resolve: {
+        initialTagId: function () {
+          return $scope.navigatedTag ? $scope.navigatedTag.id : null;
+        }
+      }
     });
   };
 });

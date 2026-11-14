@@ -37,6 +37,7 @@ import com.sismics.docs.core.dao.DocumentDao;
 import com.sismics.docs.core.dao.FileDao;
 import com.sismics.docs.core.dao.RelationDao;
 import com.sismics.docs.core.dao.RouteStepDao;
+import com.sismics.docs.core.dao.ShareDao;
 import com.sismics.docs.core.dao.TagDao;
 import com.sismics.docs.core.dao.UserDao;
 import com.sismics.docs.core.dao.criteria.DocumentCriteria;
@@ -54,6 +55,7 @@ import com.sismics.docs.core.event.FileDeletedAsyncEvent;
 import com.sismics.docs.core.model.context.AppContext;
 import com.sismics.docs.core.model.jpa.Document;
 import com.sismics.docs.core.model.jpa.File;
+import com.sismics.docs.core.model.jpa.Share;
 import com.sismics.docs.core.model.jpa.User;
 import com.sismics.docs.core.util.AuditLogUtil;
 import com.sismics.docs.core.util.ConfigUtil;
@@ -190,6 +192,16 @@ public class DocumentResource extends BaseResource {
             throw new NotFoundException();
         }
 
+        boolean shareAllowExport = true;
+        if (shareId != null) {
+            Share share = new ShareDao().getActiveById(shareId);
+            shareAllowExport = share != null && share.isAllowExport();
+        }
+        boolean canDownload = shareAllowExport && (ConfigUtil.canFileDownload() ||
+                hasBaseFunction(BaseFunction.ADMIN) ||
+                (principal.getId() != null && principal.getId().equals(documentDto.getUserId())) ||
+                documentDto.isAllowDownload());
+
         JsonObjectBuilder document = createDocumentObjectBuilder(documentDto)
                 .add("creator", documentDto.getCreator())
                 .add("creator_id", JsonUtil.nullable(documentDto.getUserId()))
@@ -203,10 +215,8 @@ public class DocumentResource extends BaseResource {
                 .add("subject", JsonUtil.nullable(documentDto.getSubject()))
                 .add("type", JsonUtil.nullable(documentDto.getType()))
                 .add("allow_download", documentDto.isAllowDownload())
-                .add("can_download", ConfigUtil.canFileDownload() ||
-                        hasBaseFunction(BaseFunction.ADMIN) ||
-                        (principal.getId() != null && principal.getId().equals(documentDto.getUserId())) ||
-                        documentDto.isAllowDownload());
+                .add("share_allow_export", shareAllowExport)
+                .add("can_download", canDownload);
 
         List<TagDto> tagDtoList = null;
         if (principal.isAnonymous()) {
@@ -355,6 +365,24 @@ public class DocumentResource extends BaseResource {
             throw new NotFoundException();
         }
 
+        // Check share export permission if accessed via share link
+        if (shareId != null) {
+            Share share = new ShareDao().getActiveById(shareId);
+            if (share == null || !share.isAllowExport()) {
+                throw new ForbiddenClientException();
+            }
+        }
+
+        // Check download permission
+        if (!ConfigUtil.canFileDownload()) {
+            boolean allowed = hasBaseFunction(BaseFunction.ADMIN) ||
+                    (principal.getId() != null && principal.getId().equals(documentDto.getUserId())) ||
+                    documentDto.isAllowDownload();
+            if (!allowed) {
+                throw new ForbiddenClientException();
+            }
+        }
+
         // Get files
         FileDao fileDao = new FileDao();
         UserDao userDao = new UserDao();
@@ -486,7 +514,8 @@ public class DocumentResource extends BaseResource {
             @QueryParam("search[uafter]") String searchUpdatedAfter,
             @QueryParam("search[ubefore]") String searchUpdatedBefore,
             @QueryParam("search[searchworkflow]") String searchWorkflow,
-            @QueryParam("tag_id") String tagId
+            @QueryParam("tag_id") String tagId,
+            @QueryParam("tz_offset") Integer tzOffset
     ) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
@@ -502,7 +531,12 @@ public class DocumentResource extends BaseResource {
 
         List<TagDto> allTagDtoList = tagDao.findByCriteria(new TagCriteria().setTargetIdList(getTargetIdList(null)), null);
 
-        DocumentCriteria documentCriteria = DocumentSearchCriteriaUtil.parseSearchQuery(search, allTagDtoList);
+        org.joda.time.DateTimeZone searchTimeZone = org.joda.time.DateTimeZone.getDefault();
+        if (tzOffset != null && Math.abs(tzOffset) <= 1440) {
+            searchTimeZone = org.joda.time.DateTimeZone.forOffsetMillis(-tzOffset * 60_000);
+        }
+
+        DocumentCriteria documentCriteria = DocumentSearchCriteriaUtil.parseSearchQuery(search, allTagDtoList, searchTimeZone);
         DocumentSearchCriteriaUtil.addHttpSearchParams(
                 documentCriteria,
                 searchBy,
@@ -519,7 +553,8 @@ public class DocumentResource extends BaseResource {
                 searchUpdatedAfter,
                 searchUpdatedBefore,
                 searchWorkflow,
-                allTagDtoList);
+                allTagDtoList,
+                searchTimeZone);
 
         if (!com.google.common.base.Strings.isNullOrEmpty(tagId)) {
             documentCriteria.setTagId(tagId);
@@ -630,7 +665,8 @@ public class DocumentResource extends BaseResource {
             @FormParam("search[uafter]") String searchUpdatedAfter,
             @FormParam("search[ubefore]") String searchUpdatedBefore,
             @FormParam("search[searchworkflow]") String searchWorkflow,
-            @FormParam("tag_id") String tagId
+            @FormParam("tag_id") String tagId,
+            @FormParam("tz_offset") Integer tzOffset
     ) {
         return list(
                 limit,
@@ -653,7 +689,8 @@ public class DocumentResource extends BaseResource {
                 searchUpdatedAfter,
                 searchUpdatedBefore,
                 searchWorkflow,
-                tagId
+                tagId,
+                tzOffset
         );
     }
 

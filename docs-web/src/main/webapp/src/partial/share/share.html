@@ -1,7 +1,7 @@
 <div class="row">
   <div class="col-md-10">
     <div>
-      <div class="pull-right">
+      <div class="pull-right" ng-if="canDownload(null, document)">
         <div class="dropdown" uib-dropdown>
           <button class="btn btn-default" uib-dropdown-toggle>
             <span class="fas fa-cloud-download-alt"></span>
@@ -15,7 +15,7 @@
                 {{ 'document.view.download_files' | translate }}
               </a>
             </li>
-            <li>
+            <li ng-if="canDownload(null, document)">
               <a href ng-click="exportPdf()">
                 <span class="fas fa-file-pdf"></span>
                 {{ 'document.view.export_pdf' | translate }}

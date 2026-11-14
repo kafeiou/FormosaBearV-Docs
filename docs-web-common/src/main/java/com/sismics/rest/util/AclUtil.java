@@ -29,11 +29,15 @@ public class AclUtil {
         List<AclDto> aclDtoList = aclDao.getBySourceId(sourceId, AclType.USER);
         JsonArrayBuilder aclList = Json.createArrayBuilder();
         for (AclDto aclDto : aclDtoList) {
-            aclList.add(Json.createObjectBuilder()
+            JsonObjectBuilder aclObj = Json.createObjectBuilder()
                     .add("perm", aclDto.getPerm().name())
                     .add("id", aclDto.getTargetId())
                     .add("name", JsonUtil.nullable(aclDto.getTargetName()))
-                    .add("type", aclDto.getTargetType()));
+                    .add("type", aclDto.getTargetType());
+            if (aclDto.getShareAllowExport() != null) {
+                aclObj.add("allow_export", aclDto.getShareAllowExport());
+            }
+            aclList.add(aclObj);
         }
         json.add("acls", aclList)
                 .add("writable", aclDao.checkPermission(sourceId, PermType.WRITE, targetIdList));

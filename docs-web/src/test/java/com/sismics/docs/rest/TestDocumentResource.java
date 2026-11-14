@@ -1084,6 +1084,15 @@ public class TestDocumentResource extends BaseJerseyTest {
                     .get();
             Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(res.getStatus()));
 
+            res = target().path("/document/" + docId + "/pdf")
+                    .queryParam("metadata", "false")
+                    .queryParam("fitimagetopage", "true")
+                    .queryParam("margin", "10")
+                    .request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get();
+            Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(res.getStatus()));
+
             // Public share visitor cannot download (HTTP 403)
             res = target().path("/file/" + fileId + "/data")
                     .queryParam("share", shareId)
@@ -1189,7 +1198,27 @@ public class TestDocumentResource extends BaseJerseyTest {
                     .get();
             Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
 
-            // Now public share visitor CAN download file and ZIP
+            res = target().path("/document/" + docId + "/pdf")
+                    .queryParam("metadata", "false")
+                    .queryParam("fitimagetopage", "true")
+                    .queryParam("margin", "10")
+                    .request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, collabToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(res.getStatus()));
+
+            // Public share visitor still cannot download while share allow_export defaults to false
+            res = target().path("/file/" + fileId + "/data")
+                    .queryParam("share", shareId)
+                    .request()
+                    .get();
+            Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(res.getStatus()));
+
+            // Enable allow_export = true on the share, then public share visitor CAN download file and ZIP
+            target().path("/share/" + shareId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, uploaderToken)
+                    .post(Entity.form(new Form().param("allow_export", "true")));
+
             res = target().path("/file/" + fileId + "/data")
                     .queryParam("share", shareId)
                     .request()
@@ -1209,5 +1238,54 @@ public class TestDocumentResource extends BaseJerseyTest {
                     .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                     .post(Entity.form(new Form().param("enabled", "true")));
         }
+    }
+
+    /**
+     * Test date search filters with client timezone offset (Issue #803).
+     */
+    @Test
+    public void testDateSearchTimezoneOffset() {
+        clientUtil.createUser("tz_user");
+        String tzToken = clientUtil.login("tz_user");
+
+        // 2026-10-28 00:00:00 in UTC+8 (2026-10-27T16:00:00Z)
+        long createDateUtcPlus8Midnight = new org.joda.time.DateTime(
+                2026, 10, 28, 0, 0, 0, org.joda.time.DateTimeZone.forOffsetHours(8)).getMillis();
+
+        JsonObject docJson = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tzToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Timezone Issue 803 Doc")
+                        .param("language", "eng")
+                        .param("create_date", String.valueOf(createDateUtcPlus8Midnight))), JsonObject.class);
+        String docId = docJson.getString("id");
+
+        // With tz_offset=-480 (UTC+8), at:2026-10-28 must find the document
+        JsonObject atPlus8 = target().path("/document/list")
+                .queryParam("search", "at:2026-10-28")
+                .queryParam("tz_offset", "-480")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tzToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, atPlus8.getJsonArray("documents").size());
+        Assert.assertEquals(docId, atPlus8.getJsonArray("documents").getJsonObject(0).getString("id"));
+
+        // With tz_offset=-480 (UTC+8), after:2026-10-28 before:2026-10-28 must find the document
+        JsonObject rangePlus8 = target().path("/document/list")
+                .queryParam("search", "after:2026-10-28 before:2026-10-28")
+                .queryParam("tz_offset", "-480")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tzToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, rangePlus8.getJsonArray("documents").size());
+
+        // With tz_offset=0 (UTC), 2026-10-27T16:00:00Z falls on 2026-10-27, so at:2026-10-28 returns 0
+        JsonObject atUtc = target().path("/document/list")
+                .queryParam("search", "at:2026-10-28")
+                .queryParam("tz_offset", "0")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tzToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(0, atUtc.getJsonArray("documents").size());
     }
 }

@@ -37,6 +37,9 @@ public class LdapConfig {
     @Column(name = "LDC_USESSL_B", nullable = false)
     private boolean useSsl;
 
+    @Column(name = "LDC_USESTARTTLS_B", nullable = false)
+    private boolean useStartTls;
+
     @Column(name = "LDC_ADMIN_DN_C", nullable = false, length = 250)
     private String adminDn;
 
@@ -124,6 +127,15 @@ public class LdapConfig {
 
     public LdapConfig setUseSsl(boolean useSsl) {
         this.useSsl = useSsl;
+        return this;
+    }
+
+    public boolean isUseStartTls() {
+        return useStartTls;
+    }
+
+    public LdapConfig setUseStartTls(boolean useStartTls) {
+        this.useStartTls = useStartTls;
         return this;
     }
 

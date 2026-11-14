@@ -9,6 +9,7 @@ import com.sismics.docs.core.dao.criteria.DocumentCriteria;
 import com.sismics.docs.core.dao.dto.TagDto;
 import com.sismics.docs.core.model.jpa.User;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
@@ -46,6 +47,19 @@ public class DocumentSearchCriteriaUtil {
      * @return DocumentCriteria
      */
     public static DocumentCriteria parseSearchQuery(String search, List<TagDto> allTagDtoList) {
+        return parseSearchQuery(search, allTagDtoList, DateTimeZone.getDefault());
+    }
+
+    /**
+     * Parse a query according to the specified syntax using an explicit client time zone.
+     *
+     * @param search        Search query
+     * @param allTagDtoList List of tags
+     * @param timeZone      Time zone for date criteria parsing
+     * @return DocumentCriteria
+     */
+    public static DocumentCriteria parseSearchQuery(String search, List<TagDto> allTagDtoList, DateTimeZone timeZone) {
+        DateTimeZone effectiveZone = timeZone != null ? timeZone : DateTimeZone.getDefault();
         DocumentCriteria documentCriteria = new DocumentCriteria();
         if (Strings.isNullOrEmpty(search)) {
             return documentCriteria;
@@ -73,11 +87,11 @@ public class DocumentSearchCriteriaUtil {
                 case "before":
                 case "uafter":
                 case "ubefore":
-                    parseDateCriteria(documentCriteria, paramValue, DATES_FORMATTER, paramName.startsWith("u"), paramName.endsWith("before"));
+                    parseDateCriteria(documentCriteria, paramValue, DATES_FORMATTER, effectiveZone, paramName.startsWith("u"), paramName.endsWith("before"));
                     break;
                 case "uat":
                 case "at":
-                    parseDateAtCriteria(documentCriteria, paramValue, params[0].startsWith("u"));
+                    parseDateAtCriteria(documentCriteria, paramValue, effectiveZone, params[0].startsWith("u"));
                     break;
                 case "shared":
                     documentCriteria.setShared(paramValue.equals("yes"));
@@ -153,14 +167,55 @@ public class DocumentSearchCriteriaUtil {
             String searchWorkflow,
             List<TagDto> allTagDtoList
     ) {
+        addHttpSearchParams(
+                documentCriteria,
+                searchBy,
+                searchCreatedAfter,
+                searchCreatedBefore,
+                searchFull,
+                searchLang,
+                searchMime,
+                searchShared,
+                searchSimple,
+                searchTag,
+                searchNotTag,
+                searchTitle,
+                searchUpdatedAfter,
+                searchUpdatedBefore,
+                searchWorkflow,
+                allTagDtoList,
+                DateTimeZone.getDefault()
+        );
+    }
+
+    public static void addHttpSearchParams(
+            DocumentCriteria documentCriteria,
+            String searchBy,
+            String searchCreatedAfter,
+            String searchCreatedBefore,
+            String searchFull,
+            String searchLang,
+            String searchMime,
+            Boolean searchShared,
+            String searchSimple,
+            String searchTag,
+            String searchNotTag,
+            String searchTitle,
+            String searchUpdatedAfter,
+            String searchUpdatedBefore,
+            String searchWorkflow,
+            List<TagDto> allTagDtoList,
+            DateTimeZone timeZone
+    ) {
+        DateTimeZone effectiveZone = timeZone != null ? timeZone : DateTimeZone.getDefault();
         if (searchBy != null) {
             parseByCriteria(documentCriteria, searchBy);
         }
         if (searchCreatedAfter != null) {
-            parseDateCriteria(documentCriteria, searchCreatedAfter, DAY_FORMATTER, false, false);
+            parseDateCriteria(documentCriteria, searchCreatedAfter, DAY_FORMATTER, effectiveZone, false, false);
         }
         if (searchCreatedBefore != null) {
-            parseDateCriteria(documentCriteria, searchCreatedBefore, DAY_FORMATTER, false, true);
+            parseDateCriteria(documentCriteria, searchCreatedBefore, DAY_FORMATTER, effectiveZone, false, true);
         }
         if (searchFull != null) {
             documentCriteria.setFullSearch(Joiner.on(" ").join(searchFull.split(PARAMETER_WITH_MULTIPLE_VALUES_SEPARATOR)));
@@ -191,19 +246,19 @@ public class DocumentSearchCriteriaUtil {
             }
         }
         if (searchUpdatedAfter != null) {
-            parseDateCriteria(documentCriteria, searchUpdatedAfter, DAY_FORMATTER, true, false);
+            parseDateCriteria(documentCriteria, searchUpdatedAfter, DAY_FORMATTER, effectiveZone, true, false);
         }
         if (searchUpdatedBefore != null) {
-            parseDateCriteria(documentCriteria, searchUpdatedBefore, DAY_FORMATTER, true, true);
+            parseDateCriteria(documentCriteria, searchUpdatedBefore, DAY_FORMATTER, effectiveZone, true, true);
         }
         if ((WORKFLOW_ME.equals(searchWorkflow))) {
             documentCriteria.setActiveRoute(true);
         }
     }
 
-    private static void parseDateCriteria(DocumentCriteria documentCriteria, String value, DateTimeFormatter formatter, boolean isUpdated, boolean isBefore) {
+    private static void parseDateCriteria(DocumentCriteria documentCriteria, String value, DateTimeFormatter formatter, DateTimeZone timeZone, boolean isUpdated, boolean isBefore) {
         try {
-            DateTime date = formatter.parseDateTime(value);
+            DateTime date = formatter.withZone(timeZone).parseDateTime(value);
             if (isBefore) {
                 if (isUpdated) {
                     documentCriteria.setUpdateDateMax(date.toDate());
@@ -224,11 +279,11 @@ public class DocumentSearchCriteriaUtil {
         }
     }
 
-    private static void parseDateAtCriteria(DocumentCriteria documentCriteria, String value, boolean isUpdated) {
+    private static void parseDateAtCriteria(DocumentCriteria documentCriteria, String value, DateTimeZone timeZone, boolean isUpdated) {
         try {
             switch (value.length()) {
                 case 10: {
-                    DateTime date = DATES_FORMATTER.parseDateTime(value);
+                    DateTime date = DATES_FORMATTER.withZone(timeZone).parseDateTime(value);
                     if (isUpdated) {
                         documentCriteria.setUpdateDateMin(date.toDate());
                         documentCriteria.setUpdateDateMax(date.plusDays(1).minusSeconds(1).toDate());
@@ -239,7 +294,7 @@ public class DocumentSearchCriteriaUtil {
                     break;
                 }
                 case 7: {
-                    DateTime date = MONTH_FORMATTER.parseDateTime(value);
+                    DateTime date = MONTH_FORMATTER.withZone(timeZone).parseDateTime(value);
                     if (isUpdated) {
                         documentCriteria.setUpdateDateMin(date.toDate());
                         documentCriteria.setUpdateDateMax(date.plusMonths(1).minusSeconds(1).toDate());
@@ -250,7 +305,7 @@ public class DocumentSearchCriteriaUtil {
                     break;
                 }
                 case 4: {
-                    DateTime date = YEAR_FORMATTER.parseDateTime(value);
+                    DateTime date = YEAR_FORMATTER.withZone(timeZone).parseDateTime(value);
                     if (isUpdated) {
                         documentCriteria.setUpdateDateMin(date.toDate());
                         documentCriteria.setUpdateDateMax(date.plusYears(1).minusSeconds(1).toDate());

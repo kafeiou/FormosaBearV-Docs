@@ -489,10 +489,10 @@ public class TestAppResource extends BaseJerseyTest {
 
         // Multi-LDAP test: Configure 2 LDAP servers (Server 1 with non-matching filter, Server 2 matching)
         String serversJson = "["
-                + "{\"name\":\"Branch LDAP (No match)\",\"enabled\":true,\"host\":\"localhost\",\"port\":11389,\"usessl\":false,"
+                + "{\"name\":\"Branch LDAP (No match)\",\"enabled\":true,\"host\":\"localhost\",\"port\":11389,\"usessl\":false,\"usestarttls\":true,"
                 + "\"admin_dn\":\"uid=admin,ou=system\",\"admin_password\":\"secret\",\"base_dn\":\"o=TEST\","
                 + "\"filter\":\"(&(objectclass=inetOrgPerson)(uid=NONEXISTENT_USERNAME))\",\"default_email\":\"branch@teedy.io\",\"default_storage\":100000000},"
-                + "{\"name\":\"HQ LDAP (Match)\",\"enabled\":true,\"host\":\"localhost\",\"port\":11389,\"usessl\":false,"
+                + "{\"name\":\"HQ LDAP (Match)\",\"enabled\":true,\"host\":\"localhost\",\"port\":11389,\"usessl\":false,\"usestarttls\":false,"
                 + "\"admin_dn\":\"uid=admin,ou=system\",\"admin_password\":\"secret\",\"base_dn\":\"o=TEST\","
                 + "\"filter\":\"(&(objectclass=inetOrgPerson)(uid=USERNAME))\",\"default_email\":\"hq@teedy.io\",\"default_storage\":200000000}"
                 + "]";
@@ -507,7 +507,48 @@ public class TestAppResource extends BaseJerseyTest {
         JsonArray servers = json.getJsonArray("servers");
         Assert.assertEquals(2, servers.size());
         Assert.assertEquals("Branch LDAP (No match)", servers.getJsonObject(0).getString("name"));
+        Assert.assertTrue(servers.getJsonObject(0).getBoolean("usestarttls"));
         Assert.assertEquals("HQ LDAP (Match)", servers.getJsonObject(1).getString("name"));
+        Assert.assertFalse(servers.getJsonObject(1).getBoolean("usestarttls"));
+
+        // Test LDAP connection endpoint (Issue #788 & #789)
+        // 1. Non-admin user is forbidden
+        Response forbiddenTestResp = target().path("/app/test_ldap").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ldapTopen)
+                .post(Entity.form(new Form()
+                        .param("host", "localhost")
+                        .param("port", "11389")
+                        .param("admin_dn", "uid=admin,ou=system")
+                        .param("admin_password", "secret")));
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(forbiddenTestResp.getStatus()));
+
+        // 2. Valid LDAP connection & base_dn succeeds
+        Response okTestResp = target().path("/app/test_ldap").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("host", "localhost")
+                        .param("port", "11389")
+                        .param("usessl", "false")
+                        .param("usestarttls", "false")
+                        .param("admin_dn", "uid=admin,ou=system")
+                        .param("admin_password", "secret")
+                        .param("base_dn", "o=TEST")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(okTestResp.getStatus()));
+        Assert.assertEquals("ok", okTestResp.readEntity(JsonObject.class).getString("status"));
+
+        // 3. Invalid password returns 400 with error status
+        Response badPassTestResp = target().path("/app/test_ldap").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("host", "localhost")
+                        .param("port", "11389")
+                        .param("usessl", "false")
+                        .param("usestarttls", "false")
+                        .param("admin_dn", "uid=admin,ou=system")
+                        .param("admin_password", "wrong_secret")
+                        .param("base_dn", "o=TEST")));
+        Assert.assertEquals(Status.BAD_REQUEST, Status.fromStatusCode(badPassTestResp.getStatus()));
+        Assert.assertEquals("error", badPassTestResp.readEntity(JsonObject.class).getString("status"));
 
         // Authenticate via fallback to 2nd LDAP server
         String multiLdapToken = clientUtil.login("ldap1", "secret", false);

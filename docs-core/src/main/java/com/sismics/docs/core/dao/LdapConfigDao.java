@@ -97,6 +97,7 @@ public class LdapConfigDao {
         dbConfig.setHost(ldapConfig.getHost());
         dbConfig.setPort(ldapConfig.getPort());
         dbConfig.setUseSsl(ldapConfig.isUseSsl());
+        dbConfig.setUseStartTls(ldapConfig.isUseStartTls());
         dbConfig.setAdminDn(ldapConfig.getAdminDn());
         dbConfig.setAdminPassword(ldapConfig.getAdminPassword());
         dbConfig.setBaseDn(ldapConfig.getBaseDn());

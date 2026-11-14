@@ -1,0 +1,135 @@
+<div class="modal-header">
+  <button type="button" class="close" ng-click="close()" aria-hidden="true">&times;</button>
+  <h4 class="modal-title">
+    <span class="fas fa-file-export"></span> {{ 'tag.export.title' | translate }}
+  </h4>
+</div>
+<div class="modal-body">
+  <form name="exportForm" class="form-horizontal" novalidate>
+    <!-- 1. Tag selection -->
+    <div class="form-group">
+      <label class="col-sm-3 control-label">{{ 'tag.export.select_tags' | translate }}</label>
+      <div class="col-sm-9">
+        <div class="clearfix mb-5">
+          <div class="input-group input-group-sm" style="margin-bottom: 6px;">
+            <span class="input-group-addon"><span class="fas fa-search"></span></span>
+            <input type="text" class="form-control" ng-model="tagFilter" ng-attr-placeholder="{{ 'tag.tree_filter_placeholder' | translate }}">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" ng-click="selectAllTags()">{{ 'tag.export.select_all' | translate }}</button>
+              <button type="button" class="btn btn-default" ng-click="clearAllTags()">{{ 'tag.export.clear_all' | translate }}</button>
+            </span>
+          </div>
+        </div>
+
+        <div class="well well-sm" style="max-height: 200px; overflow-y: auto; margin-bottom: 8px; background: #fff;">
+          <div ng-repeat="item in selectableTags | filter:{ pathText: tagFilter }" class="checkbox" style="margin-top: 4px; margin-bottom: 4px;">
+            <label style="display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <input type="checkbox" ng-model="selectedMap[item.id]">
+              <span class="fas fa-tag" ng-style="{ 'color': item.color }" style="margin-right: 4px;"></span>
+              <span class="text-muted small" ng-if="item.code" style="margin-right: 4px;">[{{ item.code }}]</span>
+              <span>{{ item.pathText }}</span>
+            </label>
+          </div>
+          <p class="text-muted text-center small mb-0" ng-if="(selectableTags | filter:{ pathText: tagFilter }).length === 0">
+            {{ 'document.no_tags' | translate }}
+          </p>
+        </div>
+
+        <div class="checkbox" style="padding-top: 0;">
+          <label>
+            <input type="checkbox" ng-model="options.includeChildren">
+            {{ 'tag.export.include_children' | translate }}
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Export format -->
+    <div class="form-group">
+      <label class="col-sm-3 control-label">{{ 'tag.export.format' | translate }}</label>
+      <div class="col-sm-9">
+        <div class="radio">
+          <label>
+            <input type="radio" name="exportFormat" value="pdf" ng-model="options.format">
+            <span class="far fa-file-pdf text-danger"></span> {{ 'tag.export.format_pdf' | translate }}
+          </label>
+        </div>
+        <div class="radio">
+          <label>
+            <input type="radio" name="exportFormat" value="xlsx" ng-model="options.format">
+            <span class="far fa-file-excel text-success"></span> {{ 'tag.export.format_xlsx' | translate }}
+          </label>
+        </div>
+        <div class="radio">
+          <label>
+            <input type="radio" name="exportFormat" value="html" ng-model="options.format">
+            <span class="far fa-file-code text-primary"></span> {{ 'tag.export.format_html' | translate }}
+          </label>
+        </div>
+        <div class="radio">
+          <label>
+            <input type="radio" name="exportFormat" value="json" ng-model="options.format">
+            <span class="fas fa-code text-muted"></span> {{ 'tag.export.format_json' | translate }}
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Display content options -->
+    <div class="form-group" ng-if="options.format !== 'json'">
+      <label class="col-sm-3 control-label">{{ 'tag.export.content_options' | translate }}</label>
+      <div class="col-sm-9">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="options.includeDate">
+            {{ 'tag.export.include_date' | translate }}
+          </label>
+        </div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="options.includeDescription">
+            {{ 'tag.export.include_description' | translate }}
+          </label>
+        </div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="options.includeSize">
+            {{ 'tag.export.include_size' | translate }}
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="form-group" ng-if="options.format === 'json'">
+      <div class="col-sm-offset-3 col-sm-9">
+        <p class="help-block mb-0">{{ 'tag.export.json_raw_hint' | translate }}</p>
+      </div>
+    </div>
+
+    <!-- 4. File link mode -->
+    <div class="form-group">
+      <label class="col-sm-3 control-label">{{ 'tag.export.link_mode' | translate }}</label>
+      <div class="col-sm-9">
+        <div class="radio">
+          <label>
+            <input type="radio" name="linkMode" value="preview" ng-model="options.linkMode">
+            <span class="fas fa-eye"></span> {{ 'tag.export.link_mode_preview' | translate }}
+          </label>
+        </div>
+        <div class="radio">
+          <label>
+            <input type="radio" name="linkMode" value="download" ng-model="options.linkMode">
+            <span class="fas fa-download"></span> {{ 'tag.export.link_mode_download' | translate }}
+          </label>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-default" ng-click="close()">
+    {{ 'cancel' | translate }}
+  </button>
+  <button type="button" class="btn btn-primary" ng-disabled="!hasSelectedTags()" ng-click="exportReport()">
+    <span class="fas fa-file-export"></span> {{ 'tag.export.submit' | translate }}
+  </button>
+</div>

@@ -40,6 +40,12 @@ public class Share {
     @Column(name = "SHA_DELETEDATE_D")
     private Date deleteDate;
 
+    /**
+     * Allow export / download through this share link (default false: preview only).
+     */
+    @Column(name = "SHA_ALLOWEXPORT_B", nullable = false)
+    private boolean allowExport = false;
+
     public String getId() {
         return id;
     }
@@ -70,6 +76,14 @@ public class Share {
 
     public void setDeleteDate(Date deleteDate) {
         this.deleteDate = deleteDate;
+    }
+
+    public boolean isAllowExport() {
+        return allowExport;
+    }
+
+    public void setAllowExport(boolean allowExport) {
+        this.allowExport = allowExport;
     }
 
     @Override

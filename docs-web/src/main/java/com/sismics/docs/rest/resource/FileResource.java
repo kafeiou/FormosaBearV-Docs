@@ -918,8 +918,16 @@ public class FileResource extends BaseResource {
         File file = findFile(fileId, shareId);
 
         // Check download permission when downloading raw data
-        if (size == null && !checkDownloadAllowed(file, null)) {
-            throw new ForbiddenClientException();
+        if (size == null) {
+            if (shareId != null) {
+                com.sismics.docs.core.model.jpa.Share share = new com.sismics.docs.core.dao.ShareDao().getActiveById(shareId);
+                if (share == null || !share.isAllowExport()) {
+                    throw new ForbiddenClientException();
+                }
+            }
+            if (!checkDownloadAllowed(file, null)) {
+                throw new ForbiddenClientException();
+            }
         }
 
         // Get the stored file
@@ -1111,6 +1119,14 @@ public class FileResource extends BaseResource {
         DocumentDto documentDto = documentDao.getDocument(documentId, PermType.READ, getTargetIdList(shareId));
         if (documentDto == null) {
             throw new NotFoundException();
+        }
+
+        // Check share export permission if accessed via share link
+        if (shareId != null) {
+            com.sismics.docs.core.model.jpa.Share share = new com.sismics.docs.core.dao.ShareDao().getActiveById(shareId);
+            if (share == null || !share.isAllowExport()) {
+                throw new ForbiddenClientException();
+            }
         }
 
         // Check download permission

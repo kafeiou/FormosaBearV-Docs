@@ -10,7 +10,9 @@ import com.sismics.docs.core.dao.dto.AclDto;
 import com.sismics.docs.core.dao.dto.TagDto;
 import com.sismics.docs.core.model.jpa.Acl;
 import com.sismics.docs.core.model.jpa.Tag;
+import com.sismics.docs.core.service.TagReportService;
 import com.sismics.docs.core.util.jpa.SortCriteria;
+import com.sismics.docs.rest.constant.BaseFunction;
 import com.sismics.rest.exception.ClientException;
 import com.sismics.rest.exception.ForbiddenClientException;
 import com.sismics.rest.util.AclUtil;
@@ -647,5 +649,143 @@ public class TagResource extends BaseResource {
         JsonObjectBuilder response = Json.createObjectBuilder()
                 .add("status", "ok");
         return Response.ok().entity(response.build()).build();
+    }
+
+    /**
+     * Exports a hierarchical tag report in JSON, Excel (.xlsx), HTML, or PDF format.
+     *
+     * @api {get} /tag/export Export tag report
+     * @apiName GetTagExport
+     * @apiGroup Tag
+     * @apiParam {String[]} tag_id List of tag IDs to export
+     * @apiParam {String="json","xlsx","html","pdf"} [format="pdf"] Export format
+     * @apiParam {Boolean} [include_children=true] Include child tags
+     * @apiParam {Boolean} [include_date=true] Include document/file dates in visual reports
+     * @apiParam {Boolean} [include_description=true] Include document descriptions in visual reports
+     * @apiParam {String="preview","download"} [link_mode="preview"] File hyperlink mode
+     * @apiPermission user
+     * @apiVersion 1.5.0
+     *
+     * @return Response
+     */
+    @GET
+    @Path("/export")
+    public Response export(
+            @QueryParam("tag_id") List<String> tagIdList,
+            @QueryParam("format") @DefaultValue("pdf") String format,
+            @QueryParam("include_children") @DefaultValue("true") boolean includeChildren,
+            @QueryParam("include_date") @DefaultValue("true") boolean includeDate,
+            @QueryParam("include_description") @DefaultValue("true") boolean includeDescription,
+            @QueryParam("include_size") @DefaultValue("false") boolean includeSize,
+            @QueryParam("link_mode") @DefaultValue("preview") String linkMode,
+            @QueryParam("lang") @DefaultValue("zh_TW") String lang,
+            @QueryParam("base_url") String baseUrlParam) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+
+        List<String> selectedIds = new java.util.ArrayList<>();
+        if (tagIdList != null) {
+            for (String item : tagIdList) {
+                if (item != null) {
+                    for (String part : item.split(",")) {
+                        if (!part.trim().isEmpty()) {
+                            selectedIds.add(part.trim());
+                        }
+                    }
+                }
+            }
+        }
+        if (selectedIds.isEmpty()) {
+            throw new ClientException("ValidationError", "tag_id is required");
+        }
+
+        String normalizedFormat = format != null ? format.trim().toLowerCase(java.util.Locale.ROOT) : "pdf";
+        if (!"json".equals(normalizedFormat) && !"xlsx".equals(normalizedFormat)
+                && !"html".equals(normalizedFormat) && !"pdf".equals(normalizedFormat)) {
+            throw new ClientException("ValidationError", "Unsupported format: " + format);
+        }
+
+        String resolvedBaseUrl = baseUrlParam;
+        if (StringUtils.isBlank(resolvedBaseUrl) && request != null) {
+            String scheme = request.getScheme();
+            String serverName = request.getServerName();
+            int port = request.getServerPort();
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            boolean defaultPort = ("http".equalsIgnoreCase(scheme) && port == 80)
+                    || ("https".equalsIgnoreCase(scheme) && port == 443)
+                    || port <= 0;
+            resolvedBaseUrl = scheme + "://" + serverName + (defaultPort ? "" : ":" + port) + contextPath;
+        }
+
+        TagReportService service = new TagReportService();
+        TagReportService.ExportOptions options = new TagReportService.ExportOptions()
+                .setSelectedTagIds(selectedIds)
+                .setIncludeChildren(includeChildren)
+                .setIncludeDate(includeDate)
+                .setIncludeDescription(includeDescription)
+                .setIncludeSize(includeSize)
+                .setLinkMode(linkMode)
+                .setLang(lang)
+                .setBaseUrl(resolvedBaseUrl)
+                .setUserId(principal.getId())
+                .setExportedBy(principal.getName())
+                .setTargetIdList(getTargetIdList(null))
+                .setAdminOrPrivileged(hasBaseFunction(BaseFunction.ADMIN));
+
+        TagReportService.ReportData reportData = service.buildReportData(options);
+        if (reportData.getFlatTags().isEmpty()) {
+            throw new ForbiddenClientException();
+        }
+
+        String dateStamp = new java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.ROOT).format(new java.util.Date());
+        String contentType;
+        String fileName;
+        switch (normalizedFormat) {
+            case "json":
+                contentType = "application/zip";
+                fileName = "tag-report-" + dateStamp + ".zip";
+                break;
+            case "xlsx":
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                fileName = "tag-report-" + dateStamp + ".xlsx";
+                break;
+            case "html":
+                contentType = "text/html; charset=UTF-8";
+                fileName = "tag-report-" + dateStamp + ".html";
+                break;
+            case "pdf":
+            default:
+                contentType = "application/pdf";
+                fileName = "tag-report-" + dateStamp + ".pdf";
+                break;
+        }
+
+        jakarta.ws.rs.core.StreamingOutput stream = output -> {
+            try {
+                switch (normalizedFormat) {
+                    case "json":
+                        service.exportJsonZip(reportData, output, "tag-report-" + dateStamp + ".json");
+                        break;
+                    case "xlsx":
+                        service.exportExcel(reportData, output);
+                        break;
+                    case "html":
+                        service.exportHtml(reportData, output);
+                        break;
+                    case "pdf":
+                    default:
+                        service.exportPdf(reportData, output);
+                        break;
+                }
+            } catch (Exception e) {
+                throw new WebApplicationException(e);
+            }
+        };
+
+        return Response.ok(stream)
+                .header("Content-Type", contentType)
+                .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
+                .build();
     }
 }

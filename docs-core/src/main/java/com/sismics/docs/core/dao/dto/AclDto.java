@@ -38,6 +38,11 @@ public class AclDto {
      */
     private String targetType;
 
+    /**
+     * Allow export / download when target is SHARE.
+     */
+    private Boolean shareAllowExport;
+
     public String getId() {
         return id;
     }
@@ -84,5 +89,13 @@ public class AclDto {
 
     public void setTargetType(String targetType) {
         this.targetType = targetType;
+    }
+
+    public Boolean getShareAllowExport() {
+        return shareAllowExport;
+    }
+
+    public void setShareAllowExport(Boolean shareAllowExport) {
+        this.shareAllowExport = shareAllowExport;
     }
 }

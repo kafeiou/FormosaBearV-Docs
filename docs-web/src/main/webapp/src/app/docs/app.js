@@ -16,6 +16,7 @@ angular.module('docs',
 .config(function($locationProvider, $urlRouterProvider, $stateProvider, $httpProvider, $qProvider,
                  RestangularProvider, $translateProvider, timeAgoSettings, tmhDynamicLocaleProvider) {
   $locationProvider.hashPrefix('');
+  $urlRouterProvider.when('/document/:id/file/:fileId', '/document/view/:id/content/file/:fileId');
 
   // Configuring UI Router
   $stateProvider

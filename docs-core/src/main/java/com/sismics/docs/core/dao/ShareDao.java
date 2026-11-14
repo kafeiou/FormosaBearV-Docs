@@ -31,6 +31,36 @@ public class ShareDao {
         
         return share.getId();
     }
+
+    /**
+     * Gets an active share by its ID.
+     *
+     * @param id Share ID
+     * @return Share or null if not found
+     */
+    public Share getActiveById(String id) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("select s from Share s where s.id = :id and s.deleteDate is null");
+        q.setParameter("id", id);
+        @SuppressWarnings("unchecked")
+        java.util.List<Share> list = q.getResultList();
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    /**
+     * Updates a share.
+     *
+     * @param share Share to update
+     * @return Updated share
+     */
+    public Share update(Share share) {
+        Share shareDb = getActiveById(share.getId());
+        if (shareDb != null) {
+            shareDb.setName(share.getName());
+            shareDb.setAllowExport(share.isAllowExport());
+        }
+        return shareDb;
+    }
     
     /**
      * Deletes a share.

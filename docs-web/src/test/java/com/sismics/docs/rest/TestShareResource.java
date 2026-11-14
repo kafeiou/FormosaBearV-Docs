@@ -61,13 +61,14 @@ public class TestShareResource extends BaseJerseyTest {
             }
         }
         
-        // Share this document
+        // Share this document (default allow_export must be false -> preview only)
         json = target().path("/share").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, share1Token)
                 .put(Entity.form(new Form()
                         .param("id", document1Id)
                         .param("name", "4 All")), JsonObject.class);
         String share1Id = json.getString("id");
+        Assert.assertFalse("New share must default to allow_export = false", json.getBoolean("allow_export"));
         
         // Get the document anonymously
         json = target().path("/document/" + document1Id)
@@ -75,6 +76,8 @@ public class TestShareResource extends BaseJerseyTest {
                 .request()
                 .get(JsonObject.class);
         Assert.assertEquals(document1Id, json.getString("id"));
+        Assert.assertFalse(json.getBoolean("share_allow_export"));
+        Assert.assertFalse(json.getBoolean("can_download"));
         Assert.assertEquals(3, json.getJsonArray("acls").size()); // 2 for the creator, 1 for the share
 
         // Get all comments from this document anonymously
@@ -93,16 +96,71 @@ public class TestShareResource extends BaseJerseyTest {
                 .get(JsonObject.class);
         JsonArray files = json.getJsonArray("files");
         Assert.assertEquals(1, files.size());
-        
-        // Get the file data anonymously
+
+        // Preview (size=web and size=thumb) must succeed even when allow_export = false
+        Response previewResp = target().path("/file/" + file1Id + "/data")
+                .queryParam("size", "web")
+                .queryParam("share", share1Id)
+                .request()
+                .get();
+        Assert.assertEquals(Status.OK.getStatusCode(), previewResp.getStatus());
+
+        // Raw file download, ZIP export, and PDF export must be forbidden (403) when allow_export = false
+        Response forbiddenDataResp = target().path("/file/" + file1Id + "/data")
+                .queryParam("share", share1Id)
+                .request()
+                .get();
+        Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), forbiddenDataResp.getStatus());
+
+        Response forbiddenZipResp = target().path("/file/zip")
+                .queryParam("id", document1Id)
+                .queryParam("share", share1Id)
+                .request()
+                .get();
+        Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), forbiddenZipResp.getStatus());
+
+        Response forbiddenPdfResp = target().path("/document/" + document1Id + "/pdf")
+                .queryParam("share", share1Id)
+                .queryParam("metadata", false)
+                .queryParam("fitimagetopage", true)
+                .queryParam("margin", 10)
+                .request()
+                .get();
+        Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), forbiddenPdfResp.getStatus());
+
+        // Enable allow_export on the share via POST /share/{id}
+        JsonObject updateShareJson = target().path("/share/" + share1Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, share1Token)
+                .post(Entity.form(new Form().param("allow_export", "true")), JsonObject.class);
+        Assert.assertEquals("ok", updateShareJson.getString("status"));
+        Assert.assertTrue(updateShareJson.getBoolean("allow_export"));
+
+        // Now raw file download, ZIP, and PDF export succeed anonymously
         Response response = target().path("/file/" + file1Id + "/data")
                 .queryParam("thumbnail", false)
                 .queryParam("share", share1Id)
                 .request()
                 .get();
+        Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
         InputStream is = (InputStream) response.getEntity();
         byte[] fileBytes = ByteStreams.toByteArray(is);
         Assert.assertEquals(163510, fileBytes.length);
+
+        Response okZipResp = target().path("/file/zip")
+                .queryParam("id", document1Id)
+                .queryParam("share", share1Id)
+                .request()
+                .get();
+        Assert.assertEquals(Status.OK.getStatusCode(), okZipResp.getStatus());
+
+        Response okPdfResp = target().path("/document/" + document1Id + "/pdf")
+                .queryParam("share", share1Id)
+                .queryParam("metadata", false)
+                .queryParam("fitimagetopage", true)
+                .queryParam("margin", 10)
+                .request()
+                .get();
+        Assert.assertEquals(Status.OK.getStatusCode(), okPdfResp.getStatus());
         
         // Deletes the share (not allowed)
         clientUtil.createUser("share2");

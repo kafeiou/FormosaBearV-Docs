@@ -87,6 +87,7 @@ public enum ConfigType {
     LDAP_HOST,
     LDAP_PORT,
     LDAP_USESSL,
+    LDAP_USESTARTTLS,
     LDAP_ADMIN_DN,
     LDAP_ADMIN_PASSWORD,
     LDAP_BASE_DN,

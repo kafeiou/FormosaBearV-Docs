@@ -3,9 +3,24 @@
 /**
  * Tag controller.
  */
-angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, Restangular, User) {
+angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, Restangular, User, $uibModal) {
   $scope.tag = { name: '', color: '#3a87ad', parent: '' };
   $scope.expandedTags = {};
+
+  /**
+   * Open tag report export modal.
+   */
+  $scope.openTagExportModal = function() {
+    $uibModal.open({
+      templateUrl: 'partial/docs/tag.export.html',
+      controller: 'ModalTagExport',
+      resolve: {
+        initialTagId: function() {
+          return $stateParams.id || null;
+        }
+      }
+    });
+  };
 
   // Guardrail for tagadmin routes: redirect non-authorized users to tag browser
   User.userInfo().then(function(userData) {

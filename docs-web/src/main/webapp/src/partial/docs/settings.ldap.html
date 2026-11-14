@@ -66,14 +66,14 @@
         </div>
       </div>
 
-      <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.usessl.$valid && form.$dirty }">
-        <label class="col-sm-2 control-label">{{ 'settings.ldap.usessl' | translate }}</label>
+      <div ng-if="ldap.enabled" class="form-group">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.security' | translate }}</label>
         <div class="col-sm-7">
-          <div class="checkbox">
-            <label>
-              <input name="usessl" type="checkbox" ng-model="ldap.usessl" />
-            </label>
-          </div>
+          <select name="security" class="form-control" ng-model="ldap.security" ng-change="onSecurityChange(ldap)">
+            <option value="NONE">{{ 'settings.ldap.security_none' | translate }}</option>
+            <option value="SSL">{{ 'settings.ldap.security_ssl' | translate }}</option>
+            <option value="STARTTLS">{{ 'settings.ldap.security_starttls' | translate }}</option>
+          </select>
         </div>
       </div>
 
@@ -145,6 +145,21 @@
                     ng-selected="ldap.default_group == group0.id"
                     value="{{ group0.id }}">{{ group0.name }}</option>
           </select>
+        </div>
+      </div>
+
+      <div ng-if="ldap.enabled" class="form-group">
+        <div class="col-sm-offset-2 col-sm-7">
+          <button type="button" class="btn btn-info"
+                  ng-click="testConnection(ldap)"
+                  ng-disabled="!ldap.host || !ldap.port || !ldap.admin_dn || !ldap.admin_password || ldap.testLoading">
+            <span class="fas fa-plug"></span> {{ 'settings.ldap.test_connection' | translate }}
+          </button>
+          <div class="alert" style="margin-top: 10px; margin-bottom: 0;"
+               ng-if="ldap.testMessage"
+               ng-class="{ 'alert-success': ldap.testStatus === 'success', 'alert-danger': ldap.testStatus === 'error' }">
+            {{ ldap.testMessage }}
+          </div>
         </div>
       </div>
     </div>

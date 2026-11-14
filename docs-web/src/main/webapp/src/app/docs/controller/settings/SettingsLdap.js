@@ -6,6 +6,18 @@
 angular.module('docs').controller('SettingsLdap', function($scope, Restangular, $translate, $timeout) {
   $scope.servers = [];
 
+  var syncSecurityMode = function (srv) {
+    srv.usessl = !!srv.usessl;
+    srv.usestarttls = !srv.usessl && !!srv.usestarttls;
+    if (srv.usessl) {
+      srv.security = 'SSL';
+    } else if (srv.usestarttls) {
+      srv.security = 'STARTTLS';
+    } else {
+      srv.security = 'NONE';
+    }
+  };
+
   var createDefaultServer = function (index) {
     return {
       name: 'LDAP #' + (index + 1),
@@ -13,6 +25,8 @@ angular.module('docs').controller('SettingsLdap', function($scope, Restangular, 
       host: '',
       port: 389,
       usessl: false,
+      usestarttls: false,
+      security: 'NONE',
       admin_dn: '',
       admin_password: '',
       base_dn: '',
@@ -29,6 +43,7 @@ angular.module('docs').controller('SettingsLdap', function($scope, Restangular, 
       if (data.servers && angular.isArray(data.servers) && data.servers.length > 0) {
         $scope.servers = angular.copy(data.servers);
         angular.forEach($scope.servers, function (srv) {
+          syncSecurityMode(srv);
           if (srv.default_storage) {
             srv.default_storage = Math.round(srv.default_storage / 1000000);
           } else {
@@ -36,12 +51,13 @@ angular.module('docs').controller('SettingsLdap', function($scope, Restangular, 
           }
         });
       } else if (data.host) {
-        $scope.servers = [{
+        var singleSrv = {
           name: 'Primary LDAP',
           enabled: !!data.enabled,
           host: data.host || '',
           port: data.port || 389,
           usessl: !!data.usessl,
+          usestarttls: !!data.usestarttls,
           admin_dn: data.admin_dn || '',
           admin_password: data.admin_password || '',
           base_dn: data.base_dn || '',
@@ -50,7 +66,9 @@ angular.module('docs').controller('SettingsLdap', function($scope, Restangular, 
           default_storage: data.default_storage ? Math.round(data.default_storage / 1000000) : 100,
           default_group: data.default_group || '',
           default_groupmembership: data.default_groupmembership || ''
-        }];
+        };
+        syncSecurityMode(singleSrv);
+        $scope.servers = [singleSrv];
       } else {
         $scope.servers = [createDefaultServer(0)];
       }
@@ -58,6 +76,59 @@ angular.module('docs').controller('SettingsLdap', function($scope, Restangular, 
   };
 
   loadLdapConfig();
+
+  /**
+   * Update usessl/usestarttls flags and default port when security protocol changes.
+   */
+  $scope.onSecurityChange = function (srv) {
+    if (srv.security === 'SSL') {
+      srv.usessl = true;
+      srv.usestarttls = false;
+      if (srv.port === 389) {
+        srv.port = 636;
+      }
+    } else if (srv.security === 'STARTTLS') {
+      srv.usessl = false;
+      srv.usestarttls = true;
+      if (srv.port === 636) {
+        srv.port = 389;
+      }
+    } else {
+      srv.usessl = false;
+      srv.usestarttls = false;
+      if (srv.port === 636) {
+        srv.port = 389;
+      }
+    }
+  };
+
+  /**
+   * Test connection to a single LDAP server.
+   */
+  $scope.testConnection = function (srv) {
+    srv.testLoading = true;
+    srv.testStatus = undefined;
+    srv.testMessage = undefined;
+
+    Restangular.one('app').post('test_ldap', {
+      host: srv.host,
+      port: srv.port,
+      usessl: srv.security === 'SSL',
+      usestarttls: srv.security === 'STARTTLS',
+      admin_dn: srv.admin_dn,
+      admin_password: srv.admin_password,
+      base_dn: srv.base_dn
+    }).then(function () {
+      srv.testLoading = false;
+      srv.testStatus = 'success';
+      srv.testMessage = $translate.instant('settings.ldap.test_success');
+    }, function (resp) {
+      srv.testLoading = false;
+      srv.testStatus = 'error';
+      var detail = (resp && resp.data && resp.data.message) ? resp.data.message : '';
+      srv.testMessage = $translate.instant('settings.ldap.test_error') + (detail ? ': ' + detail : '');
+    });
+  };
 
   /**
    * Load groups from server.
@@ -115,6 +186,12 @@ angular.module('docs').controller('SettingsLdap', function($scope, Restangular, 
     angular.forEach($scope.servers, function (srv, idx) {
       var copy = angular.copy(srv);
       copy.order = idx;
+      copy.usessl = copy.security === 'SSL';
+      copy.usestarttls = copy.security === 'STARTTLS';
+      delete copy.security;
+      delete copy.testLoading;
+      delete copy.testStatus;
+      delete copy.testMessage;
       if (copy.default_storage) {
         copy.default_storage = Number(copy.default_storage) * 1000000;
       } else {

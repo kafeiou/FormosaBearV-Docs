@@ -66,7 +66,7 @@ public class AclDao {
     public List<AclDto> getBySourceId(String sourceId, AclType type) {
         EntityManager em = ThreadLocalContext.get().getEntityManager();
         StringBuilder sb = new StringBuilder("select a.ACL_ID_C, a.ACL_PERM_C, a.ACL_TARGETID_C, ")
-                .append(" u.USE_USERNAME_C, s.SHA_ID_C, s.SHA_NAME_C, g.GRP_NAME_C ")
+                .append(" u.USE_USERNAME_C, s.SHA_ID_C, s.SHA_NAME_C, s.SHA_ALLOWEXPORT_B, g.GRP_NAME_C ")
                 .append(" from T_ACL a ")
                 .append(" left join T_USER u on u.USE_ID_C = a.ACL_TARGETID_C ")
                 .append(" left join T_SHARE s on s.SHA_ID_C = a.ACL_TARGETID_C ")
@@ -95,6 +95,7 @@ public class AclDao {
             String userName = (String) o[i++];
             String shareId = (String) o[i++];
             String shareName = (String) o[i++];
+            Object shareAllowExportObj = o[i++];
             String groupName = (String) o[i];
             if (userName != null) {
                 aclDto.setTargetName(userName);
@@ -103,6 +104,9 @@ public class AclDao {
             if (shareId != null) { // Use ID because share name is nullable
                 aclDto.setTargetName(shareName);
                 aclDto.setTargetType(AclTargetType.SHARE.name());
+                aclDto.setShareAllowExport(shareAllowExportObj instanceof Boolean
+                        ? (Boolean) shareAllowExportObj
+                        : (shareAllowExportObj != null && "1".equals(String.valueOf(shareAllowExportObj))));
             }
             if (groupName != null) {
                 aclDto.setTargetName(groupName);

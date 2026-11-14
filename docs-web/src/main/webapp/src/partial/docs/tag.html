@@ -36,11 +36,14 @@
         <span class="text-muted">
           <span class="fas fa-tags"></span> {{ 'tag.browse.tree_title' | translate }}
         </span>
-        <div class="btn-group btn-group-xs pull-right" ng-if="hasAnyNestedTags()">
-          <button type="button" class="btn btn-default" ng-click="expandAllTags()" uib-tooltip="{{ 'tag.expand_all' | translate }}">
+        <div class="btn-group btn-group-xs pull-right">
+          <button type="button" class="btn btn-primary" ng-click="openTagExportModal()" uib-tooltip="{{ 'tag.export.button' | translate }}">
+            <span class="fas fa-file-export"></span> {{ 'tag.export.button' | translate }}
+          </button>
+          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="expandAllTags()" uib-tooltip="{{ 'tag.expand_all' | translate }}">
             <span class="fas fa-plus-square"></span> {{ 'tag.expand_all' | translate }}
           </button>
-          <button type="button" class="btn btn-default" ng-click="collapseAllTags()" uib-tooltip="{{ 'tag.collapse_all' | translate }}">
+          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="collapseAllTags()" uib-tooltip="{{ 'tag.collapse_all' | translate }}">
             <span class="fas fa-minus-square"></span> {{ 'tag.collapse_all' | translate }}
           </button>
         </div>

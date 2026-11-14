@@ -215,10 +215,13 @@ angular.module('share',
  */
 angular.module('share').run(function ($rootScope, Restangular) {
   $rootScope.canDownload = function (file, document) {
+    var doc = document || $rootScope.document;
+    if (doc && doc.share_allow_export === false) {
+      return false;
+    }
     if (!$rootScope.app || $rootScope.app.file_download !== false) {
       return true;
     }
-    var doc = document || $rootScope.document;
     if (doc) {
       if (doc.can_download !== undefined) {
         return doc.can_download;

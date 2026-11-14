@@ -43,17 +43,50 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
     private static final Logger log = LoggerFactory.getLogger(LdapAuthenticationHandler.class);
 
     /**
-     * Build an LdapConnection for a given LdapConfig.
+     * Build an LdapNetworkConnection for a given LdapConfig.
      */
-    private static LdapConnection createConnection(LdapConfig ldapCfg) {
+    private static LdapNetworkConnection createConnection(LdapConfig ldapCfg) {
         LdapConnectionConfig config = new LdapConnectionConfig();
         config.setLdapHost(ldapCfg.getHost());
-        config.setLdapPort(ldapCfg.getPort() != null ? ldapCfg.getPort() : 389);
+        config.setLdapPort(ldapCfg.getPort() != null ? ldapCfg.getPort() : (ldapCfg.isUseSsl() ? 636 : 389));
         config.setUseSsl(ldapCfg.isUseSsl());
         config.setName(ldapCfg.getAdminDn());
         config.setCredentials(ldapCfg.getAdminPassword());
         config.setTimeout(5000L);
         return new LdapNetworkConnection(config);
+    }
+
+    /**
+     * Connect, optionally upgrade via STARTTLS, and bind with the configured admin credentials.
+     */
+    private static void connectAndBind(LdapNetworkConnection ldapConnection, LdapConfig ldapCfg) throws Exception {
+        if (!ldapCfg.isUseSsl() && ldapCfg.isUseStartTls()) {
+            ldapConnection.connect();
+            ldapConnection.startTls();
+        }
+        ldapConnection.bind();
+    }
+
+    /**
+     * Test connectivity, TLS/STARTTLS handshake, admin bind, and optional base DN lookup for a given LdapConfig.
+     *
+     * @param ldapCfg LDAP configuration to test
+     * @throws Exception if connection, TLS negotiation, bind, or base DN lookup fails
+     */
+    public static void testConnection(LdapConfig ldapCfg) throws Exception {
+        try (LdapNetworkConnection ldapConnection = createConnection(ldapCfg)) {
+            connectAndBind(ldapConnection, ldapCfg);
+            if (!Strings.isNullOrEmpty(ldapCfg.getBaseDn())) {
+                try (EntryCursor cursor = ldapConnection.search(
+                        ldapCfg.getBaseDn(),
+                        "(objectClass=*)",
+                        SearchScope.OBJECT)) {
+                    if (!cursor.next()) {
+                        throw new IllegalStateException("Base DN not found or inaccessible: " + ldapCfg.getBaseDn());
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -81,6 +114,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
                     .setHost(ConfigUtil.getConfigStringValue(ConfigType.LDAP_HOST))
                     .setPort(ConfigUtil.getConfigIntegerValue(ConfigType.LDAP_PORT))
                     .setUseSsl(ConfigUtil.getConfigBooleanValue(ConfigType.LDAP_USESSL, false))
+                    .setUseStartTls(ConfigUtil.getConfigBooleanValue(ConfigType.LDAP_USESTARTTLS, false))
                     .setAdminDn(ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_DN))
                     .setAdminPassword(ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_PASSWORD))
                     .setBaseDn(ConfigUtil.getConfigStringValue(ConfigType.LDAP_BASE_DN))
@@ -120,8 +154,8 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
         String sGroupName = null;
 
         for (LdapConfig ldapCfg : enabledConfigs) {
-            try (LdapConnection ldapConnection = createConnection(ldapCfg)) {
-                ldapConnection.bind();
+            try (LdapNetworkConnection ldapConnection = createConnection(ldapCfg)) {
+                connectAndBind(ldapConnection, ldapCfg);
 
                 try (EntryCursor cursor = ldapConnection.search(
                         ldapCfg.getBaseDn(),

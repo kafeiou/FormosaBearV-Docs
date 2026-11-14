@@ -36,6 +36,7 @@ import com.sismics.docs.core.model.jpa.LdapConfig;
 import com.sismics.docs.core.service.InboxService;
 import com.sismics.docs.core.util.ConfigUtil;
 import com.sismics.docs.core.util.DirectoryUtil;
+import com.sismics.docs.core.util.authentication.LdapAuthenticationHandler;
 import com.sismics.docs.core.util.jpa.PaginatedList;
 import com.sismics.docs.core.util.jpa.PaginatedLists;
 import com.sismics.docs.rest.constant.BaseFunction;
@@ -1063,6 +1064,7 @@ public class AppResource extends BaseResource {
                     .add("host", Strings.nullToEmpty(cfg.getHost()))
                     .add("port", cfg.getPort() != null ? cfg.getPort() : 389)
                     .add("usessl", cfg.isUseSsl())
+                    .add("usestarttls", cfg.isUseStartTls())
                     .add("admin_dn", Strings.nullToEmpty(cfg.getAdminDn()))
                     .add("admin_password", Strings.nullToEmpty(cfg.getAdminPassword()))
                     .add("base_dn", Strings.nullToEmpty(cfg.getBaseDn()))
@@ -1088,6 +1090,7 @@ public class AppResource extends BaseResource {
                     .add("host", Strings.nullToEmpty(primary.getHost()))
                     .add("port", primary.getPort() != null ? primary.getPort() : 389)
                     .add("usessl", primary.isUseSsl())
+                    .add("usestarttls", primary.isUseStartTls())
                     .add("admin_dn", Strings.nullToEmpty(primary.getAdminDn()))
                     .add("admin_password", Strings.nullToEmpty(primary.getAdminPassword()))
                     .add("base_dn", Strings.nullToEmpty(primary.getBaseDn()))
@@ -1109,6 +1112,7 @@ public class AppResource extends BaseResource {
                         .add("host", ConfigUtil.getConfigStringValue(ConfigType.LDAP_HOST))
                         .add("port", ConfigUtil.getConfigIntegerValue(ConfigType.LDAP_PORT))
                         .add("usessl", ConfigUtil.getConfigBooleanValue(ConfigType.LDAP_USESSL))
+                        .add("usestarttls", ConfigUtil.getConfigBooleanValue(ConfigType.LDAP_USESTARTTLS, false))
                         .add("admin_dn", ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_DN))
                         .add("admin_password", ConfigUtil.getConfigStringValue(ConfigType.LDAP_ADMIN_PASSWORD))
                         .add("base_dn", ConfigUtil.getConfigStringValue(ConfigType.LDAP_BASE_DN))
@@ -1137,6 +1141,7 @@ public class AppResource extends BaseResource {
                                @FormParam("host") String host,
                                @FormParam("port") String portStr,
                                @FormParam("usessl") Boolean usessl,
+                               @FormParam("usestarttls") Boolean usestarttls,
                                @FormParam("admin_dn") String adminDn,
                                @FormParam("admin_password") String adminPassword,
                                @FormParam("base_dn") String baseDn,
@@ -1180,6 +1185,7 @@ public class AppResource extends BaseResource {
                 String srvHost = obj.containsKey("host") && !obj.isNull("host") ? obj.getString("host").trim() : "";
                 String srvPortStr = obj.containsKey("port") && !obj.isNull("port") ? obj.get("port").toString().replace("\"", "") : "389";
                 boolean srvSsl = obj.containsKey("usessl") && !obj.isNull("usessl") && obj.getBoolean("usessl");
+                boolean srvStartTls = !srvSsl && obj.containsKey("usestarttls") && !obj.isNull("usestarttls") && obj.getBoolean("usestarttls");
                 String srvAdminDn = obj.containsKey("admin_dn") && !obj.isNull("admin_dn") ? obj.getString("admin_dn").trim() : "";
                 String srvAdminPass = obj.containsKey("admin_password") && !obj.isNull("admin_password") ? obj.getString("admin_password") : "";
                 String srvBaseDn = obj.containsKey("base_dn") && !obj.isNull("base_dn") ? obj.getString("base_dn").trim() : "";
@@ -1222,6 +1228,7 @@ public class AppResource extends BaseResource {
                         .setHost(srvHost)
                         .setPort(parsedPort)
                         .setUseSsl(srvSsl)
+                        .setUseStartTls(srvStartTls)
                         .setAdminDn(srvAdminDn)
                         .setAdminPassword(srvAdminPass)
                         .setBaseDn(srvBaseDn)
@@ -1261,6 +1268,7 @@ public class AppResource extends BaseResource {
                 configDao.update(ConfigType.LDAP_HOST, mirror.getHost());
                 configDao.update(ConfigType.LDAP_PORT, String.valueOf(mirror.getPort()));
                 configDao.update(ConfigType.LDAP_USESSL, String.valueOf(mirror.isUseSsl()));
+                configDao.update(ConfigType.LDAP_USESTARTTLS, String.valueOf(mirror.isUseStartTls()));
                 configDao.update(ConfigType.LDAP_ADMIN_DN, mirror.getAdminDn());
                 configDao.update(ConfigType.LDAP_ADMIN_PASSWORD, mirror.getAdminPassword());
                 configDao.update(ConfigType.LDAP_BASE_DN, mirror.getBaseDn());
@@ -1293,7 +1301,9 @@ public class AppResource extends BaseResource {
             configDao.update(ConfigType.LDAP_HOST, host);
             configDao.update(ConfigType.LDAP_PORT, portStr);
             if (usessl == null) usessl = false;
+            if (usestarttls == null || usessl) usestarttls = false;
             configDao.update(ConfigType.LDAP_USESSL, usessl.toString());
+            configDao.update(ConfigType.LDAP_USESTARTTLS, usestarttls.toString());
             configDao.update(ConfigType.LDAP_ADMIN_DN, adminDn);
             configDao.update(ConfigType.LDAP_ADMIN_PASSWORD, adminPassword);
             configDao.update(ConfigType.LDAP_BASE_DN, baseDn);
@@ -1315,6 +1325,7 @@ public class AppResource extends BaseResource {
                         .setHost(host)
                         .setPort(port)
                         .setUseSsl(usessl)
+                        .setUseStartTls(usestarttls)
                         .setAdminDn(adminDn)
                         .setAdminPassword(adminPassword)
                         .setBaseDn(baseDn)
@@ -1330,6 +1341,7 @@ public class AppResource extends BaseResource {
                         .setHost(host)
                         .setPort(port)
                         .setUseSsl(usessl)
+                        .setUseStartTls(usestarttls)
                         .setAdminDn(adminDn)
                         .setAdminPassword(adminPassword)
                         .setBaseDn(baseDn)
@@ -1350,5 +1362,63 @@ public class AppResource extends BaseResource {
         }
 
         return Response.ok().build();
+    }
+
+    /**
+     * Test connection to an LDAP server.
+     *
+     * @param host LDAP hostname
+     * @param portStr LDAP port
+     * @param usessl Use LDAPS (SSL)
+     * @param usestarttls Use STARTTLS
+     * @param adminDn Admin bind DN
+     * @param adminPassword Admin bind password
+     * @param baseDn Optional base DN to verify
+     * @return Response
+     */
+    @POST
+    @Path("test_ldap")
+    public Response testLdap(@FormParam("host") String host,
+                             @FormParam("port") String portStr,
+                             @FormParam("usessl") Boolean usessl,
+                             @FormParam("usestarttls") Boolean usestarttls,
+                             @FormParam("admin_dn") String adminDn,
+                             @FormParam("admin_password") String adminPassword,
+                             @FormParam("base_dn") String baseDn) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        ValidationUtil.validateLength(host, "host", 1, 250);
+        int port = ValidationUtil.validateInteger(portStr, "port");
+        ValidationUtil.validateLength(adminDn, "admin_dn", 1, 250);
+        ValidationUtil.validateLength(adminPassword, "admin_password", 1, 250);
+
+        boolean ssl = usessl != null && usessl;
+        boolean startTls = !ssl && usestarttls != null && usestarttls;
+
+        LdapConfig testCfg = new LdapConfig()
+                .setHost(host.trim())
+                .setPort(port)
+                .setUseSsl(ssl)
+                .setUseStartTls(startTls)
+                .setAdminDn(adminDn.trim())
+                .setAdminPassword(adminPassword)
+                .setBaseDn(baseDn != null ? baseDn.trim() : "");
+
+        try {
+            LdapAuthenticationHandler.testConnection(testCfg);
+            return Response.ok().entity(Json.createObjectBuilder().add("status", "ok").build()).build();
+        } catch (Exception e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            if (e.getCause() != null && e.getCause().getMessage() != null && !errorMsg.contains(e.getCause().getMessage())) {
+                errorMsg += " (" + e.getCause().getMessage() + ")";
+            }
+            JsonObjectBuilder resp = Json.createObjectBuilder()
+                    .add("status", "error")
+                    .add("message", errorMsg);
+            return Response.status(Response.Status.BAD_REQUEST).entity(resp.build()).build();
+        }
     }
 }

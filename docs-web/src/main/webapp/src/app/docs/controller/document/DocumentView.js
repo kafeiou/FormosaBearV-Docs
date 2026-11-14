@@ -85,15 +85,18 @@ angular.module('docs').controller('DocumentView', function ($scope, $rootScope, 
     $uibModal.open({
       templateUrl: 'partial/docs/document.share.html',
       controller: 'DocumentModalShare'
-    }).result.then(function (name) {
-          if (name === null) {
+    }).result.then(function (shareData) {
+          if (shareData === null) {
             return;
           }
+          var name = angular.isObject(shareData) ? shareData.name : shareData;
+          var allowExport = angular.isObject(shareData) ? !!shareData.allow_export : false;
 
           // Share the document
           Restangular.one('share').put({
             name: name,
-            id: $stateParams.id
+            id: $stateParams.id,
+            allow_export: allowExport
           }).then(function (acl) {
                 // Display the new share ACL and add it to the local ACLs
                 $scope.showShare(acl);
@@ -110,12 +113,21 @@ angular.module('docs').controller('DocumentView', function ($scope, $rootScope, 
     // Show the link
     var link = $location.absUrl().replace($location.path(), '').replace('#', '') + 'share.html#/share/' + $stateParams.id + '/' + share.id;
     var title = $translate.instant('document.view.shared_document_title');
-    var msg = $translate.instant('document.view.shared_document_message', { link: link });
+    var modeText = $translate.instant(share.allow_export ? 'document.share.mode_allow_export' : 'document.share.mode_preview_only');
+    var msg = $translate.instant('document.view.shared_document_message', { link: link }) +
+        '<br><br><strong>' + $translate.instant('document.share.current_mode') + '：</strong>' + modeText;
     var btns = [
       {result: 'close', label: $translate.instant('close')}
     ];
 
-    if ($rootScope.userInfo.username !== 'guest') {
+    if ($rootScope.userInfo.username !== 'guest' && $scope.document && $scope.document.writable) {
+      btns.unshift({
+        result: 'toggle_export',
+        label: $translate.instant(share.allow_export ? 'document.share.disable_export' : 'document.share.enable_export'),
+        cssClass: share.allow_export ? 'btn-warning' : 'btn-success'
+      });
+      btns.unshift({result: 'unshare', label: $translate.instant('unshare'), cssClass: 'btn-danger'});
+    } else if ($rootScope.userInfo.username !== 'guest') {
       btns.unshift({result: 'unshare', label: $translate.instant('unshare'), cssClass: 'btn-danger'});
     }
 
@@ -126,6 +138,17 @@ angular.module('docs').controller('DocumentView', function ($scope, $rootScope, 
           $scope.document.acls = _.reject($scope.document.acls, function (s) {
             return share.id === s.id;
           });
+        });
+      } else if (result === 'toggle_export') {
+        var nextAllow = !share.allow_export;
+        Restangular.one('share', share.id).post('', { allow_export: nextAllow }).then(function (resp) {
+          share.allow_export = resp && resp.allow_export !== undefined ? !!resp.allow_export : nextAllow;
+          _.each($scope.document.acls, function (s) {
+            if (s.id === share.id) {
+              s.allow_export = share.allow_export;
+            }
+          });
+          $scope.document.acls = angular.copy($scope.document.acls);
         });
       }
     });

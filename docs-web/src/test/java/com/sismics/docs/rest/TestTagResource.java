@@ -687,6 +687,107 @@ public class TestTagResource extends BaseJerseyTest {
         Assert.assertEquals(0, subGet3.getJsonArray("acls").size());
         Assert.assertTrue(subGet3.getJsonArray("inherited_acls").size() >= 2);
 
+        // 5. Test Tag Report Export endpoint (/tag/export) for JSON, XLSX, HTML, PDF
+        // Missing tag_id -> 400 Bad Request
+        Response missingTagResp = target().path("/tag/export")
+                .queryParam("format", "json")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get();
+        Assert.assertEquals(Status.BAD_REQUEST, Status.fromStatusCode(missingTagResp.getStatus()));
+
+        // Invalid format -> 400 Bad Request
+        Response invalidFmtResp = target().path("/tag/export")
+                .queryParam("tag_id", rootTagId)
+                .queryParam("format", "csv")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get();
+        Assert.assertEquals(Status.BAD_REQUEST, Status.fromStatusCode(invalidFmtResp.getStatus()));
+
+        // Unauthorized user requesting a tag they have no permission on -> 403 Forbidden
+        Response unauthExportResp = target().path("/tag/export")
+                .queryParam("tag_id", childTagId)
+                .queryParam("format", "json")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, unauthToken)
+                .get();
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(unauthExportResp.getStatus()));
+
+        // Authorized reader exports RootTag with include_children=true in JSON format
+        // Note: SecretTag (inherit_acl=false) must NOT be included for h_reader, while RootTag, ChildTag, SubTag are included
+        Response jsonExportResp = target().path("/tag/export")
+                .queryParam("tag_id", rootTagId)
+                .queryParam("format", "json")
+                .queryParam("include_children", "true")
+                .queryParam("include_date", "false")
+                .queryParam("include_description", "false")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get();
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(jsonExportResp.getStatus()));
+        Assert.assertTrue(jsonExportResp.getHeaderString("Content-Disposition").contains(".zip"));
+        byte[] jsonZipBytes = jsonExportResp.readEntity(byte[].class);
+        JsonObject exportedJson = null;
+        String readmeContent = null;
+        try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(
+                new java.io.ByteArrayInputStream(jsonZipBytes), java.nio.charset.StandardCharsets.UTF_8)) {
+            java.util.zip.ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                String content = new String(zis.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                if (entry.getName().endsWith(".json")) {
+                    exportedJson = jakarta.json.Json.createReader(new java.io.StringReader(content)).readObject();
+                } else if ("README.md".equals(entry.getName())) {
+                    readmeContent = content;
+                }
+                zis.closeEntry();
+            }
+        } catch (java.io.IOException e) {
+            Assert.fail("Failed to read JSON ZIP export: " + e.getMessage());
+        }
+        Assert.assertNotNull(exportedJson);
+        Assert.assertNotNull(readmeContent);
+        Assert.assertTrue(readmeContent.contains("# Tag Report JSON Export Schema"));
+        Assert.assertEquals(3, exportedJson.getJsonObject("statistics").getInt("total_tags"));
+
+        // XLSX export
+        Response xlsxExportResp = target().path("/tag/export")
+                .queryParam("tag_id", rootTagId)
+                .queryParam("format", "xlsx")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get();
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(xlsxExportResp.getStatus()));
+        Assert.assertTrue(xlsxExportResp.getHeaderString("Content-Disposition").contains(".xlsx"));
+        byte[] xlsxBytes = xlsxExportResp.readEntity(byte[].class);
+        Assert.assertTrue(xlsxBytes.length > 500);
+
+        // HTML export
+        Response htmlExportResp = target().path("/tag/export")
+                .queryParam("tag_id", rootTagId)
+                .queryParam("format", "html")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get();
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(htmlExportResp.getStatus()));
+        Assert.assertTrue(htmlExportResp.getHeaderString("Content-Disposition").contains(".html"));
+        String htmlBody = htmlExportResp.readEntity(String.class);
+        Assert.assertTrue(htmlBody.contains("HRoot"));
+        Assert.assertTrue(htmlBody.contains("HChild"));
+        Assert.assertFalse(htmlBody.contains("HSecret"));
+
+        // PDF export
+        Response pdfExportResp = target().path("/tag/export")
+                .queryParam("tag_id", rootTagId)
+                .queryParam("format", "pdf")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get();
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(pdfExportResp.getStatus()));
+        Assert.assertTrue(pdfExportResp.getHeaderString("Content-Disposition").contains(".pdf"));
+        byte[] pdfBytes = pdfExportResp.readEntity(byte[].class);
+        Assert.assertTrue(pdfBytes.length > 500);
+
         // Cleanup
         target().path("/document/" + docMultiId).request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminUserToken).delete();
