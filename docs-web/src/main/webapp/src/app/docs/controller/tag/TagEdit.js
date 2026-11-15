@@ -5,6 +5,10 @@
  */
 angular.module('docs').controller('TagEdit', function($scope, $stateParams, Restangular, $dialog, $state, $translate) {
   var originalInheritAcl = null;
+  $scope.editParentSelector = {
+    open: false,
+    search: ''
+  };
 
   function loadTagDetails() {
     return Restangular.one('tag', $stateParams.id).get().then(function(data) {
@@ -69,7 +73,7 @@ angular.module('docs').controller('TagEdit', function($scope, $stateParams, Rest
    */
   $scope.selectEditParentTag = function(node) {
     $scope.tag.parent = node ? node.id : '';
-    $scope.editParentSelectorOpen = false;
+    $scope.editParentSelector.open = false;
     if ($scope.onInheritAclChange) {
       $scope.onInheritAclChange();
     }
@@ -79,12 +83,13 @@ angular.module('docs').controller('TagEdit', function($scope, $stateParams, Rest
    * Filter tree nodes for Edit Tag form (excludes self and descendants to avoid cycles).
    */
   $scope.filterEditParentTreeNode = function(node) {
-    if ($scope.tag && $scope.tag.id) {
-      if ($scope.isDescendantOf(node.id, $scope.tag.id)) {
-        return false;
-      }
+    var excludeId = $scope.tag ? $scope.tag.id : null;
+    if (excludeId && $scope.isDescendantOf(node.id, excludeId)) {
+      return false;
     }
-    return $scope.filterParentTreeNode(node, $scope.tag ? $scope.tag.id : null);
+    if (!$scope.editParentSelector.search) return true;
+    var q = $scope.editParentSelector.search.toLowerCase();
+    return $scope.nodeOrDescendantsMatch(node.id, q, excludeId);
   };
 
   $scope.deleteTag = function(tag) {

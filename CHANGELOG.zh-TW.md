@@ -6,6 +6,29 @@
 
 ---
 
+## [v2.07] - 2026-11-15
+
+> **基準點**: `v2.06` (`f52d698f`) ➜ `v2.07`
+
+### 安全性修正 (Security)
+- **修復分享 ID 偽造漏洞 (`CVE-2026-50885` / `CWE-284`)** — 參照上游議題 [`sismics/docs#792`](https://github.com/sismics/docs/issues/792)（由 `@vmario89` 回報）：
+  - 更新 `BaseResource.getTargetIdList(String shareId)`，在將 `shareId` 加入 ACL 目標清單前先透過 `ShareDao.getActiveById(shareId)` 驗證分享是否存在且有效，防止偽造 `share` 參數繞過文件與檔案讀取權限檢查。
+  - 新增回歸測試 `TestShareResource.testShareSpoofingBlocked`。
+- **強制檔案更新與刪除需具備 `WRITE` 權限 (`CVE-2025-11853` / `CWE-266`, `CWE-284`)** — 參照上游議題 [`sismics/docs#792`](https://github.com/sismics/docs/issues/792)（由 `@vmario89` 回報）：
+  - 更新 `FileResource.delete`（`DELETE /api/file/{id}`），刪除關聯至文件之檔案時強制檢查所屬文件的 `PermType.WRITE` 權限。
+  - 更新 `FileResource.update`（`POST /api/file/{id}`），將檔案附加或移動至其他 `document_id` 時強制檢查目標文件的 `PermType.WRITE` 權限。
+  - 新增回歸測試 `TestFileResource.testFileWritePermissionEnforced`。
+- **安全政策與自動化靜態／動態掃描**：
+  - 新增 `SECURITY.md`，說明支援版本（`2.07+`）與 GitHub 私人漏洞回報管道。
+  - 新增 `.github/workflows/codeql.yml`，啟用 GitHub CodeQL（`java-kotlin` 與 `javascript-typescript`）靜態安全掃描。
+  - 新增 `.github/workflows/dast.yml`，排程／手動對 Jetty 實例執行 OWASP ZAP Baseline DAST 動態基準掃描。
+
+### 問題修正 (Fixed)
+- **標籤管理父標籤下拉選單自動收合與過濾修正（`Tag.js`、`tag.admin.html`、`TagEdit.js`、`tag.edit.html`）**：
+  - 改用物件屬性（`parentSelector.open`、`parentSelector.search` 與 `editParentSelector`）修正 AngularJS `ng-if` 子作用域遮蔽問題，點選第二層等父標籤後選單會自動收合，不再遮擋下方的「新增」按鈕；同時修正 `| filter:` 多餘參數衝突以維持樹狀過濾正常運作。
+
+---
+
 ## [v2.06] - 2026-11-14
 
 > **基準版本**: `v2.05` (`5559ea20`) ➜ `v2.06`

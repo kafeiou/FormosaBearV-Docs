@@ -89,6 +89,8 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
     Restangular.one('tag').put(tagData).then(function() {
       $scope.loadTags();
       $scope.tag = { name: '', color: '#3a87ad', parent: '' };
+      $scope.parentSelector.open = false;
+      $scope.parentSelector.search = '';
     });
   };
 
@@ -261,7 +263,10 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
 
   // Parent tag tree selector state
   $scope.parentTreeExpanded = {};
-  $scope.parentTreeSearch = '';
+  $scope.parentSelector = {
+    open: false,
+    search: ''
+  };
 
   /**
    * Get full hierarchical path breadcrumb of a tag (e.g. "DCC > QMS > QP").
@@ -302,7 +307,7 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
    */
   $scope.selectParentTag = function(node) {
     $scope.tag.parent = node ? node.id : '';
-    $scope.parentSelectorOpen = false;
+    $scope.parentSelector.open = false;
   };
 
   /**
@@ -358,12 +363,9 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
   /**
    * Filter tree nodes based on search query.
    */
-  $scope.filterParentTreeNode = function(node, excludeId) {
-    if (excludeId && $scope.isDescendantOf(node.id, excludeId)) {
-      return false;
-    }
-    if (!$scope.parentTreeSearch) return true;
-    var q = $scope.parentTreeSearch.toLowerCase();
-    return $scope.nodeOrDescendantsMatch(node.id, q, excludeId);
+  $scope.filterParentTreeNode = function(node) {
+    if (!$scope.parentSelector.search) return true;
+    var q = $scope.parentSelector.search.toLowerCase();
+    return $scope.nodeOrDescendantsMatch(node.id, q, null);
   };
 });

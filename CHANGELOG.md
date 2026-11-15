@@ -6,6 +6,29 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
+## [v2.07] - 2026-11-15
+
+> **Baseline**: `v2.06` (`f52d698f`) ➜ `v2.07`
+
+### Security
+- **Fix Share ID Spoofing (`CVE-2026-50885` / `CWE-284`)** — Discovered via upstream issue [`sismics/docs#792`](https://github.com/sismics/docs/issues/792) (reported by `@vmario89`):
+  - Updated `BaseResource.getTargetIdList(String shareId)` to validate `shareId` against `ShareDao.getActiveById(shareId)` before adding the share ID to the ACL target list, preventing forged `share` parameters from bypassing document/file read checks.
+  - Added regression test `TestShareResource.testShareSpoofingBlocked`.
+- **Enforce `WRITE` Permission on File Update and Delete (`CVE-2025-11853` / `CWE-266`, `CWE-284`)** — Discovered via upstream issue [`sismics/docs#792`](https://github.com/sismics/docs/issues/792) (reported by `@vmario89`):
+  - Updated `FileResource.delete` (`DELETE /api/file/{id}`) to require `PermType.WRITE` on the parent document.
+  - Updated `FileResource.update` (`POST /api/file/{id}`) to require `PermType.WRITE` on the target `document_id` when moving/attaching a file to another document.
+  - Added regression test `TestFileResource.testFileWritePermissionEnforced`.
+- **Security Policy & Automated Static / Dynamic Analysis**:
+  - Added `SECURITY.md` documenting supported versions (`2.07+`) and GitHub Private Vulnerability Reporting.
+  - Added `.github/workflows/codeql.yml` to run GitHub CodeQL analysis (`java-kotlin` and `javascript-typescript`).
+  - Added `.github/workflows/dast.yml` for weekly / manual OWASP ZAP Baseline DAST scans against Jetty.
+
+### Fixed
+- **Tag Management Parent Selector Dropdown (`Tag.js`, `tag.admin.html`, `TagEdit.js`, `tag.edit.html`)**:
+  - Fixed AngularJS child-scope shadowing on `parentSelector.open` / `parentSelector.search` (and `editParentSelector`) so selecting a parent tag (including 2nd-level tags when creating 3rd-level tags) automatically closes the dropdown without covering the Add button, and keeps the filter predicate free of AngularJS `| filter:` extra-argument collisions.
+
+---
+
 ## [v2.06] - 2026-11-14
 
 > **Baseline**: `v2.05` (`5559ea20`) ➜ `v2.06`

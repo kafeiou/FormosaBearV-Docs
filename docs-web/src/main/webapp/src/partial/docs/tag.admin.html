@@ -74,7 +74,7 @@
             <span class="text-danger small" ng-show="tagForm.name.$error.space && tagForm.$dirty">{{ 'validation.no_space' | translate }}</span>
           </div>
           <div class="col-xs-12 mb-10">
-            <div class="dropdown" uib-dropdown is-open="parentSelectorOpen" auto-close="outsideClick">
+            <div class="dropdown" uib-dropdown is-open="parentSelector.open" auto-close="outsideClick">
               <button type="button" class="btn btn-default btn-sm btn-block text-left clearfix" uib-dropdown-toggle style="text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 <span class="fas fa-sitemap text-muted mr-5"></span>
                 <span ng-if="!tag.parent" class="text-muted">
@@ -88,7 +88,7 @@
               </button>
               <div class="dropdown-menu p-10" uib-dropdown-menu style="width: 100%; min-width: 280px; max-height: 320px; overflow-y: auto; padding: 8px;">
                 <div class="form-group mb-5">
-                  <input type="text" class="form-control input-sm" ng-model="parentTreeSearch" placeholder="{{ 'tag.tree_filter_placeholder' | translate }}" ng-click="$event.stopPropagation()">
+                  <input type="text" class="form-control input-sm" ng-model="parentSelector.search" placeholder="{{ 'tag.tree_filter_placeholder' | translate }}" ng-click="$event.stopPropagation()">
                 </div>
                 <div class="tree-select-row p-5" ng-class="{ 'tree-select-active': !tag.parent }" ng-click="selectParentTag(null)" style="border-radius: 3px; padding: 4px 6px; cursor: pointer;">
                   <span class="fas fa-level-up-alt text-muted mr-5"></span>

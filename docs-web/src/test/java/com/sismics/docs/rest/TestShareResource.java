@@ -195,4 +195,51 @@ public class TestShareResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .delete();
     }
+
+    /**
+     * Regression test for CVE-2026-50885: passing user/group/forged IDs as ?share= must not bypass ACLs.
+     */
+    @Test
+    public void testShareSpoofingBlocked() throws Exception {
+        clientUtil.createUser("share_spoof_owner");
+        String ownerToken = clientUtil.login("share_spoof_owner");
+
+        String docId = clientUtil.createDocument(ownerToken);
+        String fileId = clientUtil.addFileToDocument(FILE_PIA_00452_JPG, ownerToken, docId);
+
+        // Fetch owner's user ID from the document's creator_id
+        JsonObject docJson = target().path("/document/" + docId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                .get(JsonObject.class);
+        String ownerUserId = docJson.getString("creator_id");
+
+        // Unauthenticated requests spoofing share=<ownerUserId> or share=administrators must be rejected
+        for (String spoofedShare : new String[]{ ownerUserId, "administrators", "non-existent-share-id" }) {
+            Assert.assertEquals(Status.NOT_FOUND, Status.fromStatusCode(
+                    target().path("/document/" + docId)
+                            .queryParam("share", spoofedShare)
+                            .request().get().getStatus()));
+
+            Assert.assertEquals(Status.NOT_FOUND, Status.fromStatusCode(
+                    target().path("/file/list")
+                            .queryParam("id", docId)
+                            .queryParam("share", spoofedShare)
+                            .request().get().getStatus()));
+
+            Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(
+                    target().path("/file/" + fileId + "/data")
+                            .queryParam("share", spoofedShare)
+                            .request().get().getStatus()));
+
+            Assert.assertEquals(Status.NOT_FOUND, Status.fromStatusCode(
+                    target().path("/comment/" + docId)
+                            .queryParam("share", spoofedShare)
+                            .request().get().getStatus()));
+        }
+
+        String adminToken = adminToken();
+        target().path("/user/share_spoof_owner").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+    }
 }

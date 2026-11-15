@@ -325,6 +325,11 @@ public class FileResource extends BaseResource {
                 throw new ForbiddenClientException();
             }
         }
+        if (!Strings.isNullOrEmpty(document_id) && !StringUtils.equals(document_id, file.getDocumentId())) {
+            if (new DocumentDao().getDocument(document_id, PermType.WRITE, getTargetIdList(null)) == null) {
+                throw new ForbiddenClientException();
+            }
+        }
         // Validate input data
         name = ValidationUtil.validateLength(name, "name", 1, 200, true);
         if (name == null) {
@@ -852,6 +857,12 @@ public class FileResource extends BaseResource {
 
         // Get the file
         File file = findFile(id, null);
+        if (file.getDocumentId() != null) {
+            AclDao aclDao = new AclDao();
+            if (!aclDao.checkPermission(file.getDocumentId(), PermType.WRITE, getTargetIdList(null))) {
+                throw new ForbiddenClientException();
+            }
+        }
 
         // Delete the file
         FileDao fileDao = new FileDao();

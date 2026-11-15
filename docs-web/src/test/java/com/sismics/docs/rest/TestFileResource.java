@@ -804,4 +804,59 @@ public class TestFileResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .post(Entity.form(new Form().param("enabled", "false")));
     }
+
+    /**
+     * Regression test for CVE-2025-11853: read-only or low-privilege users must not delete files
+     * or move files into documents without WRITE permission.
+     */
+    @Test
+    public void testFileWritePermissionEnforced() throws Exception {
+        clientUtil.createUser("file_perm_owner");
+        clientUtil.createUser("file_perm_reader");
+        String ownerToken = clientUtil.login("file_perm_owner");
+        String readerToken = clientUtil.login("file_perm_reader");
+
+        String docId = clientUtil.createDocument(ownerToken);
+        String fileId = clientUtil.addFileToDocument(FILE_PIA_00452_JPG, ownerToken, docId);
+
+        // Grant READ-only ACL to file_perm_reader
+        Response aclRes = target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                .put(Entity.form(new Form()
+                        .param("source", docId)
+                        .param("perm", "READ")
+                        .param("target", "file_perm_reader")
+                        .param("type", "USER")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(aclRes.getStatus()));
+
+        // Read-only user must NOT be able to delete the file
+        Response deleteRes = target().path("/file/" + fileId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .delete();
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(deleteRes.getStatus()));
+
+        // Verify the file is still attached to the document
+        JsonObject listJson = target().path("/file/list")
+                .queryParam("id", docId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, listJson.getJsonArray("files").size());
+
+        // Low-privilege user uploads an orphan file and tries to move it to owner's document via POST /file/{id}
+        String orphanFileId = clientUtil.addFileToDocument(FILE_PIA_00452_JPG, readerToken, null);
+        Response moveRes = target().path("/file/" + orphanFileId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .post(Entity.form(new Form().param("document_id", docId)));
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(moveRes.getStatus()));
+
+        // Verify owner's document still has only the original file
+        listJson = target().path("/file/list")
+                .queryParam("id", docId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, listJson.getJsonArray("files").size());
+        Assert.assertEquals(fileId, listJson.getJsonArray("files").getJsonObject(0).getString("id"));
+    }
 }

@@ -1,6 +1,9 @@
 package com.sismics.docs.rest.resource;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.sismics.docs.core.dao.ShareDao;
+import com.sismics.docs.core.model.jpa.Share;
 import com.sismics.docs.rest.constant.BaseFunction;
 import com.sismics.rest.exception.ForbiddenClientException;
 import com.sismics.security.IPrincipal;
@@ -117,8 +120,11 @@ public abstract class BaseResource {
         if (principal.getId() != null) {
             targetIdList.add(principal.getId());
         }
-        if (shareId != null) {
-            targetIdList.add(shareId);
+        if (!Strings.isNullOrEmpty(shareId)) {
+            Share share = new ShareDao().getActiveById(shareId);
+            if (share != null) {
+                targetIdList.add(share.getId());
+            }
         }
         return targetIdList;
     }
