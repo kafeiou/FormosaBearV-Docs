@@ -50,6 +50,11 @@ public enum ConfigType {
     FILE_SWAP,
 
     /**
+     * Allow non-admin users to view groups they do not belong to and their members.
+     */
+    GROUP_VIEW_ALL,
+
+    /**
      * Document preview watermark settings.
      */
     PREVIEW_WATERMARK_ENABLED,

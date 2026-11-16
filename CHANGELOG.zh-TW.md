@@ -21,6 +21,14 @@
   - 新增視窗內分段串流預覽 API（`GET /api/file/{id}/text`），支援 Markdown（`.md` 排版渲染）、HTML（`.html` 透過無腳本 `sandbox=""` 安全沙盒渲染，阻絕 XSS）與純文字（`.txt` / `.csv`）視窗內直接預覽、超大檔案分頁翻閱、排版／原始碼／擷取文字視圖切換、依下載權限連動文字選取複製限制，以及全程覆蓋防偽浮水印。
   - 更新 `TextPlainFormatHandler` 採用內建 `Noto Sans CJK TC` 中文字型與 4 KB 邊界讀取產生第 1 頁縮圖，並透過 `Jsoup` 擷取 HTML 純文字供全文檢索。
   - 更新 `PdfFormatHandler` 與 `PdfUtil` 全面採用 `MemoryUsageSetting.setupMixed(50MB)` 磁碟暫存緩衝，確保上千頁巨型 PDF 預覽與處理不會耗盡 JVM 記憶體。
+- **群組可見範圍控管與自我權限移除防呆（`GroupResource`, `AclResource`, `ConfigType.GROUP_VIEW_ALL`）**：
+  - 新增自我鎖定防呆：禁止使用者於群組移除自己（`CannotRemoveSelfFromGroup`）、禁止更名或刪除內建系統群組 `administrators` 與 `tag_editor`（`ProtectedGroupName`），並禁止非系統管理員在標籤／文件 ACL 中誤刪自己帳號或自己所屬群組的權限（`CannotRemoveOwnAcl`）。
+  - 限制 `GET /api/group` 與 `GET /api/group/{name}`：永遠禁止 `guest` 訪客查看群組與成員，一般使用者預設僅能查看自己所屬群組與成員。
+  - 於「設定 ➜ 一般設定」新增全域開關（`POST /api/app/group_view_all`），管理員可依需求開啟「允許查看非自己所屬群組的成員」。
+
+### 安全性修正 (Security)
+- **修復 `tag_editor` 群組誤授 `ADMIN` 權限之提權漏洞（`dbupdate-043-0.sql`）**：
+  - 移除 `tag_editor` 群組原本錯誤綁定的 `GRP_IDROLE_C = 'admin'` 角色，確保僅加入 `tag_editor` 的一般帳號不會再繼承 `BaseFunction.ADMIN` 最高系統管理員權限（可編輯 `administrators` 或修改系統設定），同時保留其原有的「標籤管理」與「檔案靜默抽換」權限，並於 `GroupResource` 明確保護 `tag_editor` 不被刪除。
 
 ---
 

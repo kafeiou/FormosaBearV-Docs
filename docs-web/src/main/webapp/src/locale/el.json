@@ -484,7 +484,11 @@
       "doc_date_format": "Μορφή ημερομηνίας εγγράφων",
       "doc_date_datetime": "yyyy-MM-dd HH:mm (Προεπιλογή)",
       "doc_date_date": "yyyy-MM-dd",
-      "doc_date_relative": "Σχετική (πριν από ...)"
+      "doc_date_relative": "Σχετική (πριν από ...)",
+      "title_group_view_all": "Allow viewing non-member groups",
+      "message_group_view_all": "When enabled, regular users can view all groups and their member lists in Users & Groups. When disabled (default), regular users can only view groups they belong to, and the guest account is always blocked from viewing groups.",
+      "enable_group_view_all": "Allow viewing all groups",
+      "disable_group_view_all": "Restrict to own groups only"
     },
     "menu_personal_settings": "Προσωπικές ρυθμίσεις",
     "menu_user_account": "Λογαριασμός χρήστη",

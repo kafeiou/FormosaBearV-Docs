@@ -484,7 +484,11 @@
       "doc_date_format": "文件建立時間格式",
       "doc_date_datetime": "yyyy-MM-dd HH:mm（預設）",
       "doc_date_date": "yyyy-MM-dd",
-      "doc_date_relative": "相對時間（幾天前）"
+      "doc_date_relative": "相對時間（幾天前）",
+      "title_group_view_all": "允許查看非自己所屬群組的成員",
+      "message_group_view_all": "啟用後，一般使用者可於「帳號 & 群組」頁面查看所有群組及其成員名單；停用時（預設），一般使用者僅能查看自己所屬群組的成員，且訪客（guest）永遠無法查看任何群組。",
+      "enable_group_view_all": "啟用查看非自己群組",
+      "disable_group_view_all": "停用查看非自己群組（僅限自己群組）"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "帳號",

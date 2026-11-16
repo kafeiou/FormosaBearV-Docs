@@ -169,9 +169,16 @@ public class TestAclResource extends BaseJerseyTest {
         JsonArray contributors = json.getJsonArray("contributors");
         Assert.assertEquals(2, contributors.size());
 
-        // Delete the ACL WRITE for acl2 with acl2
-        target().path("/acl/" + document1Id + "/WRITE/" + acl2Id).request()
+        // Non-admin acl2 cannot delete their own ACL WRITE
+        response = target().path("/acl/" + document1Id + "/WRITE/" + acl2Id).request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, acl2Token)
+                .delete();
+        Assert.assertEquals(Status.BAD_REQUEST, Status.fromStatusCode(response.getStatus()));
+        Assert.assertEquals("CannotRemoveOwnAcl", response.readEntity(JsonObject.class).getString("type"));
+
+        // Delete the ACL WRITE for acl2 with acl1
+        target().path("/acl/" + document1Id + "/WRITE/" + acl2Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, acl1Token)
                 .delete(JsonObject.class);
 
         // Get the document as acl2
@@ -183,9 +190,16 @@ public class TestAclResource extends BaseJerseyTest {
         Assert.assertEquals(5, acls.size());
         Assert.assertTrue(json.getBoolean("writable")); // Writable by aclGroup2
 
-        // Delete the ACL WRITE for aclGroup2 with acl2
-        target().path("/acl/" + document1Id + "/WRITE/" + aclGroup2Id).request()
+        // Non-admin acl2 cannot delete their own group's ACL WRITE
+        response = target().path("/acl/" + document1Id + "/WRITE/" + aclGroup2Id).request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, acl2Token)
+                .delete();
+        Assert.assertEquals(Status.BAD_REQUEST, Status.fromStatusCode(response.getStatus()));
+        Assert.assertEquals("CannotRemoveOwnAcl", response.readEntity(JsonObject.class).getString("type"));
+
+        // Delete the ACL WRITE for aclGroup2 with acl1
+        target().path("/acl/" + document1Id + "/WRITE/" + aclGroup2Id).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, acl1Token)
                 .delete(JsonObject.class);
 
         // Get the document as acl2

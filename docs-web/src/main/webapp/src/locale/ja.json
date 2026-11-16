@@ -484,7 +484,11 @@
       "doc_date_format": "文書作成日時の表示形式",
       "doc_date_datetime": "yyyy-MM-dd HH:mm（既定）",
       "doc_date_date": "yyyy-MM-dd",
-      "doc_date_relative": "相対時間（〜前）"
+      "doc_date_relative": "相対時間（〜前）",
+      "title_group_view_all": "所属外グループのメンバー閲覧を許可",
+      "message_group_view_all": "有効にすると、一般ユーザーも「ユーザー & グループ」画面ですべてのグループとメンバー一覧を閲覧できます。無効（デフォルト）の場合、自分が所属するグループのみ閲覧可能で、guest アカウントは常に閲覧禁止となります。",
+      "enable_group_view_all": "全グループの閲覧を許可",
+      "disable_group_view_all": "所属グループのみに制限"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "アカウント",

@@ -182,6 +182,23 @@ public class ConfigUtil {
         return false;
     }
 
+    /**
+     * Returns true if non-admin users are allowed to view groups they do not belong to. Default is false.
+     */
+    public static boolean canGroupViewAll() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao configDao = new ConfigDao();
+                Config config = configDao.getById(ConfigType.GROUP_VIEW_ALL);
+                if (config != null && config.getValue() != null) {
+                    return "1".equals(config.getValue().trim()) || Boolean.parseBoolean(config.getValue().trim());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return false;
+    }
+
     public static final String DEFAULT_PREVIEW_WATERMARK_DATE_FORMAT = "dd MMM yyyy";
 
     /**

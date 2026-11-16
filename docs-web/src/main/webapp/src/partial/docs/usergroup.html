@@ -1,6 +1,6 @@
 <div class="row">
   <div class="col-md-4">
-    <div class="well well-3d">
+    <div class="well well-3d" ng-if="userInfo.username != 'guest'">
       <p class="input-group">
         <span class="input-group-addon"><span class="fas fa-search"></span></span>
         <input type="search" class="form-control" ng-attr-placeholder="{{ 'usergroup.search_groups' | translate }}" ng-model="searchGroup">
@@ -35,7 +35,8 @@
           <td class="col-xs-4">
             <span uib-tooltip="{{ getUserTooltip(user.username, user.name) }}" tooltip-append-to-body="true">
               <span class="fas fa-user"></span>
-              {{ formatUserDisplay(user.username, user.name) }}
+              <span ng-if="!user.disabled">{{ formatUserDisplay(user.username, user.name) }}</span>
+              <s ng-if="user.disabled" class="text-muted">{{ formatUserDisplay(user.username, user.name) }}</s>
             </span>
             <span class="text-muted" ng-if="userInfo.username == user.username">{{ 'usergroup.you' | translate }}</span>
           </td>

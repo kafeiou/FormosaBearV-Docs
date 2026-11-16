@@ -123,6 +123,18 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
     });
   };
 
+  // Enable/disable viewing non-member groups for regular users (default disabled)
+  $scope.changeGroupViewAll = function (enabled) {
+    Restangular.one('app').post('group_view_all', {
+      enabled: enabled
+    }).then(function () {
+      $scope.app.group_view_all = enabled;
+      if ($rootScope.app) {
+        $rootScope.app.group_view_all = enabled;
+      }
+    });
+  };
+
   // Enable/disable document preview watermark
   $scope.watermarkSaved = false;
   $scope.changePreviewWatermark = function (enabled) {

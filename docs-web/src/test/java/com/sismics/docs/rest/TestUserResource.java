@@ -685,7 +685,8 @@ public class TestUserResource extends BaseJerseyTest {
         JsonObject errJson = deleteResp.readEntity(JsonObject.class);
         Assert.assertEquals("UserHasAssets", errJson.getString("type"));
 
-        // 5. Disable departing_user -> active session token is immediately invalidated & hidden from ACL search
+        // 5. Disable departing_user -> active session token is immediately invalidated,
+        // hidden from non-admin search/list, but visible to admin with disabled=true
         target().path("/user/departing_user").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .post(Entity.form(new Form().param("disabled", "true")), JsonObject.class);
@@ -695,12 +696,44 @@ public class TestUserResource extends BaseJerseyTest {
                 .get(JsonObject.class);
         Assert.assertTrue("Disabled user session must be invalidated immediately", sessionCheck.getBoolean("anonymous"));
 
-        JsonObject aclTargets = target().path("/acl/target/search")
+        successorToken = clientUtil.login("successor_user");
+        JsonObject nonAdminAclTargets = target().path("/acl/target/search")
+                .queryParam("search", "departing")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, successorToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(0, nonAdminAclTargets.getJsonArray("users").size());
+
+        JsonObject nonAdminUserList = target().path("/user/list")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, successorToken)
+                .get(JsonObject.class);
+        for (int i = 0; i < nonAdminUserList.getJsonArray("users").size(); i++) {
+            Assert.assertNotEquals("departing_user", nonAdminUserList.getJsonArray("users").getJsonObject(i).getString("username"));
+        }
+
+        JsonObject adminAclTargets = target().path("/acl/target/search")
                 .queryParam("search", "departing")
                 .request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .get(JsonObject.class);
-        Assert.assertEquals(0, aclTargets.getJsonArray("users").size());
+        Assert.assertEquals(1, adminAclTargets.getJsonArray("users").size());
+        Assert.assertEquals("departing_user", adminAclTargets.getJsonArray("users").getJsonObject(0).getString("name"));
+        Assert.assertTrue(adminAclTargets.getJsonArray("users").getJsonObject(0).getBoolean("disabled"));
+
+        JsonObject adminUserList = target().path("/user/list")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        boolean foundDepartingAsAdmin = false;
+        for (int i = 0; i < adminUserList.getJsonArray("users").size(); i++) {
+            JsonObject u = adminUserList.getJsonArray("users").getJsonObject(i);
+            if ("departing_user".equals(u.getString("username"))) {
+                foundDepartingAsAdmin = true;
+                Assert.assertTrue(u.getBoolean("disabled"));
+            }
+        }
+        Assert.assertTrue("Admin should still see disabled user in /user/list", foundDepartingAsAdmin);
 
         // 6. Transfer all assets from departing_user to successor_user
         JsonObject transferResp = target().path("/user/departing_user/transfer").request()

@@ -484,7 +484,11 @@
       "doc_date_format": "Formato de data dos documentos",
       "doc_date_datetime": "yyyy-MM-dd HH:mm (Predefinido)",
       "doc_date_date": "yyyy-MM-dd",
-      "doc_date_relative": "Relativo (há ...)"
+      "doc_date_relative": "Relativo (há ...)",
+      "title_group_view_all": "Allow viewing non-member groups",
+      "message_group_view_all": "When enabled, regular users can view all groups and their member lists in Users & Groups. When disabled (default), regular users can only view groups they belong to, and the guest account is always blocked from viewing groups.",
+      "enable_group_view_all": "Allow viewing all groups",
+      "disable_group_view_all": "Restrict to own groups only"
     },
     "menu_personal_settings": "Definições pessoais",
     "menu_user_account": "Conta de utilizador",

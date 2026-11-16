@@ -9,6 +9,7 @@
       <label class="col-sm-2 control-label" for="inputName">{{ 'settings.group.edit.name' | translate }}</label>
       <div class="col-sm-7">
         <input name="name" type="text" id="inputName" required class="form-control"
+               ng-readonly="isEdit() && (group.name === 'administrators' || group.name === 'tag_editor')"
                ng-pattern="/^[a-zA-Z0-9_]*$/"
                ng-minlength="3" ng-maxlength="50" ng-attr-placeholder="{{ 'settings.group.edit.name' | translate }}" ng-model="group.name"/>
       </div>
@@ -46,7 +47,8 @@
         <button type="submit" class="btn btn-primary" ng-click="edit()" ng-disabled="!editGroupForm.$valid">
           <span class="fas fa-pencil-alt"></span> {{ isEdit() ? 'save' : 'add' | translate }}
         </button>
-        <button type="button" class="btn btn-danger" ng-click="remove()" ng-show="isEdit()">
+        <button type="button" class="btn btn-danger" ng-click="remove()"
+                ng-show="isEdit() && group.name !== 'administrators' && group.name !== 'tag_editor'">
           <span class="fas fa-trash"></span> {{ 'delete' | translate }}
         </button>
       </div>
@@ -66,6 +68,7 @@
                 <input name="member" type="text" id="inputMember" class="form-control" ng-model="member"
                        ng-attr-placeholder="{{ 'settings.group.edit.search_user' | translate }}"
                        uib-typeahead="user.username as formatUserFull(user.username, user.name) for user in getUserTypeahead($viewValue)" typeahead-on-select="addMember($item.username || $item)"
+                       typeahead-template-url="partial/docs/directive.typeahead.user.html"
                        typeahead-wait-ms="200" typeahead-editable="false" autocomplete="off" />
               </div>
             </div>
@@ -76,6 +79,7 @@
                   <option value="">{{ 'settings.group.edit.select_user_dropdown' | translate }}</option>
                   <option ng-repeat="u in allUsers | orderBy: 'username'"
                           ng-if="!group.members || group.members.indexOf(u.username) === -1"
+                          ng-style="u.disabled ? {'text-decoration': 'line-through'} : {}"
                           value="{{ u.username }}">
                     {{ formatUserFull(u.username, u.name) }}
                   </option>
@@ -92,10 +96,11 @@
         <div class="col-sm-7">
           <span ng-repeat="member in group.members | orderBy: 'toString()'">
             <span class="btn btn-default" style="margin-bottom: 5px;"
-               ng-click="removeMember(member)"
+               ng-click="member !== userInfo.username && removeMember(member)"
+               ng-style="{ 'cursor': member === userInfo.username ? 'default' : 'pointer' }"
                uib-tooltip="{{ getUserTooltip(member) }}" tooltip-append-to-body="true">
               {{ formatUserDisplay(member) }}
-              <span class="fas fa-times text-danger"></span>
+              <span class="fas fa-times text-danger" ng-if="member !== userInfo.username"></span>
             </span>&nbsp;
           </span>
           <p class="text-muted" ng-if="!group.members || group.members.length === 0">

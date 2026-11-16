@@ -16,6 +16,7 @@ import com.sismics.docs.core.model.jpa.Document;
 import com.sismics.docs.core.model.jpa.Tag;
 import com.sismics.docs.core.util.SecurityUtil;
 import com.sismics.docs.core.util.jpa.SortCriteria;
+import com.sismics.docs.rest.constant.BaseFunction;
 import com.sismics.rest.exception.ClientException;
 import com.sismics.rest.exception.ForbiddenClientException;
 import com.sismics.rest.util.ValidationUtil;
@@ -176,6 +177,11 @@ public class AclResource extends BaseResource {
             throw new ClientException("AclError", "Cannot delete base ACL on a tag");
         }
 
+        // Prevent non-admin users from removing their own user ACL or a group ACL they belong to
+        if (!hasBaseFunction(BaseFunction.ADMIN) && getTargetIdList(null).contains(targetId)) {
+            throw new ClientException("CannotRemoveOwnAcl", "You cannot remove your own or your group's permission");
+        }
+
         // Delete the ACL
         aclDao.delete(sourceId, perm, targetId, principal.getId(), AclType.USER);
 
@@ -224,14 +230,18 @@ public class AclResource extends BaseResource {
         
         // Search users
         UserDao userDao = new UserDao();
+        boolean isAdmin = hasBaseFunction(BaseFunction.ADMIN);
         JsonArrayBuilder users = Json.createArrayBuilder();
         SortCriteria sortCriteria = new SortCriteria(1, true);
-        List<UserDto> userDtoList = userDao.findByCriteria(new UserCriteria().setSearch(search), sortCriteria);
+        List<UserDto> userDtoList = userDao.findByCriteria(
+                new UserCriteria().setSearch(search).setExcludeDisabled(!isAdmin),
+                sortCriteria);
         for (UserDto userDto : userDtoList) {
-            // Skip disabled users and users who will skip ACL check anyways
-            if (userDto.getDisableTimestamp() == null && !SecurityUtil.skipAclCheck(Lists.newArrayList(userDto.getId()))) {
+            // Skip users who will skip ACL check anyways (and disabled users for non-admins)
+            if ((isAdmin || userDto.getDisableTimestamp() == null) && !SecurityUtil.skipAclCheck(Lists.newArrayList(userDto.getId()))) {
                 JsonObjectBuilder userJson = Json.createObjectBuilder()
-                        .add("name", userDto.getUsername());
+                        .add("name", userDto.getUsername())
+                        .add("disabled", userDto.getDisableTimestamp() != null);
                 if (userDto.getName() != null && !userDto.getName().isEmpty()) {
                     userJson.add("display_name", userDto.getName());
                 }

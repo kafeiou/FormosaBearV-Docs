@@ -7,6 +7,7 @@ import java.util.Set;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sismics.docs.core.constant.AclTargetType;
+import com.sismics.docs.core.constant.Constants;
 import com.sismics.docs.core.dao.GroupDao;
 import com.sismics.docs.core.dao.RoleBaseFunctionDao;
 import com.sismics.docs.core.dao.UserDao;
@@ -17,6 +18,7 @@ import com.sismics.docs.core.dao.dto.UserDto;
 import com.sismics.docs.core.model.jpa.Group;
 import com.sismics.docs.core.model.jpa.User;
 import com.sismics.docs.core.model.jpa.UserGroup;
+import com.sismics.docs.core.util.ConfigUtil;
 import com.sismics.docs.core.util.RoutingUtil;
 import com.sismics.docs.core.util.jpa.SortCriteria;
 import com.sismics.docs.rest.constant.BaseFunction;
@@ -160,6 +162,12 @@ public class GroupResource extends BaseResource {
             parentId = parentGroup.getId();
         }
 
+        // Protect built-in system groups from being renamed
+        if (("administrators".equalsIgnoreCase(group.getName()) || "tag_editor".equalsIgnoreCase(group.getName()))
+                && !group.getName().equals(name)) {
+            throw new ClientException("ProtectedGroupName", "Built-in system groups cannot be renamed");
+        }
+
         // Check that this group is not used in any workflow in case of renaming
         if (!name.equals(groupName)) {
             String routeModelName = RoutingUtil.findRouteModelNameByTargetName(AclTargetType.GROUP, groupName);
@@ -209,7 +217,10 @@ public class GroupResource extends BaseResource {
             throw new NotFoundException();
         }
 
-        // Ensure that the admin group is not deleted
+        // Ensure that built-in system groups (administrators, tag_editor) are not deleted
+        if ("administrators".equalsIgnoreCase(group.getName()) || "tag_editor".equalsIgnoreCase(group.getName())) {
+            throw new ClientException("ForbiddenError", "The " + group.getName() + " group cannot be deleted");
+        }
         if (group.getRoleId() != null) {
             RoleBaseFunctionDao roleBaseFunctionDao = new RoleBaseFunctionDao();
             Set<String> baseFunctionSet = roleBaseFunctionDao.findByRoleId(Sets.newHashSet(group.getRoleId()));
@@ -348,6 +359,11 @@ public class GroupResource extends BaseResource {
             throw new NotFoundException();
         }
         
+        // Prevent removing oneself from a group
+        if (principal.getId().equals(user.getId())) {
+            throw new ClientException("CannotRemoveSelfFromGroup", "You cannot remove yourself from a group");
+        }
+
         // Remove the membership
         groupDao.removeMember(group.getId(), user.getId());
         
@@ -380,7 +396,7 @@ public class GroupResource extends BaseResource {
     public Response list(
             @QueryParam("sort_column") Integer sortColumn,
             @QueryParam("asc") Boolean asc) {
-        if (!authenticate()) {
+        if (!authenticate() || Constants.GUEST_USER_ID.equals(principal.getName())) {
             throw new ForbiddenClientException();
         }
         
@@ -388,7 +404,11 @@ public class GroupResource extends BaseResource {
         SortCriteria sortCriteria = new SortCriteria(sortColumn, asc);
 
         GroupDao groupDao = new GroupDao();
-        List<GroupDto> groupDtoList = groupDao.findByCriteria(new GroupCriteria(), sortCriteria);
+        GroupCriteria criteria = new GroupCriteria();
+        if (!hasBaseFunction(BaseFunction.ADMIN) && !ConfigUtil.canGroupViewAll()) {
+            criteria.setUserId(principal.getId()).setRecursive(true);
+        }
+        List<GroupDto> groupDtoList = groupDao.findByCriteria(criteria, sortCriteria);
         for (GroupDto groupDto : groupDtoList) {
             groups.add(Json.createObjectBuilder()
             .add("name", groupDto.getName())
@@ -422,7 +442,7 @@ public class GroupResource extends BaseResource {
     @GET
     @Path("{groupName: [a-zA-Z0-9_]+}")
     public Response get(@PathParam("groupName") String groupName) {
-        if (!authenticate()) {
+        if (!authenticate() || Constants.GUEST_USER_ID.equals(principal.getName())) {
             throw new ForbiddenClientException();
         }
         
@@ -431,6 +451,22 @@ public class GroupResource extends BaseResource {
         Group group = groupDao.getActiveByName(groupName);
         if (group == null) {
             throw new NotFoundException();
+        }
+
+        // Non-admin users can only view groups they belong to unless GROUP_VIEW_ALL is enabled
+        if (!hasBaseFunction(BaseFunction.ADMIN) && !ConfigUtil.canGroupViewAll()) {
+            List<GroupDto> myGroups = groupDao.findByCriteria(
+                    new GroupCriteria().setUserId(principal.getId()).setRecursive(true), null);
+            boolean isMember = false;
+            for (GroupDto g : myGroups) {
+                if (g.getId().equals(group.getId())) {
+                    isMember = true;
+                    break;
+                }
+            }
+            if (!isMember) {
+                throw new ForbiddenClientException();
+            }
         }
         
         // Build the response

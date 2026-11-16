@@ -370,6 +370,10 @@ public class UserDao {
             parameterMap.put("groupId", criteria.getGroupId());
         }
         
+        if (criteria.isExcludeDisabled()) {
+            criteriaList.add("u.USE_DISABLEDATE_D is null");
+        }
+        
         criteriaList.add("u.USE_DELETEDATE_D is null");
         
         if (!criteriaList.isEmpty()) {

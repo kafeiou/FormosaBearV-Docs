@@ -940,7 +940,10 @@ public class UserResource extends BaseResource {
         }
 
         UserDao userDao = new UserDao();
-        List<UserDto> userDtoList = userDao.findByCriteria(new UserCriteria().setGroupId(groupId), sortCriteria);
+        boolean isAdmin = hasBaseFunction(BaseFunction.ADMIN);
+        List<UserDto> userDtoList = userDao.findByCriteria(
+                new UserCriteria().setGroupId(groupId).setExcludeDisabled(!isAdmin),
+                sortCriteria);
         for (UserDto userDto : userDtoList) {
             users.add(Json.createObjectBuilder()
                     .add("id", userDto.getId())

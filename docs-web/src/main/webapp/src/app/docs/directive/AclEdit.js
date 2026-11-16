@@ -14,13 +14,37 @@ angular.module('docs').directive('aclEdit', function() {
       writable: '=',
       creator: '='
     },
-    controller: function($scope, Restangular, $q) {
+    controller: function($scope, $rootScope, Restangular, $q) {
       // Watch for ACLs change and group them for easy displaying
       $scope.$watch('acls', function(acls) {
         $scope.groupedAcls = _.groupBy(acls, function(acl) {
           return acl.id;
         });
       });
+
+      /**
+       * Return true if the current user is allowed to delete this ACL entry.
+       * Prevents non-admin users from removing their own user ACL or a group ACL they belong to.
+       */
+      $scope.canDeleteAcl = function(acl) {
+        if (!$scope.writable || !acl) {
+          return false;
+        }
+        if (acl.type === 'USER' && $scope.creator === acl.name) {
+          return false;
+        }
+        var u = $rootScope.userInfo;
+        var isAdmin = u && u.base_functions && u.base_functions.indexOf('ADMIN') !== -1;
+        if (!isAdmin && u) {
+          if (acl.type === 'USER' && u.username === acl.name) {
+            return false;
+          }
+          if (acl.type === 'GROUP' && u.groups && u.groups.indexOf(acl.name) !== -1) {
+            return false;
+          }
+        }
+        return true;
+      };
       
       // Initialize add ACL
       $scope.acl = { perm: 'READ' };

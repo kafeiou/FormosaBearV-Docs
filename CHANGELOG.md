@@ -21,6 +21,14 @@ This document details the notable changes, security enhancements, architecture i
   - Added native in-modal preview (`GET /api/file/{id}/text`) for Markdown (`.md`), HTML (`.html` via scriptless `sandbox=""` iframe), and plain text (`.txt` / `.csv`), complete with chunked pagination for huge files, rendered/source view toggle, download-linked copy/selection protection, and full watermark overlay (`getWatermarkStyle()`).
   - Updated `TextPlainFormatHandler` to use the bundled Pan-CJK font (`Noto Sans CJK TC`) and bounded 4 KB first-page reads for thumbnails, plus `Jsoup` text extraction for `.html` indexing.
   - Updated `PdfFormatHandler` and `PdfUtil` to use `MemoryUsageSetting.setupMixed(50MB)` disk-backed scratch buffers and bounded text/OCR extraction for multi-hundred/thousand-page PDFs.
+- **Group Visibility & Self-Lockout Guardrails (`GroupResource`, `AclResource`, `ConfigType.GROUP_VIEW_ALL`)**:
+  - Added self-lockout protection preventing users from removing themselves from groups (`CannotRemoveSelfFromGroup`), preventing renaming/deleting built-in `administrators` and `tag_editor` groups (`ProtectedGroupName`), and preventing non-admin users from deleting their own user ACL or own-group ACL on tags/documents (`CannotRemoveOwnAcl`).
+  - Restricted `GET /api/group` and `GET /api/group/{name}` so `guest` accounts are always blocked, and regular users can only view groups they belong to by default.
+  - Added an admin toggle (`POST /api/app/group_view_all` in General Settings) to optionally allow non-member users to view other groups and their member lists.
+
+### Security
+- **Fix Unintended `ADMIN` Privilege Escalation on `tag_editor` Group (`dbupdate-043-0.sql`)**:
+  - Removed `GRP_IDROLE_C = 'admin'` from the `tag_editor` group so members assigned solely to `tag_editor` no longer inherit `BaseFunction.ADMIN` (previously allowing them to edit `administrators`, modify system settings, and manage users/groups), while preserving tag management and file swap capabilities via group membership checks and explicitly protecting `tag_editor` from deletion.
 
 ---
 

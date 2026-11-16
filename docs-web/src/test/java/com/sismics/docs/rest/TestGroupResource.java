@@ -214,4 +214,109 @@ public class TestGroupResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .delete();
     }
+
+    @Test
+    public void testGroupGuardrailsAndVisibility() {
+        String adminToken = adminToken();
+        clientUtil.createGroup("team_alpha");
+        clientUtil.createGroup("team_beta");
+        clientUtil.createUser("member_a", "team_alpha");
+        String memberAToken = clientUtil.login("member_a");
+
+        // 1. Admin cannot remove themselves from administrators or tag_editor
+        Response removeSelfResp = target().path("/group/administrators/admin").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+        Assert.assertEquals(Response.Status.BAD_REQUEST, Response.Status.fromStatusCode(removeSelfResp.getStatus()));
+        Assert.assertEquals("CannotRemoveSelfFromGroup", removeSelfResp.readEntity(JsonObject.class).getString("type"));
+
+        // 2. Built-in groups (tag_editor, administrators) cannot be renamed
+        Response renameTagEditorResp = target().path("/group/tag_editor").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("name", "tag_editor_renamed")));
+        Assert.assertEquals(Response.Status.BAD_REQUEST, Response.Status.fromStatusCode(renameTagEditorResp.getStatus()));
+        Assert.assertEquals("ProtectedGroupName", renameTagEditorResp.readEntity(JsonObject.class).getString("type"));
+
+        // 3. Default GROUP_VIEW_ALL=false: regular user only sees own groups and gets 403 on non-member groups
+        JsonObject myGroupsJson = target().path("/group").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, memberAToken)
+                .get(JsonObject.class);
+        JsonArray myGroups = myGroupsJson.getJsonArray("groups");
+        Assert.assertEquals(1, myGroups.size());
+        Assert.assertEquals("team_alpha", myGroups.getJsonObject(0).getString("name"));
+
+        Response viewBetaDenied = target().path("/group/team_beta").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, memberAToken)
+                .get();
+        Assert.assertEquals(Response.Status.FORBIDDEN, Response.Status.fromStatusCode(viewBetaDenied.getStatus()));
+
+        // 4. Enable GROUP_VIEW_ALL=true: regular user can now view team_beta
+        Response enableViewAll = target().path("/app/group_view_all").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "true")));
+        Assert.assertEquals(Response.Status.OK, Response.Status.fromStatusCode(enableViewAll.getStatus()));
+
+        JsonObject betaJson = target().path("/group/team_beta").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, memberAToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("team_beta", betaJson.getString("name"));
+
+        // Restore default GROUP_VIEW_ALL=false
+        target().path("/app/group_view_all").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "false")));
+
+        // 5. Guest account is always blocked from viewing groups
+        target().path("/app/guest_login").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "true")));
+        String guestToken = clientUtil.login("guest", "", false);
+        Response guestGroupList = target().path("/group").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, guestToken)
+                .get();
+        Assert.assertEquals(Response.Status.FORBIDDEN, Response.Status.fromStatusCode(guestGroupList.getStatus()));
+        Response guestGroupGet = target().path("/group/team_alpha").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, guestToken)
+                .get();
+        Assert.assertEquals(Response.Status.FORBIDDEN, Response.Status.fromStatusCode(guestGroupGet.getStatus()));
+        target().path("/app/guest_login").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "false")));
+
+        // 6. Non-admin user cannot remove own or own-group ACL on a tag
+        JsonObject tagJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .put(Entity.form(new Form().param("name", "SharedAlphaTag").param("color", "#3a87ad")), JsonObject.class);
+        String tagId = tagJson.getString("id");
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .put(Entity.form(new Form().param("source", tagId).param("perm", "WRITE").param("target", "team_alpha").param("type", "GROUP")));
+        Response removeOwnGroupAcl = target().path("/acl/" + tagId + "/WRITE/" + myGroups.getJsonObject(0).getString("id")).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, memberAToken)
+                .delete();
+        Assert.assertEquals(Response.Status.BAD_REQUEST, Response.Status.fromStatusCode(removeOwnGroupAcl.getStatus()));
+        Assert.assertEquals("CannotRemoveOwnAcl", removeOwnGroupAcl.readEntity(JsonObject.class).getString("type"));
+
+        // 7. User only in tag_editor group must NOT inherit ADMIN privileges or edit administrators
+        clientUtil.createUser("tag_editor_only", "tag_editor");
+        String tagEditorToken = clientUtil.login("tag_editor_only");
+        JsonObject tagEditorUser = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tagEditorToken)
+                .get(JsonObject.class);
+        JsonArray baseFuncs = tagEditorUser.getJsonArray("base_functions");
+        for (int i = 0; i < baseFuncs.size(); i++) {
+            Assert.assertNotEquals("ADMIN", baseFuncs.getString(i));
+        }
+        Response editAdminsDenied = target().path("/group/administrators").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, tagEditorToken)
+                .put(Entity.form(new Form().param("username", "tag_editor_only")));
+        Assert.assertEquals(Response.Status.FORBIDDEN, Response.Status.fromStatusCode(editAdminsDenied.getStatus()));
+
+        // Cleanup
+        target().path("/tag/" + tagId).request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken).delete();
+        target().path("/group/team_alpha").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken).delete();
+        target().path("/group/team_beta").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken).delete();
+        target().path("/user/member_a").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken).delete();
+        target().path("/user/tag_editor_only").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken).delete();
+    }
 }

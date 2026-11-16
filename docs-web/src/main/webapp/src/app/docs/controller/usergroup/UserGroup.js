@@ -3,7 +3,7 @@
 /**
  * User/group controller.
  */
-angular.module('docs').controller('UserGroup', function(Restangular, $scope, $state) {
+angular.module('docs').controller('UserGroup', function(Restangular, $scope, $rootScope, $state) {
   // Load users
   Restangular.one('user/list').get({
     sort_column: 1,
@@ -12,13 +12,19 @@ angular.module('docs').controller('UserGroup', function(Restangular, $scope, $st
     $scope.users = data.users;
   });
 
-  // Load groups
-  Restangular.one('group').get({
-    sort_column: 1,
-    asc: true
-  }).then(function(data) {
-    $scope.groups = data.groups;
-  });
+  // Load groups (blocked for guest account)
+  if (!$rootScope.userInfo || $rootScope.userInfo.username !== 'guest') {
+    Restangular.one('group').get({
+      sort_column: 1,
+      asc: true
+    }).then(function(data) {
+      $scope.groups = data.groups;
+    }, function() {
+      $scope.groups = [];
+    });
+  } else {
+    $scope.groups = [];
+  }
 
   // Open a user
   $scope.openUser = function(user) {

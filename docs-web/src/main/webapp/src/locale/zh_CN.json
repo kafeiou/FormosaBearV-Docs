@@ -484,7 +484,11 @@
       "doc_date_format": "文件创建时间格式",
       "doc_date_datetime": "yyyy-MM-dd HH:mm（默认）",
       "doc_date_date": "yyyy-MM-dd",
-      "doc_date_relative": "相对时间（几天前）"
+      "doc_date_relative": "相对时间（几天前）",
+      "title_group_view_all": "允许查看非自己所属群组的成员",
+      "message_group_view_all": "启用后，普通用户可在“账号 & 群组”页面查看所有群组及其成员名单；停用时（默认），普通用户仅能查看自己所属群组的成员，且访客（guest）永远无法查看任何群组。",
+      "enable_group_view_all": "启用查看非自己群组",
+      "disable_group_view_all": "停用查看非自己群组（仅限自己群组）"
     },
     "menu_personal_settings": "个人设置",
     "menu_user_account": "用户帐号",

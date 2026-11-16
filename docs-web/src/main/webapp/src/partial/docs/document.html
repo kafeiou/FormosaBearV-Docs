@@ -52,6 +52,7 @@
                       <input type="text" id="inputSearchCreator" class="form-control" ng-model="advsearch.creator"
                              ng-attr-placeholder="{{ 'document.search_creator' | translate }}"
                              uib-typeahead="user.username as formatUserFull(user.username, user.name) for user in getUserTypeahead($viewValue)"
+                             typeahead-template-url="partial/docs/directive.typeahead.user.html"
                              typeahead-wait-ms="200" typeahead-editable="false" autocomplete="off" />
                     </div>
                   </div>

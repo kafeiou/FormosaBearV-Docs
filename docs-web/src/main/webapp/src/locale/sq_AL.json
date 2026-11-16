@@ -484,7 +484,11 @@
       "doc_date_format": "Formati i datës së dokumentit",
       "doc_date_datetime": "yyyy-MM-dd HH:mm (Parazgjedhur)",
       "doc_date_date": "yyyy-MM-dd",
-      "doc_date_relative": "Relative (më parë)"
+      "doc_date_relative": "Relative (më parë)",
+      "title_group_view_all": "Allow viewing non-member groups",
+      "message_group_view_all": "When enabled, regular users can view all groups and their member lists in Users & Groups. When disabled (default), regular users can only view groups they belong to, and the guest account is always blocked from viewing groups.",
+      "enable_group_view_all": "Allow viewing all groups",
+      "disable_group_view_all": "Restrict to own groups only"
     },
     "menu_personal_settings": "Cilësimet personale",
     "menu_user_account": "Llogaria e përdoruesit",

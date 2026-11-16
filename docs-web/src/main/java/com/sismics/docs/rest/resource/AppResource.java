@@ -143,6 +143,7 @@ public class AppResource extends BaseResource {
                 .add("file_encrypt", ConfigUtil.isFileEncrypt())
                 .add("file_encrypt_locked", ConfigUtil.isFileEncryptLocked())
                 .add("file_swap", ConfigUtil.isFileSwapEnabled())
+                .add("group_view_all", ConfigUtil.canGroupViewAll())
                 .add("preview_watermark_enabled", ConfigUtil.isPreviewWatermarkEnabled())
                 .add("preview_watermark_date_format", ConfigUtil.getPreviewWatermarkDateFormat())
                 .add("storage_path", DirectoryUtil.getBaseDataDirectory().toAbsolutePath().toString())
@@ -302,6 +303,24 @@ public class AppResource extends BaseResource {
 
         ConfigDao configDao = new ConfigDao();
         configDao.update(ConfigType.FILE_SWAP, enabled.toString());
+
+        return Response.ok().build();
+    }
+
+    /**
+     * Enable/disable viewing non-member groups for regular users (default disabled).
+     */
+    @POST
+    @Path("group_view_all")
+    public Response groupViewAll(@FormParam("enabled") Boolean enabled) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+        ValidationUtil.validateRequired(enabled, "enabled");
+
+        ConfigDao configDao = new ConfigDao();
+        configDao.update(ConfigType.GROUP_VIEW_ALL, enabled.toString());
 
         return Response.ok().build();
     }

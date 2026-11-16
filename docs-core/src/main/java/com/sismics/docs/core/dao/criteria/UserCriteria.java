@@ -26,6 +26,11 @@ public class UserCriteria {
      */
     private String userName;
 
+    /**
+     * Exclude disabled users.
+     */
+    private boolean excludeDisabled;
+
     public String getSearch() {
         return search;
     }
@@ -59,6 +64,15 @@ public class UserCriteria {
 
     public UserCriteria setUserName(String userName) {
         this.userName = userName;
+        return this;
+    }
+
+    public boolean isExcludeDisabled() {
+        return excludeDisabled;
+    }
+
+    public UserCriteria setExcludeDisabled(boolean excludeDisabled) {
+        this.excludeDisabled = excludeDisabled;
         return this;
     }
 }
