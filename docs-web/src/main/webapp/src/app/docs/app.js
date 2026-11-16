@@ -475,9 +475,10 @@ angular.module('docs',
       prefix: 'locale/',
       suffix: '.json?@build.date@'
     })
-    .registerAvailableLanguageKeys(['en', 'es', 'pt', 'fr', 'de', 'el', 'ru', 'it', 'pl', 'zh_CN', 'zh_TW', 'sq_AL', 'ja', 'vi', 'sr'], {
+    .registerAvailableLanguageKeys(['en', 'es', 'pt', 'pt_BR', 'fr', 'de', 'el', 'ru', 'it', 'pl', 'zh_CN', 'zh_TW', 'sq_AL', 'ja', 'vi', 'sr'], {
       'en_*': 'en',
       'es_*': 'es',
+      'pt_BR': 'pt_BR',
       'pt_*': 'pt',
       'fr_*': 'fr',
       'de_*': 'de',

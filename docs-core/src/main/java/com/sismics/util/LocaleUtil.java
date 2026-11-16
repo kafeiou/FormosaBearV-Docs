@@ -46,6 +46,8 @@ public class LocaleUtil {
             case "ita":
             case "it":
                 return Locale.ITALIAN;
+            case "pt_br":
+                return new Locale("pt", "BR");
             case "por":
             case "pt":
                 return new Locale("pt");
