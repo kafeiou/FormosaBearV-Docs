@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Level;
@@ -1398,6 +1401,18 @@ public class AppResource extends BaseResource {
         boolean ssl = usessl != null && usessl;
         boolean startTls = !ssl && usestarttls != null && usestarttls;
 
+        String normalizedBaseDn = "";
+        if (baseDn != null) {
+            String trimmedBaseDn = baseDn.trim();
+            if (!trimmedBaseDn.isEmpty()) {
+                try {
+                    normalizedBaseDn = new LdapName(trimmedBaseDn).toString();
+                } catch (InvalidNameException e) {
+                    throw new ClientException("ValidationError", "base_dn", "Base DN is not a valid distinguished name");
+                }
+            }
+        }
+
         LdapConfig testCfg = new LdapConfig()
                 .setHost(host.trim())
                 .setPort(port)
@@ -1405,7 +1420,7 @@ public class AppResource extends BaseResource {
                 .setUseStartTls(startTls)
                 .setAdminDn(adminDn.trim())
                 .setAdminPassword(adminPassword)
-                .setBaseDn(baseDn != null ? baseDn.trim() : "");
+                .setBaseDn(normalizedBaseDn);
 
         try {
             LdapAuthenticationHandler.testConnection(testCfg);
