@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS (puerto por defecto 389)",
       "test_connection": "Probar conexión",
       "test_success": "Conexión y autenticación exitosas con el servidor LDAP",
-      "test_error": "Error al conectar con el servidor LDAP"
+      "test_error": "Error al conectar con el servidor LDAP",
+      "default_name_attribute": "Atributo de nombre predeterminado",
+      "default_name_attribute_help": "Atributo LDAP para el nombre para mostrar (por defecto cn; alternativa displayName -> cn)"
     },
     "user": {
       "title": "Administración de usuarios",
@@ -578,7 +580,9 @@
         "transfer_error_title": "Error en el traspaso de activos",
         "transfer_error_message": "Se produjo un error al transferir los activos.",
         "user_has_assets_title": "No se puede eliminar un usuario con activos propios",
-        "user_has_assets_message": "Este usuario aún posee <strong>{{ documents }}</strong> documento(s), <strong>{{ tags }}</strong> etiqueta(s) y <strong>{{ files }}</strong> archivo(s).<br/>Para evitar pérdida accidental de datos, transfiera primero todos los activos a otro usuario antes de eliminar esta cuenta."
+        "user_has_assets_message": "Este usuario aún posee <strong>{{ documents }}</strong> documento(s), <strong>{{ tags }}</strong> etiqueta(s) y <strong>{{ files }}</strong> archivo(s).<br/>Para evitar pérdida accidental de datos, transfiera primero todos los activos a otro usuario antes de eliminar esta cuenta.",
+        "name": "Nombre para mostrar",
+        "name_placeholder": "Nombre para mostrar opcional"
       }
     },
     "workflow": {

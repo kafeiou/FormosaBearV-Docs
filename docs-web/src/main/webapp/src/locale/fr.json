@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS (port par défaut 389)",
       "test_connection": "Tester la connexion",
       "test_success": "Connexion et authentification réussies au serveur LDAP",
-      "test_error": "Échec de la connexion au serveur LDAP"
+      "test_error": "Échec de la connexion au serveur LDAP",
+      "default_name_attribute": "Attribut de nom par défaut",
+      "default_name_attribute_help": "Attribut LDAP pour le nom affiché (par défaut cn ; repli sur displayName -> cn)"
     },
     "user": {
       "title": "Gestion des utilisateurs",
@@ -578,7 +580,9 @@
         "transfer_error_title": "Échec du transfert d'actifs",
         "transfer_error_message": "Une erreur est survenue lors du transfert des actifs.",
         "user_has_assets_title": "Impossible de supprimer un utilisateur possédant des actifs",
-        "user_has_assets_message": "Cet utilisateur possède encore <strong>{{ documents }}</strong> document(s), <strong>{{ tags }}</strong> tag(s) et <strong>{{ files }}</strong> fichier(s).<br/>Pour éviter toute perte accidentelle de données, veuillez d'abord transférer tous les actifs vers un autre utilisateur avant de supprimer ce compte."
+        "user_has_assets_message": "Cet utilisateur possède encore <strong>{{ documents }}</strong> document(s), <strong>{{ tags }}</strong> tag(s) et <strong>{{ files }}</strong> fichier(s).<br/>Pour éviter toute perte accidentelle de données, veuillez d'abord transférer tous les actifs vers un autre utilisateur avant de supprimer ce compte.",
+        "name": "Nom affiché",
+        "name_placeholder": "Nom affiché facultatif"
       }
     },
     "workflow": {

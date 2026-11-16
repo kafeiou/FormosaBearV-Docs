@@ -33,8 +33,10 @@
         <tr class="pointer" ng-repeat="user in users | filter: searchUser"
             ng-click="openUser(user)" ng-class="{ active: $stateParams.username == user.username }">
           <td class="col-xs-4">
-            <span class="fas fa-user"></span>
-            {{ user.username }}
+            <span uib-tooltip="{{ getUserTooltip(user.username, user.name) }}" tooltip-append-to-body="true">
+              <span class="fas fa-user"></span>
+              {{ formatUserDisplay(user.username, user.name) }}
+            </span>
             <span class="text-muted" ng-if="userInfo.username == user.username">{{ 'usergroup.you' | translate }}</span>
           </td>
         </tr>

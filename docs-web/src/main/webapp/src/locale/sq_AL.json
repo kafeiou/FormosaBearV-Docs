@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS (porta parazgjedhur 389)",
       "test_connection": "Testo lidhjen",
       "test_success": "U lidh dhe u autentifikua me sukses me serverin LDAP",
-      "test_error": "Lidhja me serverin LDAP dështoi"
+      "test_error": "Lidhja me serverin LDAP dështoi",
+      "default_name_attribute": "Atributi i parazgjedhur i emrit",
+      "default_name_attribute_help": "Atributi LDAP për emrin e shfaqur (parazgjedhur cn; резервë displayName -> cn)"
     },
     "user": {
       "title": "Menaxhimi i përdoruesve",
@@ -578,7 +580,9 @@
         "transfer_error_title": "Dorëzimi i aseteve dështoi",
         "transfer_error_message": "Ndodhi një gabim gjatë transferimit të aseteve.",
         "user_has_assets_title": "Nuk mund të fshihet përdoruesi me asete në pronësi",
-        "user_has_assets_message": "Ky përdorues ende zotëron <strong>{{ documents }}</strong> dokument(e), <strong>{{ tags }}</strong> etiketë(a) dhe <strong>{{ files }}</strong> skedar(ë).<br/>Për të parandaluar humbjen aksidentale të të dhënave, ju lutemi transferoni të gjitha asetet te një përdorues tjetër përpara se ta fshini këtë llogari."
+        "user_has_assets_message": "Ky përdorues ende zotëron <strong>{{ documents }}</strong> dokument(e), <strong>{{ tags }}</strong> etiketë(a) dhe <strong>{{ files }}</strong> skedar(ë).<br/>Për të parandaluar humbjen aksidentale të të dhënave, ju lutemi transferoni të gjitha asetet te një përdorues tjetër përpara se ta fshini këtë llogari.",
+        "name": "Emri i shfaqur",
+        "name_placeholder": "Emri i shfaqur opsional"
       }
     },
     "workflow": {

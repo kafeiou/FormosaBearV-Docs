@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS (porta predefinita 389)",
       "test_connection": "Verifica connessione",
       "test_success": "Connessione e autenticazione al server LDAP riuscite",
-      "test_error": "Impossibile connettersi al server LDAP"
+      "test_error": "Impossibile connettersi al server LDAP",
+      "default_name_attribute": "Attributo nome predefinito",
+      "default_name_attribute_help": "Attributo LDAP per il nome visualizzato (predefinito cn; fallback displayName -> cn)"
     },
     "user": {
       "title": "Gestione utenti",
@@ -578,7 +580,9 @@
         "transfer_error_title": "Trasferimento risorse non riuscito",
         "transfer_error_message": "Si è verificato un errore durante il trasferimento delle risorse.",
         "user_has_assets_title": "Impossibile eliminare l'utente con risorse di proprietà",
-        "user_has_assets_message": "Questo utente possiede ancora <strong>{{ documents }}</strong> documento/i, <strong>{{ tags }}</strong> tag e <strong>{{ files }}</strong> file.<br/>Per evitare perdite accidentali di dati, trasferisci prima tutte le risorse a un altro utente prima di eliminare questo account."
+        "user_has_assets_message": "Questo utente possiede ancora <strong>{{ documents }}</strong> documento/i, <strong>{{ tags }}</strong> tag e <strong>{{ files }}</strong> file.<br/>Per evitare perdite accidentali di dati, trasferisci prima tutte le risorse a un altro utente prima di eliminare questo account.",
+        "name": "Nome visualizzato",
+        "name_placeholder": "Nome visualizzato facoltativo"
       }
     },
     "workflow": {

@@ -118,6 +118,7 @@ public class UserDao {
         User userDb = (User) q.getSingleResult();
 
         // Update the user (except password)
+        userDb.setName(user.getName());
         userDb.setEmail(user.getEmail());
         userDb.setStorageQuota(user.getStorageQuota());
         userDb.setStorageCurrent(user.getStorageCurrent());
@@ -348,12 +349,12 @@ public class UserDao {
         Map<String, Object> parameterMap = new HashMap<>();
         List<String> criteriaList = new ArrayList<>();
         
-        StringBuilder sb = new StringBuilder("select u.USE_ID_C as c0, u.USE_USERNAME_C as c1, u.USE_EMAIL_C as c2, u.USE_CREATEDATE_D as c3, u.USE_STORAGECURRENT_N as c4, u.USE_STORAGEQUOTA_N as c5, u.USE_TOTPKEY_C as c6, u.USE_DISABLEDATE_D as c7, u.USE_AUTH_SOURCE_C as c8");
+        StringBuilder sb = new StringBuilder("select u.USE_ID_C as c0, u.USE_USERNAME_C as c1, u.USE_EMAIL_C as c2, u.USE_CREATEDATE_D as c3, u.USE_STORAGECURRENT_N as c4, u.USE_STORAGEQUOTA_N as c5, u.USE_TOTPKEY_C as c6, u.USE_DISABLEDATE_D as c7, u.USE_AUTH_SOURCE_C as c8, u.USE_NAME_C as c9");
         sb.append(" from T_USER u ");
         
         // Add search criterias
         if (criteria.getSearch() != null) {
-            criteriaList.add("lower(u.USE_USERNAME_C) like lower(:search)");
+            criteriaList.add("(lower(u.USE_USERNAME_C) like lower(:search) or lower(u.USE_NAME_C) like lower(:search))");
             parameterMap.put("search", "%" + criteria.getSearch() + "%");
         }
         if (criteria.getUserId() != null) {
@@ -398,6 +399,7 @@ public class UserDao {
             }
             i++;
             userDto.setAuthSource((String) o[i++]);
+            userDto.setName((String) o[i++]);
             userDtoList.add(userDto);
         }
         return userDtoList;

@@ -129,8 +129,10 @@
       <tbody>
         <tr ng-repeat="acl in tag.inherited_acls">
           <td>
-            <span class="fas" ng-class="{ 'fa-user': acl.type == 'USER', 'fa-users': acl.type == 'GROUP' }"></span>
-            {{ acl.name || acl.id }}
+            <span uib-tooltip="{{ acl.type == 'USER' ? getUserTooltip(acl.name || acl.id) : '' }}" tooltip-append-to-body="true">
+              <span class="fas" ng-class="{ 'fa-user': acl.type == 'USER', 'fa-users': acl.type == 'GROUP' }"></span>
+              {{ acl.type == 'USER' ? formatUserDisplay(acl.name || acl.id) : (acl.name || acl.id) }}
+            </span>
           </td>
           <td>
             <span class="label" ng-class="{ 'label-success': acl.perm == 'WRITE', 'label-info': acl.perm == 'READ' }">{{ 'acl.' + acl.perm | translate }}</span>

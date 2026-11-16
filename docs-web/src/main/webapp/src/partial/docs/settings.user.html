@@ -16,8 +16,13 @@
         <tr ng-repeat="user in users | orderBy: 'username'" ng-click="editUser(user)"
             ng-class="{ active: $stateParams.username == user.username }">
           <td>
-            <span ng-if="!user.disabled">{{ user.username }}</span>
-            <s ng-if="user.disabled">{{ user.username }}</s>
+            <span ng-if="!user.disabled">
+              <strong>{{ user.name ? user.name : user.username }}</strong>
+              <span class="text-muted" ng-if="user.name">({{ user.username }})</span>
+            </span>
+            <s ng-if="user.disabled">
+              {{ user.name ? (user.name + ' (' + user.username + ')') : user.username }}
+            </s>
             <span class="label label-info" ng-if="user.auth_source == 'LDAP'" style="font-size: 10px; margin-left: 4px;">LDAP</span>
             <span class="fas fa-lock" ng-show="user.totp_enabled" uib-tooltip="{{ 'settings.user.totp_enabled' | translate }}"></span>
           </td>

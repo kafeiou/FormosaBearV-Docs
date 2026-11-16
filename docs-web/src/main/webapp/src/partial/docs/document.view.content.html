@@ -19,9 +19,10 @@
   <dt>{{ 'document.contributors' | translate }}</dt>
   <dd>
     <span ng-repeat="contributor in document.contributors">
-      <a class="btn btn-xs" href="#/user/{{ contributor.username }}">
+      <a class="btn btn-xs" href="#/user/{{ contributor.username }}"
+         uib-tooltip="{{ getUserTooltip(contributor.username, contributor.name) }}" tooltip-append-to-body="true">
         <span class="fas fa-user"></span>
-        {{ contributor.username }}
+        {{ formatUserDisplay(contributor.username, contributor.name) }}
       </a>
     </span>
   </dd>

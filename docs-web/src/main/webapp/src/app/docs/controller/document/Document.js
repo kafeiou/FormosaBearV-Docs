@@ -135,15 +135,16 @@ angular.module('docs').controller('Document', function ($scope, $rootScope, $tim
    */
   $scope.getUserTypeahead = function($viewValue) {
     var deferred = $q.defer();
+    var q = ($viewValue || '').toLowerCase();
     Restangular.one('user/list')
       .get({
-        search: $viewValue,
         sort_column: 1,
         asc: true
       }).then(function(data) {
-      deferred.resolve(_.pluck(_.filter(data.users, function(user) {
-        return user.username.indexOf($viewValue) !== -1;
-      }), 'username'));
+      deferred.resolve(_.filter(data.users, function(user) {
+        return (user.username && user.username.toLowerCase().indexOf(q) !== -1) ||
+               (user.name && user.name.toLowerCase().indexOf(q) !== -1);
+      }));
     });
     return deferred.promise;
   };

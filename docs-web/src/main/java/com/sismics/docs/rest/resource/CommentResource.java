@@ -167,12 +167,16 @@ public class CommentResource extends BaseResource {
         List<CommentDto> commentDtoList = commentDao.getByDocumentId(documentId);
         JsonArrayBuilder comments = Json.createArrayBuilder();
         for (CommentDto commentDto : commentDtoList) {
-            comments.add(Json.createObjectBuilder()
+            JsonObjectBuilder commentJson = Json.createObjectBuilder()
                     .add("id", commentDto.getId())
                     .add("content", commentDto.getContent())
                     .add("creator", commentDto.getCreatorName())
                     .add("creator_gravatar", ImageUtil.computeGravatar(commentDto.getCreatorEmail()))
-                    .add("create_date", commentDto.getCreateTimestamp()));
+                    .add("create_date", commentDto.getCreateTimestamp());
+            if (commentDto.getCreatorDisplayName() != null && !commentDto.getCreatorDisplayName().isEmpty()) {
+                commentJson.add("creator_name", commentDto.getCreatorDisplayName());
+            }
+            comments.add(commentJson);
         }
         
         // Always return OK

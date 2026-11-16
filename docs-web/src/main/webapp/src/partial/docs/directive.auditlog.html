@@ -2,9 +2,9 @@
   <tr ng-repeat="log in logs">
     <td width="20%" class="text-muted small va-middle">{{ log.create_date | timeAgo: $root.dateTimeFormat }}</td>
     <td width="20%" class="va-middle">
-      <a ng-href="#/user/{{ log.username }}" class="btn btn-xs">
+      <a ng-href="#/user/{{ log.username }}" class="btn btn-xs" uib-tooltip="{{ $root.getUserTooltip(log.username) }}" tooltip-append-to-body="true">
         <span class="fas fa-user"></span>
-        {{ log.username }}
+        {{ $root.formatUserDisplay(log.username) }}
       </a>
     </td>
     <td class="va-middle">

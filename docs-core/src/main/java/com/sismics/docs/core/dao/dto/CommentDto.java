@@ -15,6 +15,11 @@ public class CommentDto {
      * Creator name.
      */
     private String creatorName;
+
+    /**
+     * Creator optional display name.
+     */
+    private String creatorDisplayName;
     
     /**
      * Creator email.
@@ -45,6 +50,14 @@ public class CommentDto {
 
     public void setCreatorName(String creatorName) {
         this.creatorName = creatorName;
+    }
+
+    public String getCreatorDisplayName() {
+        return creatorDisplayName;
+    }
+
+    public void setCreatorDisplayName(String creatorDisplayName) {
+        this.creatorDisplayName = creatorDisplayName;
     }
     
     public String getCreatorEmail() {

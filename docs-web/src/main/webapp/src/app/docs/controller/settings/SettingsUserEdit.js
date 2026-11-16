@@ -3,7 +3,7 @@
 /**
  * Settings user edition page controller.
  */
-angular.module('docs').controller('SettingsUserEdit', function($scope, $dialog, $state, $stateParams, Restangular, $translate) {
+angular.module('docs').controller('SettingsUserEdit', function($scope, $rootScope, $dialog, $state, $stateParams, Restangular, $translate, User) {
   /**
    * Returns true if in edit mode (false in add mode).
    */
@@ -53,6 +53,14 @@ angular.module('docs').controller('SettingsUserEdit', function($scope, $dialog, 
     
     promise.then(function () {
       $scope.loadUsers();
+      if ($rootScope.refreshUserDisplayMap) {
+        $rootScope.refreshUserDisplayMap();
+      }
+      if ($rootScope.userInfo && $scope.user && $rootScope.userInfo.username === $scope.user.username) {
+        User.userInfo(true).then(function(userData) {
+          $rootScope.userInfo = userData;
+        });
+      }
       if ($scope.isEdit()) {
         $scope.reloadCurrentUser();
       } else {

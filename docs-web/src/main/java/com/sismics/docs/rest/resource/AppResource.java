@@ -1075,6 +1075,7 @@ public class AppResource extends BaseResource {
                     .add("default_email", Strings.nullToEmpty(cfg.getDefaultEmail()))
                     .add("default_storage", cfg.getDefaultStorage() != null ? cfg.getDefaultStorage() : 100000000L)
                     .add("default_groupmembership", Strings.nullToEmpty(cfg.getDefaultGroupMembership()))
+                    .add("default_name_attribute", Strings.isNullOrEmpty(cfg.getDefaultNameAttribute()) ? "cn" : cfg.getDefaultNameAttribute())
                     .add("default_group", sGroupId));
         }
 
@@ -1101,6 +1102,7 @@ public class AppResource extends BaseResource {
                     .add("default_email", Strings.nullToEmpty(primary.getDefaultEmail()))
                     .add("default_storage", primary.getDefaultStorage() != null ? primary.getDefaultStorage() : 100000000L)
                     .add("default_groupmembership", Strings.nullToEmpty(primary.getDefaultGroupMembership()))
+                    .add("default_name_attribute", Strings.isNullOrEmpty(primary.getDefaultNameAttribute()) ? "cn" : primary.getDefaultNameAttribute())
                     .add("default_group", sGroupId);
         } else {
             ConfigDao configDao = new ConfigDao();
@@ -1111,6 +1113,8 @@ public class AppResource extends BaseResource {
                 if (aGroup == null) {
                     sGroupID = "";
                 }
+                Config nameAttrCfg = configDao.getById(ConfigType.LDAP_DEFAULT_NAMEATTRIBUTE);
+                String nameAttr = (nameAttrCfg != null && !Strings.isNullOrEmpty(nameAttrCfg.getValue())) ? nameAttrCfg.getValue() : "cn";
                 response.add("enabled", true)
                         .add("host", ConfigUtil.getConfigStringValue(ConfigType.LDAP_HOST))
                         .add("port", ConfigUtil.getConfigIntegerValue(ConfigType.LDAP_PORT))
@@ -1123,6 +1127,7 @@ public class AppResource extends BaseResource {
                         .add("default_email", ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_EMAIL))
                         .add("default_storage", ConfigUtil.getConfigLongValue(ConfigType.LDAP_DEFAULT_STORAGE))
                         .add("default_groupmembership", ConfigUtil.getConfigStringValue(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP))
+                        .add("default_name_attribute", nameAttr)
                         .add("default_group", sGroupID);
             } else {
                 response.add("enabled", false);
@@ -1152,6 +1157,7 @@ public class AppResource extends BaseResource {
                                @FormParam("default_email") String defaultEmail,
                                @FormParam("default_storage") String defaultStorageStr,
                                @FormParam("default_groupmembership") String defaultGroupMemberShipStr,
+                               @FormParam("default_name_attribute") String defaultNameAttrStr,
                                @FormParam("default_group") String defaultGroupStr) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
@@ -1196,6 +1202,10 @@ public class AppResource extends BaseResource {
                 String srvEmail = obj.containsKey("default_email") && !obj.isNull("default_email") ? obj.getString("default_email").trim() : "";
                 String srvStorageStr = obj.containsKey("default_storage") && !obj.isNull("default_storage") ? obj.get("default_storage").toString().replace("\"", "") : "100000000";
                 String srvGroupAttr = obj.containsKey("default_groupmembership") && !obj.isNull("default_groupmembership") ? obj.getString("default_groupmembership").trim() : "";
+                String srvNameAttr = obj.containsKey("default_name_attribute") && !obj.isNull("default_name_attribute") ? obj.getString("default_name_attribute").trim() : "cn";
+                if (srvNameAttr.isEmpty()) {
+                    srvNameAttr = "cn";
+                }
                 String srvGroup = obj.containsKey("default_group") && !obj.isNull("default_group") ? obj.getString("default_group").trim() : "";
 
                 if (srvEnabled) {
@@ -1239,6 +1249,7 @@ public class AppResource extends BaseResource {
                         .setDefaultEmail(srvEmail)
                         .setDefaultStorage(parsedStorage)
                         .setDefaultGroupMembership(srvGroupAttr)
+                        .setDefaultNameAttribute(srvNameAttr)
                         .setDefaultGroup(srvGroup);
 
                 if (!Strings.isNullOrEmpty(id) && ldapConfigDao.getActiveById(id) != null) {
@@ -1279,6 +1290,7 @@ public class AppResource extends BaseResource {
                 configDao.update(ConfigType.LDAP_DEFAULT_EMAIL, mirror.getDefaultEmail());
                 configDao.update(ConfigType.LDAP_DEFAULT_STORAGE, String.valueOf(mirror.getDefaultStorage()));
                 configDao.update(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP, Strings.nullToEmpty(mirror.getDefaultGroupMembership()));
+                configDao.update(ConfigType.LDAP_DEFAULT_NAMEATTRIBUTE, Strings.isNullOrEmpty(mirror.getDefaultNameAttribute()) ? "cn" : mirror.getDefaultNameAttribute());
                 configDao.update(ConfigType.LDAP_DEFAULT_GROUP, Strings.nullToEmpty(mirror.getDefaultGroup()));
             } else {
                 configDao.update(ConfigType.LDAP_ENABLED, Boolean.FALSE.toString());
@@ -1315,6 +1327,9 @@ public class AppResource extends BaseResource {
             configDao.update(ConfigType.LDAP_DEFAULT_STORAGE, defaultStorageStr);
             if (defaultGroupMemberShipStr == null) defaultGroupMemberShipStr = "";
             configDao.update(ConfigType.LDAP_DEFAULT_GROUPMEMBERSHIP, defaultGroupMemberShipStr);
+            if (defaultNameAttrStr == null || defaultNameAttrStr.trim().isEmpty()) defaultNameAttrStr = "cn";
+            else defaultNameAttrStr = defaultNameAttrStr.trim();
+            configDao.update(ConfigType.LDAP_DEFAULT_NAMEATTRIBUTE, defaultNameAttrStr);
             if (defaultGroupStr == null) defaultGroupStr = "";
             configDao.update(ConfigType.LDAP_DEFAULT_GROUP, defaultGroupStr);
 
@@ -1336,6 +1351,7 @@ public class AppResource extends BaseResource {
                         .setDefaultEmail(defaultEmail)
                         .setDefaultStorage(defaultStorage)
                         .setDefaultGroupMembership(defaultGroupMemberShipStr)
+                        .setDefaultNameAttribute(defaultNameAttrStr)
                         .setDefaultGroup(defaultGroupStr));
             } else {
                 LdapConfig primary = existingList.get(0);
@@ -1352,6 +1368,7 @@ public class AppResource extends BaseResource {
                         .setDefaultEmail(defaultEmail)
                         .setDefaultStorage(defaultStorage)
                         .setDefaultGroupMembership(defaultGroupMemberShipStr)
+                        .setDefaultNameAttribute(defaultNameAttrStr)
                         .setDefaultGroup(defaultGroupStr);
                 ldapConfigDao.update(primary);
             }

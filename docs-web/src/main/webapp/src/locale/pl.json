@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS (domyślny port 389)",
       "test_connection": "Testuj połączenie",
       "test_success": "Pomyślnie połączono i uwierzytelniono na serwerze LDAP",
-      "test_error": "Nie udało się połączyć z serwerem LDAP"
+      "test_error": "Nie udało się połączyć z serwerem LDAP",
+      "default_name_attribute": "Domyślny atrybut nazwy",
+      "default_name_attribute_help": "Atrybut LDAP dla nazwy wyświetlanej (domyślnie cn; zapasowo displayName -> cn)"
     },
     "user": {
       "title": "Zarządzanie użytkownikami",
@@ -578,7 +580,9 @@
         "transfer_error_title": "Przekazanie zasobów nie powiodło się",
         "transfer_error_message": "Wystąpił błąd podczas przekazywania zasobów.",
         "user_has_assets_title": "Nie można usunąć użytkownika posiadającego zasoby",
-        "user_has_assets_message": "Ten użytkownik nadal posiada <strong>{{ documents }}</strong> dokument(y/ów), <strong>{{ tags }}</strong> etykiet(y/a) oraz <strong>{{ files }}</strong> plik(i/ów).<br/>Aby zapobiec przypadkowej utracie danych, najpierw przekaż wszystkie zasoby innemu użytkownikowi przed usunięciem tego konta."
+        "user_has_assets_message": "Ten użytkownik nadal posiada <strong>{{ documents }}</strong> dokument(y/ów), <strong>{{ tags }}</strong> etykiet(y/a) oraz <strong>{{ files }}</strong> plik(i/ów).<br/>Aby zapobiec przypadkowej utracie danych, najpierw przekaż wszystkie zasoby innemu użytkownikowi przed usunięciem tego konta.",
+        "name": "Nazwa wyświetlana",
+        "name_placeholder": "Opcjonalna nazwa wyświetlana"
       }
     },
     "workflow": {

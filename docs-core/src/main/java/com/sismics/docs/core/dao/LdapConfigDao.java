@@ -106,6 +106,7 @@ public class LdapConfigDao {
         dbConfig.setDefaultStorage(ldapConfig.getDefaultStorage());
         dbConfig.setDefaultGroup(ldapConfig.getDefaultGroup());
         dbConfig.setDefaultGroupMembership(ldapConfig.getDefaultGroupMembership());
+        dbConfig.setDefaultNameAttribute(ldapConfig.getDefaultNameAttribute());
         return dbConfig;
     }
 

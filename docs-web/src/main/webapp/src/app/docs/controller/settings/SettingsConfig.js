@@ -54,7 +54,7 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
 
   $scope.getWatermarkPreviewText = function () {
     var username = ($rootScope.userInfo && $rootScope.userInfo.username && !$rootScope.userInfo.anonymous)
-      ? $rootScope.userInfo.username
+      ? $rootScope.formatUserFull($rootScope.userInfo.username, $rootScope.userInfo.name)
       : 'admin';
     return username + ' \u00B7 ' + $scope.formatEnglishDate(new Date(), $scope.watermark.date_format);
   };

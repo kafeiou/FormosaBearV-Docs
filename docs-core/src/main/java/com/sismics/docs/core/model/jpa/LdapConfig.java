@@ -64,6 +64,9 @@ public class LdapConfig {
     @Column(name = "LDC_DEFAULT_GROUPMEMBERSHIP_C", length = 250)
     private String defaultGroupMembership;
 
+    @Column(name = "LDC_DEFAULT_NAMEATTR_C", length = 250)
+    private String defaultNameAttribute = "cn";
+
     @Column(name = "LDC_DELETEDATE_D")
     private Date deleteDate;
 
@@ -208,6 +211,15 @@ public class LdapConfig {
 
     public LdapConfig setDefaultGroupMembership(String defaultGroupMembership) {
         this.defaultGroupMembership = defaultGroupMembership;
+        return this;
+    }
+
+    public String getDefaultNameAttribute() {
+        return defaultNameAttribute;
+    }
+
+    public LdapConfig setDefaultNameAttribute(String defaultNameAttribute) {
+        this.defaultNameAttribute = defaultNameAttribute;
         return this;
     }
 

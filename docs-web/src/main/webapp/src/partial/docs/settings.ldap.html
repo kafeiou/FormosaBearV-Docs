@@ -121,6 +121,14 @@
         </div>
       </div>
 
+      <div ng-if="ldap.enabled" class="form-group">
+        <label class="col-sm-2 control-label">{{ 'settings.ldap.default_name_attribute' | translate }}</label>
+        <div class="col-sm-7">
+          <input name="defaultNameAttribute" type="text" class="form-control" ng-model="ldap.default_name_attribute" ng-maxlength="250" placeholder="cn" />
+          <span class="help-block small text-muted">{{ 'settings.ldap.default_name_attribute_help' | translate }}</span>
+        </div>
+      </div>
+
       <div ng-if="ldap.enabled" class="form-group" ng-class="{ 'has-error': !serverForm.defaultStorage.$valid && form.$dirty }">
         <label class="col-sm-2 control-label">{{ 'settings.ldap.default_storage' | translate }}</label>
         <div class="col-sm-7">

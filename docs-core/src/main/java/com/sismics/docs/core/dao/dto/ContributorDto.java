@@ -10,6 +10,11 @@ public class ContributorDto {
      * Username.
      */
     private String username;
+
+    /**
+     * Optional display name.
+     */
+    private String name;
     
     /**
      * Email.
@@ -22,6 +27,14 @@ public class ContributorDto {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {

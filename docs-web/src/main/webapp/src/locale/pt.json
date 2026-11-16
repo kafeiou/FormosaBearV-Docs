@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS (porta predefinida 389)",
       "test_connection": "Testar ligação",
       "test_success": "Ligação e autenticação ao servidor LDAP efetuadas com êxito",
-      "test_error": "Falha ao ligar ao servidor LDAP"
+      "test_error": "Falha ao ligar ao servidor LDAP",
+      "default_name_attribute": "Atributo de nome predefinido",
+      "default_name_attribute_help": "Atributo LDAP para o nome de apresentação (predefinido cn; alternativa displayName -> cn)"
     },
     "user": {
       "title": "Gestão de Utilizadores",
@@ -578,7 +580,9 @@
         "transfer_error_title": "Falha na transferência de ativos",
         "transfer_error_message": "Ocorreu um erro ao transferir os ativos.",
         "user_has_assets_title": "Não é possível eliminar um utilizador com ativos próprios",
-        "user_has_assets_message": "Este utilizador ainda detém <strong>{{ documents }}</strong> documento(s), <strong>{{ tags }}</strong> etiqueta(s) e <strong>{{ files }}</strong> ficheiro(s).<br/>Para evitar perda acidental de dados, transfira primeiro todos os ativos para outro utilizador antes de eliminar esta conta."
+        "user_has_assets_message": "Este utilizador ainda detém <strong>{{ documents }}</strong> documento(s), <strong>{{ tags }}</strong> etiqueta(s) e <strong>{{ files }}</strong> ficheiro(s).<br/>Para evitar perda acidental de dados, transfira primeiro todos os ativos para outro utilizador antes de eliminar esta conta.",
+        "name": "Nome de apresentação",
+        "name_placeholder": "Nome de apresentação opcional"
       }
     },
     "workflow": {

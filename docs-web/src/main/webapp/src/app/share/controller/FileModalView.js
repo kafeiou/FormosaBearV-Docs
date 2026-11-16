@@ -76,7 +76,7 @@ angular.module('share').controller('FileModalView', function($uibModalInstance, 
       return {};
     }
     var username = ($rootScope.userInfo && $rootScope.userInfo.username && !$rootScope.userInfo.anonymous)
-      ? $rootScope.userInfo.username
+      ? ($rootScope.userInfo.name ? ($rootScope.userInfo.name + ' (' + $rootScope.userInfo.username + ')') : $rootScope.userInfo.username)
       : 'Guest';
     var dateStr = formatEnglishDate(new Date(), $rootScope.app.preview_watermark_date_format);
     var text = escapeXml(username + ' \u00B7 ' + dateStr);

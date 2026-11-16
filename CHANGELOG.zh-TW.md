@@ -10,6 +10,13 @@
 
 > **基準點**: `v2.06` (`f52d698f`) ➜ `v2.07`
 
+### 新增功能 (Added)
+- **使用者顯示名稱（`name`）與 LDAP 姓名屬性整合（`dbupdate-042-0.sql`）**：
+  - `T_USER` 新增選填顯示名稱欄位（`USE_NAME_C`，最長 100 字元），支援管理員於「設定 ➜ 使用者」及所有登入使用者（含 LDAP 帳號）於「設定 ➜ 個人帳號」自行維護。
+  - `T_LDAP_CONFIG` 新增可自訂之預設姓名屬性（`LDC_DEFAULT_NAMEATTR_C`，預設 `cn`），LDAP 登入時依序讀取 `設定屬性 -> displayName -> cn`，並僅於首次建帳或目前 `name` 為空時填入。
+  - 導覽列、文件／標籤建立者、協編者、留言、已授權 ACL／群組、Audit Log 顯示乾淨的 `name` 並搭配 `uib-tooltip` 即時氣泡顯示帳號代號；標籤建立者氣泡、人員挑選選單（支援以姓名或代號雙向搜尋）與預覽浮水印則顯示 `name (username)`。
+  - 補齊並完成全部 15 種支援語系（777 項字串）之翻譯。
+
 ### 安全性修正 (Security)
 - **修復分享 ID 偽造漏洞 (`CVE-2026-50885` / `CWE-284`)** — 參照上游議題 [`sismics/docs#792`](https://github.com/sismics/docs/issues/792)（由 `@vmario89` 回報）：
   - 更新 `BaseResource.getTargetIdList(String shareId)`，在將 `shareId` 加入 ACL 目標清單前先透過 `ShareDao.getActiveById(shareId)` 驗證分享是否存在且有效，防止偽造 `share` 參數繞過文件與檔案讀取權限檢查。

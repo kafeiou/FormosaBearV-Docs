@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS (подразумевани порт 389)",
       "test_connection": "Тестирај везу",
       "test_success": "Успешно повезивање и аутентификација на LDAP сервер",
-      "test_error": "Повезивање са LDAP сервером није успело"
+      "test_error": "Повезивање са LDAP сервером није успело",
+      "default_name_attribute": "Подразумевани атрибут имена",
+      "default_name_attribute_help": "LDAP атрибут за приказано име (подразумевано cn; резерва displayName -> cn)"
     },
     "user": {
       "title": "Управљање корисницима",
@@ -578,7 +580,9 @@
         "transfer_error_title": "Пренос имовине није успео",
         "transfer_error_message": "Дошло је до грешке приликом преноса имовине.",
         "user_has_assets_title": "Није могуће обрисати корисника који има имовину",
-        "user_has_assets_message": "Овај корисник и даље поседује <strong>{{ documents }}</strong> докумената, <strong>{{ tags }}</strong> ознака и <strong>{{ files }}</strong> датотека.<br/>Да бисте спречили случајни губитак података, прво пренесите сву имовину другом кориснику пре брисања овог налога."
+        "user_has_assets_message": "Овај корисник и даље поседује <strong>{{ documents }}</strong> докумената, <strong>{{ tags }}</strong> ознака и <strong>{{ files }}</strong> датотека.<br/>Да бисте спречили случајни губитак података, прво пренесите сву имовину другом кориснику пре брисања овог налога.",
+        "name": "Приказано име",
+        "name_placeholder": "Опционо приказано име"
       }
     },
     "workflow": {

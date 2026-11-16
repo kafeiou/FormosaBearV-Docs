@@ -263,6 +263,7 @@ public class DocumentResource extends BaseResource {
         for (ContributorDto contributorDto : contributorDtoList) {
             contributorList.add(Json.createObjectBuilder()
                     .add("username", contributorDto.getUsername())
+                    .add("name", JsonUtil.nullable(contributorDto.getName()))
                     .add("email", contributorDto.getEmail()));
         }
         document.add("contributors", contributorList);

@@ -5,7 +5,7 @@
 <h4>{{ 'group.profile.members' | translate }}</h4>
 <ul>
   <li ng-repeat="member in group.members">
-    <a href="#/user/{{ member }}">{{ member }}</a>
+    <a href="#/user/{{ member }}" uib-tooltip="{{ getUserTooltip(member) }}" tooltip-append-to-body="true">{{ formatUserDisplay(member) }}</a>
   </li>
   <li ng-if="group.members.length == 0">{{ 'group.profile.no_members' | translate }}</li>
 </ul>

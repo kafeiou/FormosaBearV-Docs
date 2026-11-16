@@ -170,9 +170,10 @@
           </li>
           <li>
             <a href="{{ userInfo.username == 'guest' ? '#/user/guest' : '#/settings/account' }}"
-               translate-attr="{ title: 'index.logged_as' }" translate-values="{ username: userInfo.username }">
+               uib-tooltip="{{ getUserTooltip(userInfo.username, userInfo.name) || ('index.logged_as' | translate: { username: userInfo.username }) }}"
+               tooltip-placement="bottom" tooltip-append-to-body="true">
               <span class="fas fa-user"></span>
-              {{ userInfo.username }}
+              {{ formatUserDisplay(userInfo.username, userInfo.name) }}
             </a>
           </li>
           <li ui-sref-active="{ active: 'settings.**' }" ng-show="userInfo.username != 'guest'">

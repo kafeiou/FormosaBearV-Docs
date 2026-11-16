@@ -3,9 +3,17 @@
 /**
  * Settings account controller.
  */
-angular.module('docs').controller('SettingsAccount', function($scope, Restangular, $translate) {
-  $scope.user = {};
+angular.module('docs').controller('SettingsAccount', function($scope, $rootScope, Restangular, $translate, User) {
+  $scope.user = {
+    name: ($rootScope.userInfo && $rootScope.userInfo.name) ? $rootScope.userInfo.name : ''
+  };
   $scope.editUserAlert = false;
+
+  $scope.$watch('userInfo.name', function(newName) {
+    if (newName !== undefined && (!$scope.editUserForm || !$scope.editUserForm.$dirty)) {
+      $scope.user.name = newName || '';
+    }
+  });
   
   // Alerts
   $scope.alerts = [];
@@ -24,11 +32,24 @@ angular.module('docs').controller('SettingsAccount', function($scope, Restangula
     if (form && !form.$valid) {
       return;
     }
-    Restangular.one('user').post('', $scope.user).then(function() {
-      $scope.user = {};
+    var payload = {
+      name: $scope.user.name || ''
+    };
+    if ($scope.user.password) {
+      payload.password = $scope.user.password;
+    }
+    Restangular.one('user').post('', payload).then(function() {
+      $scope.user.password = '';
+      $scope.user.passwordconfirm = '';
       if (form) {
         form.$setPristine();
       }
+      User.userInfo(true).then(function(userData) {
+        $rootScope.userInfo = userData;
+        if ($rootScope.refreshUserDisplayMap) {
+          $rootScope.refreshUserDisplayMap();
+        }
+      });
       $scope.alerts = [{ type: 'success', msg: $translate.instant('settings.account.updated') }];
     }, function(err) {
       var msg = $translate.instant('error.general');

@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS (Standardport 389)",
       "test_connection": "Verbindung testen",
       "test_success": "Verbindung und Authentifizierung beim LDAP-Server erfolgreich",
-      "test_error": "Verbindung zum LDAP-Server fehlgeschlagen"
+      "test_error": "Verbindung zum LDAP-Server fehlgeschlagen",
+      "default_name_attribute": "Standard-Namensattribut",
+      "default_name_attribute_help": "LDAP-Attribut für den Anzeigenamen (Standard: cn; Fallback: displayName -> cn)"
     },
     "user": {
       "title": "Benutzerverwaltung",
@@ -578,7 +580,9 @@
         "transfer_error_title": "Bestandsübergabe fehlgeschlagen",
         "transfer_error_message": "Beim Übertragen der Bestände ist ein Fehler aufgetreten.",
         "user_has_assets_title": "Benutzer mit eigenen Beständen kann nicht gelöscht werden",
-        "user_has_assets_message": "Dieser Benutzer besitzt noch <strong>{{ documents }}</strong> Dokument(e), <strong>{{ tags }}</strong> Tag(s) und <strong>{{ files }}</strong> Datei(en).<br/>Um versehentlichen Datenverlust zu vermeiden, übertragen Sie bitte zuerst alle Bestände an einen anderen Benutzer, bevor Sie dieses Konto löschen."
+        "user_has_assets_message": "Dieser Benutzer besitzt noch <strong>{{ documents }}</strong> Dokument(e), <strong>{{ tags }}</strong> Tag(s) und <strong>{{ files }}</strong> Datei(en).<br/>Um versehentlichen Datenverlust zu vermeiden, übertragen Sie bitte zuerst alle Bestände an einen anderen Benutzer, bevor Sie dieses Konto löschen.",
+        "name": "Anzeigename",
+        "name_placeholder": "Optionaler Anzeigename (Standard: Benutzername)"
       }
     },
     "workflow": {

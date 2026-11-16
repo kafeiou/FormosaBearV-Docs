@@ -81,6 +81,7 @@ public class UserResource extends BaseResource {
     @PUT
     public Response register(
         @FormParam("username") String username,
+        @FormParam("name") String name,
         @FormParam("password") String password,
         @FormParam("email") String email,
         @FormParam("storage_quota") String storageQuotaStr) {
@@ -92,6 +93,7 @@ public class UserResource extends BaseResource {
         // Validate the input data
         username = ValidationUtil.validateLength(username, "username", 3, 50);
         ValidationUtil.validateUsername(username, "username");
+        name = ValidationUtil.validateLength(name, "name", 0, 100, true);
         password = ValidationUtil.validateLength(password, "password", 8, 50);
         email = ValidationUtil.validateLength(email, "email", 1, 100);
         Long storageQuota = ValidationUtil.validateLong(storageQuotaStr, "storage_quota");
@@ -101,6 +103,10 @@ public class UserResource extends BaseResource {
         User user = new User();
         user.setRoleId(Constants.DEFAULT_USER_ROLE);
         user.setUsername(username);
+        if (name != null) {
+            String trimmedName = name.trim();
+            user.setName(trimmedName.isEmpty() ? null : trimmedName);
+        }
         user.setPassword(password);
         user.setEmail(email);
         user.setStorageQuota(storageQuota);
@@ -145,7 +151,8 @@ public class UserResource extends BaseResource {
     @POST
     public Response update(
         @FormParam("password") String password,
-        @FormParam("email") String email) {
+        @FormParam("email") String email,
+        @FormParam("name") String name) {
         if (!authenticate() || principal.isGuest()) {
             throw new ForbiddenClientException();
         }
@@ -153,12 +160,17 @@ public class UserResource extends BaseResource {
         // Validate the input data
         password = ValidationUtil.validateLength(password, "password", 8, 50, true);
         email = ValidationUtil.validateLength(email, "email", 1, 100, true);
+        name = ValidationUtil.validateLength(name, "name", 0, 100, true);
 
         // Update the user
         UserDao userDao = new UserDao();
         User user = userDao.getActiveByUsername(principal.getName());
         if (email != null) {
             user.setEmail(email);
+        }
+        if (name != null) {
+            String trimmedName = name.trim();
+            user.setName(trimmedName.isEmpty() ? null : trimmedName);
         }
         user = userDao.update(user, principal.getId());
 
@@ -210,6 +222,7 @@ public class UserResource extends BaseResource {
     @Path("{username: [a-zA-Z0-9_@.-]+}")
     public Response update(
         @PathParam("username") String username,
+        @FormParam("name") String name,
         @FormParam("password") String password,
         @FormParam("email") String email,
         @FormParam("storage_quota") String storageQuotaStr,
@@ -221,6 +234,7 @@ public class UserResource extends BaseResource {
         checkBaseFunction(BaseFunction.ADMIN);
 
         // Validate the input data
+        name = ValidationUtil.validateLength(name, "name", 0, 100, true);
         password = ValidationUtil.validateLength(password, "password", 8, 50, true);
         email = ValidationUtil.validateLength(email, "email", 1, 100, true);
 
@@ -232,6 +246,10 @@ public class UserResource extends BaseResource {
         }
 
         // Update the user
+        if (name != null) {
+            String trimmedName = name.trim();
+            user.setName(trimmedName.isEmpty() ? null : trimmedName);
+        }
         if (email != null) {
             user.setEmail(email);
         }
@@ -772,6 +790,7 @@ public class UserResource extends BaseResource {
                     .setRecursive(true), null);
 
             response.add("username", user.getUsername())
+                    .add("name", JsonUtil.nullable(user.getName()))
                     .add("email", user.getEmail())
                     .add("storage_quota", user.getStorageQuota())
                     .add("storage_current", user.getStorageCurrent())
@@ -855,6 +874,7 @@ public class UserResource extends BaseResource {
 
         JsonObjectBuilder response = Json.createObjectBuilder()
                 .add("username", user.getUsername())
+                .add("name", JsonUtil.nullable(user.getName()))
                 .add("groups", groups)
                 .add("email", user.getEmail())
                 .add("totp_enabled", user.getTotpKey() != null)
@@ -925,6 +945,7 @@ public class UserResource extends BaseResource {
             users.add(Json.createObjectBuilder()
                     .add("id", userDto.getId())
                     .add("username", userDto.getUsername())
+                    .add("name", JsonUtil.nullable(userDto.getName()))
                     .add("email", userDto.getEmail())
                     .add("totp_enabled", userDto.getTotpKey() != null)
                     .add("storage_quota", userDto.getStorageQuota())

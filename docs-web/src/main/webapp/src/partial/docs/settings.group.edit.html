@@ -65,7 +65,7 @@
                 <span class="input-group-addon"><span class="fas fa-search"></span></span>
                 <input name="member" type="text" id="inputMember" class="form-control" ng-model="member"
                        ng-attr-placeholder="{{ 'settings.group.edit.search_user' | translate }}"
-                       uib-typeahead="user for user in getUserTypeahead($viewValue)" typeahead-on-select="addMember($item)"
+                       uib-typeahead="user.username as formatUserFull(user.username, user.name) for user in getUserTypeahead($viewValue)" typeahead-on-select="addMember($item.username || $item)"
                        typeahead-wait-ms="200" typeahead-editable="false" autocomplete="off" />
               </div>
             </div>
@@ -77,7 +77,7 @@
                   <option ng-repeat="u in allUsers | orderBy: 'username'"
                           ng-if="!group.members || group.members.indexOf(u.username) === -1"
                           value="{{ u.username }}">
-                    {{ u.username }}
+                    {{ formatUserFull(u.username, u.name) }}
                   </option>
                 </select>
               </div>
@@ -92,8 +92,9 @@
         <div class="col-sm-7">
           <span ng-repeat="member in group.members | orderBy: 'toString()'">
             <span class="btn btn-default" style="margin-bottom: 5px;"
-               ng-click="removeMember(member)">
-              {{ member }}
+               ng-click="removeMember(member)"
+               uib-tooltip="{{ getUserTooltip(member) }}" tooltip-append-to-body="true">
+              {{ formatUserDisplay(member) }}
               <span class="fas fa-times text-danger"></span>
             </span>&nbsp;
           </span>

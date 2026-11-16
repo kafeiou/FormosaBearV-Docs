@@ -34,6 +34,18 @@
       </div>
     </div>
 
+    <div class="form-group" ng-class="{ 'has-error': !editUserForm.userDisplayName.$valid && editUserForm.$dirty, success: editUserForm.userDisplayName.$valid }">
+      <label class="col-sm-2 control-label" for="inputUserDisplayName">{{ 'settings.user.edit.name' | translate }}</label>
+      <div class="col-sm-7">
+        <input name="userDisplayName" type="text" id="inputUserDisplayName" class="form-control"
+               ng-maxlength="100" ng-attr-placeholder="{{ 'settings.user.edit.name_placeholder' | translate }}" ng-model="user.name"/>
+      </div>
+
+      <div class="col-sm-3">
+        <span class="help-block" ng-show="editUserForm.userDisplayName.$error.maxlength && editUserForm.$dirty">{{ 'validation.too_long' | translate }}</span>
+      </div>
+    </div>
+
     <div class="form-group" ng-class="{ 'has-error': !editUserForm.userEmail.$valid && editUserForm.$dirty, success: editUserForm.userEmail.$valid }">
       <label class="col-sm-2 control-label" for="inputEmail">{{ 'settings.user.edit.email' | translate }}</label>
       <div class="col-sm-7">
@@ -170,7 +182,7 @@
           <label class="col-sm-2 control-label" for="selectTransferTarget">{{ 'settings.user.edit.transfer_target_label' | translate }}</label>
           <div class="col-sm-7">
             <select id="selectTransferTarget" class="form-control" ng-model="transferData.targetUsername"
-                    ng-options="u.username as (u.username + (u.email ? ' (' + u.email + ')' : '')) for u in getTransferTargets()">
+                    ng-options="u.username as (formatUserFull(u.username, u.name) + (u.email ? ' <' + u.email + '>' : '')) for u in getTransferTargets()">
               <option value="">{{ 'settings.user.edit.transfer_target_placeholder' | translate }}</option>
             </select>
           </div>

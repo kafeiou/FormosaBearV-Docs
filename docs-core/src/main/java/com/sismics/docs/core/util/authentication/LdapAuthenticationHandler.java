@@ -129,6 +129,10 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
             if (groupAttrCfg != null) {
                 legacy.setDefaultGroupMembership(groupAttrCfg.getValue());
             }
+            Config nameAttrCfg = configDao.getById(ConfigType.LDAP_DEFAULT_NAMEATTRIBUTE);
+            if (nameAttrCfg != null && !Strings.isNullOrEmpty(nameAttrCfg.getValue())) {
+                legacy.setDefaultNameAttribute(nameAttrCfg.getValue().trim());
+            }
             List<LdapConfig> list = new ArrayList<>();
             list.add(legacy);
             return list;
@@ -184,6 +188,9 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
             return null;
         }
 
+        // Resolve display name from LDAP entry: configured attribute (default 'cn') -> 'displayName' -> 'cn'
+        String ldapDisplayName = resolveLdapDisplayName(matchedEntry, matchedConfig.getDefaultNameAttribute());
+
         UserDao userDao = new UserDao();
         User user = userDao.getActiveByUsername(username);
         if (user == null) {
@@ -193,6 +200,9 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
             user = new User();
             user.setRoleId(Constants.DEFAULT_USER_ROLE);
             user.setUsername(username);
+            if (!Strings.isNullOrEmpty(ldapDisplayName)) {
+                user.setName(ldapDisplayName);
+            }
             user.setAuthSource("LDAP");
             user.setPassword(UUID.randomUUID().toString()); // No authentication using the internal database
             Attribute mailAttribute = matchedEntry.get("mail");
@@ -236,6 +246,11 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
                 return null;
             }
             // Existing user authenticated via LDAP
+            boolean needsUpdate = false;
+            if (Strings.isNullOrEmpty(user.getName()) && !Strings.isNullOrEmpty(ldapDisplayName)) {
+                user.setName(ldapDisplayName);
+                needsUpdate = true;
+            }
             // Never convert the built-in admin account to LDAP to preserve break-glass emergency access
             if (!Constants.ADMIN_USER_ID.equals(user.getId()) && !"admin".equalsIgnoreCase(username)) {
                 if (!"LDAP".equals(user.getAuthSource())) {
@@ -243,11 +258,46 @@ public class LdapAuthenticationHandler implements AuthenticationHandler {
                     user.setAuthSource("LDAP");
                     user.setPassword(UUID.randomUUID().toString());
                     userDao.updatePassword(user, "admin");
-                    userDao.update(user, "admin");
+                    needsUpdate = true;
                 }
+            }
+            if (needsUpdate) {
+                userDao.update(user, "admin");
             }
         }
 
         return user;
+    }
+
+    /**
+     * Resolve user display name from LDAP entry using configured attribute (default 'cn'),
+     * falling back to 'displayName' and then 'cn', truncated to 100 characters.
+     */
+    private static String resolveLdapDisplayName(Entry entry, String configuredAttr) {
+        if (entry == null) {
+            return null;
+        }
+        String primaryAttr = Strings.isNullOrEmpty(configuredAttr) ? "cn" : configuredAttr.trim();
+        String[] candidates = new String[] { primaryAttr, "displayName", "cn" };
+        for (String attrName : candidates) {
+            if (Strings.isNullOrEmpty(attrName)) {
+                continue;
+            }
+            try {
+                Attribute attr = entry.get(attrName);
+                if (attr != null && attr.get() != null) {
+                    String val = attr.getString();
+                    if (val != null) {
+                        val = val.trim();
+                        if (!val.isEmpty()) {
+                            return val.length() > 100 ? val.substring(0, 100) : val;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+                // Ignore binary or non-string attribute and try next candidate
+            }
+        }
+        return null;
     }
 }

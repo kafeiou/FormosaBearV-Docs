@@ -736,13 +736,69 @@ angular.module('docs',
   }
 
   /**
+   * Global user display name map and formatting helpers.
+   */
+  $rootScope.userDisplayMap = {};
+  $rootScope.refreshUserDisplayMap = function() {
+    if ($rootScope.userInfo && !$rootScope.userInfo.anonymous) {
+      if ($rootScope.userInfo.username && $rootScope.userInfo.name) {
+        $rootScope.userDisplayMap[$rootScope.userInfo.username] = $rootScope.userInfo.name;
+      }
+      Restangular.one('user/list').get({ sort_column: 1, asc: true }).then(function(data) {
+        var map = {};
+        if (data && data.users) {
+          angular.forEach(data.users, function(u) {
+            if (u.username && u.name) {
+              map[u.username] = u.name;
+            }
+          });
+        }
+        $rootScope.userDisplayMap = map;
+      });
+    }
+  };
+
+  $rootScope.$watch('userInfo', function(newVal) {
+    if (newVal && !newVal.anonymous) {
+      $rootScope.refreshUserDisplayMap();
+    } else {
+      $rootScope.userDisplayMap = {};
+    }
+  });
+
+  $rootScope.formatUserDisplay = function(username, explicitName) {
+    if (!username) {
+      return '';
+    }
+    var displayName = explicitName || ($rootScope.userDisplayMap && $rootScope.userDisplayMap[username]);
+    return displayName ? displayName : username;
+  };
+
+  $rootScope.getUserTooltip = function(username, explicitName) {
+    if (!username) {
+      return '';
+    }
+    var displayName = explicitName || ($rootScope.userDisplayMap && $rootScope.userDisplayMap[username]);
+    return displayName ? username : '';
+  };
+
+  $rootScope.formatUserFull = function(username, explicitName) {
+    if (!username) {
+      return '';
+    }
+    var displayName = explicitName || ($rootScope.userDisplayMap && $rootScope.userDisplayMap[username]);
+    return displayName ? (displayName + ' (' + username + ')') : username;
+  };
+
+  /**
    * Global tag tooltip helper.
    */
   $rootScope.getTagTooltip = function(tag) {
     if (!tag || !tag.creator) {
       return '';
     }
-    return $translate.instant('tag.created_by', { creator: tag.creator });
+    var creatorLabel = $rootScope.formatUserFull(tag.creator);
+    return $translate.instant('tag.created_by', { creator: creatorLabel });
   };
 })
 ;

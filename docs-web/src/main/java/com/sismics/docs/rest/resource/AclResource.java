@@ -230,8 +230,12 @@ public class AclResource extends BaseResource {
         for (UserDto userDto : userDtoList) {
             // Skip disabled users and users who will skip ACL check anyways
             if (userDto.getDisableTimestamp() == null && !SecurityUtil.skipAclCheck(Lists.newArrayList(userDto.getId()))) {
-                users.add(Json.createObjectBuilder()
-                        .add("name", userDto.getUsername()));
+                JsonObjectBuilder userJson = Json.createObjectBuilder()
+                        .add("name", userDto.getUsername());
+                if (userDto.getName() != null && !userDto.getName().isEmpty()) {
+                    userJson.add("display_name", userDto.getName());
+                }
+                users.add(userJson);
             }
         }
         

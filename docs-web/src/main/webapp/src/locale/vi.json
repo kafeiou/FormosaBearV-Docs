@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS (cổng mặc định 389)",
       "test_connection": "Kiểm tra kết nối",
       "test_success": "Đã kết nối và xác thực thành công với máy chủ LDAP",
-      "test_error": "Không thể kết nối tới máy chủ LDAP"
+      "test_error": "Không thể kết nối tới máy chủ LDAP",
+      "default_name_attribute": "Thuộc tính tên mặc định",
+      "default_name_attribute_help": "Thuộc tính LDAP cho tên hiển thị (mặc định là cn; tự động dự phòng displayName -> cn)"
     },
     "user": {
       "title": "Quản lý người dùng",
@@ -578,7 +580,9 @@
         "transfer_error_title": "Bàn giao tài sản thất bại",
         "transfer_error_message": "Đã xảy ra lỗi khi bàn giao tài sản.",
         "user_has_assets_title": "Không thể xóa người dùng còn sở hữu tài sản",
-        "user_has_assets_message": "Người dùng này vẫn sở hữu <strong>{{ documents }}</strong> tài liệu, <strong>{{ tags }}</strong> thẻ và <strong>{{ files }}</strong> tập tin.<br/>Để tránh mất dữ liệu ngoài ý muốn, vui lòng bàn giao toàn bộ tài sản cho người dùng khác trước khi xóa tài khoản này."
+        "user_has_assets_message": "Người dùng này vẫn sở hữu <strong>{{ documents }}</strong> tài liệu, <strong>{{ tags }}</strong> thẻ và <strong>{{ files }}</strong> tập tin.<br/>Để tránh mất dữ liệu ngoài ý muốn, vui lòng bàn giao toàn bộ tài sản cho người dùng khác trước khi xóa tài khoản này.",
+        "name": "Tên hiển thị",
+        "name_placeholder": "Tùy chọn (hiển thị tên đăng nhập nếu để trống)"
       }
     },
     "workflow": {

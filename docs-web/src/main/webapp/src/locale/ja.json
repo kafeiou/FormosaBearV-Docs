@@ -525,7 +525,9 @@
       "security_starttls": "STARTTLS（デフォルトポート 389）",
       "test_connection": "接続テスト",
       "test_success": "LDAP サーバーへの接続と認証に成功しました",
-      "test_error": "LDAP サーバーへの接続に失敗しました"
+      "test_error": "LDAP サーバーへの接続に失敗しました",
+      "default_name_attribute": "既定の表示名属性",
+      "default_name_attribute_help": "表示名を取得する LDAP 属性（既定は cn、未設定時は displayName -> cn の順に参照）"
     },
     "user": {
       "title": "ユーザー管理",
@@ -578,7 +580,9 @@
         "transfer_error_title": "資産引き継ぎ失敗",
         "transfer_error_message": "資産の引き継ぎ中にエラーが発生しました。しばらくしてから再試行してください。",
         "user_has_assets_title": "資産を所有しているユーザーは削除できません",
-        "user_has_assets_message": "このアカウントはまだドキュメント <strong>{{ documents }}</strong> 件、タグ <strong>{{ tags }}</strong> 個、ファイル <strong>{{ files }}</strong> 個を所有しています。<br/>誤削除によるデータ損失を防ぐため、アカウントを削除する前に上記の「資産引き継ぎ」機能で引き継ぎを行ってください。"
+        "user_has_assets_message": "このアカウントはまだドキュメント <strong>{{ documents }}</strong> 件、タグ <strong>{{ tags }}</strong> 個、ファイル <strong>{{ files }}</strong> 個を所有しています。<br/>誤削除によるデータ損失を防ぐため、アカウントを削除する前に上記の「資産引き継ぎ」機能で引き継ぎを行ってください。",
+        "name": "表示名",
+        "name_placeholder": "任意（未入力時はユーザー名を表示）"
       }
     },
     "workflow": {

@@ -46,7 +46,7 @@
 	  <h1>
       {{ document.title }}
       <small uib-tooltip="{{ 'document.last_updated' | translate: { date: document.update_date } }}">{{ document.create_date | date: dateFormat }}
-      {{ 'document.view.by_creator' | translate }} <a href="#/user/{{ document.creator }}">{{ document.creator }}</a></small>
+      {{ 'document.view.by_creator' | translate }} <a href="#/user/{{ document.creator }}" uib-tooltip="{{ getUserTooltip(document.creator) }}" tooltip-append-to-body="true">{{ formatUserDisplay(document.creator) }}</a></small>
     </h1>
 
 	  <p ng-show="document.writable">
@@ -148,7 +148,7 @@
           <img ng-src="https://www.gravatar.com/avatar/{{ comment.creator_gravatar }}?s=40&d=identicon" class="media-object" />
         </div>
         <div class="media-body">
-          <strong>{{ comment.creator }}</strong>
+          <strong uib-tooltip="{{ getUserTooltip(comment.creator, comment.creator_name) }}" tooltip-append-to-body="true">{{ formatUserDisplay(comment.creator, comment.creator_name) }}</strong>
           <p>
             {{ comment.content }}<br />
             <span class="text-muted">{{ comment.create_date | timeAgo: dateTimeFormat }}</span>

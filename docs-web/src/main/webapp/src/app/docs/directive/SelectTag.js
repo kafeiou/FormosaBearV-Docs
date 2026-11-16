@@ -27,7 +27,7 @@ angular.module('docs').directive('selectTag', function($templateCache) {
     '<a href="javascript:void(0);" style="display: flex; align-items: center; justify-content: space-between; padding: 4px 10px;">' +
       '<span class="label label-info" ng-style="{ \'background\': match.model.color }" invert-text-color="{{ match.model.color }}">{{ match.model.name }}</span>' +
       '<span class="text-muted small" ng-if="match.model.creator" style="margin-left: 12px;">' +
-        '<i class="fas fa-user" style="font-size: 85%;"></i> {{ match.model.creator }}' +
+        '<i class="fas fa-user" style="font-size: 85%;"></i> {{ $root.formatUserDisplay(match.model.creator) }}' +
       '</span>' +
     '</a>'
   );

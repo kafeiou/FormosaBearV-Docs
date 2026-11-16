@@ -34,6 +34,12 @@ public class User implements Loggable {
      */
     @Column(name = "USE_USERNAME_C", nullable = false, length = 50)
     private String username;
+
+    /**
+     * User's optional display name.
+     */
+    @Column(name = "USE_NAME_C", length = 100)
+    private String name;
     
     /**
      * User's password.
@@ -125,6 +131,15 @@ public class User implements Loggable {
 
     public User setUsername(String username) {
         this.username = username;
+        return this;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public User setName(String name) {
+        this.name = name;
         return this;
     }
 

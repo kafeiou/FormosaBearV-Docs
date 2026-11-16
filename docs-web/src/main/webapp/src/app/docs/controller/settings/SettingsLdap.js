@@ -34,7 +34,8 @@ angular.module('docs').controller('SettingsLdap', function($scope, Restangular, 
       default_email: '',
       default_storage: 100,
       default_group: '',
-      default_groupmembership: ''
+      default_groupmembership: '',
+      default_name_attribute: 'cn'
     };
   };
 
@@ -44,6 +45,9 @@ angular.module('docs').controller('SettingsLdap', function($scope, Restangular, 
         $scope.servers = angular.copy(data.servers);
         angular.forEach($scope.servers, function (srv) {
           syncSecurityMode(srv);
+          if (!srv.default_name_attribute) {
+            srv.default_name_attribute = 'cn';
+          }
           if (srv.default_storage) {
             srv.default_storage = Math.round(srv.default_storage / 1000000);
           } else {
@@ -65,7 +69,8 @@ angular.module('docs').controller('SettingsLdap', function($scope, Restangular, 
           default_email: data.default_email || '',
           default_storage: data.default_storage ? Math.round(data.default_storage / 1000000) : 100,
           default_group: data.default_group || '',
-          default_groupmembership: data.default_groupmembership || ''
+          default_groupmembership: data.default_groupmembership || '',
+          default_name_attribute: data.default_name_attribute || 'cn'
         };
         syncSecurityMode(singleSrv);
         $scope.servers = [singleSrv];

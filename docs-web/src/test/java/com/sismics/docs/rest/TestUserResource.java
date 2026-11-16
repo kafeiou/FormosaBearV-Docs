@@ -779,4 +779,84 @@ public class TestUserResource extends BaseJerseyTest {
         byte[] fileBytes = fileDataResp.readEntity(byte[].class);
         Assert.assertTrue(fileBytes.length > 0);
     }
+
+    /**
+     * Test user display name creation, editing (admin, self, and LDAP user), and ACL target search by display name.
+     */
+    @Test
+    public void testUserDisplayNameAndLdapAttr() {
+        String adminToken = adminToken();
+
+        // 1. Admin creates user 920405 with display name "王小明"
+        Response registerResp = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .put(Entity.form(new Form()
+                        .param("username", "920405")
+                        .param("name", "王小明")
+                        .param("password", "12345678")
+                        .param("email", "920405@docs.com")
+                        .param("storage_quota", "100000")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(registerResp.getStatus()));
+
+        // 2. Verify GET /user/920405 returns name = "王小明"
+        JsonObject userView = target().path("/user/920405").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("920405", userView.getString("username"));
+        Assert.assertEquals("王小明", userView.getString("name"));
+
+        // 3. Verify GET /acl/target/search matches by display name "王小明" and returns display_name
+        JsonObject searchRes = target().path("/acl/target/search")
+                .queryParam("search", "王小明")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        JsonArray foundUsers = searchRes.getJsonArray("users");
+        boolean found = false;
+        for (int i = 0; i < foundUsers.size(); i++) {
+            JsonObject u = foundUsers.getJsonObject(i);
+            if ("920405".equals(u.getString("name")) && "王小明".equals(u.getString("display_name", null))) {
+                found = true;
+            }
+        }
+        Assert.assertTrue("ACL target search must match user by display name", found);
+
+        // 4. User 920405 logs in, checks /user, and updates own display name to "王大明"
+        String userToken = clientUtil.login("920405");
+        JsonObject selfInfo = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("王小明", selfInfo.getString("name"));
+
+        Response selfUpdateResp = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form().param("name", "王大明")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(selfUpdateResp.getStatus()));
+
+        selfInfo = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("王大明", selfInfo.getString("name"));
+
+        // 5. Admin converts 920405 to LDAP auth_source, and 920405 can still update own display name
+        Response toLdapResp = target().path("/user/920405").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("auth_source", "LDAP")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(toLdapResp.getStatus()));
+
+        Response ldapSelfUpdateResp = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form().param("name", "王小明-LDAP")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(ldapSelfUpdateResp.getStatus()));
+
+        selfInfo = target().path("/user").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("王小明-LDAP", selfInfo.getString("name"));
+
+        // Cleanup
+        target().path("/user/920405").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+    }
 }

@@ -57,8 +57,8 @@
       <dd>
         <span ng-repeat="contributor in document.contributors">
           <span class="btn btn-link btn-xs">
-            <a href="mailto:{{ contributor.email }}">
-              {{ contributor.username }}
+            <a href="mailto:{{ contributor.email }}" uib-tooltip="{{ contributor.name ? contributor.username : '' }}" tooltip-append-to-body="true">
+              {{ contributor.name ? contributor.name : contributor.username }}
             </a>
           </span>
         </span>
@@ -159,7 +159,7 @@
         <img ng-src="https://www.gravatar.com/avatar/{{ comment.creator_gravatar }}?s=40&d=identicon" class="media-object" />
       </div>
       <div class="media-body">
-        <strong>{{ comment.creator }}</strong>
+        <strong uib-tooltip="{{ comment.creator_name ? comment.creator : '' }}" tooltip-append-to-body="true">{{ comment.creator_name ? comment.creator_name : comment.creator }}</strong>
         <p>
           {{ comment.content }}<br />
           <span class="text-muted">{{ comment.create_date | date: 'yyyy-MM-dd' }}</span>

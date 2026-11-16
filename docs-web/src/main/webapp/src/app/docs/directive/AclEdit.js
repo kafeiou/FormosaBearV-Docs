@@ -72,7 +72,8 @@ angular.module('docs').directive('aclEdit', function() {
           if (!q) {
             return true;
           }
-          return item.name && item.name.toLowerCase().indexOf(q) !== -1;
+          return (item.name && item.name.toLowerCase().indexOf(q) !== -1) ||
+                 (item.display_name && item.display_name.toLowerCase().indexOf(q) !== -1);
         }
         return true;
       };
