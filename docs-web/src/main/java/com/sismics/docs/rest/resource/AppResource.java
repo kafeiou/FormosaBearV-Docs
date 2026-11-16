@@ -1408,7 +1408,7 @@ public class AppResource extends BaseResource {
                 try {
                     normalizedBaseDn = new LdapName(trimmedBaseDn).toString();
                 } catch (InvalidNameException e) {
-                    throw new ClientException("ValidationError", "base_dn", "Base DN is not a valid distinguished name");
+                    throw new ClientException("ValidationError", "Base DN is not a valid distinguished name", e);
                 }
             }
         }
