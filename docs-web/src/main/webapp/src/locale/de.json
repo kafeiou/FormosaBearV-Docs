@@ -479,7 +479,11 @@
       "watermark_date_format": "Datumsformat (Englisch)",
       "watermark_date_format_help": "Konfigurieren Sie das Datumsformat des Wasserzeichens (z. B. dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Daten werden immer auf Englisch formatiert.",
       "watermark_preview_label": "Wasserzeichen-Vorschau",
-      "watermark_saved": "Wasserzeichen-Konfiguration gespeichert"
+      "watermark_saved": "Wasserzeichen-Konfiguration gespeichert",
+      "doc_date_format": "Datumsformat für Dokumente",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (Standard)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Relativ (vor ...)"
     },
     "menu_personal_settings": "Persönliche Einstellungen",
     "menu_user_account": "Benutzerkonto",

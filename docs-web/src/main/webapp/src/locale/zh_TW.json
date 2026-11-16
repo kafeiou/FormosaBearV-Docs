@@ -479,7 +479,11 @@
       "watermark_date_format": "日期格式 (英文)",
       "watermark_date_format_help": "設定浮水印日期格式（例如 dd MMM yyyy、MMM dd, yyyy、yyyy-MM-dd），日期與月份一律強制以英文格式輸出。",
       "watermark_preview_label": "浮水印預覽範例",
-      "watermark_saved": "浮水印設定已儲存"
+      "watermark_saved": "浮水印設定已儲存",
+      "doc_date_format": "文件建立時間格式",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm（預設）",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "相對時間（幾天前）"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "帳號",

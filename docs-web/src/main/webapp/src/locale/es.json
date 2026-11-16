@@ -479,7 +479,11 @@
       "watermark_date_format": "Formato de fecha (Inglés)",
       "watermark_date_format_help": "Configure el formato de fecha de la marca de agua (p. ej. dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Las fechas siempre se formatean en inglés.",
       "watermark_preview_label": "Vista previa de marca de agua",
-      "watermark_saved": "Configuración de marca de agua guardada"
+      "watermark_saved": "Configuración de marca de agua guardada",
+      "doc_date_format": "Formato de fecha de documentos",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (Predeterminado)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Relativo (hace ...)"
     },
     "menu_personal_settings": "Ajustes personales",
     "menu_user_account": "Cuenta de usuario",

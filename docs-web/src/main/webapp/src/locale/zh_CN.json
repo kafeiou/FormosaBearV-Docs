@@ -479,7 +479,11 @@
       "watermark_date_format": "日期格式 (英文)",
       "watermark_date_format_help": "设置水印日期格式（例如 dd MMM yyyy、MMM dd, yyyy、yyyy-MM-dd），日期与月份一律强制以英文格式输出。",
       "watermark_preview_label": "水印预览示例",
-      "watermark_saved": "水印设置已保存"
+      "watermark_saved": "水印设置已保存",
+      "doc_date_format": "文件创建时间格式",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm（默认）",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "相对时间（几天前）"
     },
     "menu_personal_settings": "个人设置",
     "menu_user_account": "用户帐号",

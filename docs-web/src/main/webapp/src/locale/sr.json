@@ -479,7 +479,11 @@
       "watermark_date_format": "Формат датума (Енглески)",
       "watermark_date_format_help": "Подесите формат датума воденог жига (нпр. dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Датуми се увек форматирају на енглеском.",
       "watermark_preview_label": "Преглед воденог жига",
-      "watermark_saved": "Конфигурација воденог жига сачувана"
+      "watermark_saved": "Конфигурација воденог жига сачувана",
+      "doc_date_format": "Формат датума документа",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (Подразумевано)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Релативно (пре ...)"
     },
     "menu_personal_settings": "Лична подешавања",
     "menu_user_account": "Кориснички налог",

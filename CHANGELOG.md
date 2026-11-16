@@ -14,7 +14,8 @@ This document details the notable changes, security enhancements, architecture i
 - **User Display Name (`name`) & LDAP Name Attribute Integration (`dbupdate-042-0.sql`)**:
   - Added optional display name (`USE_NAME_C`, up to 100 chars) on `T_USER`, editable by administrators (`#/settings/user`) and by any authenticated user including LDAP accounts (`#/settings/account`).
   - Added configurable LDAP name attribute (`LDC_DEFAULT_NAMEATTR_C`, default `cn`) on `T_LDAP_CONFIG`, resolving `configured attribute -> displayName -> cn` on initial LDAP account creation or when `User.name` is empty.
-  - Displayed clean `name` with instant `uib-tooltip` account ID across navbar, document/tag creators, contributors, comments, granted ACLs/groups, and audit logs; displayed `name (username)` in user pickers (supporting search by either name or username), tag creator tooltips, and anti-spoofing preview watermarks.
+  - Displayed clean `name` with instant `uib-tooltip` account ID across navbar, document/tag creators, contributors, comments, granted ACLs/groups, and audit logs; displayed `name (username)` in user pickers (supporting search by either name or username), tag/document creator tooltips, and anti-spoofing preview watermarks.
+  - Added customizable document creation date format (`yyyy-MM-dd HH:mm` default, `yyyy-MM-dd`, or relative time) in Account Settings (`#/settings/account`).
   - Completed missing and untranslated UI strings across all 15 supported locale files.
 
 ### Security

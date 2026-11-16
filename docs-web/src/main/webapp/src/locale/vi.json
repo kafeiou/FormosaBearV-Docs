@@ -479,7 +479,11 @@
       "watermark_date_format": "Định dạng ngày (Định dạng tiếng Anh)",
       "watermark_date_format_help": "Định dạng ngày hiển thị trên hình mờ (ví dụ: dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Tháng và ngày luôn được hiển thị bằng tiếng Anh.",
       "watermark_preview_label": "Bản xem trước hình mờ",
-      "watermark_saved": "Đã lưu cài đặt hình mờ"
+      "watermark_saved": "Đã lưu cài đặt hình mờ",
+      "doc_date_format": "Định dạng ngày tạo tài liệu",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (Mặc định)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Tương đối (cách đây...)"
     },
     "menu_personal_settings": "Cài đặt cá nhân",
     "menu_user_account": "Tài khoản người dùng",

@@ -479,7 +479,11 @@
       "watermark_date_format": "Формат даты (английский)",
       "watermark_date_format_help": "Настройте формат даты водяного знака (напр., dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Даты всегда форматируются на английском языке.",
       "watermark_preview_label": "Предпросмотр водяного знака",
-      "watermark_saved": "Конфигурация водяного знака сохранена"
+      "watermark_saved": "Конфигурация водяного знака сохранена",
+      "doc_date_format": "Формат даты документов",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (По умолчанию)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Относительный (... назад)"
     },
     "menu_personal_settings": "Персональные настройки",
     "menu_user_account": "Учетная запись пользователя",

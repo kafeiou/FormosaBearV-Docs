@@ -79,7 +79,9 @@
       <div class="panel-heading clearfix">
         <div class="pull-right">
           <span class="text-muted small mr-10" uib-tooltip="{{ 'document.last_updated' | translate: { date: document.update_date } }}">
-            {{ document.create_date | timeAgo: dateFormat }}
+            <span ng-if="docDateDisplayMode == 'relative'">{{ document.create_date | timeAgo: dateFormat }}</span>
+            <span ng-if="docDateDisplayMode == 'date'">{{ document.create_date | date: 'yyyy-MM-dd' }}</span>
+            <span ng-if="docDateDisplayMode != 'relative' && docDateDisplayMode != 'date'">{{ document.create_date | date: 'yyyy-MM-dd HH:mm' }}</span>
           </span>
           <span class="btn-group mr-10" ng-if="canManageTags">
             <button class="btn btn-default btn-xs"
@@ -110,7 +112,8 @@
                 uib-tooltip="{{ (isDocExpanded(document.id) ? 'tag.collapse_files' : 'tag.expand_files') | translate }}">
             <span class="fas" ng-class="{ 'fa-chevron-down': isDocExpanded(document.id), 'fa-chevron-right': !isDocExpanded(document.id) }"></span>
           </span>
-          <a href="#/document/view/{{ document.id }}" class="tag-doc-title">
+          <a href="#/document/view/{{ document.id }}" class="tag-doc-title"
+             uib-tooltip="{{ getDocumentTooltip(document) }}" tooltip-append-to-body="true">
             <span class="fas fa-book text-muted"></span>
             <strong>{{ document.title }}</strong>
           </a>

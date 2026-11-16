@@ -479,7 +479,11 @@
       "watermark_date_format": "Date Format (English)",
       "watermark_date_format_help": "Configure the watermark date format (e.g. dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Dates are always formatted in English.",
       "watermark_preview_label": "Watermark Preview",
-      "watermark_saved": "Watermark configuration saved"
+      "watermark_saved": "Watermark configuration saved",
+      "doc_date_format": "Document Date Format",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (Default)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Relative (time ago)"
     },
     "menu_personal_settings": "Personal settings",
     "menu_user_account": "User account",

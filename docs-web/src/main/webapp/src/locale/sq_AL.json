@@ -479,7 +479,11 @@
       "watermark_date_format": "Formati i datës (Anglisht)",
       "watermark_date_format_help": "Konfiguroni formatin e datës së filigranit (p.sh. dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Datat formatohen gjithmonë në anglisht.",
       "watermark_preview_label": "Parashikimi i filigranit",
-      "watermark_saved": "Konfigurimi i filigranit u ruajt"
+      "watermark_saved": "Konfigurimi i filigranit u ruajt",
+      "doc_date_format": "Formati i datës së dokumentit",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (Parazgjedhur)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Relative (më parë)"
     },
     "menu_personal_settings": "Cilësimet personale",
     "menu_user_account": "Llogaria e përdoruesit",

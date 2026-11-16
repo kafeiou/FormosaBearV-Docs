@@ -53,6 +53,22 @@
       </div>
     </div>
   </div>
+  <div class="form-group" style="margin-bottom: 0; margin-top: 10px;">
+    <label class="col-sm-2 control-label">{{ 'settings.config.doc_date_format' | translate }}</label>
+    <div class="col-sm-10">
+      <div class="btn-group">
+        <button type="button" class="btn" ng-class="docDateDisplayMode == 'datetime' ? 'btn-primary' : 'btn-default'" ng-click="setDocDateDisplayMode('datetime')">
+          {{ 'settings.config.doc_date_datetime' | translate }}
+        </button>
+        <button type="button" class="btn" ng-class="docDateDisplayMode == 'date' ? 'btn-primary' : 'btn-default'" ng-click="setDocDateDisplayMode('date')">
+          {{ 'settings.config.doc_date_date' | translate }}
+        </button>
+        <button type="button" class="btn" ng-class="docDateDisplayMode == 'relative' ? 'btn-primary' : 'btn-default'" ng-click="setDocDateDisplayMode('relative')">
+          {{ 'settings.config.doc_date_relative' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="alert alert-info" ng-if="userInfo.auth_source == 'LDAP'">
   <h4 style="margin-top: 0;"><span class="fas fa-id-card"></span> {{ 'settings.account.ldap_title' | translate }}</h4>

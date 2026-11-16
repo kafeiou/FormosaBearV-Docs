@@ -479,7 +479,11 @@
       "watermark_date_format": "Format de date (Anglais)",
       "watermark_date_format_help": "Configurez le format de date du filigrane (ex. dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Les dates sont toujours formatées en anglais.",
       "watermark_preview_label": "Aperçu du filigrane",
-      "watermark_saved": "Configuration du filigrane enregistrée"
+      "watermark_saved": "Configuration du filigrane enregistrée",
+      "doc_date_format": "Format de date des documents",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (Par défaut)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Relatif (il y a ...)"
     },
     "menu_personal_settings": "Paramètres personnels",
     "menu_user_account": "Compte utilisateur",

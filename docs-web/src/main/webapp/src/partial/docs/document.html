@@ -257,13 +257,15 @@
 
         <tr ng-click="viewDocument(document.id)" ng-repeat="document in documents" ng-class="{ active: $stateParams.id == document.id }">
           <td colspan="2">
-            {{ document.title }} ({{ document.file_count }})
+            <span uib-tooltip="{{ getDocumentTooltip(document) }}" tooltip-append-to-body="true">{{ document.title }} ({{ document.file_count }})</span>
             <span class="fas fa-share" ng-if="document.shared" uib-tooltip="{{ 'document.shared' | translate }}"></span>
             <span class="fas fa-random" ng-if="document.active_route" uib-tooltip="{{ document.current_step_name }}"></span>
             <a href="#/document/view/{{ document.id }}" target="_blank" ng-click="$event.stopPropagation()"><span class="fas fa-link"></span></a>
 
             <div class="pull-right text-muted small" uib-tooltip="{{ 'document.last_updated' | translate: { date: document.update_date } }}">
-              {{ document.create_date | timeAgo: dateFormat }}
+              <span ng-if="docDateDisplayMode == 'relative'">{{ document.create_date | timeAgo: dateFormat }}</span>
+              <span ng-if="docDateDisplayMode == 'date'">{{ document.create_date | date: 'yyyy-MM-dd' }}</span>
+              <span ng-if="docDateDisplayMode != 'relative' && docDateDisplayMode != 'date'">{{ document.create_date | date: 'yyyy-MM-dd HH:mm' }}</span>
             </div>
 
             <div class="tags small">
@@ -298,7 +300,7 @@
 
               <div class="file-info hidden-md">
                 <div></div>
-                <div class="v-align file-name text-center" title="{{document.title}}">
+                <div class="v-align file-name text-center" uib-tooltip="{{ getDocumentTooltip(document) || document.title }}" tooltip-append-to-body="true">
                   {{ document.title }} ({{ document.file_count }})
                   <span class="fas fa-share" ng-if="document.shared" uib-tooltip="{{ 'document.shared' | translate }}"></span>
                   <span class="fas fa-random" ng-if="document.active_route" uib-tooltip="{{ document.current_step_name }}"></span>

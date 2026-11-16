@@ -479,7 +479,11 @@
       "watermark_date_format": "Μορφή ημερομηνίας (Αγγλικά)",
       "watermark_date_format_help": "Ρυθμίστε τη μορφή ημερομηνίας του υδατογραφήματος (π.χ. dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Οι ημερομηνίες μορφοποιούνται πάντα στα Αγγλικά.",
       "watermark_preview_label": "Προεπισκόπηση υδατογραφήματος",
-      "watermark_saved": "Η ρύθμιση υδατογραφήματος αποθηκεύτηκε"
+      "watermark_saved": "Η ρύθμιση υδατογραφήματος αποθηκεύτηκε",
+      "doc_date_format": "Μορφή ημερομηνίας εγγράφων",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (Προεπιλογή)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Σχετική (πριν από ...)"
     },
     "menu_personal_settings": "Προσωπικές ρυθμίσεις",
     "menu_user_account": "Λογαριασμός χρήστη",

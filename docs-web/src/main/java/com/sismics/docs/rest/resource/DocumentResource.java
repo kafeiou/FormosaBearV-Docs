@@ -203,7 +203,6 @@ public class DocumentResource extends BaseResource {
                 documentDto.isAllowDownload());
 
         JsonObjectBuilder document = createDocumentObjectBuilder(documentDto)
-                .add("creator", documentDto.getCreator())
                 .add("creator_id", JsonUtil.nullable(documentDto.getUserId()))
                 .add("coverage", JsonUtil.nullable(documentDto.getCoverage()))
                 .add("file_count", documentDto.getFileCount())
@@ -1196,6 +1195,7 @@ public class DocumentResource extends BaseResource {
     private JsonObjectBuilder createDocumentObjectBuilder(DocumentDto documentDto) {
         return Json.createObjectBuilder()
                 .add("create_date", documentDto.getCreateTimestamp())
+                .add("creator", JsonUtil.nullable(documentDto.getCreator()))
                 .add("description", JsonUtil.nullable(documentDto.getDescription()))
                 .add("file_id", JsonUtil.nullable(documentDto.getFileId()))
                 .add("id", documentDto.getId())

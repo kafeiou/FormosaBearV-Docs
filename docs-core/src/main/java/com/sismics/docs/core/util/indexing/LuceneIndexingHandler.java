@@ -259,11 +259,12 @@ public class LuceneIndexingHandler implements IndexingHandler {
         boolean scopedByTag = !Strings.isNullOrEmpty(criteria.getTagId());
         StringBuilder sb = new StringBuilder("select distinct d.DOC_ID_C c0, d.DOC_TITLE_C c1, d.DOC_DESCRIPTION_C c2, d.DOC_CREATEDATE_D c3, d.DOC_LANGUAGE_C c4, d.DOC_IDFILE_C, ");
         sb.append(" s.count c5, ");
-        sb.append(" rs2.RTP_ID_C c7, rs2.RTP_NAME_C, d.DOC_UPDATEDATE_D c8 ");
+        sb.append(" rs2.RTP_ID_C c7, rs2.RTP_NAME_C, d.DOC_UPDATEDATE_D c8, u.USE_USERNAME_C ");
         if (scopedByTag) {
             sb.append(", coalesce(dt_order.DOT_ORDER_N, 999999999) c9 ");
         }
         sb.append(" from T_DOCUMENT d ");
+        sb.append(" left join T_USER u on u.USE_ID_C = d.DOC_IDUSER_C ");
         if (scopedByTag) {
             sb.append(" join T_DOCUMENT_TAG dt_order on dt_order.DOT_IDDOCUMENT_C = d.DOC_ID_C and dt_order.DOT_IDTAG_C = :scopedTagId and dt_order.DOT_DELETEDATE_D is null ");
             parameterMap.put("scopedTagId", criteria.getTagId());
@@ -396,7 +397,8 @@ public class LuceneIndexingHandler implements IndexingHandler {
             documentDto.setShared(shareCount != null && shareCount.intValue() > 0);
             documentDto.setActiveRoute(o[i++] != null);
             documentDto.setCurrentStepName((String) o[i++]);
-            documentDto.setUpdateTimestamp(((Timestamp) o[i]).getTime());
+            documentDto.setUpdateTimestamp(((Timestamp) o[i++]).getTime());
+            documentDto.setCreator((String) o[i++]);
             documentDto.setHighlight(documentSearchMap.get(documentDto.getId()));
             documentDtoList.add(documentDto);
         }

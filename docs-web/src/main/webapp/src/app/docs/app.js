@@ -640,6 +640,21 @@ angular.module('docs',
     applyShowVersionCreateDate(show);
   };
 
+  // Initialize document creation date display mode (default: 'datetime' -> yyyy-MM-dd HH:mm)
+  var applyDocDateDisplayMode = function(mode) {
+    if (mode !== 'datetime' && mode !== 'date' && mode !== 'relative') {
+      mode = 'datetime';
+    }
+    $rootScope.docDateDisplayMode = mode;
+    try {
+      localStorage.formosaDocDateDisplayMode = mode;
+    } catch (e) {}
+  };
+  applyDocDateDisplayMode(localStorage.formosaDocDateDisplayMode || 'datetime');
+  $rootScope.setDocDateDisplayMode = function(mode) {
+    applyDocDateDisplayMode(mode);
+  };
+
   // Languages
   $rootScope.acceptedLanguages = [
     { key: 'eng', label: 'English' },
@@ -798,6 +813,17 @@ angular.module('docs',
       return '';
     }
     var creatorLabel = $rootScope.formatUserFull(tag.creator);
+    return $translate.instant('tag.created_by', { creator: creatorLabel });
+  };
+
+  /**
+   * Global document creator tooltip helper.
+   */
+  $rootScope.getDocumentTooltip = function(doc) {
+    if (!doc || !doc.creator) {
+      return '';
+    }
+    var creatorLabel = $rootScope.formatUserFull(doc.creator);
     return $translate.instant('tag.created_by', { creator: creatorLabel });
   };
 })

@@ -479,7 +479,11 @@
       "watermark_date_format": "Format daty (Angielski)",
       "watermark_date_format_help": "Skonfiguruj format daty znaku wodnego (np. dd MMM yyyy, MMM dd, yyyy, yyyy-MM-dd). Daty są zawsze formatowane po angielsku.",
       "watermark_preview_label": "Podgląd znaku wodnego",
-      "watermark_saved": "Konfiguracja znaku wodnego zapisana"
+      "watermark_saved": "Konfiguracja znaku wodnego zapisana",
+      "doc_date_format": "Format daty dokumentów",
+      "doc_date_datetime": "yyyy-MM-dd HH:mm (Domyślnie)",
+      "doc_date_date": "yyyy-MM-dd",
+      "doc_date_relative": "Względny (temu)"
     },
     "menu_personal_settings": "Ustawienia prywatności",
     "menu_user_account": "Konto użytkownika",
