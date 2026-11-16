@@ -4549,8 +4549,8 @@
             //    [^{}\\]+                       - anything other than curly braces or backslash
             //    \\.                            - a backslash escape
             //    \{(?:[^{}\\]+|\\.)*\}          - a matched set of curly braces containing other atoms
-            var placeholder = /([:*])([\w\[\]]+)|\{([\w\[\]]+)(?:\:\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*\})+))?\}/g;
-            var searchPlaceholder = /([:]?)([\w\[\].-]+)|\{([\w\[\].-]+)(?:\:\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*\})+))?\}/g;
+            var placeholder = /([:*])([\w\[\]]+)|\{([\w\[\]]+)(?:\:\s*((?:\\.|[^{}\\]|(?:\{(?:\\.|[^{}\\])*\}))+))?\}/g;
+            var searchPlaceholder = /([:]?)([\w\[\].-]+)|\{([\w\[\].-]+)(?:\:\s*((?:\\.|[^{}\\]|(?:\{(?:\\.|[^{}\\])*\}))+))?\}/g;
             var patterns = [];
             var last = 0;
             var matchArray;
