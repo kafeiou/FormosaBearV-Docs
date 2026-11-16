@@ -6,6 +6,24 @@
 
 ---
 
+## [v2.08-SNAPSHOT] - WIP
+
+> **基準點**: `v2.07` (`34b41713`) ➜ `v2.08-SNAPSHOT`
+
+### 新增功能 (Added)
+- **垃圾桶功能（`#/trash` 與 `/api/trash`）**：
+  - 將系統軟刪除暫存機制（`ConfigType.FILE_DELETE` / `delete/storage/`）與全新「垃圾桶」管理介面（`#/trash`）及 REST API（`TrashResource`）完整打通。
+  - 支援分頁檢視「已刪除的文件」與「已刪除的檔案」（單獨被刪除的附件或歷史版本），提供一鍵還原、單筆永久刪除與「清空垃圾桶」（`DELETE /api/trash/empty`），並支援管理員切換檢視全系統所有使用者的垃圾桶項目。
+  - 內建還原防呆機制：檢查儲存空間配額（`QuotaReached`）、重複檔名限制（`FileNameDuplicate`）、母文件是否仍在垃圾桶中（`ParentDocumentInTrash`），以及自動重整檔案版本序列。
+  - 新增 `AuditLogType.RESTORE` 稽核類型，還原文件或檔案時於最新動態顯示「文件 還原」／「檔案 還原」。
+  - 調整頂部導覽列順序為：**「標籤」 -> 「標籤管理」 -> 「文件管理」 -> 「垃圾桶」**。
+- **`.txt`、`.md`、`.html` 原生預覽與防偽浮水印 + 巨型檔案記憶體保護機制**：
+  - 新增視窗內分段串流預覽 API（`GET /api/file/{id}/text`），支援 Markdown（`.md` 排版渲染）、HTML（`.html` 透過無腳本 `sandbox=""` 安全沙盒渲染，阻絕 XSS）與純文字（`.txt` / `.csv`）視窗內直接預覽、超大檔案分頁翻閱、排版／原始碼／擷取文字視圖切換、依下載權限連動文字選取複製限制，以及全程覆蓋防偽浮水印。
+  - 更新 `TextPlainFormatHandler` 採用內建 `Noto Sans CJK TC` 中文字型與 4 KB 邊界讀取產生第 1 頁縮圖，並透過 `Jsoup` 擷取 HTML 純文字供全文檢索。
+  - 更新 `PdfFormatHandler` 與 `PdfUtil` 全面採用 `MemoryUsageSetting.setupMixed(50MB)` 磁碟暫存緩衝，確保上千頁巨型 PDF 預覽與處理不會耗盡 JVM 記憶體。
+
+---
+
 ## [v2.07] - 2026-11-15
 
 > **基準點**: `v2.06` (`f52d698f`) ➜ `v2.07`

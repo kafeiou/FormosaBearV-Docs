@@ -43,7 +43,8 @@
     "font_decrease": "縮小字型 (A-)",
     "font_reset": "重設為預設字型大小 (100%)",
     "font_increase": "放大字型 (A+)",
-    "global_quota_warning": "<strong>提醒！</ strong>儲存空間已經使用{{current | number: 0}} MB（{{percent | number: 1}}％）總計{{total | number: 0}} MB"
+    "global_quota_warning": "<strong>提醒！</ strong>儲存空間已經使用{{current | number: 0}} MB（{{percent | number: 1}}％）總計{{total | number: 0}} MB",
+    "nav_trash": "垃圾桶"
   },
   "document": {
     "navigation_up": "上一层",
@@ -806,13 +807,14 @@
       "Acl": "ACL",
       "Comment": "留言",
       "Document": "文件",
-      "File": "文件",
+      "File": "檔案",
       "Group": "群組",
       "Route": "工作流程",
       "RouteModel": "工作流程",
       "Tag": "標籤",
       "User": "帳號",
-      "Webhook": "Webhook"
+      "Webhook": "Webhook",
+      "log_restored": "還原"
     },
     "selectrelation": {
       "typeahead": "請輸入文件名稱"
@@ -923,5 +925,42 @@
     "cancel": "取消",
     "enabled": "啟用",
     "disabled": "未啟用"
+  },
+  "trash": {
+    "title": "垃圾桶",
+    "subtitle": "檢視、還原或永久刪除已軟刪除的文件與檔案",
+    "show_all_users": "顯示所有使用者的項目",
+    "refresh": "重新整理",
+    "empty_trash": "清空垃圾桶",
+    "permanent_mode_warning": "<strong>注意：</strong>目前系統於「一般設定」中已啟用「永久刪除實體檔案」模式，新刪除的文件與檔案將直接從磁碟抹除，不會進入垃圾桶。您仍可還原或清理先前已在此垃圾桶中的項目。",
+    "search_placeholder": "搜尋已刪除的文件或檔案...",
+    "tab_documents": "已刪除的文件",
+    "tab_files": "已刪除的檔案",
+    "col_files_size": "附件數 / 大小",
+    "col_file_name": "檔案名稱",
+    "col_file_size": "檔案大小",
+    "col_parent_document": "所屬文件",
+    "col_delete_date": "刪除時間",
+    "col_actions": "操作",
+    "restore": "還原",
+    "purge": "永久刪除",
+    "empty_documents": "目前垃圾桶中沒有已刪除的文件",
+    "empty_files": "目前垃圾桶中沒有單獨刪除的檔案",
+    "unattached_file": "未掛載至文件（獨立檔案）",
+    "parent_doc_in_trash_badge": "母文件亦在垃圾桶中",
+    "purge_document_title": "確認永久刪除文件",
+    "purge_document_message": "您確定要從垃圾桶永久刪除文件「{{ title }}」及其附屬檔案嗎？此操作將徹底抹除磁碟實體檔案且無法復原！",
+    "purge_file_title": "確認永久刪除檔案",
+    "purge_file_message": "您確定要從垃圾桶永久刪除檔案「{{ name }}」嗎？此操作將徹底抹除磁碟實體檔案且無法復原！",
+    "empty_trash_title": "確認清空垃圾桶",
+    "empty_trash_message": "您確定要清空目前垃圾桶中的所有文件與檔案嗎？此操作將徹底抹除磁碟實體檔案且無法復原！",
+    "error_restore_title": "還原失敗",
+    "error_restore_message": "還原項目時發生錯誤，請稍後再試。",
+    "error_quota_title": "儲存空間配額不足",
+    "error_quota_message": "無法還原此項目，因為還原後的檔案大小將超過儲存空間配額上限。",
+    "error_duplicate_title": "檔案名稱重複",
+    "error_duplicate_message": "無法還原此項目，因為系統目前已停用重複檔名且已存在同名有效檔案。",
+    "error_parent_in_trash_title": "所屬文件仍在垃圾桶中",
+    "error_parent_in_trash_message": "此檔案所屬的母文件目前也在垃圾桶中，請先切換至「已刪除的文件」分頁還原該母文件。"
   }
 }

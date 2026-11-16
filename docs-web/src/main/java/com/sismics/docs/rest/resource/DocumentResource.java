@@ -1117,7 +1117,7 @@ public class DocumentResource extends BaseResource {
         if (!aclDao.checkPermission(id, PermType.WRITE, getTargetIdList(null))) {
             throw new NotFoundException();
         }
-        List<File> fileList = fileDao.getAllByUserIdAndDocumentId(principal.getId(), id);
+        List<File> fileList = fileDao.getActiveByDocumentId(id);
 
         // Delete the document
         documentDao.delete(id, principal.getId());
@@ -1125,7 +1125,7 @@ public class DocumentResource extends BaseResource {
         for (File file : fileList) {
             // Raise file deleted event
             FileDeletedAsyncEvent fileDeletedAsyncEvent = new FileDeletedAsyncEvent();
-            fileDeletedAsyncEvent.setUserId(principal.getId());
+            fileDeletedAsyncEvent.setUserId(file.getUserId());
             fileDeletedAsyncEvent.setFileId(file.getId());
             fileDeletedAsyncEvent.setFileSize(file.getSize());
             fileDeletedAsyncEvent.setFileName(file.getName());

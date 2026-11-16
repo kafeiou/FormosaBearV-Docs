@@ -43,7 +43,8 @@
     "font_decrease": "文字サイズを小さく (A-)",
     "font_reset": "標準文字サイズ (100%)",
     "font_increase": "文字サイズを大きく (A+)",
-    "global_quota_warning": "<strong>警告！</strong> 全体容量 {{ total | number: 0 }}MB 中 {{ current | number: 0 }}MB ({{ percent | number: 1 }}%) を使用しています"
+    "global_quota_warning": "<strong>警告！</strong> 全体容量 {{ total | number: 0 }}MB 中 {{ current | number: 0 }}MB ({{ percent | number: 1 }}%) を使用しています",
+    "nav_trash": "ゴミ箱"
   },
   "document": {
     "navigation_up": "1つ上の階層へ",
@@ -812,7 +813,8 @@
       "RouteModel": "ワークフローモデル",
       "Tag": "タグ",
       "User": "ユーザー",
-      "Webhook": "Webhook"
+      "Webhook": "Webhook",
+      "log_restored": "復元"
     },
     "selectrelation": {
       "typeahead": "関連ドキュメントのタイトルを入力"
@@ -923,5 +925,42 @@
     "cancel": "キャンセル",
     "enabled": "有効",
     "disabled": "無効"
+  },
+  "trash": {
+    "title": "ゴミ箱",
+    "subtitle": "削除されたドキュメントとファイルの表示・復元・完全削除",
+    "show_all_users": "全ユーザーの項目を表示",
+    "refresh": "更新",
+    "empty_trash": "ゴミ箱を空にする",
+    "permanent_mode_warning": "<strong>注意：</strong>現在「一般設定」で「物理ファイルを完全削除」モードが有効になっているため、新しく削除されたドキュメントやファイルはゴミ箱に入らず即座にディスクから消去されます。以前にゴミ箱へ移動された項目は引き続き復元または完全削除できます。",
+    "search_placeholder": "削除されたドキュメントやファイルを検索...",
+    "tab_documents": "削除されたドキュメント",
+    "tab_files": "削除されたファイル",
+    "col_files_size": "添付数 / サイズ",
+    "col_file_name": "ファイル名",
+    "col_file_size": "サイズ",
+    "col_parent_document": "親ドキュメント",
+    "col_delete_date": "削除日時",
+    "col_actions": "操作",
+    "restore": "復元",
+    "purge": "完全削除",
+    "empty_documents": "ゴミ箱に削除されたドキュメントはありません",
+    "empty_files": "ゴミ箱に個別削除されたファイルはありません",
+    "unattached_file": "未添付ファイル",
+    "parent_doc_in_trash_badge": "親ドキュメントもゴミ箱内",
+    "purge_document_title": "ドキュメントの完全削除の確認",
+    "purge_document_message": "ドキュメント「{{ title }}」と添付ファイルをゴミ箱から完全に削除してもよろしいですか？この操作は元に戻せません！",
+    "purge_file_title": "ファイルの完全削除の確認",
+    "purge_file_message": "ファイル「{{ name }}」をゴミ箱から完全に削除してもよろしいですか？この操作は元に戻せません！",
+    "empty_trash_title": "ゴミ箱を空にする確認",
+    "empty_trash_message": "ゴミ箱内のすべてのドキュメントとファイルを完全に削除してもよろしいですか？この操作は元に戻せません！",
+    "error_restore_title": "復元に失敗しました",
+    "error_restore_message": "項目の復元中にエラーが発生しました。もう一度お試しください。",
+    "error_quota_title": "ストレージ容量上限超過",
+    "error_quota_message": "復元後のファイルサイズがストレージ容量の上限を超えるため、復元できません。",
+    "error_duplicate_title": "ファイル名の重複",
+    "error_duplicate_message": "現在重複ファイル名が無効化されており、同名の有効なファイルが既に存在するため復元できません。",
+    "error_parent_in_trash_title": "親ドキュメントがゴミ箱内にあります",
+    "error_parent_in_trash_message": "このファイルの親ドキュメントも現在ゴミ箱にあります。先に「削除されたドキュメント」タブから親ドキュメントを復元してください。"
   }
 }

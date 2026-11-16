@@ -6,6 +6,24 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
+## [v2.08-SNAPSHOT] - WIP
+
+> **Baseline**: `v2.07` (`34b41713`) ➜ `v2.08-SNAPSHOT`
+
+### Added
+- **Trash / Recycle Bin (`#/trash` & `/api/trash`)**:
+  - Integrated the soft-delete storage mechanism (`ConfigType.FILE_DELETE` / `delete/storage/`) with a dedicated Trash management page (`#/trash`) and REST API (`TrashResource`).
+  - Added tabbed views for **Deleted Documents** and **Deleted Files** (standalone/individually deleted attachments and historical versions), supporting one-click restore, permanent single-item purge, and Empty Trash (`DELETE /api/trash/empty`), plus an admin toggle to inspect all users' Trash items.
+  - Added restore guardrails for storage quota verification (`QuotaReached`), duplicate filename restriction (`FileNameDuplicate`), parent document in-trash detection (`ParentDocumentInTrash`), and version sequence re-alignment.
+  - Added `AuditLogType.RESTORE` so restored documents and files appear as `Document restored` / `File restored` in Latest Activity.
+  - Reordered top navigation bar to **Tags -> Tag Management -> Document Management -> Trash**.
+- **Native Preview & Watermark for `.txt`, `.md`, and `.html` + Large-File Memory Guardrails**:
+  - Added native in-modal preview (`GET /api/file/{id}/text`) for Markdown (`.md`), HTML (`.html` via scriptless `sandbox=""` iframe), and plain text (`.txt` / `.csv`), complete with chunked pagination for huge files, rendered/source view toggle, download-linked copy/selection protection, and full watermark overlay (`getWatermarkStyle()`).
+  - Updated `TextPlainFormatHandler` to use the bundled Pan-CJK font (`Noto Sans CJK TC`) and bounded 4 KB first-page reads for thumbnails, plus `Jsoup` text extraction for `.html` indexing.
+  - Updated `PdfFormatHandler` and `PdfUtil` to use `MemoryUsageSetting.setupMixed(50MB)` disk-backed scratch buffers and bounded text/OCR extraction for multi-hundred/thousand-page PDFs.
+
+---
+
 ## [v2.07] - 2026-11-15
 
 > **Baseline**: `v2.06` (`f52d698f`) ➜ `v2.07`

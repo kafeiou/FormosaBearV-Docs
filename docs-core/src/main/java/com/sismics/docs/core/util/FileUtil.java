@@ -130,8 +130,57 @@ public class FileUtil {
             }
         }
         try {
-            Files.deleteIfExists(storageDir);
+            if (!ConfigUtil.isFileEncrypt()) {
+                deleteEmptyDirectoryUpwards(storageDir, DirectoryUtil.getBaseDataDirectory().resolve("storage"));
+            } else {
+                Files.deleteIfExists(storageDir);
+            }
         } catch (IOException ignored) {
+        }
+    }
+
+    /**
+     * Restore a soft-deleted file from the delete/storage directory back to active storage.
+     *
+     * @param file File entity to restore
+     * @throws IOException e
+     */
+    public static void restore(File file) throws IOException {
+        Path deleteDir = DirectoryUtil.getDeleteStorageDirectory(file);
+        Path storageDir = DirectoryUtil.getStorageDirectory(file);
+        Files.createDirectories(storageDir);
+        if (file.getName() != null) {
+            String[] suffixes = new String[] { "", "_web", "_thumb", "_pdf" };
+            for (String suffix : suffixes) {
+                Path src = deleteDir.resolve(file.getName() + suffix);
+                if (Files.exists(src)) {
+                    Path dest = storageDir.resolve(file.getName() + suffix);
+                    Files.move(src, dest, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+        if (!ConfigUtil.isFileEncrypt()) {
+            deleteEmptyDirectoryUpwards(deleteDir, DirectoryUtil.getBaseDataDirectory().resolve("delete/storage"));
+        }
+    }
+
+    /**
+     * Permanently purge a soft-deleted file from the delete/storage directory.
+     *
+     * @param file File entity to purge
+     * @throws IOException e
+     */
+    public static void purge(File file) throws IOException {
+        Path deleteDir = DirectoryUtil.getDeleteStorageDirectory(file);
+        if (file.getName() != null) {
+            String[] suffixes = new String[] { "", "_web", "_thumb", "_pdf" };
+            for (String suffix : suffixes) {
+                Path src = deleteDir.resolve(file.getName() + suffix);
+                Files.deleteIfExists(src);
+            }
+        }
+        if (!ConfigUtil.isFileEncrypt()) {
+            deleteEmptyDirectoryUpwards(deleteDir, DirectoryUtil.getBaseDataDirectory().resolve("delete/storage"));
         }
     }
 

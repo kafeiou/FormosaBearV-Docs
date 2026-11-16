@@ -131,7 +131,7 @@ public class AppResource extends BaseResource {
         }
 
         JsonObjectBuilder response = Json.createObjectBuilder()
-                .add("current_version", currentVersion.replace("-SNAPSHOT", ""))
+                .add("current_version", currentVersion)
                 .add("min_version", minVersion)
                 .add("guest_login", guestLogin)
                 .add("ocr_enabled", ocrEnabled)
@@ -1003,14 +1003,25 @@ public class AppResource extends BaseResource {
         q.setParameter("dateNow", new Date());
         log.info("Deleting {} orphan files", q.executeUpdate());
 
-        // Hard delete softly deleted data
-        log.info("Deleting {} soft deleted document tag links", em.createQuery("delete DocumentTag where deleteDate is not null").executeUpdate());
-        log.info("Deleting {} soft deleted ACLs", em.createQuery("delete Acl where deleteDate is not null").executeUpdate());
-        log.info("Deleting {} soft deleted shares", em.createQuery("delete Share where deleteDate is not null").executeUpdate());
-        log.info("Deleting {} soft deleted tags", em.createQuery("delete Tag where deleteDate is not null").executeUpdate());
-        log.info("Deleting {} soft deleted comments", em.createQuery("delete Comment where deleteDate is not null").executeUpdate());
-        log.info("Deleting {} soft deleted files", em.createQuery("delete File where deleteDate is not null").executeUpdate());
-        log.info("Deleting {} soft deleted documents", em.createQuery("delete Document where deleteDate is not null").executeUpdate());
+        // Hard delete softly deleted data (preserve soft-deleted Trash items when file.delete is false)
+        if (ConfigUtil.isFileDelete()) {
+            log.info("Deleting {} soft deleted document tag links", em.createQuery("delete DocumentTag where deleteDate is not null").executeUpdate());
+            log.info("Deleting {} soft deleted ACLs", em.createQuery("delete Acl where deleteDate is not null").executeUpdate());
+            log.info("Deleting {} soft deleted shares", em.createQuery("delete Share where deleteDate is not null").executeUpdate());
+            log.info("Deleting {} soft deleted tags", em.createQuery("delete Tag where deleteDate is not null").executeUpdate());
+            log.info("Deleting {} soft deleted comments", em.createQuery("delete Comment where deleteDate is not null").executeUpdate());
+            log.info("Deleting {} soft deleted files", em.createQuery("delete File where deleteDate is not null").executeUpdate());
+            log.info("Deleting {} soft deleted documents", em.createQuery("delete Document where deleteDate is not null").executeUpdate());
+        } else {
+            Date epochZero = new Date(0L);
+            log.info("Deleting {} purged document tag links", em.createQuery("delete DocumentTag where deleteDate is not null and deleteDate <= :epochZero").setParameter("epochZero", epochZero).executeUpdate());
+            log.info("Deleting {} purged ACLs", em.createQuery("delete Acl where deleteDate is not null and deleteDate <= :epochZero").setParameter("epochZero", epochZero).executeUpdate());
+            log.info("Deleting {} soft deleted shares", em.createQuery("delete Share where deleteDate is not null").executeUpdate());
+            log.info("Deleting {} soft deleted tags", em.createQuery("delete Tag where deleteDate is not null").executeUpdate());
+            log.info("Deleting {} purged comments", em.createQuery("delete Comment where deleteDate is not null and deleteDate <= :epochZero").setParameter("epochZero", epochZero).executeUpdate());
+            log.info("Deleting {} purged files", em.createQuery("delete File where deleteDate is not null and deleteDate <= :epochZero").setParameter("epochZero", epochZero).executeUpdate());
+            log.info("Deleting {} purged documents", em.createQuery("delete Document where deleteDate is not null and deleteDate <= :epochZero").setParameter("epochZero", epochZero).executeUpdate());
+        }
         log.info("Deleting {} soft deleted users", em.createQuery("delete User where deleteDate is not null").executeUpdate());
         log.info("Deleting {} soft deleted groups", em.createQuery("delete Group where deleteDate is not null").executeUpdate());
 

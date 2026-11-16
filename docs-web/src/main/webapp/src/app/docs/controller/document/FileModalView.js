@@ -6,37 +6,66 @@
 angular.module('docs').controller('FileModalView', function ($uibModalInstance, $scope, $state, $stateParams, $sce, Restangular, $transitions, $rootScope) {
   $scope.Math = window.Math;
 
-  // Block right-click context menu and save/print shortcut keys (Ctrl+S, Ctrl+P)
+  $scope.canDownload = function(file, document) {
+    var f = file || $scope.file;
+    var d = document || $scope.document || $rootScope.currentDocument;
+    return $rootScope.canDownload(f, d);
+  };
+
+  $scope.canSelectText = function () {
+    return !!$scope.canDownload($scope.file, $scope.document);
+  };
+
+  // Block right-click context menu and save/print shortcut keys (Ctrl+S, Ctrl+P), plus Ctrl+C/Ctrl+A when download is disallowed
   var onKeyDown = function (e) {
-    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'p' || e.key === 'S' || e.key === 'P')) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
+    if (e.ctrlKey || e.metaKey) {
+      var key = (e.key || '').toLowerCase();
+      if (key === 's' || key === 'p') {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+      if (!$scope.canSelectText() && (key === 'c' || key === 'a')) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
     }
   };
   window.addEventListener('keydown', onKeyDown, true);
 
   var onContextMenu = function (e) {
     var target = e.target;
-    if (target && (target.id === 'pdf-canvas' || (target.closest && (target.closest('.pdf-container') || target.tagName === 'IMG')))) {
+    if (target) {
+      if (target.id === 'pdf-canvas' || (target.closest && (target.closest('.pdf-container') || target.tagName === 'IMG'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+      if (!$scope.canSelectText() && target.closest && target.closest('.text-reader-container')) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }
+  };
+  window.addEventListener('contextmenu', onContextMenu, true);
+
+  var onCopy = function (e) {
+    if (!$scope.canSelectText() && e.target && e.target.closest && e.target.closest('.text-reader-container')) {
       e.preventDefault();
       e.stopPropagation();
       return false;
     }
   };
-  window.addEventListener('contextmenu', onContextMenu, true);
+  window.addEventListener('copy', onCopy, true);
 
   var cleanupListeners = function () {
     window.removeEventListener('keydown', onKeyDown, true);
     window.removeEventListener('contextmenu', onContextMenu, true);
+    window.removeEventListener('copy', onCopy, true);
   };
-
-
-  $scope.canDownload = function(file, document) {
-    var f = file || $scope.file;
-    var d = document || $scope.document || $rootScope.currentDocument;
-    return $rootScope.canDownload(f, d);
-  };
+  $scope.$on('$destroy', cleanupListeners);
 
   if (!$rootScope.app) {
     Restangular.one('app').get().then(function(appData) {
@@ -120,6 +149,249 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
       'background-position': 'center center'
     };
   };
+
+  // Safe Markdown-to-HTML renderer (escapes HTML first to prevent XSS)
+  var renderInlineMarkdown = function (text) {
+    var s = escapeXml(text);
+    // Inline code `code`
+    s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Bold **text** or __text__
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    // Italic *text* or _text_
+    s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    // Strikethrough ~~text~~
+    s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+    // Safe links [label](https://...)
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    return s;
+  };
+
+  var renderMarkdown = function (md) {
+    if (!md) {
+      return '';
+    }
+    var lines = String(md).replace(/\r\n/g, '\n').split('\n');
+    var html = [];
+    var inCodeBlock = false;
+    var codeLines = [];
+    var inUl = false;
+    var inOl = false;
+    var inTable = false;
+    var tableRows = [];
+
+    var closeListsAndTables = function () {
+      if (inUl) { html.push('</ul>'); inUl = false; }
+      if (inOl) { html.push('</ol>'); inOl = false; }
+      if (inTable) {
+        if (tableRows.length > 0) {
+          html.push('<table class="table table-bordered table-striped" style="margin: 12px 0;">');
+          for (var r = 0; r < tableRows.length; r++) {
+            var cells = tableRows[r];
+            // Skip separator row like |---|---|
+            if (r === 1 && cells.every(function (c) { return /^[:\-]+$/.test(c.trim()); })) {
+              continue;
+            }
+            var tag = (r === 0) ? 'th' : 'td';
+            html.push(r === 0 ? '<thead><tr>' : (r === 1 || (r === 2 && html[html.length - 1].indexOf('</thead>') !== -1) ? '<tbody><tr>' : '<tr>'));
+            for (var c = 0; c < cells.length; c++) {
+              html.push('<' + tag + '>' + renderInlineMarkdown(cells[c].trim()) + '</' + tag + '>');
+            }
+            html.push(r === 0 ? '</tr></thead>' : '</tr>');
+          }
+          if (tableRows.length > 1) {
+            html.push('</tbody>');
+          }
+          html.push('</table>');
+        }
+        tableRows = [];
+        inTable = false;
+      }
+    };
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+
+      if (/^```/.test(line.trim())) {
+        closeListsAndTables();
+        if (!inCodeBlock) {
+          inCodeBlock = true;
+          codeLines = [];
+        } else {
+          html.push('<pre style="background: rgba(128,128,128,0.12); padding: 12px; border-radius: 4px; overflow-x: auto;"><code>' + escapeXml(codeLines.join('\n')) + '</code></pre>');
+          inCodeBlock = false;
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        codeLines.push(line);
+        continue;
+      }
+
+      // Table row detection: | a | b |
+      if (/^\|(.+)\|$/.test(line.trim())) {
+        if (inUl) { html.push('</ul>'); inUl = false; }
+        if (inOl) { html.push('</ol>'); inOl = false; }
+        inTable = true;
+        var inner = line.trim().slice(1, -1);
+        tableRows.push(inner.split('|'));
+        continue;
+      } else if (inTable) {
+        closeListsAndTables();
+      }
+
+      // Blank line
+      if (line.trim() === '') {
+        closeListsAndTables();
+        continue;
+      }
+
+      // Headings # .. ######
+      var hMatch = line.match(/^(#{1,6})\s+(.*)$/);
+      if (hMatch) {
+        closeListsAndTables();
+        var level = hMatch[1].length;
+        html.push('<h' + level + ' style="margin-top: 16px; margin-bottom: 8px; border-bottom: ' + (level <= 2 ? '1px solid rgba(128,128,128,0.25); padding-bottom: 4px;' : 'none;') + '">' + renderInlineMarkdown(hMatch[2]) + '</h' + level + '>');
+        continue;
+      }
+
+      // Horizontal rule
+      if (/^(\*{3,}|-{3,}|_{3,})$/.test(line.trim())) {
+        closeListsAndTables();
+        html.push('<hr />');
+        continue;
+      }
+
+      // Blockquote
+      var bqMatch = line.match(/^>\s?(.*)$/);
+      if (bqMatch) {
+        closeListsAndTables();
+        html.push('<blockquote style="margin: 8px 0; padding: 6px 12px; border-left: 4px solid #3a87ad;">' + renderInlineMarkdown(bqMatch[1]) + '</blockquote>');
+        continue;
+      }
+
+      // Unordered list
+      var ulMatch = line.match(/^\s*[-*+]\s+(.*)$/);
+      if (ulMatch) {
+        if (inOl) { html.push('</ol>'); inOl = false; }
+        if (!inUl) { html.push('<ul style="margin: 8px 0; padding-left: 24px;">'); inUl = true; }
+        html.push('<li>' + renderInlineMarkdown(ulMatch[1]) + '</li>');
+        continue;
+      }
+
+      // Ordered list
+      var olMatch = line.match(/^\s*\d+\.\s+(.*)$/);
+      if (olMatch) {
+        if (inUl) { html.push('</ul>'); inUl = false; }
+        if (!inOl) { html.push('<ol style="margin: 8px 0; padding-left: 24px;">'); inOl = true; }
+        html.push('<li>' + renderInlineMarkdown(olMatch[1]) + '</li>');
+        continue;
+      }
+
+      closeListsAndTables();
+      html.push('<p style="margin: 8px 0; line-height: 1.6;">' + renderInlineMarkdown(line) + '</p>');
+    }
+
+    if (inCodeBlock) {
+      html.push('<pre style="background: rgba(128,128,128,0.12); padding: 12px; border-radius: 4px; overflow-x: auto;"><code>' + escapeXml(codeLines.join('\n')) + '</code></pre>');
+    }
+    closeListsAndTables();
+    return html.join('\n');
+  };
+
+  // Text / Markdown / HTML reader state
+  $scope.textLoading = false;
+  $scope.textError = false;
+  $scope.textContent = '';
+  $scope.renderedMarkdownHtml = '';
+  $scope.textCurrentPage = 1;
+  $scope.textTotalPages = 1;
+  $scope.textFontSize = 15;
+  $scope.showRawSource = false;
+  $scope.showOcrText = false;
+
+  $scope.isMarkdownFile = function () {
+    if (!$scope.file) return false;
+    var mime = ($scope.file.mimetype || '').toLowerCase();
+    var name = ($scope.file.name || '').toLowerCase();
+    return mime === 'text/markdown' || mime === 'text/x-markdown' || name.endsWith('.md') || name.endsWith('.markdown');
+  };
+
+  $scope.isHtmlFile = function () {
+    if (!$scope.file) return false;
+    var mime = ($scope.file.mimetype || '').toLowerCase();
+    var name = ($scope.file.name || '').toLowerCase();
+    return mime === 'text/html' || name.endsWith('.html') || name.endsWith('.htm');
+  };
+
+  $scope.isTextReaderFile = function () {
+    if (!$scope.file) return false;
+    var mime = ($scope.file.mimetype || '').toLowerCase();
+    var name = ($scope.file.name || '').toLowerCase();
+    return mime === 'text/plain' ||
+           mime === 'text/csv' ||
+           $scope.isMarkdownFile() ||
+           $scope.isHtmlFile() ||
+           name.endsWith('.txt') ||
+           name.endsWith('.csv') ||
+           name.endsWith('.log');
+  };
+
+  var updateHtmlIframe = function () {
+    setTimeout(function () {
+      var iframe = document.getElementById('html-preview-iframe');
+      if (!iframe) return;
+      var selectCss = $scope.canSelectText()
+        ? 'user-select: text; -webkit-user-select: text;'
+        : 'user-select: none !important; -webkit-user-select: none !important;';
+      var guardStyle = '<style>html, body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-size: ' + $scope.textFontSize + 'px; margin: 16px; color: #222; background: transparent; ' + selectCss + ' }</style>';
+      iframe.srcdoc = guardStyle + ($scope.textContent || '');
+    }, 30);
+  };
+
+  $scope.loadTextPage = function (page) {
+    if (!$stateParams.fileId) return;
+    $scope.textLoading = true;
+    $scope.textError = false;
+    var mode = $scope.showOcrText ? 'ocr' : 'raw';
+    Restangular.one('file', $stateParams.fileId).one('text').get({ page: page || 1, mode: mode }).then(function (data) {
+      $scope.textContent = data.content || '';
+      $scope.textCurrentPage = data.page || 1;
+      $scope.textTotalPages = data.total_pages || 1;
+      $scope.textLoading = false;
+      if ($scope.isMarkdownFile() && !$scope.showOcrText) {
+        $scope.renderedMarkdownHtml = $sce.trustAsHtml(renderMarkdown($scope.textContent));
+      } else if ($scope.isHtmlFile() && !$scope.showOcrText && !$scope.showRawSource) {
+        updateHtmlIframe();
+      }
+    }, function () {
+      $scope.textLoading = false;
+      $scope.textError = true;
+    });
+  };
+
+  $scope.prevTextPage = function () {
+    if ($scope.textCurrentPage <= 1) return;
+    $scope.loadTextPage($scope.textCurrentPage - 1);
+  };
+
+  $scope.nextTextPage = function () {
+    if ($scope.textCurrentPage >= $scope.textTotalPages) return;
+    $scope.loadTextPage($scope.textCurrentPage + 1);
+  };
+
+  $scope.changeTextFontSize = function (delta) {
+    var nextSize = $scope.textFontSize + delta;
+    if (nextSize >= 12 && nextSize <= 24) {
+      $scope.textFontSize = nextSize;
+      if ($scope.isHtmlFile() && !$scope.showRawSource && !$scope.showOcrText) {
+        updateHtmlIframe();
+      }
+    }
+  };
+
+  // PDF reader state
   $scope.pdfLoading = false;
   $scope.pdfError = false;
   $scope.pdfCurrentPage = 1;
@@ -248,6 +520,10 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
   };
 
   var loadPdf = function (url) {
+    if (pdfDoc) {
+      try { pdfDoc.destroy(); } catch (e) {}
+      pdfDoc = null;
+    }
     if (!window.pdfjsLib) {
       $scope.pdfError = true;
       return;
@@ -284,8 +560,12 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     _.each(files, function (value) {
       if (value.id === $stateParams.fileId) {
         $scope.file = value;
+        $scope.showRawSource = false;
+        $scope.showOcrText = false;
         $scope.trustedFileUrl = $sce.trustAsResourceUrl('../api/file/' + $stateParams.fileId + '/data');
-        if ($scope.canPreviewAsPdf()) {
+        if ($scope.isTextReaderFile()) {
+          $scope.loadTextPage(1);
+        } else if ($scope.canPreviewAsPdf()) {
           setTimeout(function () {
             loadPdf('../api/file/' + $stateParams.fileId + '/pdf');
           }, 100);
@@ -299,6 +579,9 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
   if (documentId) {
     Restangular.one('document', documentId).get().then(function (doc) {
       $scope.document = doc;
+      if ($scope.isHtmlFile() && !$scope.showRawSource && !$scope.showOcrText && $scope.textContent) {
+        updateHtmlIframe();
+      }
     });
   }
   Restangular.one('file/list').get({ id: documentId }).then(function (data) {
@@ -367,10 +650,25 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
   };
 
   /**
-   * Open the file content a new window.
+   * Toggle in-modal raw source view (for .md / .html) or OCR extracted text view (for PDF / images / Office),
+   * keeping all content inside the watermarked modal instead of opening an unwatermarked browser tab.
    */
   $scope.openFileContent = function () {
-    window.open('../api/file/' + $stateParams.fileId + '/data?size=content');
+    if ($scope.isTextReaderFile()) {
+      $scope.showRawSource = !$scope.showRawSource;
+      if ($scope.isHtmlFile() && !$scope.showRawSource) {
+        updateHtmlIframe();
+      }
+    } else {
+      $scope.showOcrText = !$scope.showOcrText;
+      if ($scope.showOcrText) {
+        $scope.loadTextPage(1);
+      } else if ($scope.canPreviewAsPdf()) {
+        setTimeout(function () {
+          loadPdf('../api/file/' + $stateParams.fileId + '/pdf');
+        }, 50);
+      }
+    }
   };
 
   /**
@@ -388,8 +686,10 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
    * Close the file preview.
    */
   $scope.closeFile = function () {
+    cleanupListeners();
     if (pdfDoc) {
       try { pdfDoc.destroy(); } catch (e) {}
+      pdfDoc = null;
     }
     $uibModalInstance.dismiss();
   };
@@ -397,8 +697,10 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
   // Close the modal when the user exits this state
   var off = $transitions.onStart({}, function (transition) {
     if (!$uibModalInstance.closed) {
+      cleanupListeners();
       if (pdfDoc) {
         try { pdfDoc.destroy(); } catch (e) {}
+        pdfDoc = null;
       }
       if (transition.to().name === $state.current.name) {
         $uibModalInstance.close();
@@ -413,14 +715,17 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
    * Return true if we can display the preview image.
    */
   $scope.canDisplayPreview = function () {
-    return $scope.file && (!$scope.file.mimetype || ($scope.file.mimetype.indexOf('video/') !== 0 && $scope.file.mimetype.indexOf('audio/') !== 0));
+    return $scope.file &&
+           !$scope.isTextReaderFile() &&
+           !$scope.showOcrText &&
+           (!$scope.file.mimetype || ($scope.file.mimetype.indexOf('video/') !== 0 && $scope.file.mimetype.indexOf('audio/') !== 0));
   };
 
   /**
    * Return true if the current file is a PDF or convertible Office document (Word, PowerPoint).
    */
   $scope.canPreviewAsPdf = function () {
-    if (!$scope.file || !$scope.file.mimetype) return false;
+    if (!$scope.file || !$scope.file.mimetype || $scope.isTextReaderFile() || $scope.showOcrText) return false;
     var mime = $scope.file.mimetype;
     return mime === 'application/pdf' ||
            mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||

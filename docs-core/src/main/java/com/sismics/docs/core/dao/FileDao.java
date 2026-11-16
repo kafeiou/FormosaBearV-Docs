@@ -1,5 +1,6 @@
 package com.sismics.docs.core.dao;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.UUID;
 import com.sismics.docs.core.constant.AuditLogType;
 import com.sismics.docs.core.model.jpa.File;
 import com.sismics.docs.core.util.AuditLogUtil;
+import com.sismics.docs.core.util.ConfigUtil;
 import com.sismics.util.context.ThreadLocalContext;
 
 import jakarta.persistence.EntityManager;
@@ -127,6 +129,7 @@ public class FileDao {
      * @param userId User ID
      */
     public void delete(String id, String userId) {
+        Date dateNow = ConfigUtil.isFileDelete() ? new Date(0L) : new Date();
         EntityManager em = ThreadLocalContext.get().getEntityManager();
             
         // Get the file
@@ -135,7 +138,6 @@ public class FileDao {
         File fileDb = q.getSingleResult();
         
         // Delete the file
-        Date dateNow = new Date();
         fileDb.setDeleteDate(dateNow);
         
         // Create audit log
@@ -148,13 +150,117 @@ public class FileDao {
      * @param id File ID
      */
     public void deleteSilently(String id) {
+        Date dateNow = ConfigUtil.isFileDelete() ? new Date(0L) : new Date();
         EntityManager em = ThreadLocalContext.get().getEntityManager();
 
         TypedQuery<File> q = em.createQuery("select f from File f where f.id = :id and f.deleteDate is null", File.class);
         q.setParameter("id", id);
         File fileDb = q.getSingleResult();
 
-        fileDb.setDeleteDate(new Date());
+        fileDb.setDeleteDate(dateNow);
+    }
+
+    /**
+     * Gets a soft-deleted file (in Trash) by its ID.
+     *
+     * @param id File ID
+     * @return Soft-deleted File or null
+     */
+    public File getDeletedById(String id) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        TypedQuery<File> q = em.createQuery("select f from File f where f.id = :id and f.deleteDate is not null", File.class);
+        q.setParameter("id", id);
+        try {
+            File f = q.getSingleResult();
+            return (f.getDeleteDate() != null && f.getDeleteDate().getTime() > 0L) ? f : null;
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns all active (non-deleted) files (all versions) attached to a document.
+     *
+     * @param documentId Document ID
+     * @return List of active files
+     */
+    public List<File> getActiveByDocumentId(String documentId) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        TypedQuery<File> q = em.createQuery("select f from File f where f.documentId = :documentId and f.deleteDate is null", File.class);
+        q.setParameter("documentId", documentId);
+        return q.getResultList();
+    }
+
+    /**
+     * Returns all files that were soft-deleted together with a document.
+     *
+     * @param documentId Document ID
+     * @param docDeleteDate Document deletion timestamp
+     * @return List of files deleted with the document
+     */
+    public List<File> getDeletedWithDocument(String documentId, Date docDeleteDate) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        long windowStartMs = Math.max(1L, docDeleteDate.getTime() - 1000L);
+        TypedQuery<File> q = em.createQuery("select f from File f where f.documentId = :documentId and f.deleteDate is not null order by f.order asc, f.version asc", File.class);
+        q.setParameter("documentId", documentId);
+        List<File> result = new ArrayList<>();
+        for (File f : q.getResultList()) {
+            if (f.getDeleteDate() != null && f.getDeleteDate().getTime() >= windowStartMs) {
+                result.add(f);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns all soft-deleted files belonging to a document.
+     *
+     * @param documentId Document ID
+     * @return List of soft-deleted files
+     */
+    public List<File> getAllSoftDeletedByDocumentId(String documentId) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        TypedQuery<File> q = em.createQuery("select f from File f where f.documentId = :documentId and f.deleteDate is not null", File.class);
+        q.setParameter("documentId", documentId);
+        List<File> result = new ArrayList<>();
+        for (File f : q.getResultList()) {
+            if (f.getDeleteDate() != null && f.getDeleteDate().getTime() > 0L) {
+                result.add(f);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Restores a single soft-deleted file.
+     *
+     * @param id File ID
+     * @param userId User ID performing the restoration
+     * @return Restored File
+     */
+    public File restore(String id, String userId) {
+        File fileDb = getDeletedById(id);
+        if (fileDb == null) {
+            return null;
+        }
+        fileDb.setDeleteDate(null);
+        AuditLogUtil.create(fileDb, AuditLogType.RESTORE, userId);
+        return fileDb;
+    }
+
+    /**
+     * Permanently purges a single soft-deleted file from the Trash.
+     *
+     * @param id File ID
+     * @param userId User ID performing the purge
+     */
+    public void purge(String id, String userId) {
+        File fileDb = getDeletedById(id);
+        if (fileDb == null) {
+            return;
+        }
+        fileDb.setDeleteDate(new Date(0L));
+        AuditLogUtil.create(fileDb, AuditLogType.DELETE, userId);
     }
     
     /**

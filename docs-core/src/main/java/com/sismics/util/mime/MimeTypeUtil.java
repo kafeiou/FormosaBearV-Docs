@@ -20,6 +20,22 @@ public class MimeTypeUtil {
      * @throws IOException e
      */
     public static String guessMimeType(Path file, String name) throws IOException {
+        if (name != null) {
+            String lower = name.trim().toLowerCase();
+            if (lower.endsWith(".md") || lower.endsWith(".markdown")) {
+                return MimeType.TEXT_MARKDOWN;
+            }
+            if (lower.endsWith(".html") || lower.endsWith(".htm")) {
+                return MimeType.TEXT_HTML;
+            }
+            if (lower.endsWith(".txt") || lower.endsWith(".log")) {
+                return MimeType.TEXT_PLAIN;
+            }
+            if (lower.endsWith(".csv")) {
+                return MimeType.TEXT_CSV;
+            }
+        }
+
         String mimeType = Files.probeContentType(file);
 
         if (mimeType == null && name != null) {
@@ -59,6 +75,10 @@ public class MimeTypeUtil {
                 return "txt";
             case MimeType.TEXT_CSV:
                 return "csv";
+            case MimeType.TEXT_MARKDOWN:
+                return "md";
+            case MimeType.TEXT_HTML:
+                return "html";
             case MimeType.VIDEO_MP4:
                 return "mp4";
             case MimeType.VIDEO_WEBM:

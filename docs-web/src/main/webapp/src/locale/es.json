@@ -43,7 +43,8 @@
     "font_decrease": "Reducir tamaño de fuente (A-)",
     "font_reset": "Restablecer tamaño de fuente (100%)",
     "font_increase": "Aumentar tamaño de fuente (A+)",
-    "global_quota_warning": "<strong>¡Advertencia!</strong> Cuota global casi alcanzada en {{ current | number: 0 }}MB ({{ percent | number: 1 }}%) usados en {{ total | number: 0 }}MB"
+    "global_quota_warning": "<strong>¡Advertencia!</strong> Cuota global casi alcanzada en {{ current | number: 0 }}MB ({{ percent | number: 1 }}%) usados en {{ total | number: 0 }}MB",
+    "nav_trash": "Papelera"
   },
   "document": {
     "navigation_up": "Subir un nivel",
@@ -812,7 +813,8 @@
       "RouteModel": "Modelo flujo de trabajo",
       "Tag": "Etiqueta",
       "User": "Usuario",
-      "Webhook": "Webhook"
+      "Webhook": "Webhook",
+      "log_restored": "restaurado"
     },
     "selectrelation": {
       "typeahead": "Introduzca el título de un documento"
@@ -923,5 +925,42 @@
     "cancel": "Cancelar",
     "enabled": "Habilitado",
     "disabled": "Deshabilitado"
+  },
+  "trash": {
+    "title": "Trash",
+    "subtitle": "View, restore, or permanently purge soft-deleted documents and files",
+    "show_all_users": "Show all users' items",
+    "refresh": "Refresh",
+    "empty_trash": "Empty Trash",
+    "permanent_mode_warning": "<strong>Note:</strong> The system is currently configured for \"Permanent file deletion\" in General Settings. Newly deleted documents and files will be immediately erased from disk and will not enter the Trash. You can still restore or purge items previously placed here.",
+    "search_placeholder": "Search deleted documents or files...",
+    "tab_documents": "Deleted Documents",
+    "tab_files": "Deleted Files",
+    "col_files_size": "Files / Size",
+    "col_file_name": "File Name",
+    "col_file_size": "File Size",
+    "col_parent_document": "Parent Document",
+    "col_delete_date": "Deleted Date",
+    "col_actions": "Actions",
+    "restore": "Restore",
+    "purge": "Delete Permanently",
+    "empty_documents": "No deleted documents in the Trash",
+    "empty_files": "No individually deleted files in the Trash",
+    "unattached_file": "Unattached file",
+    "parent_doc_in_trash_badge": "Parent document in Trash",
+    "purge_document_title": "Confirm Permanent Deletion",
+    "purge_document_message": "Are you sure you want to permanently delete document \"{{ title }}\" and its files from the Trash? This cannot be undone!",
+    "purge_file_title": "Confirm Permanent Deletion",
+    "purge_file_message": "Are you sure you want to permanently delete file \"{{ name }}\" from the Trash? This cannot be undone!",
+    "empty_trash_title": "Confirm Empty Trash",
+    "empty_trash_message": "Are you sure you want to permanently delete all items currently in the Trash? This cannot be undone!",
+    "error_restore_title": "Restore Failed",
+    "error_restore_message": "An error occurred while restoring the item. Please try again.",
+    "error_quota_title": "Storage Quota Reached",
+    "error_quota_message": "Cannot restore this item because the restored file size would exceed the storage quota limit.",
+    "error_duplicate_title": "Duplicate File Name",
+    "error_duplicate_message": "Cannot restore this item because duplicate file names are disabled and an active file with the same name already exists.",
+    "error_parent_in_trash_title": "Parent Document in Trash",
+    "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
   }
 }

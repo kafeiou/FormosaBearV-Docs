@@ -223,11 +223,12 @@ public class PdfUtil {
         Path unencryptedFile = ConfigUtil.isFileEncrypt() ?
                 EncryptionUtil.decryptFile(storedFile, user.getPrivateKey()) : storedFile;
 
-        // Convert to PDF
+        // Convert to PDF using mixed memory (50MB RAM + temporary disk scratch file)
         Path tempPdf = Files.createTempFile("converted_", ".pdf");
-        try (PDDocument doc = new PDDocument();
+        MemoryUsageSetting memSetting = MemoryUsageSetting.setupMixed(50L * 1024L * 1024L);
+        try (PDDocument doc = new PDDocument(memSetting);
              Closer closer = Closer.create()) {
-            formatHandler.appendToPdf(unencryptedFile, doc, false, 0, MemoryUsageSetting.setupMainMemoryOnly(), closer);
+            formatHandler.appendToPdf(unencryptedFile, doc, false, 0, memSetting, closer);
             try (OutputStream pdfOut = Files.newOutputStream(tempPdf)) {
                 doc.save(pdfOut);
             }

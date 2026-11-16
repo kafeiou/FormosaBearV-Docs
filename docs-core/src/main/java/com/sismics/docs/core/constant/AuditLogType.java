@@ -24,6 +24,11 @@ public enum AuditLogType {
     /**
      * Download.
      */
-    DOWNLOAD
+    DOWNLOAD,
+
+    /**
+     * Restore from trash.
+     */
+    RESTORE
 
 }

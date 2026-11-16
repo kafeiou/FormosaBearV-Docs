@@ -5,6 +5,7 @@ import com.sismics.docs.core.constant.PermType;
 import com.sismics.docs.core.dao.dto.DocumentDto;
 import com.sismics.docs.core.model.jpa.Document;
 import com.sismics.docs.core.util.AuditLogUtil;
+import com.sismics.docs.core.util.ConfigUtil;
 import com.sismics.util.context.ThreadLocalContext;
 
 import jakarta.persistence.EntityManager;
@@ -146,6 +147,7 @@ public class DocumentDao {
      * @param userId User ID
      */
     public void delete(String id, String userId) {
+        Date dateNow = ConfigUtil.isFileDelete() ? new Date(0L) : new Date();
         EntityManager em = ThreadLocalContext.get().getEntityManager();
             
         // Get the document
@@ -154,7 +156,6 @@ public class DocumentDao {
         Document documentDb = dq.getSingleResult();
         
         // Delete the document
-        Date dateNow = new Date();
         documentDb.setDeleteDate(dateNow);
 
         // Delete linked data
@@ -179,6 +180,122 @@ public class DocumentDao {
         q.executeUpdate();
         
         // Create audit log
+        AuditLogUtil.create(documentDb, AuditLogType.DELETE, userId);
+    }
+
+    /**
+     * Gets a soft-deleted document (in Trash) by its ID.
+     *
+     * @param id Document ID
+     * @return Soft-deleted Document or null
+     */
+    public Document getDeletedById(String id) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        TypedQuery<Document> q = em.createQuery("select d from Document d where d.id = :id and d.deleteDate is not null", Document.class);
+        q.setParameter("id", id);
+        try {
+            Document doc = q.getSingleResult();
+            return (doc.getDeleteDate() != null && doc.getDeleteDate().getTime() > 0L) ? doc : null;
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Gets a document by ID regardless of deletion status.
+     *
+     * @param id Document ID
+     * @return Document or null
+     */
+    public Document getByIdIncludeDeleted(String id) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        TypedQuery<Document> q = em.createQuery("select d from Document d where d.id = :id", Document.class);
+        q.setParameter("id", id);
+        try {
+            return q.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Restores a soft-deleted document and its linked data that were deleted with it.
+     *
+     * @param id Document ID
+     * @param userId User ID performing the restoration
+     * @return Restored Document
+     */
+    public Document restore(String id, String userId) {
+        Document documentDb = getDeletedById(id);
+        if (documentDb == null) {
+            return null;
+        }
+        Date docDeleteDate = documentDb.getDeleteDate();
+        Timestamp windowStart = new Timestamp(Math.max(1L, docDeleteDate.getTime() - 1000L));
+
+        documentDb.setDeleteDate(null);
+        documentDb.setUpdateDate(new Date());
+
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("update File f set f.deleteDate = null where f.documentId = :documentId and f.deleteDate >= :windowStart");
+        q.setParameter("documentId", id);
+        q.setParameter("windowStart", windowStart);
+        q.executeUpdate();
+
+        q = em.createQuery("update Acl a set a.deleteDate = null where a.sourceId = :documentId and a.deleteDate >= :windowStart");
+        q.setParameter("documentId", id);
+        q.setParameter("windowStart", windowStart);
+        q.executeUpdate();
+
+        q = em.createQuery("update DocumentTag dt set dt.deleteDate = null where dt.documentId = :documentId and dt.deleteDate >= :windowStart");
+        q.setParameter("documentId", id);
+        q.setParameter("windowStart", windowStart);
+        q.executeUpdate();
+
+        q = em.createQuery("update Relation r set r.deleteDate = null where (r.fromDocumentId = :documentId or r.toDocumentId = :documentId) and r.deleteDate >= :windowStart");
+        q.setParameter("documentId", id);
+        q.setParameter("windowStart", windowStart);
+        q.executeUpdate();
+
+        AuditLogUtil.create(documentDb, AuditLogType.RESTORE, userId);
+        return documentDb;
+    }
+
+    /**
+     * Permanently purges a soft-deleted document from the Trash.
+     *
+     * @param id Document ID
+     * @param userId User ID performing the purge
+     */
+    public void purge(String id, String userId) {
+        Document documentDb = getDeletedById(id);
+        if (documentDb == null) {
+            return;
+        }
+        Timestamp purgedDate = new Timestamp(0L);
+        documentDb.setDeleteDate(purgedDate);
+
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query q = em.createQuery("update File f set f.deleteDate = :purgedDate where f.documentId = :documentId and f.deleteDate is not null");
+        q.setParameter("documentId", id);
+        q.setParameter("purgedDate", purgedDate);
+        q.executeUpdate();
+
+        q = em.createQuery("update Acl a set a.deleteDate = :purgedDate where a.sourceId = :documentId and a.deleteDate is not null");
+        q.setParameter("documentId", id);
+        q.setParameter("purgedDate", purgedDate);
+        q.executeUpdate();
+
+        q = em.createQuery("update DocumentTag dt set dt.deleteDate = :purgedDate where dt.documentId = :documentId and dt.deleteDate is not null");
+        q.setParameter("documentId", id);
+        q.setParameter("purgedDate", purgedDate);
+        q.executeUpdate();
+
+        q = em.createQuery("update Relation r set r.deleteDate = :purgedDate where (r.fromDocumentId = :documentId or r.toDocumentId = :documentId) and r.deleteDate is not null");
+        q.setParameter("documentId", id);
+        q.setParameter("purgedDate", purgedDate);
+        q.executeUpdate();
+
         AuditLogUtil.create(documentDb, AuditLogType.DELETE, userId);
     }
     

@@ -1,0 +1,157 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="well well-3d">
+      <div class="pull-right" style="margin-top: 15px;">
+        <button type="button" class="btn btn-default" ng-if="isAdmin" ng-class="{ 'active btn-info': showAll }" ng-click="toggleShowAll()" style="margin-right: 6px;">
+          <span class="fas fa-users"></span> {{ 'trash.show_all_users' | translate }}
+        </button>
+        <button type="button" class="btn btn-default" ng-click="loadTrash()" style="margin-right: 6px;">
+          <span class="fas fa-sync-alt"></span> {{ 'trash.refresh' | translate }}
+        </button>
+        <button type="button" class="btn btn-danger" ng-click="emptyTrash()" ng-disabled="documents.length == 0 && files.length == 0">
+          <span class="fas fa-trash"></span> {{ 'trash.empty_trash' | translate }}
+        </button>
+      </div>
+
+      <div class="page-header" style="margin-top: 10px;">
+        <h1>
+          <span class="fas fa-trash"></span> {{ 'trash.title' | translate }}
+          <small>{{ 'trash.subtitle' | translate }}</small>
+        </h1>
+      </div>
+
+      <div class="alert alert-warning" ng-if="fileDeleteMode">
+        <span class="fas fa-exclamation-triangle"></span>
+        <span translate="trash.permanent_mode_warning"></span>
+      </div>
+
+      <div class="row" style="margin-bottom: 15px;">
+        <div class="col-md-5">
+          <div class="input-group">
+            <span class="input-group-addon"><span class="fas fa-search"></span></span>
+            <input type="text" class="form-control" ng-model="searchText" ng-attr-placeholder="{{ 'trash.search_placeholder' | translate }}" />
+          </div>
+        </div>
+      </div>
+
+      <ul class="nav nav-tabs" style="margin-bottom: 15px;">
+        <li ng-class="{ active: activeTab == 'documents' }">
+          <a href ng-click="activeTab = 'documents'">
+            <span class="fas fa-book"></span> {{ 'trash.tab_documents' | translate }}
+            <span class="badge">{{ documents.length }}</span>
+          </a>
+        </li>
+        <li ng-class="{ active: activeTab == 'files' }">
+          <a href ng-click="activeTab = 'files'">
+            <span class="fas fa-file"></span> {{ 'trash.tab_files' | translate }}
+            <span class="badge">{{ files.length }}</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="text-center" ng-if="loading" style="padding: 30px;">
+        <span class="fas fa-circle-notch fa-spin fa-2x"></span>
+      </div>
+
+      <!-- Deleted Documents Tab -->
+      <div ng-if="!loading && activeTab == 'documents'">
+        <div class="table-responsive" ng-if="documents.length > 0">
+          <table class="table table-hover table-documents">
+            <thead>
+              <tr>
+                <th>{{ 'document.title' | translate }}</th>
+                <th>{{ 'trash.col_files_size' | translate }}</th>
+                <th>{{ 'document.search_creator' | translate }}</th>
+                <th>{{ 'document.creation_date' | translate }}</th>
+                <th>{{ 'trash.col_delete_date' | translate }}</th>
+                <th class="text-right">{{ 'trash.col_actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="doc in documents | filter: searchText">
+                <td uib-tooltip="{{ getDocumentTooltip(doc) }}" tooltip-append-to-body="true">
+                  <strong>{{ doc.title }}</strong>
+                  <span class="label label-default" ng-if="doc.language" style="margin-left: 4px;">{{ doc.language }}</span>
+                </td>
+                <td>
+                  <span class="badge">{{ doc.file_count }}</span>
+                  <span class="text-muted small" ng-if="doc.total_size > 0">({{ doc.total_size | filesize }})</span>
+                </td>
+                <td>
+                  <span uib-tooltip="{{ getUserTooltip(doc.creator) }}" tooltip-append-to-body="true">{{ formatUserDisplay(doc.creator) }}</span>
+                </td>
+                <td>{{ doc.create_date | date: 'yyyy-MM-dd HH:mm' }}</td>
+                <td>{{ doc.delete_date | date: 'yyyy-MM-dd HH:mm' }}</td>
+                <td class="text-right">
+                  <button type="button" class="btn btn-xs btn-success" ng-click="restoreDocument(doc)" style="margin-right: 4px;">
+                    <span class="fas fa-undo"></span> {{ 'trash.restore' | translate }}
+                  </button>
+                  <button type="button" class="btn btn-xs btn-danger" ng-click="purgeDocument(doc)">
+                    <span class="fas fa-times"></span> {{ 'trash.purge' | translate }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="well text-center text-muted" ng-if="documents.length == 0">
+          <span class="fas fa-trash fa-2x" style="display: block; margin-bottom: 10px; opacity: 0.5;"></span>
+          {{ 'trash.empty_documents' | translate }}
+        </div>
+      </div>
+
+      <!-- Deleted Files Tab -->
+      <div ng-if="!loading && activeTab == 'files'">
+        <div class="table-responsive" ng-if="files.length > 0">
+          <table class="table table-hover table-documents">
+            <thead>
+              <tr>
+                <th>{{ 'trash.col_file_name' | translate }}</th>
+                <th>{{ 'trash.col_file_size' | translate }}</th>
+                <th>{{ 'trash.col_parent_document' | translate }}</th>
+                <th>{{ 'document.search_creator' | translate }}</th>
+                <th>{{ 'trash.col_delete_date' | translate }}</th>
+                <th class="text-right">{{ 'trash.col_actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="file in files | filter: searchText">
+                <td>
+                  <strong>{{ file.name || file.id }}</strong>
+                  <span class="label label-info" ng-if="file.version_label" style="margin-left: 4px;">{{ file.version_label }}</span>
+                </td>
+                <td>{{ file.size | filesize }}</td>
+                <td>
+                  <span ng-if="file.document_id && !file.document_deleted">
+                    <a href="#/document/view/{{ file.document_id }}">{{ file.document_title || file.document_id }}</a>
+                  </span>
+                  <span ng-if="file.document_id && file.document_deleted">
+                    {{ file.document_title || file.document_id }}
+                    <span class="label label-warning" style="margin-left: 4px;">{{ 'trash.parent_doc_in_trash_badge' | translate }}</span>
+                  </span>
+                  <span class="text-muted" ng-if="!file.document_id">{{ 'trash.unattached_file' | translate }}</span>
+                </td>
+                <td>
+                  <span uib-tooltip="{{ getUserTooltip(file.creator) }}" tooltip-append-to-body="true">{{ formatUserDisplay(file.creator) }}</span>
+                </td>
+                <td>{{ file.delete_date | date: 'yyyy-MM-dd HH:mm' }}</td>
+                <td class="text-right">
+                  <button type="button" class="btn btn-xs btn-success" ng-click="restoreFile(file)" style="margin-right: 4px;">
+                    <span class="fas fa-undo"></span> {{ 'trash.restore' | translate }}
+                  </button>
+                  <button type="button" class="btn btn-xs btn-danger" ng-click="purgeFile(file)">
+                    <span class="fas fa-times"></span> {{ 'trash.purge' | translate }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="well text-center text-muted" ng-if="files.length == 0">
+          <span class="fas fa-trash fa-2x" style="display: block; margin-bottom: 10px; opacity: 0.5;"></span>
+          {{ 'trash.empty_files' | translate }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

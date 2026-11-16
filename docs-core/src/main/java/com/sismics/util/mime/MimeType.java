@@ -28,6 +28,10 @@ public class MimeType {
 
     public static final String TEXT_CSV = "text/csv";
 
+    public static final String TEXT_MARKDOWN = "text/markdown";
+
+    public static final String TEXT_HTML = "text/html";
+
     public static final String VIDEO_WEBM = "video/webm";
 
     public static final String VIDEO_MP4 = "video/mp4";

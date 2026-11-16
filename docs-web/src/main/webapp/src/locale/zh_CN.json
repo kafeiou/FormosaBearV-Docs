@@ -43,7 +43,8 @@
     "font_decrease": "缩小字号 (A-)",
     "font_reset": "重设为默认字号 (100%)",
     "font_increase": "放大字号 (A+)",
-    "global_quota_warning": "<strong>提醒!</strong> 全球配额存储空间已经使用 {{ current | number: 0 }}MB 占总存储配额 {{ total | number: 0 }}MB 的 ({{ percent | number: 1 }}%)"
+    "global_quota_warning": "<strong>提醒!</strong> 全球配额存储空间已经使用 {{ current | number: 0 }}MB 占总存储配额 {{ total | number: 0 }}MB 的 ({{ percent | number: 1 }}%)",
+    "nav_trash": "回收站"
   },
   "document": {
     "navigation_up": "上一层",
@@ -812,7 +813,8 @@
       "Route": "工作流程",
       "Tag": "标签",
       "User": "用户",
-      "Webhook": "Webhook"
+      "Webhook": "Webhook",
+      "log_restored": "还原"
     },
     "selectrelation": {
       "typeahead": "请输入文档名称"
@@ -923,5 +925,42 @@
     "cancel": "取消",
     "enabled": "启用",
     "disabled": "未启用"
+  },
+  "trash": {
+    "title": "回收站",
+    "subtitle": "查看、还原或永久删除已软删除的文档与文件",
+    "show_all_users": "显示所有用户的项目",
+    "refresh": "刷新",
+    "empty_trash": "清空回收站",
+    "permanent_mode_warning": "<strong>注意：</strong>当前系统在“常规设置”中已启用“永久删除实体文件”模式，新删除的文档与文件将直接从磁盘抹除，不会进入回收站。您仍可还原或清理此前已在此回收站中的项目。",
+    "search_placeholder": "搜索已删除的文档或文件...",
+    "tab_documents": "已删除的文档",
+    "tab_files": "已删除的文件",
+    "col_files_size": "附件数 / 大小",
+    "col_file_name": "文件名称",
+    "col_file_size": "文件大小",
+    "col_parent_document": "所属文档",
+    "col_delete_date": "删除时间",
+    "col_actions": "操作",
+    "restore": "还原",
+    "purge": "永久删除",
+    "empty_documents": "当前回收站中没有已删除的文档",
+    "empty_files": "当前回收站中没有单独删除的文件",
+    "unattached_file": "未挂载至文档（独立文件）",
+    "parent_doc_in_trash_badge": "所属文档也在回收站中",
+    "purge_document_title": "确认永久删除文档",
+    "purge_document_message": "您确定要从回收站永久删除文档“{{ title }}”及其附属文件吗？此操作将彻底抹除磁盘实体文件且无法恢复！",
+    "purge_file_title": "确认永久删除文件",
+    "purge_file_message": "您确定要从回收站永久删除文件“{{ name }}”吗？此操作将彻底抹除磁盘实体文件且无法恢复！",
+    "empty_trash_title": "确认清空回收站",
+    "empty_trash_message": "您确定要清空当前回收站中的所有文档与文件吗？此操作将彻底抹除磁盘实体文件且无法恢复！",
+    "error_restore_title": "还原失败",
+    "error_restore_message": "还原项目时发生错误，请稍后再试。",
+    "error_quota_title": "存储空间配额不足",
+    "error_quota_message": "无法还原此项目，因为还原后的文件大小将超过存储空间配额上限。",
+    "error_duplicate_title": "文件名称重复",
+    "error_duplicate_message": "无法还原此项目，因为系统当前已禁用重复文件名且已存在同名有效文件。",
+    "error_parent_in_trash_title": "所属文档仍在回收站中",
+    "error_parent_in_trash_message": "此文件所属的母文档当前也在回收站中，请先切换至“已删除的文档”标签页还原该母文档。"
   }
 }

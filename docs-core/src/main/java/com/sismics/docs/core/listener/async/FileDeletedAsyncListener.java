@@ -50,7 +50,7 @@ public class FileDeletedAsyncListener {
                 }
 
                 if (! fileSize.equals(File.UNKNOWN_SIZE)) {
-                    user.setStorageCurrent(user.getStorageCurrent() - fileSize);
+                    user.setStorageCurrent(Math.max(0L, user.getStorageCurrent() - fileSize));
                     userDao.updateQuota(user);
                 }
             }

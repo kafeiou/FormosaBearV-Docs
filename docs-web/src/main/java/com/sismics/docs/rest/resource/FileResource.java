@@ -870,7 +870,7 @@ public class FileResource extends BaseResource {
         
         // Raise a new file deleted event
         FileDeletedAsyncEvent fileDeletedAsyncEvent = new FileDeletedAsyncEvent();
-        fileDeletedAsyncEvent.setUserId(principal.getId());
+        fileDeletedAsyncEvent.setUserId(file.getUserId());
         fileDeletedAsyncEvent.setFileId(file.getId());
         fileDeletedAsyncEvent.setFileName(file.getName());
         fileDeletedAsyncEvent.setDucumentId(file.getDocumentId());
@@ -1037,6 +1037,124 @@ public class FileResource extends BaseResource {
             e.printStackTrace();
             return name;
         }
+    }
+
+    /**
+     * Returns paginated UTF-8 text content of a file for in-modal preview (raw file content or OCR extracted content).
+     * Uses bounded streaming chunks to prevent memory exhaustion on huge files while allowing all pages to be browsed.
+     *
+     * @param fileId File ID
+     * @param shareId Share ID
+     * @param pageParam 1-based page number
+     * @param mode "raw" (default, reads physical file) or "ocr" (reads extracted text content)
+     * @return Response with JSON { content, page, total_pages, total_size, mimetype }
+     */
+    @GET
+    @Path("{id: [a-z0-9\\-]+}/text")
+    public Response textPreview(
+            @PathParam("id") final String fileId,
+            @QueryParam("share") String shareId,
+            @QueryParam("page") Integer pageParam,
+            @QueryParam("mode") String mode) {
+        authenticate();
+
+        File file = findFile(fileId, shareId);
+        int requestedPage = (pageParam != null && pageParam > 0) ? pageParam : 1;
+
+        if ("ocr".equalsIgnoreCase(mode)) {
+            String fullText = Strings.nullToEmpty(file.getContent());
+            int pageChars = 50000;
+            int totalPages = Math.max(1, (int) Math.ceil((double) fullText.length() / pageChars));
+            int page = Math.min(requestedPage, totalPages);
+            int start = (page - 1) * pageChars;
+            int end = Math.min(fullText.length(), start + pageChars);
+            String slice = start < fullText.length() ? fullText.substring(start, end) : "";
+
+            JsonObjectBuilder response = Json.createObjectBuilder()
+                    .add("content", slice)
+                    .add("page", page)
+                    .add("total_pages", totalPages)
+                    .add("total_size", fullText.length())
+                    .add("mimetype", JsonUtil.nullable(file.getMimeType()));
+            return Response.ok().entity(response.build()).build();
+        }
+
+        java.nio.file.Path storedFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());
+        if (!Files.exists(storedFile)) {
+            throw new NotFoundException();
+        }
+
+        UserDao userDao = new UserDao();
+        User user = userDao.getById(file.getUserId());
+
+        // Use 500 KB per page for HTML so normal HTML documents render in 1 page, and 100 KB per page for TXT/MD/CSV
+        int chunkSizeBytes = MimeType.TEXT_HTML.equals(file.getMimeType()) ? (500 * 1024) : (100 * 1024);
+        long totalBytes = (file.getSize() != null && file.getSize() > 0) ? file.getSize() : 0L;
+        if (totalBytes <= 0) {
+            try {
+                totalBytes = Files.size(storedFile);
+            } catch (IOException ignored) {
+            }
+        }
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalBytes / chunkSizeBytes));
+        int page = Math.min(requestedPage, totalPages);
+        long skipBytes = (long) (page - 1) * chunkSizeBytes;
+
+        byte[] buf = new byte[chunkSizeBytes];
+        int totalRead = 0;
+        try (InputStream fileIn = Files.newInputStream(storedFile);
+             InputStream in = EncryptionUtil.decryptInputStream(fileIn, user.getPrivateKey())) {
+            long remainingSkip = skipBytes;
+            while (remainingSkip > 0) {
+                long skipped = in.skip(remainingSkip);
+                if (skipped <= 0) {
+                    if (in.read() < 0) {
+                        break;
+                    }
+                    remainingSkip--;
+                } else {
+                    remainingSkip -= skipped;
+                }
+            }
+            while (totalRead < chunkSizeBytes) {
+                int r = in.read(buf, totalRead, chunkSizeBytes - totalRead);
+                if (r < 0) {
+                    break;
+                }
+                totalRead += r;
+            }
+        } catch (Exception e) {
+            throw new ServerException("StreamError", "Error reading file text preview", e);
+        }
+
+        // Align start and end offsets to valid UTF-8 character boundaries so multibyte characters are never split
+        int startOffset = 0;
+        if (page > 1 && totalRead > 0) {
+            while (startOffset < totalRead && startOffset < 4 && (buf[startOffset] & 0xC0) == 0x80) {
+                startOffset++;
+            }
+        }
+        int validEnd = totalRead;
+        if (totalRead == chunkSizeBytes && page < totalPages) {
+            while (validEnd > startOffset && (buf[validEnd - 1] & 0xC0) == 0x80) {
+                validEnd--;
+            }
+            if (validEnd > startOffset && (buf[validEnd - 1] & 0x80) != 0) {
+                validEnd--;
+            }
+        }
+
+        String textChunk = validEnd > startOffset
+                ? new String(buf, startOffset, validEnd - startOffset, StandardCharsets.UTF_8)
+                : "";
+
+        JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("content", textChunk)
+                .add("page", page)
+                .add("total_pages", totalPages)
+                .add("total_size", totalBytes)
+                .add("mimetype", JsonUtil.nullable(file.getMimeType()));
+        return Response.ok().entity(response.build()).build();
     }
 
     /**

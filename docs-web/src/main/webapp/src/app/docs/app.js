@@ -401,6 +401,15 @@ angular.module('docs',
         }
       }
     })
+    .state('trash', {
+      url: '/trash',
+      views: {
+        'page': {
+          templateUrl: 'partial/docs/trash.html',
+          controller: 'Trash'
+        }
+      }
+    })
     .state('user', {
       url: '/user',
       abstract: true,
