@@ -30,7 +30,8 @@ jobs:
 
       - name: Start Jetty server in background
         run: |
-          nohup mvn --batch-mode -pl docs-web jetty:run > jetty.log 2>&1 &
+          mkdir -p "$RUNNER_TEMP/docs-data"
+          nohup mvn --batch-mode -pl docs-web jetty:run -Ddocs.home="$RUNNER_TEMP/docs-data" > jetty.log 2>&1 &
           echo "JETTY_PID=$!" >> "$GITHUB_ENV"
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8080/docs-web/api/app >/dev/null 2>&1; then
