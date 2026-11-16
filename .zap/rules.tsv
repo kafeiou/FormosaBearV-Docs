@@ -1,0 +1,4 @@
+# OWASP ZAP Baseline Scan rules
+# Ignore known EOL AngularJS 1.8.3 alerts for Vulnerable JS Library (10003)
+# while keeping 10003 active for other JS libraries (e.g. pdf.js, underscore.js).
+10003	OUTOFSCOPE	.*/angular(\.sanitize|\.touch)?\.js$

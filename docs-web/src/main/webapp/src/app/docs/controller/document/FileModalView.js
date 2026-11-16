@@ -260,7 +260,8 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
       url: url,
       withCredentials: true,
       cMapUrl: 'lib/pdfjs/cmaps/',
-      cMapPacked: true
+      cMapPacked: true,
+      isEvalSupported: false
     });
 
     loadingTask.promise.then(function (pdf) {
