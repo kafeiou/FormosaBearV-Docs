@@ -93,6 +93,8 @@ public class FileProcessingAsyncListener {
             // Get the creating user from the database for its private key
             UserDao userDao = new UserDao();
             user.set(userDao.getById(file.get().getUserId()));
+            // Refresh OCR config cache while EntityManager is active
+            com.sismics.docs.core.util.ConfigUtil.getOcrConfig();
         });
 
         // Process the file outside of a transaction

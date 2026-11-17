@@ -90,6 +90,99 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
     });
   };
 
+  // Load detailed OCR provider config (admin-only)
+  $scope.ocrAvailableModels = [];
+  $scope.ocrTestResult = null;
+  $scope.ocrTesting = false;
+  $scope.ocrSaving = false;
+  $scope.ocrSaveSuccess = false;
+  $scope.ocrSaveError = null;
+
+  Restangular.one('app/ocr').get().then(function (data) {
+    $scope.ocrConfig = {
+      engine: data.engine || 'tesseract',
+      fallback_tesseract: data.fallback_tesseract !== false,
+      ai_base_url: data.ai_base_url || 'http://localhost:11434',
+      ai_api_key: '',
+      ai_api_key_set: !!data.ai_api_key_set,
+      clear_api_key: false,
+      ai_model: data.ai_model || '',
+      ai_timeout_seconds: data.ai_timeout_seconds || 120,
+      ai_prompt: data.ai_prompt || '',
+      pdf_force_ai: !!data.pdf_force_ai,
+      tesseract_path: data.tesseract_path || ''
+    };
+  });
+
+  $scope.onOcrEngineChange = function () {
+    $scope.ocrTestResult = null;
+    $scope.ocrAvailableModels = [];
+    if ($scope.ocrConfig.engine === 'ollama' && !$scope.ocrConfig.ai_base_url) {
+      $scope.ocrConfig.ai_base_url = 'http://localhost:11434';
+    }
+  };
+
+  $scope.testOcrConnection = function () {
+    if (!$scope.ocrConfig) return;
+    $scope.ocrTesting = true;
+    $scope.ocrTestResult = null;
+    Restangular.one('app/ocr').post('test', {
+      engine: $scope.ocrConfig.engine,
+      ai_base_url: $scope.ocrConfig.ai_base_url,
+      ai_api_key: $scope.ocrConfig.ai_api_key,
+      clear_api_key: $scope.ocrConfig.clear_api_key,
+      ai_model: $scope.ocrConfig.ai_model,
+      ai_timeout_seconds: $scope.ocrConfig.ai_timeout_seconds
+    }).then(function (res) {
+      $scope.ocrTesting = false;
+      $scope.ocrTestResult = res;
+      $scope.ocrAvailableModels = res.models || [];
+    }, function (err) {
+      $scope.ocrTesting = false;
+      $scope.ocrTestResult = {
+        ok: false,
+        models: [],
+        error: (err && err.data && err.data.message) || 'Connection error'
+      };
+    });
+  };
+
+  $scope.saveOcrConfig = function () {
+    if (!$scope.ocrConfig) return;
+    $scope.ocrSaving = true;
+    $scope.ocrSaveSuccess = false;
+    $scope.ocrSaveError = null;
+    Restangular.one('app/ocr').post('config', {
+      engine: $scope.ocrConfig.engine,
+      fallback_tesseract: $scope.ocrConfig.fallback_tesseract,
+      ai_base_url: $scope.ocrConfig.ai_base_url,
+      ai_api_key: $scope.ocrConfig.ai_api_key,
+      clear_api_key: $scope.ocrConfig.clear_api_key,
+      ai_model: $scope.ocrConfig.ai_model,
+      ai_timeout_seconds: $scope.ocrConfig.ai_timeout_seconds,
+      ai_prompt: $scope.ocrConfig.ai_prompt,
+      pdf_force_ai: $scope.ocrConfig.pdf_force_ai,
+      tesseract_path: $scope.ocrConfig.tesseract_path
+    }).then(function () {
+      $scope.ocrSaving = false;
+      $scope.ocrSaveSuccess = true;
+      if ($scope.ocrConfig.clear_api_key) {
+        $scope.ocrConfig.ai_api_key_set = false;
+        $scope.ocrConfig.clear_api_key = false;
+      } else if ($scope.ocrConfig.ai_api_key) {
+        $scope.ocrConfig.ai_api_key_set = true;
+        $scope.ocrConfig.ai_api_key = '';
+      }
+      if ($rootScope.app) {
+        $rootScope.app.ocr_engine = $scope.ocrConfig.engine;
+      }
+      $timeout(function () { $scope.ocrSaveSuccess = false; }, 3000);
+    }, function (err) {
+      $scope.ocrSaving = false;
+      $scope.ocrSaveError = (err && err.data && err.data.message) || 'Save failed';
+    });
+  };
+
   // Enable/disable permanent file deletion on disk (file.delete)
   $scope.changeFileDelete = function (enabled) {
     Restangular.one('app').post('file_delete', {

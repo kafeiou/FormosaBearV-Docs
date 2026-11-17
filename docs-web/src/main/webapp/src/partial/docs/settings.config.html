@@ -51,6 +51,135 @@
   <button ng-if="app.ocr_enabled" class="btn btn-danger" ng-click="changeOcrEnabled(false)">{{ 'settings.config.disable_ocr' | translate }}</button>
 </div>
 
+<form class="form-horizontal well well-sm mt-10" name="ocrConfigForm" ng-if="app && ocrConfig" style="margin-top: 12px;" novalidate>
+  <div class="alert alert-warning" ng-if="!app.ocr_enabled">
+    <strong>OCR {{ 'disabled' | translate }}</strong> —
+    <a href ng-click="changeOcrEnabled(true)">{{ 'settings.config.enable_ocr' | translate }}</a>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" for="inputOcrEngine">{{ 'settings.config.ocr_engine' | translate }}</label>
+    <div class="col-sm-9">
+      <select class="form-control" id="inputOcrEngine" ng-model="ocrConfig.engine" ng-change="onOcrEngineChange()">
+        <option value="tesseract">{{ 'settings.config.ocr_engine_tesseract' | translate }}</option>
+        <option value="ollama">{{ 'settings.config.ocr_engine_ollama' | translate }}</option>
+        <option value="openai">{{ 'settings.config.ocr_engine_openai' | translate }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="ocrConfig.engine !== 'tesseract'">
+    <label class="col-sm-3 control-label" for="inputOcrBaseUrl">{{ 'settings.config.ocr_ai_base_url' | translate }}</label>
+    <div class="col-sm-9">
+      <div class="input-group">
+        <input type="url" class="form-control" id="inputOcrBaseUrl" ng-model="ocrConfig.ai_base_url"
+               placeholder="http://localhost:11434" required />
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" ng-click="testOcrConnection()" ng-disabled="ocrTesting">
+            <span class="fas fa-plug" ng-if="!ocrTesting"></span>
+            <span class="fas fa-spinner fa-spin" ng-if="ocrTesting"></span>
+            {{ 'settings.config.ocr_test_connection' | translate }}
+          </button>
+        </span>
+      </div>
+      <p class="help-block small">{{ 'settings.config.ocr_ai_base_url_help' | translate }}</p>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="ocrConfig.engine !== 'tesseract'">
+    <label class="col-sm-3 control-label" for="inputOcrModel">{{ 'settings.config.ocr_ai_model' | translate }}</label>
+    <div class="col-sm-9">
+      <input type="text" class="form-control" id="inputOcrModel" ng-model="ocrConfig.ai_model"
+             list="ocrModelSuggestions"
+             ng-attr-placeholder="{{ ocrConfig.engine === 'ollama' ? 'qwen2.5vl:7b / minicpm-v' : 'gpt-4o-mini / qwen2.5-vl' }}" />
+      <datalist id="ocrModelSuggestions">
+        <option ng-repeat="m in ocrAvailableModels" value="{{ m }}"></option>
+      </datalist>
+      <div ng-if="ocrAvailableModels.length > 0" style="margin-top: 6px;">
+        <select class="form-control input-sm" ng-model="ocrConfig.ai_model" ng-options="m for m in ocrAvailableModels">
+          <option value="">{{ 'settings.config.ocr_select_detected_model' | translate }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="ocrConfig.engine !== 'tesseract'">
+    <label class="col-sm-3 control-label" for="inputOcrApiKey">{{ 'settings.config.ocr_ai_api_key' | translate }}</label>
+    <div class="col-sm-9">
+      <div class="input-group">
+        <input type="password" class="form-control" id="inputOcrApiKey" ng-model="ocrConfig.ai_api_key"
+               autocomplete="new-password"
+               ng-attr-placeholder="{{ ocrConfig.ai_api_key_set && !ocrConfig.clear_api_key ? ('settings.config.ocr_ai_api_key_saved' | translate) : ('settings.config.ocr_ai_api_key_placeholder' | translate) }}" />
+        <span class="input-group-btn" ng-if="ocrConfig.ai_api_key_set">
+          <button type="button" class="btn btn-default" ng-click="ocrConfig.clear_api_key = true; ocrConfig.ai_api_key = '';">
+            {{ 'settings.config.ocr_clear_api_key' | translate }}
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="ocrConfig.engine !== 'tesseract'">
+    <label class="col-sm-3 control-label" for="inputOcrTimeout">{{ 'settings.config.ocr_ai_timeout' | translate }}</label>
+    <div class="col-sm-4">
+      <input type="number" min="10" max="600" class="form-control" id="inputOcrTimeout" ng-model="ocrConfig.ai_timeout_seconds" />
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="ocrConfig.engine !== 'tesseract'">
+    <label class="col-sm-3 control-label" for="inputOcrPrompt">{{ 'settings.config.ocr_ai_prompt' | translate }}</label>
+    <div class="col-sm-9">
+      <textarea class="form-control" rows="3" id="inputOcrPrompt" ng-model="ocrConfig.ai_prompt"></textarea>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="ocrConfig.engine !== 'tesseract'">
+    <div class="col-sm-offset-3 col-sm-9">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="ocrConfig.fallback_tesseract" />
+          {{ 'settings.config.ocr_fallback_tesseract' | translate }}
+        </label>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="ocrConfig.pdf_force_ai" />
+          {{ 'settings.config.ocr_pdf_force_ai' | translate }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="ocrConfig.engine === 'tesseract' || ocrConfig.fallback_tesseract">
+    <label class="col-sm-3 control-label" for="inputTesseractPath">{{ 'settings.config.ocr_tesseract_path' | translate }}</label>
+    <div class="col-sm-9">
+      <input type="text" class="form-control" id="inputTesseractPath" ng-model="ocrConfig.tesseract_path"
+             ng-attr-placeholder="{{ 'settings.config.ocr_tesseract_path_placeholder' | translate }}" />
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="ocrTestResult">
+    <div class="col-sm-offset-3 col-sm-9">
+      <div class="alert" ng-class="{ 'alert-success': ocrTestResult.ok, 'alert-danger': !ocrTestResult.ok }" style="margin-bottom: 0;">
+        <span ng-if="ocrTestResult.ok">{{ 'settings.config.ocr_test_success' | translate:{ count: ocrTestResult.models.length } }}</span>
+        <span ng-if="ocrTestResult.ok && ocrConfig.ai_model && !ocrTestResult.model_found"> — {{ 'settings.config.ocr_test_model_missing' | translate:{ model: ocrConfig.ai_model } }}</span>
+        <span ng-if="!ocrTestResult.ok">{{ 'settings.config.ocr_test_failed' | translate }}: {{ ocrTestResult.error }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group" style="margin-bottom: 0;">
+    <div class="col-sm-offset-3 col-sm-9">
+      <button type="button" class="btn btn-primary" ng-click="saveOcrConfig()" ng-disabled="ocrSaving">
+        <span class="fas fa-save"></span> {{ 'save' | translate }}
+      </button>
+      <span class="text-success" ng-if="ocrSaveSuccess" style="margin-left: 10px;">
+        <span class="fas fa-check"></span> {{ 'settings.config.ocr_saved' | translate }}
+      </span>
+      <span class="text-danger" ng-if="ocrSaveError" style="margin-left: 10px;">{{ ocrSaveError }}</span>
+    </div>
+  </div>
+</form>
+
 <h2 translate="settings.config.title_storage"></h2>
 <div class="well well-sm" ng-if="app.storage_path">
   <strong><span class="fas fa-hdd"></span> {{ 'settings.config.storage_path_label' | translate }}:</strong>

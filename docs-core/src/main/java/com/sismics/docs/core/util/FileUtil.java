@@ -69,27 +69,7 @@ public class FileUtil {
      * @throws Exception e
      */
     public static String ocrFile(String language, BufferedImage image) throws Exception {
-        // Upscale, grayscale and deskew the image
-        BufferedImage resizedImage = Scalr.resize(image, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, 3500, Scalr.OP_ANTIALIAS, Scalr.OP_GRAYSCALE);
-        image.flush();
-        ImageDeskew imageDeskew = new ImageDeskew(resizedImage);
-        BufferedImage deskewedImage = Scalr.rotate(resizedImage, - imageDeskew.getSkewAngle(), Scalr.OP_ANTIALIAS, Scalr.OP_GRAYSCALE);
-        resizedImage.flush();
-        Path tmpFile = AppContext.getInstance().getFileService().createTemporaryFile();
-        ImageIO.write(deskewedImage, "tiff", tmpFile.toFile());
-
-        List<String> result = Lists.newLinkedList(Arrays.asList("tesseract", tmpFile.toAbsolutePath().toString(), "stdout", "-l", language));
-        ProcessBuilder pb = new ProcessBuilder(result);
-        Process process = pb.start();
-
-        // Consume the process error stream
-        final String commandName = pb.command().get(0);
-        new InputStreamReaderThread(process.getErrorStream(), commandName).start();
-
-        // Consume the data as text
-        try (InputStream is = process.getInputStream()) {
-            return CharStreams.toString(new InputStreamReader(is, StandardCharsets.UTF_8));
-        }
+        return com.sismics.docs.core.util.ocr.OcrService.extractText(language, image);
     }
 
     /**

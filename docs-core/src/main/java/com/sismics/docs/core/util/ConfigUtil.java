@@ -23,9 +23,11 @@ import jakarta.persistence.Query;
 public class ConfigUtil {
 
     private static Boolean cachedFileEncrypt = null;
+    private static volatile OcrConfig cachedOcrConfig = null;
 
     public static void resetCache() {
         cachedFileEncrypt = null;
+        cachedOcrConfig = null;
     }
 
     private static boolean hasActiveEntityManager() {
@@ -397,5 +399,125 @@ public class ConfigUtil {
             }
         }
         return "FormosaBearV";
+    }
+
+    public static final String DEFAULT_OCR_ENGINE = "tesseract";
+    public static final String DEFAULT_OCR_AI_BASE_URL = "http://localhost:11434";
+    public static final int DEFAULT_OCR_AI_TIMEOUT_SECONDS = 120;
+    public static final String DEFAULT_OCR_AI_PROMPT =
+            "Transcribe all visible text, numbers, and tables from this image verbatim in plain text. " +
+            "Preserve original language and line breaks. Do not translate, summarize, or add commentary.";
+
+    /**
+     * Snapshot of OCR configuration safe to read outside JPA transactions.
+     */
+    public static class OcrConfig {
+        private final boolean enabled;
+        private final String engine;
+        private final boolean fallbackTesseract;
+        private final String aiBaseUrl;
+        private final String aiApiKey;
+        private final String aiModel;
+        private final int aiTimeoutSeconds;
+        private final String aiPrompt;
+        private final boolean pdfForceAi;
+        private final String tesseractPath;
+
+        public OcrConfig(boolean enabled, String engine, boolean fallbackTesseract, String aiBaseUrl,
+                         String aiApiKey, String aiModel, int aiTimeoutSeconds, String aiPrompt,
+                         boolean pdfForceAi, String tesseractPath) {
+            this.enabled = enabled;
+            this.engine = engine;
+            this.fallbackTesseract = fallbackTesseract;
+            this.aiBaseUrl = aiBaseUrl;
+            this.aiApiKey = aiApiKey;
+            this.aiModel = aiModel;
+            this.aiTimeoutSeconds = aiTimeoutSeconds;
+            this.aiPrompt = aiPrompt;
+            this.pdfForceAi = pdfForceAi;
+            this.tesseractPath = tesseractPath;
+        }
+
+        public boolean isEnabled() { return enabled; }
+        public String getEngine() { return engine; }
+        public boolean isFallbackTesseract() { return fallbackTesseract; }
+        public String getAiBaseUrl() { return aiBaseUrl; }
+        public String getAiApiKey() { return aiApiKey; }
+        public String getAiModel() { return aiModel; }
+        public int getAiTimeoutSeconds() { return aiTimeoutSeconds; }
+        public String getAiPrompt() { return aiPrompt; }
+        public boolean isPdfForceAi() { return pdfForceAi; }
+        public String getTesseractPath() { return tesseractPath; }
+    }
+
+    private static String readOptionalConfig(ConfigDao dao, ConfigType type, String defaultValue) {
+        Config cfg = dao.getById(type);
+        if (cfg == null || Strings.isNullOrEmpty(cfg.getValue())) {
+            return defaultValue;
+        }
+        return cfg.getValue().trim();
+    }
+
+    private static boolean readOptionalBoolConfig(ConfigDao dao, ConfigType type, boolean defaultValue) {
+        Config cfg = dao.getById(type);
+        if (cfg == null || Strings.isNullOrEmpty(cfg.getValue())) {
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(cfg.getValue().trim());
+    }
+
+    private static int readOptionalIntConfig(ConfigDao dao, ConfigType type, int defaultValue, int min, int max) {
+        Config cfg = dao.getById(type);
+        if (cfg == null || Strings.isNullOrEmpty(cfg.getValue())) {
+            return defaultValue;
+        }
+        try {
+            int parsed = Integer.parseInt(cfg.getValue().trim());
+            return Math.max(min, Math.min(max, parsed));
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Returns OCR configuration, caching it for background processing threads.
+     */
+    public static OcrConfig getOcrConfig() {
+        if (hasActiveEntityManager()) {
+            try {
+                ConfigDao dao = new ConfigDao();
+                OcrConfig loaded = new OcrConfig(
+                        readOptionalBoolConfig(dao, ConfigType.OCR_ENABLED, true),
+                        readOptionalConfig(dao, ConfigType.OCR_ENGINE, DEFAULT_OCR_ENGINE).toLowerCase(),
+                        readOptionalBoolConfig(dao, ConfigType.OCR_FALLBACK_TESSERACT, true),
+                        readOptionalConfig(dao, ConfigType.OCR_AI_BASE_URL, DEFAULT_OCR_AI_BASE_URL),
+                        readOptionalConfig(dao, ConfigType.OCR_AI_API_KEY, ""),
+                        readOptionalConfig(dao, ConfigType.OCR_AI_MODEL, ""),
+                        readOptionalIntConfig(dao, ConfigType.OCR_AI_TIMEOUT_SECONDS, DEFAULT_OCR_AI_TIMEOUT_SECONDS, 10, 600),
+                        readOptionalConfig(dao, ConfigType.OCR_AI_PROMPT, DEFAULT_OCR_AI_PROMPT),
+                        readOptionalBoolConfig(dao, ConfigType.OCR_PDF_FORCE_AI, false),
+                        readOptionalConfig(dao, ConfigType.OCR_TESSERACT_PATH, "")
+                );
+                cachedOcrConfig = loaded;
+                return loaded;
+            } catch (Exception ignored) {
+            }
+        }
+        OcrConfig cached = cachedOcrConfig;
+        if (cached != null) {
+            return cached;
+        }
+        return new OcrConfig(
+                true,
+                DEFAULT_OCR_ENGINE,
+                true,
+                DEFAULT_OCR_AI_BASE_URL,
+                "",
+                "",
+                DEFAULT_OCR_AI_TIMEOUT_SECONDS,
+                DEFAULT_OCR_AI_PROMPT,
+                false,
+                ""
+        );
     }
 }

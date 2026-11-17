@@ -116,7 +116,7 @@ This document details the notable changes, security enhancements, architecture i
   - Added Japanese and Vietnamese relative time formatting dictionaries to [angular.timeago.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/lib/angular.timeago.js).
 - **Footer Attribution URL & Taiwan Yushan Login Background**:
   - Updated `footer_sismics` attribution hyperlink across all 14 locale resource files to point to `https://kafeiou.pw`.
-  - Updated the default login background image ([background.jpg](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/resources/image/background.jpg)) to a landscape photograph of Taiwan's Mount Yushan (CC0 1.0 Public Domain).
+  - Updated the default login background image ([background.jpg](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/resources/image/background.jpg)) to a photograph of Taiwan's Yushan North Peak (*Deep blue sky over Yushan North Peak.jpg* by Moran Tsai; source: [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Deep_blue_sky_over_Yushan_North_Peak.jpg) / [Flickr](https://www.flickr.com/photos/moran1029/48890432256/), licensed under [CC0 1.0 Universal Public Domain Dedication](https://creativecommons.org/publicdomain/zero/1.0/)).
 - **Maintenance & Repository Cleanup**:
   - Removed obsolete snapshot build artifact `build/docs-NoFileEncrypt_1.12-SNAPSHOT.war`.
 

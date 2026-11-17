@@ -60,33 +60,102 @@ public class PdfFormatHandler implements FormatHandler {
 
     @Override
     public String extractContent(String language, Path file) {
-        String content = null;
+        ConfigUtil.OcrConfig ocrConfig = ConfigUtil.getOcrConfig();
+        boolean ocrEnabled = ocrConfig.isEnabled();
+        boolean forceAiOcr = ocrEnabled && ocrConfig.isPdfForceAi() && !"tesseract".equals(ocrConfig.getEngine());
+
+        StringBuilder sb = new StringBuilder();
         try (PDDocument pdfDocument = PDDocument.load(file.toFile(), MemoryUsageSetting.setupMixed(MAX_MAIN_MEMORY_BYTES))) {
+            int totalPages = Math.min(pdfDocument.getNumberOfPages(), MAX_TEXT_EXTRACT_PAGES);
             PDFTextStripper stripper = new PDFTextStripper();
-            stripper.setEndPage(Math.min(pdfDocument.getNumberOfPages(), MAX_TEXT_EXTRACT_PAGES));
-            content = stripper.getText(pdfDocument);
+            PDFRenderer renderer = null;
+            int ocrPagesUsed = 0;
+
+            for (int pageNum = 1; pageNum <= totalPages; pageNum++) {
+                String pageText = "";
+                if (!forceAiOcr) {
+                    stripper.setStartPage(pageNum);
+                    stripper.setEndPage(pageNum);
+                    pageText = stripper.getText(pdfDocument);
+                }
+
+                boolean needsOcr = ocrEnabled && (forceAiOcr || !isPageTextUsable(pageText));
+                if (needsOcr && ocrPagesUsed < MAX_OCR_PAGES) {
+                    if (renderer == null) {
+                        renderer = new PDFRenderer(pdfDocument);
+                    }
+                    ocrPagesUsed++;
+                    log.info("OCR page {}/{} (pdf page {}/{}) using engine '{}'",
+                            ocrPagesUsed, Math.min(totalPages, MAX_OCR_PAGES), pageNum, totalPages, ocrConfig.getEngine());
+                    BufferedImage pageImage = renderer.renderImageWithDPI(pageNum - 1, 300, ImageType.RGB);
+                    try {
+                        String ocrText = FileUtil.ocrFile(language, pageImage);
+                        if (ocrText != null && !ocrText.trim().isEmpty()) {
+                            sb.append(' ').append(ocrText.trim());
+                            continue;
+                        }
+                    } catch (Exception e) {
+                        log.error("Error while OCR-izing PDF page " + pageNum, e);
+                    } finally {
+                        pageImage.flush();
+                    }
+                    // Last-resort fallback: if forced AI OCR failed/returned empty, try embedded PDF text
+                    if (forceAiOcr && (pageText == null || pageText.isEmpty())) {
+                        stripper.setStartPage(pageNum);
+                        stripper.setEndPage(pageNum);
+                        pageText = stripper.getText(pdfDocument);
+                        if (pageText != null && !pageText.trim().isEmpty()) {
+                            log.info("Recovered embedded text for PDF page {} after OCR fallback", pageNum);
+                        }
+                    }
+                }
+
+                if (pageText != null && !pageText.trim().isEmpty()) {
+                    sb.append(' ').append(pageText.trim());
+                }
+            }
         } catch (Exception e) {
             log.error("Error while extracting text from the PDF", e);
         }
 
-        // No text content, try to OCR it (bounded by MAX_OCR_PAGES)
-        if (language != null && content != null && content.trim().isEmpty() && ConfigUtil.getConfigBooleanValue(ConfigType.OCR_ENABLED, true)) {
-            StringBuilder sb = new StringBuilder();
-            try (PDDocument pdfDocument = PDDocument.load(file.toFile(), MemoryUsageSetting.setupMixed(MAX_MAIN_MEMORY_BYTES))) {
-                PDFRenderer renderer = new PDFRenderer(pdfDocument);
-                int pagesToOcr = Math.min(pdfDocument.getNumberOfPages(), MAX_OCR_PAGES);
-                for (int pageIndex = 0; pageIndex < pagesToOcr; pageIndex++) {
-                    log.info("OCR page " + (pageIndex + 1) + "/" + pagesToOcr + " of PDF file containing only images");
-                    sb.append(" ");
-                    sb.append(FileUtil.ocrFile(language, renderer.renderImageWithDPI(pageIndex, 300, ImageType.GRAY)));
-                }
-                return sb.toString();
-            } catch (Exception e) {
-                log.error("Error while OCR-izing the PDF", e);
+        return sb.toString().trim();
+    }
+
+    /**
+     * Determines whether extracted embedded PDF page text is usable without OCR.
+     * Rejects empty/whitespace-only text, minimal noise (like lone page numbers),
+     * and garbled CMap replacement characters (\uFFFD).
+     */
+    static boolean isPageTextUsable(String pageText) {
+        if (pageText == null) {
+            return false;
+        }
+        String trimmed = pageText.trim();
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+
+        int meaningfulChars = 0;
+        int replacementChars = 0;
+        int nonWhitespaceChars = 0;
+        for (int i = 0; i < trimmed.length(); ) {
+            int cp = trimmed.codePointAt(i);
+            i += Character.charCount(cp);
+            if (Character.isWhitespace(cp)) {
+                continue;
+            }
+            nonWhitespaceChars++;
+            if (cp == '\uFFFD') {
+                replacementChars++;
+            } else if (Character.isLetterOrDigit(cp)) {
+                meaningfulChars++;
             }
         }
 
-        return content;
+        if (replacementChars >= 3 || (nonWhitespaceChars > 0 && (replacementChars * 100.0 / nonWhitespaceChars) > 5.0)) {
+            return false;
+        }
+        return meaningfulChars >= 10;
     }
 
     @Override

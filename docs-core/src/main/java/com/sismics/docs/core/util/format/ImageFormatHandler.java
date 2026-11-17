@@ -46,7 +46,7 @@ public class ImageFormatHandler implements FormatHandler {
 
     @Override
     public String extractContent(String language, Path file) throws Exception {
-        if (language == null || !ConfigUtil.getConfigBooleanValue(ConfigType.OCR_ENABLED, true)) {
+        if (!ConfigUtil.getOcrConfig().isEnabled()) {
             return null;
         }
 

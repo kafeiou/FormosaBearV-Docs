@@ -116,7 +116,7 @@
   - 於 [angular.timeago.js](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/webapp/src/lib/angular.timeago.js) 擴充日文與越南文相對時間字串對應字典。
 - **頁尾超連結品牌網址與台灣玉山登入背景圖片更新**：
   - 更新全數 14 個語系檔中的 `footer_sismics` 屬性，超連結網址全面替換為 `https://kafeiou.pw`。
-  - 將預設登入頁面背景圖片（[background.jpg](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/resources/image/background.jpg)）替換為台灣玉山實景風景照（CC0 1.0 公眾領域授權）。
+  - 將預設登入頁面背景圖片（[background.jpg](file:///W:/developer/project/github/FormosaBearV-Docs/docs-web/src/main/resources/image/background.jpg)）替換為台灣玉山北峰實景風景照（作品：*Deep blue sky over Yushan North Peak.jpg*，攝影：Moran Tsai；出處：[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Deep_blue_sky_over_Yushan_North_Peak.jpg)／[Flickr](https://www.flickr.com/photos/moran1029/48890432256/)，授權：[CC0 1.0 通用公眾領域貢獻宣告](https://creativecommons.org/publicdomain/zero/1.0/)）。
 - **維護與專案清理**：
   - 移除已無使用的快照建置產物 `build/docs-NoFileEncrypt_1.12-SNAPSHOT.war`。
 

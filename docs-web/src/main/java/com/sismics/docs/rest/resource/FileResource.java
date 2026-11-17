@@ -153,8 +153,13 @@ public class FileResource extends BaseResource {
         }
 
         try {
+            String defaultLanguage = null;
+            try {
+                defaultLanguage = ConfigUtil.getConfigStringValue(com.sismics.docs.core.constant.ConfigType.DEFAULT_LANGUAGE);
+            } catch (IllegalStateException ignored) {
+            }
             String fileId = FileUtil.createFile(name, previousFileId, unencryptedFile, fileSize, documentDto == null ?
-                    null : documentDto.getLanguage(), principal.getId(), documentId);
+                    defaultLanguage : documentDto.getLanguage(), principal.getId(), documentId);
 
             // Always return OK
             JsonObjectBuilder response = Json.createObjectBuilder()

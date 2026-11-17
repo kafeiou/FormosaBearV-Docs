@@ -21,9 +21,18 @@ public enum ConfigType {
     GUEST_LOGIN,
 
     /**
-     * OCR enabled.
+     * OCR enabled and extensible OCR provider settings.
      */
     OCR_ENABLED,
+    OCR_ENGINE,
+    OCR_FALLBACK_TESSERACT,
+    OCR_AI_BASE_URL,
+    OCR_AI_API_KEY,
+    OCR_AI_MODEL,
+    OCR_AI_TIMEOUT_SECONDS,
+    OCR_AI_PROMPT,
+    OCR_PDF_FORCE_AI,
+    OCR_TESSERACT_PATH,
 
     /**
      * Default language.

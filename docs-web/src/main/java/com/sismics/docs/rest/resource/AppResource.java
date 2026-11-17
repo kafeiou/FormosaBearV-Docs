@@ -121,6 +121,7 @@ public class AppResource extends BaseResource {
         }
         Boolean guestLogin = ConfigUtil.getConfigBooleanValue(ConfigType.GUEST_LOGIN);
         Boolean ocrEnabled = ConfigUtil.getConfigBooleanValue(ConfigType.OCR_ENABLED, false);
+        ConfigUtil.OcrConfig ocrConfig = ConfigUtil.getOcrConfig();
         String defaultLanguage = ConfigUtil.getConfigStringValue(ConfigType.DEFAULT_LANGUAGE);
         UserDao userDao = new UserDao();
         DocumentDao documentDao = new DocumentDao();
@@ -135,6 +136,7 @@ public class AppResource extends BaseResource {
                 .add("min_version", minVersion)
                 .add("guest_login", guestLogin)
                 .add("ocr_enabled", ocrEnabled)
+                .add("ocr_engine", ocrConfig.getEngine())
                 .add("default_language", defaultLanguage)
                 .add("base_url", ConfigUtil.getBaseUrl())
                 .add("file_delete", ConfigUtil.isFileDelete())
@@ -201,9 +203,18 @@ public class AppResource extends BaseResource {
         }
         checkBaseFunction(BaseFunction.ADMIN);
 
-        Boolean ocrEnabled = ConfigUtil.getConfigBooleanValue(ConfigType.OCR_ENABLED, false);
+        ConfigUtil.OcrConfig ocrConfig = ConfigUtil.getOcrConfig();
         JsonObjectBuilder response = Json.createObjectBuilder()
-                .add("enabled", ocrEnabled);
+                .add("enabled", ConfigUtil.getConfigBooleanValue(ConfigType.OCR_ENABLED, false))
+                .add("engine", ocrConfig.getEngine())
+                .add("fallback_tesseract", ocrConfig.isFallbackTesseract())
+                .add("ai_base_url", ocrConfig.getAiBaseUrl())
+                .add("ai_api_key_set", !Strings.isNullOrEmpty(ocrConfig.getAiApiKey()))
+                .add("ai_model", ocrConfig.getAiModel())
+                .add("ai_timeout_seconds", ocrConfig.getAiTimeoutSeconds())
+                .add("ai_prompt", ocrConfig.getAiPrompt())
+                .add("pdf_force_ai", ocrConfig.isPdfForceAi())
+                .add("tesseract_path", ocrConfig.getTesseractPath());
         return Response.ok().entity(response.build()).build();
     }
 
@@ -231,8 +242,133 @@ public class AppResource extends BaseResource {
 
         ConfigDao configDao = new ConfigDao();
         configDao.update(ConfigType.OCR_ENABLED, enabled.toString());
+        ConfigUtil.resetCache();
 
         return Response.ok().build();
+    }
+
+    /**
+     * Update OCR provider settings (Tesseract / Ollama / OpenAI-compatible).
+     */
+    @POST
+    @Path("ocr/config")
+    public Response updateOcrConfig(
+            @FormParam("engine") String engine,
+            @FormParam("fallback_tesseract") Boolean fallbackTesseract,
+            @FormParam("ai_base_url") String aiBaseUrl,
+            @FormParam("ai_api_key") String aiApiKey,
+            @FormParam("clear_api_key") Boolean clearApiKey,
+            @FormParam("ai_model") String aiModel,
+            @FormParam("ai_timeout_seconds") Integer aiTimeoutSeconds,
+            @FormParam("ai_prompt") String aiPrompt,
+            @FormParam("pdf_force_ai") Boolean pdfForceAi,
+            @FormParam("tesseract_path") String tesseractPath) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        String normalizedEngine = Strings.isNullOrEmpty(engine) ? ConfigUtil.DEFAULT_OCR_ENGINE : engine.trim().toLowerCase();
+        if (!"tesseract".equals(normalizedEngine) && !"ollama".equals(normalizedEngine) && !"openai".equals(normalizedEngine)) {
+            throw new ClientException("ValidationError", "Invalid OCR engine: " + normalizedEngine);
+        }
+
+        String normalizedBaseUrl = Strings.isNullOrEmpty(aiBaseUrl) ? ConfigUtil.DEFAULT_OCR_AI_BASE_URL : aiBaseUrl.trim();
+        if (!"tesseract".equals(normalizedEngine)) {
+            try {
+                normalizedBaseUrl = com.sismics.docs.core.util.ocr.AbstractHttpVisionOcrProvider.normalizeBaseUrl(normalizedBaseUrl);
+            } catch (IllegalArgumentException e) {
+                throw new ClientException("ValidationError", e.getMessage());
+            }
+        }
+
+        int timeout = aiTimeoutSeconds == null
+                ? ConfigUtil.DEFAULT_OCR_AI_TIMEOUT_SECONDS
+                : Math.max(10, Math.min(600, aiTimeoutSeconds));
+
+        String normalizedPrompt = Strings.isNullOrEmpty(aiPrompt)
+                ? ConfigUtil.DEFAULT_OCR_AI_PROMPT
+                : aiPrompt.trim();
+
+        ConfigDao configDao = new ConfigDao();
+        configDao.update(ConfigType.OCR_ENGINE, normalizedEngine);
+        configDao.update(ConfigType.OCR_FALLBACK_TESSERACT, Boolean.toString(fallbackTesseract == null || fallbackTesseract));
+        configDao.update(ConfigType.OCR_AI_BASE_URL, normalizedBaseUrl);
+        if (Boolean.TRUE.equals(clearApiKey)) {
+            configDao.update(ConfigType.OCR_AI_API_KEY, "");
+        } else if (!Strings.isNullOrEmpty(aiApiKey)) {
+            configDao.update(ConfigType.OCR_AI_API_KEY, aiApiKey.trim());
+        }
+        configDao.update(ConfigType.OCR_AI_MODEL, Strings.nullToEmpty(aiModel).trim());
+        configDao.update(ConfigType.OCR_AI_TIMEOUT_SECONDS, Integer.toString(timeout));
+        configDao.update(ConfigType.OCR_AI_PROMPT, normalizedPrompt);
+        configDao.update(ConfigType.OCR_PDF_FORCE_AI, Boolean.toString(Boolean.TRUE.equals(pdfForceAi)));
+        configDao.update(ConfigType.OCR_TESSERACT_PATH, Strings.nullToEmpty(tesseractPath).trim());
+        ConfigUtil.resetCache();
+
+        return Response.ok().entity(Json.createObjectBuilder().add("status", "ok").build()).build();
+    }
+
+    /**
+     * Test AI OCR connectivity and list available models.
+     */
+    @POST
+    @Path("ocr/test")
+    public Response testOcrConnection(
+            @FormParam("engine") String engine,
+            @FormParam("ai_base_url") String aiBaseUrl,
+            @FormParam("ai_api_key") String aiApiKey,
+            @FormParam("clear_api_key") Boolean clearApiKey,
+            @FormParam("ai_model") String aiModel,
+            @FormParam("ai_timeout_seconds") Integer aiTimeoutSeconds) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        ConfigUtil.OcrConfig current = ConfigUtil.getOcrConfig();
+        String normalizedEngine = Strings.isNullOrEmpty(engine) ? current.getEngine() : engine.trim().toLowerCase();
+        String effectiveKey = Boolean.TRUE.equals(clearApiKey)
+                ? ""
+                : (!Strings.isNullOrEmpty(aiApiKey) ? aiApiKey.trim() : current.getAiApiKey());
+        String effectiveUrl = Strings.isNullOrEmpty(aiBaseUrl) ? current.getAiBaseUrl() : aiBaseUrl.trim();
+        String effectiveModel = Strings.nullToEmpty(aiModel).trim();
+        int timeout = aiTimeoutSeconds == null ? current.getAiTimeoutSeconds() : Math.max(10, Math.min(600, aiTimeoutSeconds));
+
+        ConfigUtil.OcrConfig testConfig = new ConfigUtil.OcrConfig(
+                true,
+                normalizedEngine,
+                false,
+                effectiveUrl,
+                effectiveKey,
+                effectiveModel,
+                timeout,
+                current.getAiPrompt(),
+                false,
+                current.getTesseractPath()
+        );
+
+        JsonObjectBuilder response = Json.createObjectBuilder();
+        try {
+            List<String> models = com.sismics.docs.core.util.ocr.OcrService.listModels(testConfig);
+            JsonArrayBuilder modelsArray = Json.createArrayBuilder();
+            boolean modelFound = Strings.isNullOrEmpty(effectiveModel);
+            for (String m : models) {
+                modelsArray.add(m);
+                if (!Strings.isNullOrEmpty(effectiveModel) && m.equalsIgnoreCase(effectiveModel)) {
+                    modelFound = true;
+                }
+            }
+            response.add("ok", true)
+                    .add("models", modelsArray)
+                    .add("model_found", modelFound);
+        } catch (Exception e) {
+            response.add("ok", false)
+                    .add("models", Json.createArrayBuilder())
+                    .add("model_found", false)
+                    .add("error", Strings.nullToEmpty(e.getMessage()));
+        }
+        return Response.ok().entity(response.build()).build();
     }
 
     /**
