@@ -286,6 +286,7 @@ public class AppResource extends BaseResource {
                 ? ConfigUtil.DEFAULT_OCR_AI_TIMEOUT_SECONDS
                 : Math.max(10, Math.min(600, aiTimeoutSeconds));
 
+        aiPrompt = ValidationUtil.validateLength(aiPrompt, "ai_prompt", 0, 2000, true);
         String normalizedPrompt = Strings.isNullOrEmpty(aiPrompt)
                 ? ConfigUtil.DEFAULT_OCR_AI_PROMPT
                 : aiPrompt.trim();

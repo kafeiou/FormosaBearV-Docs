@@ -46,6 +46,7 @@ public class TestOcrService {
         server.createContext("/api/chat", exchange -> {
             String reqBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             Assert.assertTrue(reqBody.contains("\"model\":\"qwen2.5vl:7b\""));
+            Assert.assertTrue(reqBody.contains("\"role\":\"system\""));
             Assert.assertTrue(reqBody.contains("\"images\":["));
             byte[] body = "{\"message\":{\"role\":\"assistant\",\"content\":\"台灣銀行 測試文件 123\"}}"
                     .getBytes(StandardCharsets.UTF_8);
@@ -88,6 +89,7 @@ public class TestOcrService {
         });
         server.createContext("/v1/chat/completions", exchange -> {
             String reqBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            Assert.assertTrue(reqBody.contains("\"role\":\"system\""));
             Assert.assertTrue(reqBody.contains("data:image/png;base64,"));
             byte[] body = "{\"choices\":[{\"message\":{\"content\":\"OpenAI Vision Result\"}}]}"
                     .getBytes(StandardCharsets.UTF_8);
@@ -119,6 +121,18 @@ public class TestOcrService {
     @Test(expected = IllegalArgumentException.class)
     public void testRejectsNonHttpBaseUrl() {
         AbstractHttpVisionOcrProvider.normalizeBaseUrl("file:///etc/passwd");
+    }
+
+    @Test
+    public void testAllowsIntranetAndLoopbackButBlocksLinkLocalMetadata() throws Exception {
+        Assert.assertNotNull(AbstractHttpVisionOcrProvider.validateOutboundUriForOcr("http://10.192.130.184:11434/api/tags"));
+        Assert.assertNotNull(AbstractHttpVisionOcrProvider.validateOutboundUriForOcr("http://127.0.0.1:11434/api/tags"));
+        try {
+            AbstractHttpVisionOcrProvider.validateOutboundUriForOcr("http://169.254.169.254/latest/meta-data/");
+            Assert.fail("Expected link-local cloud metadata address to be blocked");
+        } catch (java.io.IOException e) {
+            Assert.assertTrue(e.getMessage().contains("forbidden address"));
+        }
     }
 
     @Test
