@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} подпапок",
       "filter_placeholder": "Фильтровать документы или файлы в этом теге...",
       "no_documents": "Нет документов, связанных с этим тегом",
-      "no_files_in_doc": "К этому документу не прикреплены файлы"
+      "no_files_in_doc": "К этому документу не прикреплены файлы",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Теги",

@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} подознака(е)",
       "filter_placeholder": "Филтрирај документе или датотеке у овој ознаци...",
       "no_documents": "Нема докумената повезаних са овом ознаком",
-      "no_files_in_doc": "Нема приложених датотека у овом документу"
+      "no_files_in_doc": "Нема приложених датотека у овом документу",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Ознаке",

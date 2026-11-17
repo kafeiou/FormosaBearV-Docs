@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} podfolder(y/ów)",
       "filter_placeholder": "Filtruj dokumenty lub pliki w tej etykiecie...",
       "no_documents": "Brak dokumentów powiązanych z tą etykietą",
-      "no_files_in_doc": "Brak plików dołączonych do tego dokumentu"
+      "no_files_in_doc": "Brak plików dołączonych do tego dokumentu",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Etykiety",

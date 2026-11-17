@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} sotto-cartelle",
       "filter_placeholder": "Filtra documenti o file in questo tag...",
       "no_documents": "Nessun documento associato a questo tag",
-      "no_files_in_doc": "Nessun file allegato a questo documento"
+      "no_files_in_doc": "Nessun file allegato a questo documento",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Tag",

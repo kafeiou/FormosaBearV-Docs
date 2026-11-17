@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} subpasta(s)",
       "filter_placeholder": "Filtrar documentos ou ficheiros nesta etiqueta...",
       "no_documents": "Nenhum documento associado a esta etiqueta",
-      "no_files_in_doc": "Nenhum ficheiro anexado a este documento"
+      "no_files_in_doc": "Nenhum ficheiro anexado a este documento",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Etiquetas",

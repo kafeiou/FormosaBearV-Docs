@@ -288,7 +288,10 @@
       "subtag_count": "下一層有 {{ count }} 個子目錄",
       "filter_placeholder": "在此標籤內搜尋文件或檔案...",
       "no_documents": "此標籤下尚無關聯文件",
-      "no_files_in_doc": "此文件尚無附屬檔案"
+      "no_files_in_doc": "此文件尚無附屬檔案",
+      "focus": "專注此標籤",
+      "show_all": "顯示全部",
+      "focus_new_tab": "於新分頁專注開啟此標籤"
     },
     "default": {
       "title": "標籤",

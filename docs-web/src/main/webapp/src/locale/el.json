@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} υπο-φάκελος(οι)",
       "filter_placeholder": "Φιλτράρισμα εγγράφων ή αρχείων σε αυτήν την ετικέτα...",
       "no_documents": "Δεν υπάρχουν έγγραφα συσχετισμένα με αυτήν την ετικέτα",
-      "no_files_in_doc": "Δεν υπάρχουν συνημμένα αρχεία σε αυτό το έγγραφο"
+      "no_files_in_doc": "Δεν υπάρχουν συνημμένα αρχεία σε αυτό το έγγραφο",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Ετικέτες",

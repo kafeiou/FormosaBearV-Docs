@@ -288,7 +288,10 @@
       "subtag_count": "下一层有 {{ count }} 个子目录",
       "filter_placeholder": "在此标签内搜索文档或文件...",
       "no_documents": "此标签下尚无关联文档",
-      "no_files_in_doc": "此文档尚无附属文件"
+      "no_files_in_doc": "此文档尚无附属文件",
+      "focus": "专注此标签",
+      "show_all": "显示全部",
+      "focus_new_tab": "在新标签页专注打开此标签"
     },
     "default": {
       "title": "标签",

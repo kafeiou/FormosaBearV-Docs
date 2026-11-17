@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} Unterordner",
       "filter_placeholder": "Dokumente oder Dateien innerhalb dieses Tags filtern...",
       "no_documents": "Keine Dokumente mit diesem Tag verknüpft",
-      "no_files_in_doc": "Keine Dateien an dieses Dokument angehängt"
+      "no_files_in_doc": "Keine Dateien an dieses Dokument angehängt",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Tags",

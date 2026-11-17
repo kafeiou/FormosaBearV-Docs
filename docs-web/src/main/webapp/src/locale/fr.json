@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} sous-dossier(s)",
       "filter_placeholder": "Filtrer les documents ou fichiers dans ce tag...",
       "no_documents": "Aucun document associé à ce tag",
-      "no_files_in_doc": "Aucun fichier joint à ce document"
+      "no_files_in_doc": "Aucun fichier joint à ce document",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Tags",

@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} nën-dosje",
       "filter_placeholder": "Filtro dokumentet ose skedarët brenda kësaj etikete...",
       "no_documents": "Asnjë dokument i lidhur me këtë etiketë",
-      "no_files_in_doc": "Asnjë skedar i bashkangjitur këtij dokumenti"
+      "no_files_in_doc": "Asnjë skedar i bashkangjitur këtij dokumenti",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Etiketa",

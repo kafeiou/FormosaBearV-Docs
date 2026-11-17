@@ -288,7 +288,10 @@
       "subtag_count": "{{ count }} thư mục con",
       "filter_placeholder": "Lọc tài liệu hoặc tập tin trong thẻ này...",
       "no_documents": "Không có tài liệu nào liên kết với thẻ này",
-      "no_files_in_doc": "Không có tập tin nào đính kèm với tài liệu này"
+      "no_files_in_doc": "Không có tập tin nào đính kèm với tài liệu này",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "Thẻ",

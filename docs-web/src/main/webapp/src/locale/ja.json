@@ -288,7 +288,10 @@
       "subtag_count": "子タグ {{ count }} 個",
       "filter_placeholder": "このタグ内のドキュメントやファイルを検索...",
       "no_documents": "このタグに関連付けられたドキュメントはありません",
-      "no_files_in_doc": "このドキュメントに添付ファイルはありません"
+      "no_files_in_doc": "このドキュメントに添付ファイルはありません",
+      "focus": "Focus Tag",
+      "show_all": "Show All",
+      "focus_new_tab": "Open focused view in new tab"
     },
     "default": {
       "title": "タグ",

@@ -3,7 +3,7 @@
   <div class="clearfix">
     <ol class="breadcrumb breadcrumb-navigation pull-left" style="margin-bottom: 5px; padding-left: 0;">
       <li ng-repeat="bTag in getTagBreadcrumb()" ng-class="{ active: bTag.id == tag.id }">
-        <a class="label" ng-style="{ 'background-color': bTag.color }" invert-text-color="{{ bTag.color }}" ng-if="bTag.id != tag.id" href="#/tag/{{ bTag.id }}" uib-tooltip="{{ getTagTooltip(bTag) }}" tooltip-append-to-body="true">
+        <a class="label" ng-style="{ 'background-color': bTag.color }" invert-text-color="{{ bTag.color }}" ng-if="bTag.id != tag.id" ng-href="{{ getTagBrowseHref(bTag) }}" uib-tooltip="{{ getTagTooltip(bTag) }}" tooltip-append-to-body="true">
           {{ bTag.name }}
         </a>
         <span class="label" ng-style="{ 'background-color': bTag.color }" invert-text-color="{{ bTag.color }}" ng-if="bTag.id == tag.id" style="font-size: 105%;" uib-tooltip="{{ getTagTooltip(bTag) }}" tooltip-append-to-body="true">
@@ -21,7 +21,7 @@
   <div class="mb-10" ng-if="getChildrenTags(tag.id).length > 0">
     <span class="text-muted small">{{ 'tag.browse.subtags' | translate }}：</span>
     <a ng-repeat="child in getChildrenTags(tag.id)"
-       href="#/tag/{{ child.id }}"
+       ng-href="{{ getTagBrowseHref(child) }}"
        ng-click="onTagClick(child)"
        class="label mr-10"
        ng-style="{ 'background-color': child.color }"

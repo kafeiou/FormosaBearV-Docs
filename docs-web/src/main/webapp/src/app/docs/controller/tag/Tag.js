@@ -3,7 +3,7 @@
 /**
  * Tag controller.
  */
-angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, Restangular, User, $uibModal) {
+angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, $location, Restangular, User, $uibModal) {
   $scope.tag = { name: '', color: '#3a87ad', parent: '' };
   $scope.expandedTags = {};
 
@@ -71,12 +71,78 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
   $scope.loadTags();
 
   $scope.$watch(function() {
-    return $stateParams.id;
-  }, function(newId) {
-    if (newId) {
-      $scope.expandAncestors(newId);
+    return ($scope.getCurrentTagId() || '') + '|' + ($scope.getFocusRootId() || '');
+  }, function() {
+    var currentId = $scope.getCurrentTagId();
+    if (currentId) {
+      $scope.expandAncestors(currentId);
+    }
+    var focusRootId = $scope.getFocusRootId();
+    if (focusRootId) {
+      $scope.expandedTags[focusRootId] = true;
     }
   });
+
+  /**
+   * Returns the currently selected tag ID from UI-Router state params.
+   */
+  $scope.getCurrentTagId = function() {
+    return ($state.params && $state.params.id) || ($rootScope.$stateParams && $rootScope.$stateParams.id) || $stateParams.id || null;
+  };
+
+  /**
+   * Returns the active focus-mode root tag ID, or null when viewing all tags.
+   */
+  $scope.getFocusRootId = function() {
+    var search = $location.search() || {};
+    var focus = search.focus || ($state.params && $state.params.focus) || ($rootScope.$stateParams && $rootScope.$stateParams.focus) || null;
+    if (!focus || focus === true) {
+      return focus === true ? $scope.getCurrentTagId() : null;
+    }
+    if (focus === '1' || focus === 'true') {
+      return $scope.getCurrentTagId();
+    }
+    return focus;
+  };
+
+  $scope.isFocusMode = function() {
+    return !!$scope.getFocusRootId();
+  };
+
+  $scope.getBrowseRootTags = function() {
+    var focusRootId = $scope.getFocusRootId();
+    if (focusRootId) {
+      var focusTag = _.findWhere($scope.tags, { id: focusRootId });
+      if (focusTag) {
+        return [focusTag];
+      }
+    }
+    return $scope.getChildrenTags();
+  };
+
+  $scope.getTagBrowseHref = function(tag) {
+    if (!tag) {
+      return '#/tag';
+    }
+    var focusRootId = $scope.getFocusRootId();
+    if (focusRootId) {
+      return '#/tag/' + tag.id + '?focus=' + encodeURIComponent(focusRootId);
+    }
+    return '#/tag/' + tag.id;
+  };
+
+  $scope.toggleFocusMode = function() {
+    var currentId = $scope.getCurrentTagId();
+    if (!currentId) {
+      return;
+    }
+    if ($scope.isFocusMode()) {
+      $location.search('focus', null);
+    } else {
+      $scope.expandedTags[currentId] = true;
+      $location.search('focus', currentId);
+    }
+  };
 
   /**
    * Add a tag.

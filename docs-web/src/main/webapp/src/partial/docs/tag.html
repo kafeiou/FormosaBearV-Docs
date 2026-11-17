@@ -11,7 +11,7 @@
     <span ng-if="tag.is_container" class="text-muted" uib-tooltip="{{ 'tag.container_tooltip' | translate }}" style="cursor: not-allowed; font-weight: normal;">
       {{ tag.name }}
     </span>
-    <a ng-if="!tag.is_container" href="#/tag/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }"
+    <a ng-if="!tag.is_container" ng-href="{{ getTagBrowseHref(tag) }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }"
        uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
       {{ tag.name }}
     </a>
@@ -37,13 +37,30 @@
           <span class="fas fa-tags"></span> {{ 'tag.browse.tree_title' | translate }}
         </span>
         <div class="btn-group btn-group-xs pull-right">
-          <button type="button" class="btn btn-primary" ng-click="openTagExportModal()" uib-tooltip="{{ 'tag.export.button' | translate }}">
+          <button type="button" class="btn" ng-if="getCurrentTagId()"
+                  ng-class="{ 'btn-info': !isFocusMode(), 'btn-warning': isFocusMode() }"
+                  ng-click="toggleFocusMode()"
+                  uib-tooltip="{{ (isFocusMode() ? 'tag.browse.show_all' : 'tag.browse.focus') | translate }}"
+                  tooltip-append-to-body="true">
+            <span class="fas" ng-class="{ 'fa-bullseye': !isFocusMode(), 'fa-undo': isFocusMode() }"></span>
+            {{ (isFocusMode() ? 'tag.browse.show_all' : 'tag.browse.focus') | translate }}
+          </button>
+          <a class="btn btn-default" ng-if="getCurrentTagId()"
+             ng-href="#/tag/{{ getCurrentTagId() }}?focus={{ getCurrentTagId() }}" target="_blank" rel="noopener noreferrer"
+             uib-tooltip="{{ 'tag.browse.focus_new_tab' | translate }}"
+             tooltip-append-to-body="true">
+            <span class="fas fa-external-link-alt"></span>
+          </a>
+          <button type="button" class="btn btn-primary" ng-click="openTagExportModal()"
+                  uib-tooltip="{{ 'tag.export.button' | translate }}" tooltip-append-to-body="true">
             <span class="fas fa-file-export"></span> {{ 'tag.export.button' | translate }}
           </button>
-          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="expandAllTags()" uib-tooltip="{{ 'tag.expand_all' | translate }}">
+          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="expandAllTags()"
+                  uib-tooltip="{{ 'tag.expand_all' | translate }}" tooltip-append-to-body="true">
             <span class="fas fa-plus-square"></span> {{ 'tag.expand_all' | translate }}
           </button>
-          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="collapseAllTags()" uib-tooltip="{{ 'tag.collapse_all' | translate }}">
+          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="collapseAllTags()"
+                  uib-tooltip="{{ 'tag.collapse_all' | translate }}" tooltip-append-to-body="true">
             <span class="fas fa-minus-square"></span> {{ 'tag.collapse_all' | translate }}
           </button>
         </div>
@@ -54,7 +71,7 @@
       </p>
 
       <ul class="tag-tree">
-        <li ng-repeat="tag in getChildrenTags()" ng-include="'tag-browse-tree-item'"></li>
+        <li ng-repeat="tag in getBrowseRootTags()" ng-include="'tag-browse-tree-item'"></li>
       </ul>
 
       <div class="well-3d-background">

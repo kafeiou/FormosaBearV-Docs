@@ -57,7 +57,7 @@ angular.module('docs',
       }
     })
     .state('tag.view', {
-      url: '/:id',
+      url: '/:id?focus',
       views: {
         'tag': {
           templateUrl: 'partial/docs/tag.view.html',
