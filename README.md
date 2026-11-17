@@ -8,6 +8,8 @@
 
 > **Fork Notice**: This repository is forked from [https://github.com/sismics/docs](https://github.com/sismics/docs) (version `1.12`), modernized and maintained independently starting from version **`2.01`**.
 
+![FormosaBearV Login](docs-web/src/main/resources/image/login.png)
+
 ## Features
 
 - **Modern Architecture & Portable Deployment**: Built on Java 21 (LTS) and Eclipse Jetty 12, supporting standard WAR deployment, Docker containers, and a zero-install Standalone Portable Edition.

@@ -8,6 +8,8 @@
 
 > **分支說明 (Fork Notice)**：本專案分支出自 [https://github.com/sismics/docs](https://github.com/sismics/docs) (版本 `1.12`)，自 **`2.01`** 起進行全面現代化架構重構與獨立維護。
 
+![FormosaBearV 登入畫面](docs-web/src/main/resources/image/login.png)
+
 ## 核心功能特色
 
 - **現代化架構與跨平台免安裝部署**：基於 Java 21 (LTS) 與 Eclipse Jetty 12 打造，支援標準 WAR、Docker 容器化與免安裝可攜綠色版（Portable Edition）即開即用。
