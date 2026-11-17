@@ -11,15 +11,15 @@
 ## Features
 
 - **Modern Architecture & Portable Deployment**: Built on Java 21 (LTS) and Eclipse Jetty 12, supporting standard WAR deployment, Docker containers, and a zero-install Standalone Portable Edition.
-- **Multi-Format & Interactive Office Previews**: Supports images, videos, PDF, ODT, DOCX, and PPTX with in-browser multi-page previewing, dynamic anti-leak watermark overlay, and bundled Pan-CJK font rendering.
-- **Full-Text Search & OCR**: Powered by Apache Lucene (with instant suggestions and highlighting) and integrated Tesseract Optical Character Recognition.
+- **Multi-Format & Interactive Office Previews**: Supports images, videos, PDF, ODT, DOCX, PPTX, Markdown, HTML, and plain text with in-browser previewing, dynamic anti-leak watermark overlay, and bundled Pan-CJK font rendering.
+- **Full-Text Search & Extensible AI OCR**: Powered by Apache Lucene (with instant suggestions and highlighting) and an extensible OCR pipeline supporting local Tesseract, Ollama Vision AI, and OpenAI-compatible Vision APIs with smart per-page PDF text detection and automatic fallback.
 - **Hierarchical Tags, Permission Inheritance & Report Export**: Multi-level nested tag tree navigation with automatic ancestor permission inheritance, customizable security boundaries, and hierarchical tag report/archive export (PDF, HTML, Excel, and JSON ZIP).
 - **Granular Document, Share & Download Security**: User/group access control, system-wide and per-document download authorization controls, share-level export restrictions (allowing view-only access while preventing file or PDF exfiltration), and 256-bit AES storage encryption.
 - **Enterprise Authentication & Offboarding Governance**: Supports internal authentication, multi-LDAP directory failover integration with LDAPS/STARTTLS and connection testing, Two-Factor Authentication (TOTP), instant session revocation on account deactivation, and one-click asset and permission handover.
 - **Full System Backup, Restore & Migration**: Streaming full-system ZIP backup and restore with cross-database migration support between H2 and PostgreSQL.
-- **Document Lifecycle & Collaboration**: File versioning with custom version labels, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas (including unlimited quota support), and URL sharing.
+- **Document Lifecycle, Trash & Collaboration**: File versioning with custom version labels, Trash / Recycle Bin recovery, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas (including unlimited quota support), and URL sharing.
 - **Automated Import & Integration**: EML email import, automated IMAP inbox scanning, customizable SMTP notifications, RESTful Web API, and outgoing Webhooks.
-- **Multilingual User Interface**: Comprehensive internationalization covering 15 languages (English, French, German, Spanish, Italian, Portuguese, Polish, Russian, Greek, Albanian, Serbian, Japanese, Vietnamese, Traditional Chinese, and Simplified Chinese).
+- **Multilingual User Interface**: Comprehensive internationalization covering 16 languages (English, French, German, Spanish, Italian, Portuguese, Brazilian Portuguese, Polish, Russian, Greek, Albanian, Serbian, Japanese, Vietnamese, Traditional Chinese, and Simplified Chinese).
 
 ## Building and Running from Source
 

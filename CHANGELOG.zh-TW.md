@@ -11,6 +11,21 @@
 > **基準點**: `v2.07` (`34b41713`) ➜ `v2.08-SNAPSHOT`
 
 ### 新增功能 (Added)
+- **可擴充 AI 視覺辨識 OCR 與 PDF 逐頁智慧偵測（`OcrService`、`OllamaOcrProvider`、`OpenAiCompatibleOcrProvider`、`TesseractOcrProvider`）**：
+  - 將 `FileUtil.ocrFile` 重構為策略模式（`OcrProvider`／`OcrService`），未來新增其他 AI 或雲端辨識服務時無須修改文件與圖片處理核心。
+  - 內建支援 **Ollama Vision**（`/api/chat` 與 `/api/tags`）與 **OpenAI 相容 Vision API**（`/v1/chat/completions` 與 `/v1/models`，支援 Bearer API Key，可對接 vLLM、LM Studio、llama.cpp、OpenAI、Gemini 等），送圖長邊自動縮放至 ≤1536px 以降低 VRAM／記憶體消耗並預防 OOM。
+  - 強化 `TesseractOcrProvider`，於 Windows 環境未將 `tesseract` 加入 `PATH` 時自動偵測預設安裝路徑（Linux／Docker 維持直接走系統 `PATH`），並支援自訂執行檔路徑。
+  - 升級 `PdfFormatHandler` 為**逐頁文字品質偵測**（自動剔除空白頁、純頁碼雜訊與 `\uFFFD` 亂碼頁），乾淨的內嵌文字頁直接沿用、無效或純圖頁自動送交 OCR；另提供「強制所有 PDF 頁面使用 AI OCR」開關，並在 AI OCR 失敗（如 Ollama OOM）時依序自動降級為 Tesseract 與 PDF 內嵌文字提取雙重保底。
+  - 修復在「新增文件」尚未存檔前上傳檔案（`language == null`）時 `FileResource.add`／`PdfFormatHandler`／`ImageFormatHandler` 跳過 OCR 的問題，改以 `ConfigType.DEFAULT_LANGUAGE` 補位。
+  - 於「一般設定」新增 OCR 引擎切換、測試連線／讀取模型清單（`POST /api/app/ocr/config`、`POST /api/app/ocr/test`）與完整 16 國語系翻譯。
+- **巴西葡萄牙語（`pt_BR`）介面語系** — 參照上游議題 [`sismics/docs#779`](https://github.com/sismics/docs/issues/779)：
+  - 新增符合巴西葡萄牙語語法與慣用詞彙的 `pt_BR.json` 及地區格式 `angular-locale_pt_BR.js`，於 `docs/app.js`、`share/app.js` 與 `LocaleUtil.java` 註冊，並於語系切換選單加入 `Português (Brasil)`。
+- **停用帳號搜尋權限過濾與管理者刪除線顯示**：
+  - 更新 `UserCriteria`／`UserDao.findByCriteria`、`UserResource.list` 與 `AclResource.targetList`，非管理員無法搜尋或列出已停用帳號；管理員仍可檢索並於 `usergroup.html`、`Acl.js`、`settings.group.edit.html` 與 `document.html` 以刪除線樣式區別標示。
+- **FormosaBearV 台灣黑熊吉祥物 Logo 改版與設計理念（`logo.png`、`title.png`、`icons/*`）**：
+  - **設計理念**：為擺脫市面上常見扁平大頭黑熊圖示容易撞臉的問題，重新將品牌核心「台灣意象 × 知識典藏與檢索」融入視覺敘事——描繪一隻戴著金色圓框老學究眼鏡的**台灣黑熊**側影（保留胸前標誌性白色 V 字），正踏上木梯從書架高處取下一本亮橘黃色書籍。同時考量 32×32～64×64 導覽列與 PWA 小圖示的可讀性，刻意將構圖極簡化為「單條書架橫線、單本亮色書、兩階粗木梯與放大比例的黑熊主體」，兼顧故事性與小尺寸辨識度。
+- **頁尾版本號與專案連結優化**：
+  - 移除 `index.html` 與 `share.html` 頁尾 `API 說明文件` 連結，並將 `v{{ app.current_version }}` 設為連往 `https://github.com/kafeiou/FormosaBearV-Docs` 的外部連結。
 - **垃圾桶功能（`#/trash` 與 `/api/trash`）**：
   - 將系統軟刪除暫存機制（`ConfigType.FILE_DELETE` / `delete/storage/`）與全新「垃圾桶」管理介面（`#/trash`）及 REST API（`TrashResource`）完整打通。
   - 支援分頁檢視「已刪除的文件」與「已刪除的檔案」（單獨被刪除的附件或歷史版本），提供一鍵還原、單筆永久刪除與「清空垃圾桶」（`DELETE /api/trash/empty`），並支援管理員切換檢視全系統所有使用者的垃圾桶項目。
@@ -29,6 +44,10 @@
 ### 安全性修正 (Security)
 - **修復 `tag_editor` 群組誤授 `ADMIN` 權限之提權漏洞（`dbupdate-043-0.sql`）**：
   - 移除 `tag_editor` 群組原本錯誤綁定的 `GRP_IDROLE_C = 'admin'` 角色，確保僅加入 `tag_editor` 的一般帳號不會再繼承 `BaseFunction.ADMIN` 最高系統管理員權限（可編輯 `administrators` 或修改系統設定），同時保留其原有的「標籤管理」與「檔案靜默抽換」權限，並於 `GroupResource` 明確保護 `tag_editor` 不被刪除。
+
+### 問題修正 (Fixed)
+- **修復暫存檔清理 `NoSuchFileException` 例外（`FileService.deleteTemporaryFiles`）**：
+  - 改用 `Files.deleteIfExists` 並將 `referenceSet.remove(ref)` 置於 `finally` 區塊，避免 OCR 或檔案處理器提早刪除暫存檔時造成背景排程噴錯。
 
 ---
 

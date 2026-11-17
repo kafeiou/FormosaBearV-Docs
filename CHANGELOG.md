@@ -11,6 +11,21 @@ This document details the notable changes, security enhancements, architecture i
 > **Baseline**: `v2.07` (`34b41713`) ➜ `v2.08-SNAPSHOT`
 
 ### Added
+- **Extensible AI Vision OCR & Smart Per-Page PDF Recognition (`OcrService`, `OllamaOcrProvider`, `OpenAiCompatibleOcrProvider`, `TesseractOcrProvider`)**:
+  - Refactored `FileUtil.ocrFile` into a strategy-based `OcrProvider` / `OcrService` architecture so new AI/OCR engines can be plugged in without touching document/image handlers.
+  - Added **Ollama Vision** (`/api/chat` & `/api/tags`) and **OpenAI-Compatible Vision** (`/v1/chat/completions` & `/v1/models` with Bearer API Key support for vLLM, LM Studio, llama.cpp, OpenAI, Gemini, etc.) providers, scaling images to at most 1536px on the longest edge to reduce VRAM/RAM usage and prevent OOM errors.
+  - Enhanced `TesseractOcrProvider` to auto-detect standard Windows Tesseract installation paths when not on `PATH` (while keeping `/usr/bin/tesseract` PATH resolution on Linux/Docker) and support an optional custom executable path.
+  - Upgraded `PdfFormatHandler` to perform **per-page text usability checks** (rejecting empty pages, lone page-number noise, and garbled `\uFFFD` CMap characters) so clean embedded PDF text is reused while image-only or garbled pages are sent to OCR, plus an optional **Force AI OCR on all PDF pages** toggle with automatic fallback to Tesseract and last-resort fallback to embedded PDF text if AI OCR fails (e.g. Ollama OOM).
+  - Fixed `FileResource.add` / `PdfFormatHandler` / `ImageFormatHandler` skipping OCR when files are uploaded before attaching to a document (`language == null`), falling back to `ConfigType.DEFAULT_LANGUAGE`.
+  - Added General Settings OCR configuration UI (`POST /api/app/ocr/config`, `POST /api/app/ocr/test` connection & model discovery) and localized all 16 locales.
+- **Brazilian Portuguese (`pt_BR`) UI Locale** — Referenced [`sismics/docs#779`](https://github.com/sismics/docs/issues/779):
+  - Added `pt_BR.json` (authentic Brazilian Portuguese terminology and grammar) and `angular-locale_pt_BR.js`, registered `pt_BR` in `docs/app.js`, `share/app.js`, and `LocaleUtil.java`, and added `Português (Brasil)` to language selectors.
+- **Disabled User Search Filtering & Admin Strikethrough UI**:
+  - Updated `UserCriteria` / `UserDao.findByCriteria`, `UserResource.list`, and `AclResource.targetList` so disabled users (`USE_DISABLEDATE_D is not null`) are excluded for non-admin users, while administrators continue to see them with `disabled: true` and strikethrough rendering across `usergroup.html`, `Acl.js`, `settings.group.edit.html`, and `document.html`.
+- **FormosaBearV Scholar Bear Mascot Logo Redesign & Design Philosophy (`logo.png`, `title.png`, `icons/*`)**:
+  - **Design Philosophy**: Redesigned the brand icon to move away from generic flat bear-head silhouettes and tell the core story of **FormosaBearV** as a Taiwanese knowledge archive — depicting a side-profile **Taiwan Black Bear** (with its signature white V-shaped chest crescent) wearing round gold-rimmed scholar spectacles and climbing a wooden library ladder to retrieve a bright amber book from a shelf. To ensure crisp legibility even at 32×32–64×64 navbar and PWA icon sizes, the scene was distilled into ultra-minimalist, high-contrast geometry (a single shelf line, one bright book, a chunky 2-rung ladder, and an oversized bear silhouette).
+- **Footer Repository Link Update**:
+  - Replaced the footer `apidoc/` link in `index.html` and `share.html` with a cleaner `v{{ app.current_version }}` hyperlink pointing to `https://github.com/kafeiou/FormosaBearV-Docs`.
 - **Trash / Recycle Bin (`#/trash` & `/api/trash`)**:
   - Integrated the soft-delete storage mechanism (`ConfigType.FILE_DELETE` / `delete/storage/`) with a dedicated Trash management page (`#/trash`) and REST API (`TrashResource`).
   - Added tabbed views for **Deleted Documents** and **Deleted Files** (standalone/individually deleted attachments and historical versions), supporting one-click restore, permanent single-item purge, and Empty Trash (`DELETE /api/trash/empty`), plus an admin toggle to inspect all users' Trash items.
@@ -29,6 +44,10 @@ This document details the notable changes, security enhancements, architecture i
 ### Security
 - **Fix Unintended `ADMIN` Privilege Escalation on `tag_editor` Group (`dbupdate-043-0.sql`)**:
   - Removed `GRP_IDROLE_C = 'admin'` from the `tag_editor` group so members assigned solely to `tag_editor` no longer inherit `BaseFunction.ADMIN` (previously allowing them to edit `administrators`, modify system settings, and manage users/groups), while preserving tag management and file swap capabilities via group membership checks and explicitly protecting `tag_editor` from deletion.
+
+### Fixed
+- **Temporary File Cleanup `NoSuchFileException` (`FileService.deleteTemporaryFiles`)**:
+  - Switched `Files.delete` to `Files.deleteIfExists` with `referenceSet.remove(ref)` in a `finally` block so early cleanup by OCR/file handlers no longer logs errors during periodic `FileService` sweeps.
 
 ---
 
