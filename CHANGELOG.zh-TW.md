@@ -6,11 +6,13 @@
 
 ---
 
-## [v2.08-SNAPSHOT] - WIP
+## [v2.08] - 2026-11-17
 
-> **基準點**: `v2.07` (`34b41713`) ➜ `v2.08-SNAPSHOT`
+> **基準點**: `v2.07` (`34b41713`) ➜ `v2.08`
 
 ### 新增功能 (Added)
+- **單一標籤專注檢視模式（`#/tag/:id?focus`）**：
+  - 於 `tag.html` 左側標籤樹工具列「匯出報表」左邊新增 **「專注此標籤／顯示全部」** 切換按鈕與 **「於新分頁專注開啟」** 連結，支援透過 `?focus=<tagId>` 在專注子樹內自由瀏覽子標籤、文件與預覽檔案。
 - **可擴充 AI 視覺辨識 OCR 與 PDF 逐頁智慧偵測（`OcrService`、`OllamaOcrProvider`、`OpenAiCompatibleOcrProvider`、`TesseractOcrProvider`）**：
   - 將 `FileUtil.ocrFile` 重構為策略模式（`OcrProvider`／`OcrService`），未來新增其他 AI 或雲端辨識服務時無須修改文件與圖片處理核心。
   - 內建支援 **Ollama Vision**（`/api/chat` 與 `/api/tags`）與 **OpenAI 相容 Vision API**（`/v1/chat/completions` 與 `/v1/models`，支援 Bearer API Key，可對接 vLLM、LM Studio、llama.cpp、OpenAI、Gemini 等），送圖長邊自動縮放至 ≤1536px 以降低 VRAM／記憶體消耗並預防 OOM。

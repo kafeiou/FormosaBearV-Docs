@@ -6,11 +6,13 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
-## [v2.08-SNAPSHOT] - WIP
+## [v2.08] - 2026-11-17
 
-> **Baseline**: `v2.07` (`34b41713`) ➜ `v2.08-SNAPSHOT`
+> **Baseline**: `v2.07` (`34b41713`) ➜ `v2.08`
 
 ### Added
+- **Single-Tag Focus Mode (`#/tag/:id?focus`)**:
+  - Added **Focus Tag / Show All** toggle and **Open focused view in new tab** button next to **Export Report** in `tag.html`, preserving `?focus` across `Tag`, `TagView`, and `FileView` so users can browse a single tag subtree, its documents, and file previews without visual clutter.
 - **Extensible AI Vision OCR & Smart Per-Page PDF Recognition (`OcrService`, `OllamaOcrProvider`, `OpenAiCompatibleOcrProvider`, `TesseractOcrProvider`)**:
   - Refactored `FileUtil.ocrFile` into a strategy-based `OcrProvider` / `OcrService` architecture so new AI/OCR engines can be plugged in without touching document/image handlers.
   - Added **Ollama Vision** (`/api/chat` & `/api/tags`) and **OpenAI-Compatible Vision** (`/v1/chat/completions` & `/v1/models` with Bearer API Key support for vLLM, LM Studio, llama.cpp, OpenAI, Gemini, etc.) providers, scaling images to at most 1536px on the longest edge to reduce VRAM/RAM usage and prevent OOM errors.

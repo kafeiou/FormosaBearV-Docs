@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.07)
+# FormosaBearV (v2.08)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -46,10 +46,10 @@ mvn clean package -DskipTests
 ```
 *(or `mvn clean install -DskipTests`)*
 
-This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.07.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
+This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.08.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
 
 ```text
-docs-web/target/docs-web-2.07.war
+docs-web/target/docs-web-2.08.war
 ```
 
 ### Build Standalone Portable Edition (No Docker Required)
@@ -67,7 +67,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 This automatically downloads the base Jetty 12 ZIP into `tools/jetty/` if absent, compiles the WAR, assembles all modules, and outputs:
 
 ```text
-target/FormosaBearV-docs-2.07-portable.zip
+target/FormosaBearV-docs-2.08-portable.zip
 ```
 
 Simply unzip this package on any computer with Java 21 and run `start.bat` or `./start.sh`!
@@ -91,7 +91,7 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # Step 2: Build the Docker image (or use docker compose)
-docker build -t formosabearv-docs:2.07 .
+docker build -t formosabearv-docs:2.08 .
 ```
 
 A `Dockerfile` is included to build a self-contained container image with OpenJDK 21, Jetty 12.1 (`ee10`), Tesseract OCR, `ffmpeg`, and `mediainfo`, listening on port `8080`.

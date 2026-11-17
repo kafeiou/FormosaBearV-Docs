@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.07)
+# FormosaBearV (v2.08)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -46,10 +46,10 @@ mvn clean package -DskipTests
 ```
 *(或執行 `mvn clean install -DskipTests`)*
 
-本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-2.07.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
+本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-2.08.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
 
 ```text
-docs-web/target/docs-web-2.07.war
+docs-web/target/docs-web-2.08.war
 ```
 
 ### 打包免安裝可攜綠色版（無需 Docker）
@@ -67,7 +67,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 此腳本會自動讀取 `tools/jetty/` 專案基底 Jetty 12 ZIP（缺少時自動從 Maven 中央倉庫下載），自動編譯 WAR 並組裝所有模組與腳本，最終產出：
 
 ```text
-target/FormosaBearV-docs-2.07-portable.zip
+target/FormosaBearV-docs-2.08-portable.zip
 ```
 
 解壓後只要電腦有安裝 Java 21，雙擊 `start.bat`（或執行 `./start.sh`）即可直接秒速啟動！
@@ -91,7 +91,7 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # 第二步：建置 Docker 映像檔（或直接使用 docker compose）
-docker build -t formosabearv-docs:2.07 .
+docker build -t formosabearv-docs:2.08 .
 ```
 
 專案內建 `Dockerfile`，包含 OpenJDK 21、Jetty 12.1 (`ee10`)、Tesseract OCR、`ffmpeg` 與 `mediainfo`，預設接聽 `8080` 連接埠。
