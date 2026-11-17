@@ -330,8 +330,12 @@ public class ConfigUtil {
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             url = "http://" + url;
         }
-        // Strip trailing slashes
-        url = url.replaceAll("/+$", "");
+        // Strip trailing slashes in linear time
+        int end = url.length();
+        while (end > 0 && url.charAt(end - 1) == '/') {
+            end--;
+        }
+        url = url.substring(0, end);
         return url;
     }
 

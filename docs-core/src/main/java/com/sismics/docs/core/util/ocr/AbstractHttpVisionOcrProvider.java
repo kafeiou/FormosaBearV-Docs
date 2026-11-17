@@ -42,7 +42,12 @@ public abstract class AbstractHttpVisionOcrProvider implements OcrProvider {
         if (Strings.isNullOrEmpty(baseUrl)) {
             throw new IllegalArgumentException("AI OCR base URL must not be empty");
         }
-        String trimmed = baseUrl.trim().replaceAll("/+$", "");
+        String trimmed = baseUrl.trim();
+        int end = trimmed.length();
+        while (end > 0 && trimmed.charAt(end - 1) == '/') {
+            end--;
+        }
+        trimmed = trimmed.substring(0, end);
         URI uri = URI.create(trimmed);
         String scheme = uri.getScheme();
         if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
