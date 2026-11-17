@@ -11,7 +11,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -70,14 +72,59 @@ public abstract class AbstractHttpVisionOcrProvider implements OcrProvider {
         }
     }
 
+    private static URI validateOutboundUriForOcr(String url) throws IOException {
+        URI uri;
+        try {
+            uri = URI.create(url);
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid OCR URL: " + e.getMessage(), e);
+        }
+
+        String scheme = uri.getScheme();
+        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+            throw new IOException("Only HTTP/HTTPS OCR URLs are allowed");
+        }
+        if (Strings.isNullOrEmpty(uri.getHost())) {
+            throw new IOException("OCR URL must include a host");
+        }
+        if (!Strings.isNullOrEmpty(uri.getUserInfo())) {
+            throw new IOException("OCR URL must not contain user info");
+        }
+
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(uri.getHost());
+            if (addresses == null || addresses.length == 0) {
+                throw new IOException("OCR host did not resolve");
+            }
+            for (InetAddress address : addresses) {
+                if (isForbiddenAddress(address)) {
+                    throw new IOException("OCR URL points to a forbidden address");
+                }
+            }
+        } catch (UnknownHostException e) {
+            throw new IOException("OCR host is not resolvable", e);
+        }
+
+        return uri;
+    }
+
+    private static boolean isForbiddenAddress(InetAddress address) {
+        return address.isAnyLocalAddress()
+                || address.isLoopbackAddress()
+                || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress()
+                || address.isMulticastAddress();
+    }
+
     /**
      * Sends an HTTP GET or POST JSON request and parses the JSON object response.
      */
     protected static JsonObject sendJsonRequest(String url, String apiKey, String jsonBody, int timeoutSeconds)
             throws IOException, InterruptedException {
         int effectiveTimeout = Math.max(10, Math.min(600, timeoutSeconds));
+        URI validatedUri = validateOutboundUriForOcr(url);
         HttpRequest.Builder builder = HttpRequest.newBuilder()
-                .uri(URI.create(url))
+                .uri(validatedUri)
                 .timeout(Duration.ofSeconds(effectiveTimeout))
                 .header("Accept", "application/json");
         if (!Strings.isNullOrEmpty(apiKey)) {
