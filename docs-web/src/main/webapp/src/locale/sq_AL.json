@@ -351,7 +351,10 @@
       "link_mode_download": "Lejo shkarkimin e drejtpërdrejtë të skedarëve (ulet në parashikim nëse shkarkimi nuk lejohet)",
       "submit": "Eksporto",
       "include_size": "Përfshi madhësinë e skedarit"
-    }
+    },
+    "hidden_label": "Fshihe këtë etiketë (nuk shfaqet te lista e zakonshme e etiketave të dokumenteve)",
+    "hidden_tooltip": "Etiketë e fshehur (e përjashtuar nga lista e zakonshme e dokumenteve)",
+    "effective_hidden_tooltip": "Fshehur automatikisht nga një etiketë prindërore e fshehur"
   },
   "group": {
     "profile": {

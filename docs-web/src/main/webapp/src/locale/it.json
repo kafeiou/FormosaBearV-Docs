@@ -351,7 +351,10 @@
       "link_mode_download": "Consenti download diretto file (passa all'anteprima se il download non è consentito)",
       "submit": "Esporta",
       "include_size": "Includi dimensione file"
-    }
+    },
+    "hidden_label": "Nascondi questo tag (non mostrato nella barra laterale dei documenti)",
+    "hidden_tooltip": "Tag nascosto (escluso dalla lista standard dei documenti)",
+    "effective_hidden_tooltip": "Nascosto automaticamente tramite un tag superiore nascosto"
   },
   "group": {
     "profile": {

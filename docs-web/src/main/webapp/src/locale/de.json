@@ -351,7 +351,10 @@
       "link_mode_download": "Direkten Dateidownload erlauben (fällt auf Vorschau zurück, wenn Download nicht erlaubt ist)",
       "submit": "Exportieren",
       "include_size": "Dateigröße einschließen"
-    }
+    },
+    "hidden_label": "Dieses Schlagwort ausblenden (nicht in der regulären Dokument-Schlagwortleiste anzeigen)",
+    "hidden_tooltip": "Ausgeblendetes Schlagwort (nicht in der regulären Dokumentliste)",
+    "effective_hidden_tooltip": "Durch ein ausgeblendetes übergeordnetes Schlagwort ebenfalls ausgeblendet"
   },
   "group": {
     "profile": {

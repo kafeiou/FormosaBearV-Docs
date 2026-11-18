@@ -351,7 +351,10 @@
       "link_mode_download": "允許點選直接下載檔案（無下載權限之文件自動降級為預覽）",
       "submit": "開始匯出",
       "include_size": "包含檔案大小"
-    }
+    },
+    "hidden_label": "隱藏此標籤（不顯示於一般文件標籤區）",
+    "hidden_tooltip": "隱藏標籤（不顯示於一般文件標籤區）",
+    "effective_hidden_tooltip": "受上層隱藏標籤影響，目前已連帶隱藏"
   },
   "group": {
     "profile": {

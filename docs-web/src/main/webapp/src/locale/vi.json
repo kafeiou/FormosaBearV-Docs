@@ -351,7 +351,10 @@
       "link_mode_download": "Cho phép tải xuống tệp trực tiếp (hạ xuống xem trước nếu không cho phép tải xuống)",
       "submit": "Xuất",
       "include_size": "Bao gồm kích thước tệp"
-    }
+    },
+    "hidden_label": "Ẩn thẻ này (không hiển thị ở thanh thẻ tài liệu thông thường)",
+    "hidden_tooltip": "Thẻ ẩn (không hiển thị trong danh sách thẻ tài liệu)",
+    "effective_hidden_tooltip": "Đang bị ẩn theo thẻ cha đang ẩn"
   },
   "group": {
     "profile": {
