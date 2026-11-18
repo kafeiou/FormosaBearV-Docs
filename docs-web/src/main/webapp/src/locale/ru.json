@@ -132,7 +132,11 @@
         "upload_new_version": "Загрузить новую версию",
         "open_versions": "Показать историю версий",
         "display_mode_list": "Отображать файлы списком",
-        "display_mode_grid": "Отображать файлы сеткой"
+        "display_mode_grid": "Отображать файлы сеткой",
+        "col_filename": "Имя файла",
+        "col_type": "Тип",
+        "col_size": "Размер",
+        "col_version": "Версия"
       },
       "workflow": {
         "workflow": "Рабочий процесс",

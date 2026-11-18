@@ -132,7 +132,11 @@
         "upload_new_version": "Upload a new version",
         "open_versions": "Show version history",
         "display_mode_list": "Display files in list",
-        "display_mode_grid": "Display files in grid"
+        "display_mode_grid": "Display files in grid",
+        "col_filename": "Filename",
+        "col_type": "Type",
+        "col_size": "Size",
+        "col_version": "Version"
       },
       "workflow": {
         "workflow": "Workflow",

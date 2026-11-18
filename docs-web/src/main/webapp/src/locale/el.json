@@ -132,7 +132,11 @@
         "upload_new_version": "Ανλεβασε μια νέα έκδοση",
         "open_versions": "Προβολή ιστορικού εκδόσεων",
         "display_mode_list": "Εμφάνιση αρχείων σε λίστα",
-        "display_mode_grid": "Εμφάνιση αρχείων σε πλέγμα"
+        "display_mode_grid": "Εμφάνιση αρχείων σε πλέγμα",
+        "col_filename": "Όνομα αρχείου",
+        "col_type": "Τύπος",
+        "col_size": "Μέγεθος",
+        "col_version": "Έκδοση"
       },
       "workflow": {
         "workflow": "Ροή εργασίας",

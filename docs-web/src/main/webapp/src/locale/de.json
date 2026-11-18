@@ -132,7 +132,11 @@
         "upload_new_version": "Neue Version hochladen",
         "open_versions": "Versionshistorie anzeigen",
         "display_mode_list": "Dateien als Liste anzeigen",
-        "display_mode_grid": "Dateien als Raster anzeigen"
+        "display_mode_grid": "Dateien als Raster anzeigen",
+        "col_filename": "Dateiname",
+        "col_type": "Typ",
+        "col_size": "Größe",
+        "col_version": "Version"
       },
       "workflow": {
         "workflow": "Workflow",

@@ -17,6 +17,7 @@
   - 隱藏父標籤時會自動連帶有效隱藏（`effective_hidden`）所有下層子標籤；當父標籤取消隱藏時，未單獨設定隱藏的子標籤將自動恢復顯示。
 
 ### 修復 (Fixed)
+- **多國語系翻譯完整性修復**：修正 `zh_CN.json`（`download`、`rename`、`yes`、`tag.created_by`、`document.edit.allow_download_help`）與 `zh_TW.json`（`yes`、`group_used_*`、`base_dn`）殘留英文之項目，並將 `document.view.content.html` 檔案清單模式表頭（`Filename`、`Type`、`Size`、`Version`）改為支援全部 16 國語系之多語系變數。
 - **頁尾巴西葡萄牙語 (`pt_BR`) 顯示修復**：於 `index.html` 語系選單補上 `<span ng-switch-when="pt_BR">Português (Brasil)</span>`，解決切換後只剩倒三角形、語言名稱消失的問題。
 
 ---

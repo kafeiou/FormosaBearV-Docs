@@ -132,7 +132,11 @@
         "upload_new_version": "Prześlij nową wersję",
         "open_versions": "Pokaż historię wersji",
         "display_mode_list": "Wyświetl pliki jako listę",
-        "display_mode_grid": "Wyświetl pliki jako siatkę"
+        "display_mode_grid": "Wyświetl pliki jako siatkę",
+        "col_filename": "Nazwa pliku",
+        "col_type": "Typ",
+        "col_size": "Rozmiar",
+        "col_version": "Wersja"
       },
       "workflow": {
         "workflow": "Przepływ",

@@ -132,7 +132,11 @@
         "upload_new_version": "新しいバージョンをアップロード",
         "open_versions": "バージョン履歴を表示",
         "display_mode_list": "リスト表示",
-        "display_mode_grid": "グリッド表示"
+        "display_mode_grid": "グリッド表示",
+        "col_filename": "ファイル名",
+        "col_type": "種類",
+        "col_size": "サイズ",
+        "col_version": "バージョン"
       },
       "workflow": {
         "workflow": "ワークフロー",

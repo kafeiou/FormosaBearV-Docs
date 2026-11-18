@@ -132,7 +132,11 @@
         "upload_new_version": "Effettua il caricamento di una nuova versione",
         "open_versions": "Mostra la cronologia delle versioni",
         "display_mode_list": "Mostra i file in lista",
-        "display_mode_grid": "Mostra i file in griglia"
+        "display_mode_grid": "Mostra i file in griglia",
+        "col_filename": "Nome file",
+        "col_type": "Tipo",
+        "col_size": "Dimensione",
+        "col_version": "Versione"
       },
       "workflow": {
         "workflow": "Flusso di lavoro",

@@ -132,7 +132,11 @@
         "upload_new_version": "Отпреми нову верзију",
         "open_versions": "Прикажи историју верзија",
         "display_mode_list": "Прикажи датотеке у листи",
-        "display_mode_grid": "Прикажи датотеке у мрежи"
+        "display_mode_grid": "Прикажи датотеке у мрежи",
+        "col_filename": "Назив датотеке",
+        "col_type": "Тип",
+        "col_size": "Величина",
+        "col_version": "Верзија"
       },
       "workflow": {
         "workflow": "Ток рада",

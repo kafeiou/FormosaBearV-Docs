@@ -132,7 +132,11 @@
         "upload_new_version": "Ngarko një version të ri",
         "open_versions": "Shfaq historikun e versionit",
         "display_mode_list": "Shfaq skedarët në listë",
-        "display_mode_grid": "Shfaq skedarët në rrjet"
+        "display_mode_grid": "Shfaq skedarët në rrjet",
+        "col_filename": "Emri i skedarit",
+        "col_type": "Lloji",
+        "col_size": "Madhësia",
+        "col_version": "Versioni"
       },
       "workflow": {
         "workflow": "Rrjedha e punës",

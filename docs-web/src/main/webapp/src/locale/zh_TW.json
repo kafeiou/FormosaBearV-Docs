@@ -132,7 +132,11 @@
         "upload_new_version": "上傳新的版本",
         "open_versions": "顯示歷史版本",
         "display_mode_list": "以列表方式顯示",
-        "display_mode_grid": "以網格方式顯示"
+        "display_mode_grid": "以網格方式顯示",
+        "col_filename": "檔案名稱",
+        "col_type": "類型",
+        "col_size": "大小",
+        "col_version": "版本"
       },
       "workflow": {
         "workflow": "工作流程",
@@ -541,7 +545,7 @@
       "usessl": "使用 SSL (ldaps)",
       "admin_dn": "管理帳號 DN",
       "admin_password": "管理帳號密碼",
-      "base_dn": "Base search DN",
+      "base_dn": "基礎搜尋 DN",
       "filter": "過濾 (必須包含 USERNAME, 例如： \"(uid=USERNAME)\")",
       "default_email": "\"EMAIL\"欄位名稱",
       "default_storage": "可用容量",
@@ -678,8 +682,8 @@
         "delete_group_message": "您是否確認刪除該群組?",
         "edit_group_failed_title": "群組已經存在",
         "edit_group_failed_message": "這個群組名已經被使用",
-        "group_used_title": "Group in use",
-        "group_used_message": "This group is used in the workflow \"{{ name }}\"",
+        "group_used_title": "群組使用中",
+        "group_used_message": "此群組正於審核流程「{{ name }}」中使用",
         "edit_group_title": "編輯 <small>\"{{ name }}\"</small>",
         "add_group_title": "新增 <small>群組</small>",
         "name": "名稱",
@@ -934,7 +938,7 @@
       "description": "可以用利用標籤模擬目錄結構（就像超級資料夾）。請在此進行設定作業。"
     }
   },
-  "yes": "Yes",
+  "yes": "是",
   "no": "No",
   "ok": "確認",
   "cancel": "取消",

@@ -132,7 +132,11 @@
         "upload_new_version": "Tải lên phiên bản mới",
         "open_versions": "Xem lịch sử phiên bản",
         "display_mode_list": "Hiển thị dạng danh sách",
-        "display_mode_grid": "Hiển thị dạng lưới"
+        "display_mode_grid": "Hiển thị dạng lưới",
+        "col_filename": "Tên tệp",
+        "col_type": "Loại",
+        "col_size": "Kích thước",
+        "col_version": "Phiên bản"
       },
       "workflow": {
         "workflow": "Quy trình làm việc",
