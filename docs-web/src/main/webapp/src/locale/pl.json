@@ -802,6 +802,28 @@
       "restore_failed_generic": "Wystąpił błąd podczas przesyłania lub przywracania. Sprawdź format pliku i spróbuj ponownie.",
       "start_restore_button": "Rozpocznij przywracanie systemu",
       "goto_login_button": "Przejdź do logowania"
+    },
+    "menu_plugins": "Plugins",
+    "plugins": {
+      "title": "Plugin Management",
+      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
+      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
+      "upload_button": "Upload & Install",
+      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
+      "upload_failed": "Failed to install plugin package.",
+      "installed_title": "Installed Plugins",
+      "empty": "No plugins installed yet.",
+      "col_name": "Plugin",
+      "col_version": "Version",
+      "col_protected_tags": "Protected Tags",
+      "col_status": "Status",
+      "col_actions": "Actions",
+      "open": "Open",
+      "enable": "Enable",
+      "disable": "Disable",
+      "uninstall": "Uninstall",
+      "uninstall_title": "Uninstall Plugin",
+      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
     }
   },
   "feedback": {
@@ -992,5 +1014,11 @@
     "error_duplicate_message": "Cannot restore this item because duplicate file names are disabled and an active file with the same name already exists.",
     "error_parent_in_trash_title": "Parent Document in Trash",
     "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
+  },
+  "plugin": {
+    "not_available": "This plugin is not installed or currently disabled."
+  },
+  "error": {
+    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
   }
 }

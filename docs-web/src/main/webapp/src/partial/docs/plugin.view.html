@@ -1,0 +1,8 @@
+<div ng-if="pluginError" class="alert alert-warning">
+  <span class="fas fa-exclamation-triangle"></span> {{ pluginError }}
+</div>
+
+<div ng-if="plugin && trustedEntryUrl" style="margin: -10px -15px 0 -15px;">
+  <iframe ng-src="{{ trustedEntryUrl }}"
+          style="width: 100%; height: calc(100vh - 95px); border: 0; background: transparent; display: block;"></iframe>
+</div>

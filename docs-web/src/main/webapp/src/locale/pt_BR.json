@@ -802,6 +802,28 @@
       "restore_failed_generic": "Ocorreu um erro durante o envio ou o restauro. Verifique o formato do arquivo e tente novamente.",
       "start_restore_button": "Iniciar restauro do sistema",
       "goto_login_button": "Ir para início de sessão"
+    },
+    "menu_plugins": "Plugins",
+    "plugins": {
+      "title": "Gerenciamento de Plugins",
+      "security_notice": "Instale apenas pacotes .zip de plugins confiáveis. Os plugins enviados podem ser ativados sem reiniciar o servidor.",
+      "upload_title": "Enviar e Instalar / Atualizar Plugin (.zip)",
+      "upload_button": "Enviar e Instalar",
+      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) instalado com sucesso.",
+      "upload_failed": "Falha ao instalar o pacote do plugin.",
+      "installed_title": "Plugins Instalados",
+      "empty": "Nenhum plugin instalado ainda.",
+      "col_name": "Plugin",
+      "col_version": "Versão",
+      "col_protected_tags": "Etiquetas Protegidas",
+      "col_status": "Status",
+      "col_actions": "Ações",
+      "open": "Abrir",
+      "enable": "Ativar",
+      "disable": "Desativar",
+      "uninstall": "Desinstalar",
+      "uninstall_title": "Desinstalar Plugin",
+      "uninstall_message": "Tem certeza de que deseja desinstalar \"{{ name }}\" (v{{ version }})? Os dados do plugin serão removidos e suas etiquetas protegidas serão desbloqueadas."
     }
   },
   "feedback": {
@@ -992,5 +1014,11 @@
     "error_duplicate_message": "Não é possível restaurar este item porque nomes de arquivo duplicados estão desativados e já existe um arquivo ativo com o mesmo nome.",
     "error_parent_in_trash_title": "Documento Principal na Lixeira",
     "error_parent_in_trash_message": "O documento principal deste arquivo está atualmente na Lixeira. Restaure o documento principal primeiro."
+  },
+  "plugin": {
+    "not_available": "Este plugin não está instalado ou está desativado no momento."
+  },
+  "error": {
+    "ProtectedPluginTag": "Esta etiqueta está protegida por um plugin instalado e não pode ser excluída até que o plugin seja desinstalado."
   }
 }

@@ -4,7 +4,7 @@
  * Tag controller.
  */
 angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, $location, Restangular, User, $uibModal) {
-  $scope.tag = { name: '', color: '#3a87ad', parent: '' };
+  $scope.tag = { name: '', color: '#3a87ad', parent: '', hidden: false };
   $scope.expandedTags = {};
 
   /**
@@ -60,7 +60,8 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
   // Retrieve tags
   $scope.tags = [];
   $scope.loadTags = function() {
-    Restangular.one('tag/list').get().then(function(data) {
+    var params = $state.includes('tagadmin') ? { include_hidden: true } : {};
+    Restangular.one('tag/list').get(params).then(function(data) {
       $scope.tags = data.tags;
       $scope.showAddTag = !!$rootScope.canManageTags;
       if ($stateParams.id) {
@@ -154,7 +155,7 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
     }
     Restangular.one('tag').put(tagData).then(function() {
       $scope.loadTags();
-      $scope.tag = { name: '', color: '#3a87ad', parent: '' };
+      $scope.tag = { name: '', color: '#3a87ad', parent: '', hidden: false };
       $scope.parentSelector.open = false;
       $scope.parentSelector.search = '';
     });

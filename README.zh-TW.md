@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.08)
+# FormosaBearV (3.01-SNAPSHOT)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -21,6 +21,7 @@
 - **完整系統備份、還原與跨庫遷移**：支援後台一鍵串流匯出完整系統 ZIP 備份與還原，並支援 H2 與 PostgreSQL 跨資料庫無縫遷移。
 - **文件生命週期、垃圾桶與協作工作流**：支援檔案多版本控制與自訂版本標記、垃圾桶還原與永久清理、Dublin Core 與自訂中繼資料、審核簽核流程 (Review Workflow)、留言討論、操作稽核日誌、個人儲存配額管理（含無上限配額）與安全外部連結分享。
 - **自動化匯入與系統整合**：支援 EML 郵件匯入、IMAP 收件匣自動掃描、SMTP 郵件通知、RESTful Web API 與 Webhooks 事件推播。
+- **可擴充外掛平台**：支援 `.zip` 第三方外掛上傳安裝、免重啟啟用/停用生命週期、沙箱化容器介面、隱藏與外掛保護標籤管控、16 國語系外掛標準規範及 Java `PluginHandler` SPI（內附 **線上考試系統** 示範外掛，詳見[外掛開發指南](docs-plugins/PLUGIN_GUIDE.zh-TW.md)）。
 - **多國語系介面**：支援 16 種國際語言完整在地化（英文、法文、德文、西班牙文、義大利文、葡萄牙文、巴西葡萄牙文、波蘭文、俄文、希臘文、阿爾巴尼亞文、塞爾維亞文、日文、越南文、繁體中文與簡體中文）。
 
 ## 從原始碼編譯與建置 (Building from Source)
@@ -36,6 +37,7 @@
 - `docs-core`：資料持久層、JPA 實體、DAO、全文檢索索引與文件處理服務
 - `docs-web-common`：共用 JAX-RS 篩選器、安全提供者與 REST 工具類別
 - `docs-web`：REST API 端點與 AngularJS 1.8.3 前端網頁應用程式
+- `docs-plugins`：外掛開發指南、示範外掛（`online-exam`）與可上傳安裝的 `.zip` 套件包
 
 ### 建置所有模組並產生可部署的 WAR 檔
 

@@ -1,0 +1,37 @@
+{
+  "id": "online-exam",
+  "name": "Online Exam",
+  "version": "1.3.0",
+  "default_locale": "en",
+  "description": "Moodle GIFT online exam system with tag-based access control, backend grading, and watermarked PDF export.",
+  "entry": "ui/index.html",
+  "nav_label": "Online Exam",
+  "nav_label_i18n": {
+    "en": "Online Exam",
+    "zh_TW": "線上考試",
+    "zh_CN": "在线考试",
+    "ja": "オンライン試験",
+    "vi": "Thi trực tuyến",
+    "de": "Online-Prüfung",
+    "fr": "Examen en ligne",
+    "es": "Examen en línea",
+    "pt": "Exame Online",
+    "pt_BR": "Prova Online",
+    "it": "Esame Online",
+    "pl": "Egzamin online",
+    "ru": "Онлайн-экзамен",
+    "el": "Διαδικτυακή εξέταση",
+    "sq_AL": "Provim Online",
+    "sr": "Онлајн испит"
+  },
+  "nav_icon": "fas fa-graduation-cap",
+  "handler": "online-exam",
+  "protected_tags": [
+    {
+      "role": "MANAGEMENT",
+      "name": "Online Exam Admin",
+      "color": "#8b5cf6",
+      "hidden": true
+    }
+  ]
+}

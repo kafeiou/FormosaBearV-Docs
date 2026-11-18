@@ -802,6 +802,28 @@
       "restore_failed_generic": "上傳或還原過程中發生錯誤，請檢查檔案格式後重試。",
       "start_restore_button": "開始還原系統",
       "goto_login_button": "立即前往重新登入"
+    },
+    "menu_plugins": "外掛管理",
+    "plugins": {
+      "title": "外掛套件管理",
+      "security_notice": "請僅上傳並安裝受信任的 .zip 外掛套件包。上傳後可直接在下方啟用或停用，無需重新啟動伺服器。",
+      "upload_title": "上傳並安裝 / 升級外掛套件（.zip）",
+      "upload_button": "上傳並安裝",
+      "upload_success": "已成功安裝外掛「{{ name }}」（v{{ version }}）。",
+      "upload_failed": "外掛套件安裝失敗。",
+      "installed_title": "已安裝外掛清單",
+      "empty": "目前尚未安裝任何外掛套件。",
+      "col_name": "外掛名稱",
+      "col_version": "版號",
+      "col_protected_tags": "固定保護標籤",
+      "col_status": "狀態",
+      "col_actions": "操作",
+      "open": "開啟",
+      "enable": "啟用",
+      "disable": "停用",
+      "uninstall": "解除安裝",
+      "uninstall_title": "解除安裝外掛",
+      "uninstall_message": "確定要解除安裝「{{ name }}」（v{{ version }}）嗎？外掛專屬資料將被清除，固定保護標籤將會解除鎖定（但會保留標籤本身與既有文件關聯）。"
     }
   },
   "feedback": {
@@ -992,5 +1014,11 @@
     "error_duplicate_message": "無法還原此項目，因為系統目前已停用重複檔名且已存在同名有效檔案。",
     "error_parent_in_trash_title": "所屬文件仍在垃圾桶中",
     "error_parent_in_trash_message": "此檔案所屬的母文件目前也在垃圾桶中，請先切換至「已刪除的文件」分頁還原該母文件。"
+  },
+  "plugin": {
+    "not_available": "此外掛尚未安裝或目前處於停用狀態。"
+  },
+  "error": {
+    "ProtectedPluginTag": "此標籤受已安裝的外掛保護鎖定，必須先解除安裝該外掛才可刪除。"
   }
 }

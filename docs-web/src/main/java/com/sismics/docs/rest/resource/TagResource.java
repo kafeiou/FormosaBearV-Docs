@@ -59,14 +59,18 @@ public class TagResource extends BaseResource {
      */
     @GET
     @Path("/list")
-    public Response list() {
+    public Response list(@QueryParam("include_hidden") @DefaultValue("false") boolean includeHidden) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
         
         TagDao tagDao = new TagDao();
         List<String> targetIdList = getTargetIdList(null);
-        List<TagDto> tagDtoList = tagDao.findByCriteria(new TagCriteria().setTargetIdList(targetIdList), null);
+        TagCriteria criteria = new TagCriteria().setTargetIdList(targetIdList);
+        if (!includeHidden) {
+            criteria.setHidden(false);
+        }
+        List<TagDto> tagDtoList = tagDao.findByCriteria(criteria, null);
         Map<String, Set<String>> directDocsByTag = tagDao.getReadableDocumentIdsByTag(targetIdList);
 
         // Extract tag IDs
@@ -104,6 +108,7 @@ public class TagResource extends BaseResource {
                     .add("color", tagDto.getColor())
                     .add("document_count", tagDto.isContainer() ? 0 : totalDocs.size())
                     .add("inherit_acl", tagDto.isInheritAcl())
+                    .add("hidden", tagDto.isHidden())
                     .add("is_container", tagDto.isContainer());
             if (tagDto.getOrder() != null) {
                 item.add("order", tagDto.getOrder());
@@ -165,13 +170,21 @@ public class TagResource extends BaseResource {
 
         // Add tag informatiosn
         TagDto tagDto = tagDtoList.get(0);
+        boolean pluginProtected = new com.sismics.docs.core.dao.PluginTagDao().isTagProtected(id);
+        java.util.Optional<String> pluginRef = com.sismics.docs.core.util.plugin.PluginService.findTagReferenceReason(id);
         JsonObjectBuilder tag = Json.createObjectBuilder()
                 .add("id", tagDto.getId())
                 .add("creator", tagDto.getCreator())
                 .add("name", tagDto.getName())
                 .add("color", tagDto.getColor())
                 .add("inherit_acl", tagDto.isInheritAcl())
+                .add("hidden", tagDto.isHidden())
+                .add("plugin_protected", pluginProtected)
+                .add("plugin_in_use", pluginRef.isPresent())
                 .add("is_container", tagDto.isContainer());
+        if (pluginRef.isPresent()) {
+            tag.add("plugin_ref_reason", pluginRef.get());
+        }
         if (tagDto.getOrder() != null) {
             tag.add("order", tagDto.getOrder());
         }
@@ -249,7 +262,8 @@ public class TagResource extends BaseResource {
             @FormParam("color") String color,
             @FormParam("parent") String parentId,
             @FormParam("order") Integer order,
-            @FormParam("inherit_acl") Boolean inheritAcl) {
+            @FormParam("inherit_acl") Boolean inheritAcl,
+            @FormParam("hidden") Boolean hidden) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -277,6 +291,7 @@ public class TagResource extends BaseResource {
         tag.setUserId(principal.getId());
         tag.setParentId(parentId);
         tag.setInheritAcl(inheritAcl != null ? inheritAcl : true);
+        tag.setHidden(hidden != null && hidden);
         if (order != null) {
             tag.setOrder(order);
         }
@@ -337,7 +352,8 @@ public class TagResource extends BaseResource {
             @FormParam("color") String color,
             @FormParam("parent") String parentId,
             @FormParam("order") Integer order,
-            @FormParam("inherit_acl") Boolean inheritAcl) {
+            @FormParam("inherit_acl") Boolean inheritAcl,
+            @FormParam("hidden") Boolean hidden) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -376,11 +392,21 @@ public class TagResource extends BaseResource {
 
         // Update the tag
         Tag tag = tagDao.getById(id);
+        boolean pluginProtected = new com.sismics.docs.core.dao.PluginTagDao().isTagProtected(id);
+        if (pluginProtected && !StringUtils.isEmpty(name) && !name.equals(tag.getName())) {
+            throw new ClientException("ProtectedPluginTag", "Cannot rename a tag protected by an installed plugin");
+        }
+        if (pluginProtected && hidden != null && hidden != tag.isHidden()) {
+            throw new ClientException("ProtectedPluginTag", "Cannot change visibility of a tag protected by an installed plugin");
+        }
         if (!StringUtils.isEmpty(name)) {
             tag.setName(name);
         }
         if (!StringUtils.isEmpty(color)) {
             tag.setColor(color);
+        }
+        if (hidden != null) {
+            tag.setHidden(hidden);
         }
         // Handle parent change and order
         boolean parentChanged = (parentId == null && tag.getParentId() != null)
@@ -470,6 +496,13 @@ public class TagResource extends BaseResource {
         }
 
         // Delete the tag
+        if (new com.sismics.docs.core.dao.PluginTagDao().isTagProtected(id)) {
+            throw new ClientException("ProtectedPluginTag", "Cannot delete a tag protected by an installed plugin");
+        }
+        java.util.Optional<String> pluginRef = com.sismics.docs.core.util.plugin.PluginService.findTagReferenceReason(id);
+        if (pluginRef.isPresent()) {
+            throw new ClientException("TagInUseByPlugin", pluginRef.get());
+        }
         TagDao tagDao = new TagDao();
         if (tagDao.hasChildren(id)) {
             throw new ClientException("TagHasChildren", "Cannot delete a tag that has child tags");

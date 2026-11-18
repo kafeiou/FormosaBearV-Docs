@@ -18,11 +18,23 @@
 </script>
 
 <div class="pull-right" ng-show="tag.writable">
-  <button class="btn btn-danger" ng-click="deleteTag(tag)"><span class="fas fa-trash"></span> {{ 'delete' | translate }}</button>
+  <button class="btn btn-danger"
+          ng-disabled="tag.plugin_protected || tag.plugin_in_use"
+          ng-click="!tag.plugin_protected && !tag.plugin_in_use && deleteTag(tag)"
+          uib-tooltip="{{ tag.plugin_protected ? '受外掛保護的標籤不可刪除' : (tag.plugin_in_use ? tag.plugin_ref_reason : '') }}"
+          tooltip-append-to-body="true">
+    <span class="fas fa-trash"></span> {{ 'delete' | translate }}
+  </button>
 </div>
 
 <div class="page-header">
   <h1>{{ tag.name }}&nbsp;</h1>
+</div>
+
+<div class="alert alert-info" ng-if="tag.plugin_protected || tag.plugin_in_use">
+  <span class="fas fa-lock"></span>
+  <span ng-if="tag.plugin_protected">此標籤為已安裝外掛之固定保護標籤，禁止更名與刪除。</span>
+  <span ng-if="!tag.plugin_protected && tag.plugin_in_use">此標籤正被外掛資料引用中（{{ tag.plugin_ref_reason }}），暫時禁止刪除。</span>
 </div>
 
 <div class="well col-lg-8" ng-show="tag.writable">
@@ -32,6 +44,7 @@
 
       <div class="col-sm-6">
         <input type="text" name="name" class="form-control" id="inputName"
+          ng-disabled="tag.plugin_protected"
           ng-maxlength="36" required ng-model="tag.name" ui-validate="{ space: '!$value || $value.indexOf(\' \') == -1 && $value.indexOf(\':\') == -1' }">
       </div>
     </div>
@@ -101,6 +114,17 @@
           </label>
         </div>
         <span class="help-block small text-muted">{{ 'tag.edit.inherit_acl_help' | translate }}</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="tag.hidden" ng-disabled="tag.plugin_protected">
+            <strong>隱藏此標籤（不顯示於一般文件標籤區）</strong>
+          </label>
+        </div>
       </div>
     </div>
 

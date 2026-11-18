@@ -6,6 +6,31 @@
 
 ---
 
+## [3.01-SNAPSHOT] - 2026-11-18
+
+> **基準點**: `v2.08` ➜ `3.01-SNAPSHOT` (`next-v3` 測試預覽版)
+
+### 新增功能 (Added)
+- **外掛平台底座 (`plugin-platform`、DB v44–45)**：
+  - 新增 `T_PLUGIN`、`T_PLUGIN_TAG`、`T_PLUGIN_DATA` 資料表（`dbupdate-044-0.sql`）與 `T_TAG.TAG_HIDDEN_B` 隱藏標籤欄位（`dbupdate-045-0.sql`），全面相容 H2 2.3 與 PostgreSQL。
+  - 支援 `.zip` 外掛上傳安裝（`POST /api/plugin/upload`）、`plugin.json` 解析（`id`、`version`、`entry`、`nav_label_i18n`、`default_locale`、`handler`、`protected_tags`）、Zip Slip 路徑遍歷防呆、免重啟啟用/停用/解除安裝、頂部導覽列動態選單、`#/settings/plugins` 管理頁與 `#/plugin/:id` 沙箱 `iframe` 容器。
+  - 新增通用 JSON 儲存端點（`/api/plugin/{id}/data/{collection}/{key}`，對非管理員自動遞迴遮罩 `_`、`secret_`、`correct_` 機密欄位）與後端擴充 `PluginHandler` SPI（`/api/plugin/{id}/action/{action}`）。
+  - 新增**隱藏標籤 (`hidden`)** 屬性：隱藏標籤於一般文件側邊欄與標籤選擇器隱藏，僅於「標籤管理 (`#/tagadmin`)」顯示供設定權限。
+  - 雙層標籤防誤刪與防改名機制：外掛安裝期間（啟用或停用）禁止刪除、更名或變更固定保護標籤可見性（`ProtectedPluginTag`）；透過 `PluginHandler.findTagReferenceReason` 通用檢查，凡被外掛資料引用的標籤亦禁止刪除（`TagInUseByPlugin`）。
+  - 建立**外掛多語系標準規範**（`locale/<lang>.json`、`nav_label_i18n` 與 `$rootScope.$on('$translateChangeSuccess')` 即時刷新外掛語系）及外掛靜態資源嚴格 CSP / `X-Content-Type-Options: nosniff` 安全標頭。
+  - 新增中英文外掛開發指南：`docs-plugins/PLUGIN_GUIDE.md`、`docs-plugins/PLUGIN_GUIDE.zh-TW.md`。
+- **線上考試示範外掛 (`online-exam` v1.3.0、`docs-plugins/dist/online-exam.zip`)**：
+  - 實作 `ExamPluginHandler`、`GiftParser` 與 `ExamPdfExporter`（採用內建 `Noto Sans CJK TC` 字型）。
+  - **三層權限架構**：最高管理員（`ADMIN` 或具備 `Online Exam Admin` 標籤）> 各科出題老師（由最高管理員指派啟用中帳號/群組，如 `OnlineExam01`，跨科別嚴格隔離）> 應試學生（依考卷勾選之啟用中帳號/群組授權）。
+  - **Moodle GIFT 匯入與 100 分均分批改**：支援單選（`=`/`~`）、多選（`~%...%`）、是非題（`{TRUE}`/`{FALSE}`），內建 512 KB / 500 題 DoS 防護、考卷代號/版號、停用/啟用切換、刪除考卷前已應試人數警告且刪除後保留歷史成績快照，以及後端批改不洩漏正解與漏答送出提醒。
+  - **多語系 PDF 匯出**：空白考卷 PDF（無浮水印）、已作答考卷 PDF（含當時考試時間英文日期格式斜角半透明浮水印，無正解），以及可選時間區間（預設近 30 天）之橫向 A4 成績總覽彙總表 PDF（含出題老師/科別識別）。
+  - **完整 16 國語系與專屬樣板手冊**：提供系統全部 16 國慣用語翻譯（區分繁中/簡中、歐陸葡語/巴西葡語等）與專屬樣板指南（`docs-plugins/online-exam/README.md` / `README.zh-TW.md`）。
+
+### 修復 (Fixed)
+- **頁尾巴西葡萄牙語 (`pt_BR`) 顯示修復**：於 `index.html` 語系選單補上 `<span ng-switch-when="pt_BR">Português (Brasil)</span>`，解決切換後只剩倒三角形、語言名稱消失的問題。
+
+---
+
 ## [v2.08] - 2026-11-17
 
 > **基準點**: `v2.07` (`34b41713`) ➜ `v2.08`

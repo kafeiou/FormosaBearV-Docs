@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (v2.08)
+# FormosaBearV (3.01-SNAPSHOT)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -21,6 +21,7 @@
 - **Full System Backup, Restore & Migration**: Streaming full-system ZIP backup and restore with cross-database migration support between H2 and PostgreSQL.
 - **Document Lifecycle, Trash & Collaboration**: File versioning with custom version labels, Trash / Recycle Bin recovery, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas (including unlimited quota support), and URL sharing.
 - **Automated Import & Integration**: EML email import, automated IMAP inbox scanning, customizable SMTP notifications, RESTful Web API, and outgoing Webhooks.
+- **Extensible Plugin Platform**: Supports `.zip` third-party plugin upload, zero-restart enable/disable lifecycle, sandboxed UI containers, hidden/protected tag governance, 16-language plugin i18n standard, and Java `PluginHandler` SPI (including the built-in **Online Exam** showcase plugin; see [Plugin Development Guide](docs-plugins/PLUGIN_GUIDE.md)).
 - **Multilingual User Interface**: Comprehensive internationalization covering 16 languages (English, French, German, Spanish, Italian, Portuguese, Brazilian Portuguese, Polish, Russian, Greek, Albanian, Serbian, Japanese, Vietnamese, Traditional Chinese, and Simplified Chinese).
 
 ## Building and Running from Source
@@ -36,6 +37,7 @@
 - `docs-core`: Persistence layer, JPA entities, DAOs, full-text indexing, and document processing services
 - `docs-web-common`: Shared JAX-RS filters, security providers, and REST utilities
 - `docs-web`: REST API resources and AngularJS 1.8.3 web application
+- `docs-plugins`: Plugin development guides, showcase plugins (`online-exam`), and distributable `.zip` packages
 
 ### Build All Modules & Generate Deployable WAR
 

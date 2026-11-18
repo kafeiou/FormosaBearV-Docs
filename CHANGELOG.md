@@ -6,6 +6,31 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
+## [3.01-SNAPSHOT] - 2026-11-18
+
+> **Baseline**: `v2.08` ➜ `3.01-SNAPSHOT` (`next-v3` pre-release)
+
+### Added
+- **Plugin Platform Foundation (`plugin-platform`, DB v44–45)**:
+  - Added `T_PLUGIN`, `T_PLUGIN_TAG`, and `T_PLUGIN_DATA` tables (`dbupdate-044-0.sql`) plus `T_TAG.TAG_HIDDEN_B` (`dbupdate-045-0.sql`) for H2 2.3 and PostgreSQL.
+  - Added `.zip` plugin upload (`POST /api/plugin/upload`) with `plugin.json` manifest parsing (`id`, `version`, `entry`, `nav_label_i18n`, `default_locale`, `handler`, `protected_tags`), Zip Slip traversal defense, zero-restart enable/disable/uninstall lifecycle, dynamic navbar tabs, `#/settings/plugins` management page, and `#/plugin/:id` sandboxed iframe container.
+  - Added `T_PLUGIN_DATA` generic JSON storage (`/api/plugin/{id}/data/{collection}/{key}`) with recursive secret-field masking (`_`, `secret_`, `correct_`) for non-admins, and `PluginHandler` SPI (`/api/plugin/{id}/action/{action}`).
+  - Added **Hidden Tag (`hidden`)** attribute across `TagResource`, `tag.admin.html`, and `tag.edit.html` so hidden tags stay out of regular document tag sidebars/pickers while remaining manageable in Tag Administration (`#/tagadmin?include_hidden=true`).
+  - Added two-layer tag deletion and rename protection: fixed plugin-protected tags (`ProtectedPluginTag`) cannot be deleted, renamed, or have visibility changed while the plugin is installed (enabled or disabled), and any tag referenced by plugin data (`PluginHandler.findTagReferenceReason`) is blocked from deletion (`TagInUseByPlugin`).
+  - Added **Plugin i18n Standard** (`locale/<lang>.json` + `nav_label_i18n` + host `?lang=` live reload via `$rootScope.$on('$translateChangeSuccess')`) and strict CSP / `X-Content-Type-Options: nosniff` headers on plugin assets.
+  - Added bilingual developer documentation: `docs-plugins/PLUGIN_GUIDE.md` and `docs-plugins/PLUGIN_GUIDE.zh-TW.md`.
+- **Online Exam Showcase Plugin (`online-exam` v1.3.0, `docs-plugins/dist/online-exam.zip`)**:
+  - Implemented `ExamPluginHandler`, `GiftParser`, and `ExamPdfExporter` (using bundled `Noto Sans CJK TC` font).
+  - **Three-Tier RBAC**: Top Admin (`ADMIN` or `Online Exam Admin` tag) > Subject Teachers (active users/groups assigned in-plugin, e.g. `OnlineExam01`, isolated per teacher/group) > Examinees (active users/groups granted per-exam access).
+  - **Moodle GIFT Import & Equal 100-Point Grading**: Supports Single Choice (`=`/`~`), Multiple Choice (`~%...%`), and True/False (`{TRUE}`/`{FALSE}`) with 512 KB / 500-question limits, exam code/version metadata, enable/disable toggle, delete confirmation preserving historical score snapshots, and backend-only grading that never leaks correct answers.
+  - **Localized PDF Exports**: Blank exam PDF (no watermark), completed exam PDF (exam-time diagonal English-date watermark, no correct answers), and landscape score summary PDF with 30-day default date-range filter and author/group identification.
+  - **16-Language Support & Template Guide**: Complete idiomatic translations across all 16 host locales (including distinct `pt` vs `pt_BR` and `zh_TW` vs `zh_CN`), unanswered-question submission guard, and dedicated template guides (`docs-plugins/online-exam/README.md` / `README.zh-TW.md`).
+
+### Fixed
+- **Footer `pt_BR` Language Label**: Added the missing `<span ng-switch-when="pt_BR">Português (Brasil)</span>` case in `index.html` so switching to Brazilian Portuguese displays its label next to the dropdown caret.
+
+---
+
 ## [v2.08] - 2026-11-17
 
 > **Baseline**: `v2.07` (`34b41713`) ➜ `v2.08`

@@ -27,3 +27,5 @@ docs/*
 # Portable packaging
 /tools/jetty/*.zip
 !/tools/jetty/.gitkeep
+
+docs-plugins/*.gift.txt

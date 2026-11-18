@@ -164,6 +164,15 @@ angular.module('docs',
         }
       }
     })
+    .state('settings.plugins', {
+      url: '/plugins',
+      views: {
+        'settings': {
+          templateUrl: 'partial/docs/settings.plugins.html',
+          controller: 'SettingsPlugins'
+        }
+      }
+    })
     .state('settings.config', {
       url: '/config',
       views: {
@@ -407,6 +416,15 @@ angular.module('docs',
         'page': {
           templateUrl: 'partial/docs/trash.html',
           controller: 'Trash'
+        }
+      }
+    })
+    .state('plugin', {
+      url: '/plugin/:id',
+      views: {
+        'page': {
+          templateUrl: 'partial/docs/plugin.view.html',
+          controller: 'PluginView'
         }
       }
     })
@@ -783,11 +801,37 @@ angular.module('docs',
     }
   };
 
+  $rootScope.enabledPlugins = [];
+  $rootScope.getPluginNavLabel = function(p) {
+    if (!p) return '';
+    var lang = $translate.use();
+    if (p.nav_label_i18n && lang && p.nav_label_i18n[lang]) {
+      return p.nav_label_i18n[lang];
+    }
+    return p.nav_label || p.name;
+  };
+  $rootScope.refreshEnabledPlugins = function() {
+    if ($rootScope.userInfo && !$rootScope.userInfo.anonymous) {
+      Restangular.one('plugin/enabled').get().then(function(data) {
+        $rootScope.enabledPlugins = (data && data.plugins) || [];
+      }, function() {
+        $rootScope.enabledPlugins = [];
+      });
+    } else {
+      $rootScope.enabledPlugins = [];
+    }
+  };
+  $rootScope.$on('pluginsUpdated', function() {
+    $rootScope.refreshEnabledPlugins();
+  });
+
   $rootScope.$watch('userInfo', function(newVal) {
     if (newVal && !newVal.anonymous) {
       $rootScope.refreshUserDisplayMap();
+      $rootScope.refreshEnabledPlugins();
     } else {
       $rootScope.userDisplayMap = {};
+      $rootScope.enabledPlugins = [];
     }
   });
 

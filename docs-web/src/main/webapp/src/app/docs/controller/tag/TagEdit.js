@@ -56,11 +56,14 @@ angular.module('docs').controller('TagEdit', function($scope, $stateParams, Rest
       $scope.loadTags();
       loadTagDetails();
     }, function (e) {
-      if (e.data.type === 'CircularReference') {
+      if (e.data && e.data.type === 'CircularReference') {
         var title = $translate.instant('tag.edit.circular_reference_title');
         var msg = $translate.instant('tag.edit.circular_reference_message');
         var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
         $dialog.messageBox(title, msg, btns);
+      } else if (e.data && (e.data.type === 'ProtectedPluginTag' || e.data.type === 'TagInUseByPlugin')) {
+        var btns2 = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
+        $dialog.messageBox($translate.instant('error'), e.data.message || e.data.type, btns2);
       }
     });
   };

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Exam</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="exam-shell">
+    <header class="exam-header">
+      <div>
+        <h1 data-i18n="header.title">線上考試系統</h1>
+        <p class="subtitle" data-i18n="header.subtitle">分層權限考卷管理 · 後端安全批改 · 浮水印與多語系 PDF 匯出</p>
+      </div>
+      <div class="user-pill" id="userBadge" data-i18n="header.loading">載入中...</div>
+    </header>
+
+    <nav class="tab-bar">
+      <button class="tab-btn active" data-tab="exams" data-i18n="tabs.exams">我的考卷</button>
+      <button class="tab-btn" data-tab="scores" data-i18n="tabs.scores">成績紀錄</button>
+      <button class="tab-btn teacher-only hidden" data-tab="manage" data-i18n="tabs.manage">出題與考卷管理</button>
+    </nav>
+
+    <div id="alertBox" class="alert hidden"></div>
+
+    <!-- Tab 1: Exams List -->
+    <section id="tab-exams" class="tab-panel active">
+      <div id="examGrid" class="card-grid"></div>
+    </section>
+
+    <!-- Tab 1b: Exam Runner View -->
+    <section id="tab-runner" class="tab-panel">
+      <div class="runner-header">
+        <button class="btn btn-secondary" id="backToListBtn" data-i18n="runner.back">← 返回考卷列表</button>
+        <div class="runner-meta">
+          <h2 id="runnerTitle"></h2>
+          <span class="badge" id="runnerCodeVersion"></span>
+        </div>
+      </div>
+      <div id="runnerResultBanner" class="result-banner hidden"></div>
+      <form id="examForm" class="question-list"></form>
+      <div class="runner-actions">
+        <button type="button" class="btn btn-primary" id="submitExamBtn" data-i18n="runner.submit">送出考卷</button>
+        <a class="btn btn-secondary hidden" id="downloadAttemptPdfBtn" target="_blank" data-i18n="exams.attempt_pdf">作答 PDF（浮水印）</a>
+      </div>
+    </section>
+
+    <!-- Tab 2: Scores & Summary Report -->
+    <section id="tab-scores" class="tab-panel">
+      <div class="panel-card">
+        <div class="panel-head">
+          <h2 data-i18n="scores.title">成績紀錄</h2>
+          <button class="btn btn-secondary btn-sm" id="refreshScoresBtn" data-i18n="scores.refresh">重新整理</button>
+        </div>
+        <div class="form-grid" style="margin-bottom: 14px; align-items: end;">
+          <label><span data-i18n="scores.filter_exam">篩選考卷</span>
+            <select id="summaryExamId"></select>
+          </label>
+          <label><span data-i18n="scores.date_from">起始日期</span>
+            <input type="date" id="summaryFromDate">
+          </label>
+          <label><span data-i18n="scores.date_to">結束日期</span>
+            <input type="date" id="summaryToDate">
+          </label>
+          <div>
+            <button type="button" class="btn btn-primary" id="exportSummaryPdfBtn" data-i18n="scores.export_summary_pdf">下載成績彙總表 PDF</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th data-i18n="scores.col_code">考卷代號</th>
+                <th data-i18n="scores.col_version">版號</th>
+                <th data-i18n="scores.col_title">考卷名稱</th>
+                <th data-i18n="scores.col_owner">出題來源</th>
+                <th data-i18n="scores.col_examinee">應試人員</th>
+                <th data-i18n="scores.col_score">分數</th>
+                <th data-i18n="scores.col_time">應試時間</th>
+                <th data-i18n="scores.col_export">匯出</th>
+              </tr>
+            </thead>
+            <tbody id="scoresTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Teacher / Top Admin Manager -->
+    <section id="tab-manage" class="tab-panel">
+      <div class="panel-card" style="margin-bottom: 18px;">
+        <div class="panel-head">
+          <h2 data-i18n="manage.list_title">考卷管理列表</h2>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-secondary btn-sm top-admin-only hidden" id="openTeachersModalBtn" data-i18n="manage.btn_teachers">出題老師授權</button>
+            <button class="btn btn-secondary btn-sm" id="refreshManageExamsBtn" data-i18n="scores.refresh">重新整理</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th data-i18n="manage.col_code_ver">代號 / 版號</th>
+                <th data-i18n="manage.col_title">考卷名稱</th>
+                <th data-i18n="manage.col_owner">出題來源</th>
+                <th data-i18n="manage.col_q_score">題數 / 總分</th>
+                <th data-i18n="manage.col_status">狀態</th>
+                <th data-i18n="manage.col_attempts">已應試人數</th>
+                <th data-i18n="manage.col_actions">管理操作</th>
+              </tr>
+            </thead>
+            <tbody id="manageExamsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h2 data-i18n="manage.create_title">建立 / 上傳 GIFT 考卷</h2>
+        <div class="form-grid">
+          <label><span data-i18n="manage.field_title">考卷名稱</span>
+            <input type="text" id="examTitle" data-i18n-placeholder="manage.field_title_ph" placeholder="例如：資安基礎測驗">
+          </label>
+          <label><span data-i18n="manage.field_code">考卷代號</span>
+            <input type="text" id="examCode" data-i18n-placeholder="manage.field_code_ph" placeholder="例如：SEC-101">
+          </label>
+          <label><span data-i18n="manage.field_version">考卷版號</span>
+            <input type="text" id="examVersion" data-i18n-placeholder="manage.field_version_ph" placeholder="例如：1.0">
+          </label>
+          <label><span data-i18n="manage.field_total_score">總分（各題平均配分）</span>
+            <input type="number" id="examTotalScore" value="100" min="1" max="10000">
+          </label>
+          <label id="ownerGroupRow" class="hidden"><span data-i18n="manage.field_owner_group">所屬老師 / 科別群組</span>
+            <select id="examOwnerGroupId"></select>
+          </label>
+        </div>
+        <label class="checkbox-row">
+          <input type="checkbox" id="examRetakeAllowed">
+          <span data-i18n="manage.field_retake">允許重考（勾選後可重複送出並覆蓋最新成績）</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="examEnabled" checked>
+          <span data-i18n="manage.field_enabled">立即啟用此考卷</span>
+        </label>
+
+        <div class="gift-toolbar">
+          <label class="file-upload-btn">
+            <span data-i18n="manage.upload_gift">上傳 .gift / .txt 檔案</span>
+            <input type="file" id="giftFileInput" accept=".gift,.txt">
+          </label>
+          <button type="button" class="btn btn-secondary btn-sm" id="previewGiftBtn" data-i18n="manage.preview_gift">解析預覽</button>
+        </div>
+        <textarea id="giftTextarea" rows="10" data-i18n-placeholder="manage.gift_ph" placeholder="在此貼上 Moodle GIFT 格式題目"></textarea>
+
+        <div id="giftPreviewBox" class="preview-box hidden"></div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="saveExamBtn" data-i18n="manage.save_btn">儲存並發布考卷</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ACL / Teachers Modal -->
+  <div id="aclModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="panel-head">
+        <h2 id="aclModalTitle">權限設定</h2>
+        <button type="button" class="btn btn-secondary btn-sm" id="closeAclModalBtn" data-i18n="acl.close">關閉</button>
+      </div>
+      <p class="subtitle" data-i18n="acl.subtitle">僅列出啟用中的帳號與有效群組；勾選後立即生效。</p>
+      <div class="acl-columns">
+        <div>
+          <h3 data-i18n="acl.users_header">帳號 (Users)</h3>
+          <div id="aclUsersList" class="acl-list"></div>
+        </div>
+        <div>
+          <h3 data-i18n="acl.groups_header">群組 (Groups)</h3>
+          <div id="aclGroupsList" class="acl-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

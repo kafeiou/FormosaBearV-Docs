@@ -802,6 +802,28 @@
       "restore_failed_generic": "上传或还原过程中发生错误，请检查文件格式后重试。",
       "start_restore_button": "开始还原系统",
       "goto_login_button": "立即前往重新登录"
+    },
+    "menu_plugins": "插件管理",
+    "plugins": {
+      "title": "插件包管理",
+      "security_notice": "请仅上传并安装受信任的 .zip 插件包。上传后可直接在下方启用或停用，无需重启服务器。",
+      "upload_title": "上传并安装 / 升级插件包（.zip）",
+      "upload_button": "上传并安装",
+      "upload_success": "已成功安装插件“{{ name }}”（v{{ version }}）。",
+      "upload_failed": "插件包安装失败。",
+      "installed_title": "已安装插件列表",
+      "empty": "目前尚未安装任何插件包。",
+      "col_name": "插件名称",
+      "col_version": "版本号",
+      "col_protected_tags": "固定保护标签",
+      "col_status": "状态",
+      "col_actions": "操作",
+      "open": "打开",
+      "enable": "启用",
+      "disable": "停用",
+      "uninstall": "卸载",
+      "uninstall_title": "卸载插件",
+      "uninstall_message": "确定要卸载“{{ name }}”（v{{ version }}）吗？插件专属数据将被清除，固定保护标签将解除锁定（保留标签本身及已有文档关联）。"
     }
   },
   "feedback": {
@@ -992,5 +1014,11 @@
     "error_duplicate_message": "无法还原此项目，因为系统当前已禁用重复文件名且已存在同名有效文件。",
     "error_parent_in_trash_title": "所属文档仍在回收站中",
     "error_parent_in_trash_message": "此文件所属的母文档当前也在回收站中，请先切换至“已删除的文档”标签页还原该母文档。"
+  },
+  "plugin": {
+    "not_available": "此插件尚未安装或当前处于停用状态。"
+  },
+  "error": {
+    "ProtectedPluginTag": "此标签受已安装的插件保护锁定，必须先卸载该插件才可删除。"
   }
 }

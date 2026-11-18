@@ -137,6 +137,15 @@ public class DirectoryUtil {
     }
 
     /**
+     * Returns the plugins directory.
+     *
+     * @return Plugins directory.
+     */
+    public static Path getPluginDirectory() {
+        return getDataSubDirectory("plugins");
+    }
+
+    /**
      * Returns a subdirectory of the base data directory
      * 
      * @return Subdirectory

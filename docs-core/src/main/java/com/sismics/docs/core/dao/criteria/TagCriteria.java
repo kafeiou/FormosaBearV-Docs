@@ -23,6 +23,11 @@ public class TagCriteria {
      */
     private String documentId;
 
+    /**
+     * Filter by hidden flag (null returns all, false returns only visible tags).
+     */
+    private Boolean hidden;
+
     public String getId() {
         return id;
     }
@@ -47,6 +52,15 @@ public class TagCriteria {
 
     public TagCriteria setDocumentId(String documentId) {
         this.documentId = documentId;
+        return this;
+    }
+
+    public Boolean getHidden() {
+        return hidden;
+    }
+
+    public TagCriteria setHidden(Boolean hidden) {
+        this.hidden = hidden;
         return this;
     }
 }
