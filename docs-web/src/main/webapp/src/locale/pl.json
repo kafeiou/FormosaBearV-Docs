@@ -351,7 +351,10 @@
       "link_mode_download": "Zezwalaj na bezpośrednie pobieranie plików (przełącza na podgląd, jeśli pobieranie jest zabronione)",
       "submit": "Eksportuj",
       "include_size": "Uwzględnij rozmiar pliku"
-    }
+    },
+    "hidden_label": "Ukryj ten tag (niewidoczny na zwykłym pasku tagów dokumentów)",
+    "hidden_tooltip": "Ukryty tag (wykluczony ze zwykłej listy tagów dokumentów)",
+    "effective_hidden_tooltip": "Ukryty automatycznie przez ukryty tag nadrzędny"
   },
   "group": {
     "profile": {

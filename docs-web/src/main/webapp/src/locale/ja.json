@@ -351,7 +351,10 @@
       "link_mode_download": "直接ファイルダウンロードを許可（ダウンロード禁止の場合はプレビューにダウングレード）",
       "submit": "エクスポート",
       "include_size": "ファイルサイズを含める"
-    }
+    },
+    "hidden_label": "このタグを非表示にする（通常の文書タグ一覧には表示されません）",
+    "hidden_tooltip": "非表示タグ（通常の文書タグ一覧から除外）",
+    "effective_hidden_tooltip": "親タグが非表示のため連動して非表示"
   },
   "group": {
     "profile": {

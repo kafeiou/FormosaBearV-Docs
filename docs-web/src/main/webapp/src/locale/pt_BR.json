@@ -351,7 +351,10 @@
       "link_mode_download": "Permitir transferência direta de arquivos (passa para visualização se a transferência não for permitida)",
       "submit": "Exportar",
       "include_size": "Incluir tamanho do arquivo"
-    }
+    },
+    "hidden_label": "Ocultar esta etiqueta (não aparece na barra comum de documentos)",
+    "hidden_tooltip": "Etiqueta oculta (oculta da lista comum de documentos)",
+    "effective_hidden_tooltip": "Oculta automaticamente por uma etiqueta pai oculta"
   },
   "group": {
     "profile": {

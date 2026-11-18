@@ -351,7 +351,10 @@
       "link_mode_download": "允许点击直接下载文件（无下载权限之文件自动降级为预览）",
       "submit": "开始导出",
       "include_size": "包含文件大小"
-    }
+    },
+    "hidden_label": "隐藏此标签（不显示于常规文档标签区）",
+    "hidden_tooltip": "隐藏标签（不显示于常规文档标签区）",
+    "effective_hidden_tooltip": "受上级隐藏标签影响，当前已连带隐藏"
   },
   "group": {
     "profile": {

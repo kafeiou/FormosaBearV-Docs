@@ -351,7 +351,10 @@
       "link_mode_download": "Allow direct file download (downgrades to preview if download is disallowed)",
       "submit": "Export",
       "include_size": "Include file size"
-    }
+    },
+    "hidden_label": "Hide this tag (not shown in regular document tag sidebar)",
+    "hidden_tooltip": "Hidden tag (excluded from regular document tag list)",
+    "effective_hidden_tooltip": "Hidden via an ancestor hidden tag"
   },
   "group": {
     "profile": {

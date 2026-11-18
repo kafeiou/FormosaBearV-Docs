@@ -351,7 +351,10 @@
       "link_mode_download": "Autoriser le téléchargement direct des fichiers (bascule vers l'aperçu si le téléchargement est interdit)",
       "submit": "Exporter",
       "include_size": "Inclure la taille du fichier"
-    }
+    },
+    "hidden_label": "Masquer cette étiquette (non affichée dans la barre latérale des documents)",
+    "hidden_tooltip": "Étiquette masquée (exclue de la liste standard des documents)",
+    "effective_hidden_tooltip": "Masquée automatiquement via une étiquette parente masquée"
   },
   "group": {
     "profile": {
