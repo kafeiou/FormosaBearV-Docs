@@ -14,7 +14,7 @@
 | 後端處理器 | [ExamPluginHandler.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/plugin/exam/ExamPluginHandler.java) | 實作三層權限隔離、GIFT 匯入、100 分均分批改、剝除正解與 `AuditLog` 稽核紀錄。 |
 | GIFT 解析器 | [GiftParser.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/plugin/exam/GiftParser.java) | 解析單選、多選（`%weight%`）、是非題，內建 `512 KB` / `500` 題 DoS 上限防護。 |
 | PDF 匯出引擎 | [ExamPdfExporter.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/plugin/exam/ExamPdfExporter.java) | OpenPDF + 內建 `Noto Sans CJK TC` 字型，產製空白考卷 PDF、當時時間浮水印作答 PDF 與多語系橫向成績彙總表 PDF。 |
-| 發布壓縮包 | [online-exam.zip](file:///W:/developer/project/github/FormosaBearV-Docs/docs-plugins/dist/online-exam.zip) | 可直接於「設定 → 外掛管理」上傳安裝之套件包。 |
+| 發布壓縮包 | [plugin-online-exam.zip](file:///W:/developer/project/github/FormosaBearV-Docs/docs-plugins/dist/plugin-online-exam.zip) | 可直接於「設定 → 外掛管理」上傳安裝之套件包。 |
 
 ---
 

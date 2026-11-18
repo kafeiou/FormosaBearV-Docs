@@ -14,7 +14,7 @@
 | Backend Handler | [ExamPluginHandler.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/plugin/exam/ExamPluginHandler.java) | Three-tier RBAC, GIFT import, 100-pt equal grading, answer stripping, audit logging, and action dispatch. |
 | GIFT Parser | [GiftParser.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/plugin/exam/GiftParser.java) | Moodle GIFT parser (Single Choice, Multiple Choice with `%weight%`, True/False) with 512 KB / 500-question DoS limits. |
 | PDF Engine | [ExamPdfExporter.java](file:///W:/developer/project/github/FormosaBearV-Docs/docs-core/src/main/java/com/sismics/docs/core/util/plugin/exam/ExamPdfExporter.java) | OpenPDF + bundled `Noto Sans CJK TC` generator for blank PDFs, watermarked attempt PDFs, and localized landscape summary reports. |
-| Distributable ZIP | [online-exam.zip](file:///W:/developer/project/github/FormosaBearV-Docs/docs-plugins/dist/online-exam.zip) | Ready-to-upload package for `#/settings/plugins`. |
+| Distributable ZIP | [plugin-online-exam.zip](file:///W:/developer/project/github/FormosaBearV-Docs/docs-plugins/dist/plugin-online-exam.zip) | Ready-to-upload package for `#/settings/plugins`. |
 
 ---
 

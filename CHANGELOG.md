@@ -19,7 +19,7 @@ This document details the notable changes, security enhancements, architecture i
   - Added two-layer tag deletion and rename protection: fixed plugin-protected tags (`ProtectedPluginTag`) cannot be deleted, renamed, or have visibility changed while the plugin is installed (enabled or disabled), and any tag referenced by plugin data (`PluginHandler.findTagReferenceReason`) is blocked from deletion (`TagInUseByPlugin`).
   - Added **Plugin i18n Standard** (`locale/<lang>.json` + `nav_label_i18n` + host `?lang=` live reload via `$rootScope.$on('$translateChangeSuccess')`) and strict CSP / `X-Content-Type-Options: nosniff` headers on plugin assets.
   - Added bilingual developer documentation: `docs-plugins/PLUGIN_GUIDE.md` and `docs-plugins/PLUGIN_GUIDE.zh-TW.md`.
-- **Online Exam Showcase Plugin (`online-exam` v1.3.0, `docs-plugins/dist/online-exam.zip`)**:
+- **Online Exam Showcase Plugin (`online-exam` v1.3.0, `docs-plugins/dist/plugin-online-exam.zip`)**:
   - Implemented `ExamPluginHandler`, `GiftParser`, and `ExamPdfExporter` (using bundled `Noto Sans CJK TC` font).
   - **Three-Tier RBAC**: Top Admin (`ADMIN` or `Online Exam Admin` tag) > Subject Teachers (active users/groups assigned in-plugin, e.g. `OnlineExam01`, isolated per teacher/group) > Examinees (active users/groups granted per-exam access).
   - **Moodle GIFT Import & Equal 100-Point Grading**: Supports Single Choice (`=`/`~`), Multiple Choice (`~%...%`), and True/False (`{TRUE}`/`{FALSE}`) with 512 KB / 500-question limits, exam code/version metadata, enable/disable toggle, delete confirmation preserving historical score snapshots, and backend-only grading that never leaks correct answers.

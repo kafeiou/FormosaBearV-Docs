@@ -19,7 +19,7 @@
   - 雙層標籤防誤刪與防改名機制：外掛安裝期間（啟用或停用）禁止刪除、更名或變更固定保護標籤可見性（`ProtectedPluginTag`）；透過 `PluginHandler.findTagReferenceReason` 通用檢查，凡被外掛資料引用的標籤亦禁止刪除（`TagInUseByPlugin`）。
   - 建立**外掛多語系標準規範**（`locale/<lang>.json`、`nav_label_i18n` 與 `$rootScope.$on('$translateChangeSuccess')` 即時刷新外掛語系）及外掛靜態資源嚴格 CSP / `X-Content-Type-Options: nosniff` 安全標頭。
   - 新增中英文外掛開發指南：`docs-plugins/PLUGIN_GUIDE.md`、`docs-plugins/PLUGIN_GUIDE.zh-TW.md`。
-- **線上考試示範外掛 (`online-exam` v1.3.0、`docs-plugins/dist/online-exam.zip`)**：
+- **線上考試示範外掛 (`online-exam` v1.3.0、`docs-plugins/dist/plugin-online-exam.zip`)**：
   - 實作 `ExamPluginHandler`、`GiftParser` 與 `ExamPdfExporter`（採用內建 `Noto Sans CJK TC` 字型）。
   - **三層權限架構**：最高管理員（`ADMIN` 或具備 `Online Exam Admin` 標籤）> 各科出題老師（由最高管理員指派啟用中帳號/群組，如 `OnlineExam01`，跨科別嚴格隔離）> 應試學生（依考卷勾選之啟用中帳號/群組授權）。
   - **Moodle GIFT 匯入與 100 分均分批改**：支援單選（`=`/`~`）、多選（`~%...%`）、是非題（`{TRUE}`/`{FALSE}`），內建 512 KB / 500 題 DoS 防護、考卷代號/版號、停用/啟用切換、刪除考卷前已應試人數警告且刪除後保留歷史成績快照，以及後端批改不洩漏正解與漏答送出提醒。

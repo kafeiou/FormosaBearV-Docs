@@ -73,15 +73,15 @@ public class TestOnlineExamPlugin extends BaseJerseyTest {
         String aliceToken = clientUtil.login("exam_alice");
         String bobToken = clientUtil.login("exam_bob");
 
-        // 1. Upload & enable online-exam.zip
-        Path zipPath = Paths.get("../docs-plugins/dist/online-exam.zip");
+        // 1. Upload & enable plugin-online-exam.zip
+        Path zipPath = Paths.get("../docs-plugins/dist/plugin-online-exam.zip");
         if (!Files.exists(zipPath)) {
-            zipPath = Paths.get("docs-plugins/dist/online-exam.zip");
+            zipPath = Paths.get("docs-plugins/dist/plugin-online-exam.zip");
         }
         byte[] zipBytes = Files.readAllBytes(zipPath);
 
         StreamDataBodyPart filePart = new StreamDataBodyPart(
-                "file", new ByteArrayInputStream(zipBytes), "online-exam.zip", MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                "file", new ByteArrayInputStream(zipBytes), "plugin-online-exam.zip", MediaType.APPLICATION_OCTET_STREAM_TYPE);
         FormDataMultiPart multiPart = new FormDataMultiPart();
         multiPart.bodyPart(filePart);
         Response upResp = target().path("/plugin/upload").request()
