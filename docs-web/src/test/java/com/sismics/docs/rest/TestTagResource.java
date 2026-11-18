@@ -833,26 +833,34 @@ public class TestTagResource extends BaseJerseyTest {
                         .param("hidden", "true")), JsonObject.class);
         String hiddenId = hiddenJson.getString("id");
 
-        // Default /tag/list excludes hidden tags
+        // Child tag under a hidden parent should also be effectively hidden
+        target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("name", "ChildUnderHidden")
+                        .param("color", "#333333")
+                        .param("parent", hiddenId)), JsonObject.class);
+
+        // Default /tag/list excludes both the hidden parent and its child
         JsonObject defaultList = target().path("/tag/list").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
                 .get(JsonObject.class);
         Assert.assertEquals(1, defaultList.getJsonArray("tags").size());
         Assert.assertEquals(visibleId, defaultList.getJsonArray("tags").getJsonObject(0).getString("id"));
 
-        // include_hidden=true includes hidden tags with hidden=true
+        // include_hidden=true includes all 3 tags
         JsonObject allList = target().path("/tag/list").queryParam("include_hidden", true).request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
                 .get(JsonObject.class);
-        Assert.assertEquals(2, allList.getJsonArray("tags").size());
+        Assert.assertEquals(3, allList.getJsonArray("tags").size());
 
-        // Toggle hidden=false makes it visible
+        // Toggle hidden=false on parent restores both parent and child in default /tag/list
         target().path("/tag/" + hiddenId).request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
                 .post(Entity.form(new Form().param("hidden", "false")), JsonObject.class);
         JsonObject afterToggle = target().path("/tag/list").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
                 .get(JsonObject.class);
-        Assert.assertEquals(2, afterToggle.getJsonArray("tags").size());
+        Assert.assertEquals(3, afterToggle.getJsonArray("tags").size());
     }
 }

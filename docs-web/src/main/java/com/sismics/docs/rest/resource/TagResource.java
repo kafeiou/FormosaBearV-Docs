@@ -109,6 +109,7 @@ public class TagResource extends BaseResource {
                     .add("document_count", tagDto.isContainer() ? 0 : totalDocs.size())
                     .add("inherit_acl", tagDto.isInheritAcl())
                     .add("hidden", tagDto.isHidden())
+                    .add("effective_hidden", tagDto.isEffectiveHidden())
                     .add("is_container", tagDto.isContainer());
             if (tagDto.getOrder() != null) {
                 item.add("order", tagDto.getOrder());
@@ -177,6 +178,7 @@ public class TagResource extends BaseResource {
                 .add("color", tagDto.getColor())
                 .add("inherit_acl", tagDto.isInheritAcl())
                 .add("hidden", tagDto.isHidden())
+                .add("effective_hidden", tagDto.isEffectiveHidden())
                 .add("is_container", tagDto.isContainer());
         if (tagDto.getOrder() != null) {
             tag.add("order", tagDto.getOrder());
