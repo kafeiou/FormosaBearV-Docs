@@ -132,7 +132,11 @@
         "upload_new_version": "Prześlij nową wersję",
         "open_versions": "Pokaż historię wersji",
         "display_mode_list": "Wyświetl pliki jako listę",
-        "display_mode_grid": "Wyświetl pliki jako siatkę"
+        "display_mode_grid": "Wyświetl pliki jako siatkę",
+        "col_filename": "Nazwa pliku",
+        "col_type": "Typ",
+        "col_size": "Rozmiar",
+        "col_version": "Wersja"
       },
       "workflow": {
         "workflow": "Przepływ",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "Zamierzasz ustawić tryb szyfrowania plików na '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Ostrzeżenie: po potwierdzeniu to ustawienie zostanie trwale zablokowane i nigdy nie będzie można go zmienić!</span> Kontynuować?",
       "first_time_encrypt_title": "Pierwsza konfiguracja: Wybierz tryb szyfrowania przechowywania plików",
       "first_time_encrypt_message": "Witamy w FormosaBearV! Przed przesłaniem plików wybierz i zablokuj <strong>Tryb przechowywania plików (file.encrypt)</strong>:<br/><br/>1. <strong>Przechowywanie nieszyfrowane (Zalecane)</strong>: Pliki są przechowywane w oryginalnym formacie w folderach użytkowników i dokumentów, co ułatwia bezpośrednie kopie zapasowe i konserwację.<br/>2. <strong>Szyfrowane przechowywanie AES-256</strong>: Wszystkie przesyłane pliki są szyfrowane na dysku i nie można ich bezpośrednio odczytać z systemu plików.<br/><br/><strong class='text-danger'>⚠️ Ostrzeżenie: to ustawienie jest trwale blokowane po potwierdzeniu (lub po pierwszym przesłaniu pliku) i nie można go później zmienić!</strong>",
+      "file_encrypt_processing": "Stosowanie ustawień przechowywania i przygotowywanie wbudowanych wtyczek, proszę czekać...",
       "title_file_delete": "Tryb usuwania plików z dysku (file.delete)",
       "file_delete_permanent": "Usuń trwale z dysku",
       "file_delete_recycle": "Przenieś do katalogu kosza (delete/storage)",
@@ -806,27 +811,27 @@
       "start_restore_button": "Rozpocznij przywracanie systemu",
       "goto_login_button": "Przejdź do logowania"
     },
-    "menu_plugins": "Plugins",
+    "menu_plugins": "Wtyczki",
     "plugins": {
-      "title": "Plugin Management",
-      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
-      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
-      "upload_button": "Upload & Install",
-      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
-      "upload_failed": "Failed to install plugin package.",
-      "installed_title": "Installed Plugins",
-      "empty": "No plugins installed yet.",
-      "col_name": "Plugin",
-      "col_version": "Version",
-      "col_protected_tags": "Protected Tags",
+      "title": "Zarządzanie wtyczkami",
+      "security_notice": "Instaluj wyłącznie zaufane pakiety .zip. Przesłane wtyczki można włączać bez ponownego uruchamiania serwera.",
+      "upload_title": "Prześlij i zainstaluj / zaktualizuj wtyczkę (.zip)",
+      "upload_button": "Prześlij i zainstaluj",
+      "upload_success": "Wtyczka „{{ name }}” (v{{ version }}) została pomyślnie zainstalowana.",
+      "upload_failed": "Nie udało się zainstalować pakietu wtyczki.",
+      "installed_title": "Zainstalowane wtyczki",
+      "empty": "Brak zainstalowanych wtyczek.",
+      "col_name": "Wtyczka",
+      "col_version": "Wersja",
+      "col_protected_tags": "Chronione tagi",
       "col_status": "Status",
-      "col_actions": "Actions",
-      "open": "Open",
-      "enable": "Enable",
-      "disable": "Disable",
-      "uninstall": "Uninstall",
-      "uninstall_title": "Uninstall Plugin",
-      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
+      "col_actions": "Akcje",
+      "open": "Otwórz",
+      "enable": "Włącz",
+      "disable": "Wyłącz",
+      "uninstall": "Odinstaluj",
+      "uninstall_title": "Odinstaluj wtyczkę",
+      "uninstall_message": "Czy na pewno chcesz odinstalować „{{ name }}” (v{{ version }})? Dane wtyczki zostaną usunięte, a chronione tagi odblokowane (tagi i dokumenty zostaną zachowane)."
     }
   },
   "feedback": {
@@ -1019,9 +1024,9 @@
     "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
   },
   "plugin": {
-    "not_available": "This plugin is not installed or currently disabled."
+    "not_available": "Ta wtyczka nie jest zainstalowana lub jest obecnie wyłączona."
   },
   "error": {
-    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+    "ProtectedPluginTag": "Ten tag jest chroniony przez zainstalowaną wtyczkę i nie można go usunąć przed jej odinstalowaniem."
   }
 }

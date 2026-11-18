@@ -23,7 +23,8 @@
     "retake_exam": "Repetir examen",
     "view_result": "Ver resultado",
     "blank_pdf": "PDF del examen en blanco",
-    "attempt_pdf": "PDF completado (con marca de agua)"
+    "attempt_pdf": "PDF completado (con marca de agua)",
+    "ref_docs_label": "Documentos de referencia:"
   },
   "runner": {
     "back": "← Volver a la lista de exámenes",
@@ -35,7 +36,8 @@
     "false_label": "Falso",
     "submit": "Enviar examen",
     "unanswered_warning": "Las preguntas {{questions}} no tienen respuesta. Por favor, responde a todas las preguntas antes de enviar.",
-    "submitted_success": "¡Examen enviado y calificado!"
+    "submitted_success": "¡Examen enviado y calificado!",
+    "ref_docs_label": "Documentos de referencia (se abre en una pestaña nueva):"
   },
   "scores": {
     "title": "Registro de calificaciones",
@@ -96,7 +98,12 @@
     "gift_ph": "Pega aquí las preguntas en formato GIFT de Moodle (Opción única =/~, Opción múltiple ~%50%, Verdadero/Falso {TRUE}/{FALSE})",
     "preview_header": "Se analizaron correctamente {{count}} preguntas:",
     "save_btn": "Guardar y publicar examen",
-    "saved_success": "¡Examen publicado con éxito!"
+    "saved_success": "¡Examen publicado con éxito!",
+    "field_ref_docs": "Documentos de referencia vinculados (opcional, selección múltiple; visibles solo para examinados con permiso de lectura)",
+    "ref_docs_search_ph": "Buscar título del documento...",
+    "ref_docs_empty": "No se encontraron documentos legibles",
+    "btn_ref_docs": "Docs ref.",
+    "ref_docs_modal_title": "Documentos de referencia: {{title}}"
   },
   "acl": {
     "modal_title": "Permisos de examinandos: {{title}}",

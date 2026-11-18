@@ -1,10 +1,12 @@
-# FormosaBearV Docs 外掛開發指南
+# FormosaBearV Docs 外掛開發指南 (`3.01-SNAPSHOT`)
 
-本指南說明如何為 **FormosaBearV Docs**（v3.0.0 以上）開發、多語系化、打包與安全部署第三方外掛套件。
+> **AI 代理必讀提示**：若您是負責開發或維護外掛的 AI Agent，請務必同時閱讀 [docs-plugins/AGENTS.md](AGENTS.md)（收錄 10 大避坑鐵律與對照程式碼）以及 [online-exam/README.zh-TW.md](online-exam/README.zh-TW.md)（官方全端外掛完整拆解）。
+
+本指南說明如何為 **FormosaBearV Docs**（`3.01-SNAPSHOT` 以上）開發、多語系化、打包、自動植入與安全部署第三方外掛套件。
 
 ---
 
-## 1. 架構總覽
+## 1. 架構總覽與整合模式
 
 FormosaBearV Docs 提供兩種外掛整合模式：
 
@@ -14,51 +16,90 @@ FormosaBearV Docs 提供兩種外掛整合模式：
    - 直接呼叫 `/api/plugin/{id}/data/{collection}/{key}` 讀寫資料，並內建非管理員機密欄位自動遮罩。
 2. **全端擴充外掛 (`PluginHandler` SPI)**：
    - 前端 `.zip` 套件搭配註冊於 `PluginService` 的 Java `PluginHandler`。
-   - 透過 `/api/plugin/{id}/action/{action}` 執行自訂商業邏輯（如後端批改、權限隔離、PDF 二進位串流匯出）。
+   - 支援四大生命週期與擴充掛鉤：
+     - `getId()`：對應 `plugin.json` 的 `"handler"`。
+     - `handleAction(method, action, context)`：處理 `/api/plugin/{id}/action/{action}` 自訂商業邏輯（如後端批改、權限隔離、PDF 二進位串流匯出）。
+     - `findTagReferenceReason(tagId)`：防止外掛正在使用的標籤被誤刪。
+     - `onEnabled(installerUserId)`：首次啟用外掛時自動建置展示／預設群組、階層標籤、多語系教材文件與初始資料。
 
 ---
 
-## 2. 套件目錄結構與打包規範
+## 2. 外掛安裝、首次啟用與執行期序列圖 (Mermaid Sequence Diagram)
+
+```mermaid
+sequenceDiagram
+    actor Admin as 系統管理員 (admin)
+    participant UI as 前端設定頁 (#/settings/plugins)
+    participant PR as PluginResource (/api/plugin)
+    participant PPU as PluginPackageUtil
+    participant PS as PluginService
+    participant PH as PluginHandler (ExamPluginHandler)
+    participant FS as FileService & FileProcessingAsyncListener
+
+    Admin->>PR: 1. POST /api/plugin/upload (plugin-xxx.zip)
+    PR->>PPU: installPackage(zipStream)
+    Note over PPU: 檢查 50MB 上限、2000 條目上限、<br/>防範 Zip Slip 路徑穿越，解壓至 /data/plugins/{id}
+    PPU-->>PR: PluginManifest (解析 plugin.json)
+    PR->>PS: registerOrUpgrade(manifest, adminId)
+    Note over PS: 寫入 T_PLUGIN (預設 enabled=false)<br/>自動建立並鎖定 protected_tags 於 T_PLUGIN_TAG
+
+    Admin->>PR: 2. POST /api/plugin/{id}/enable
+    PR->>PS: onEnabled(plugin, adminId)
+    PS->>PH: onEnabled(adminId)
+    Note over PH: 檢查 T_PLUGIN_DATA (demo_seeded)<br/>1. 建立無特權群組 (roleId=null)<br/>2. 建立英文階層標籤與最小權限 ACL<br/>3. 建立教材文件並透過 FileService 產生 16 語系 PDF<br/>4. 建立內建 16 語系題庫之考卷並綁定教材文件 ID
+    PH->>FS: FileUtil.createFile(...) 觸發 FileCreatedAsyncEvent
+    Note over FS: 背景非同步產生縮圖、PDFBox 抽取純文字<br/>(供「眼睛」按鈕檢視) 並寫入 Lucene 搜尋索引
+```
+
+---
+
+## 3. 套件目錄結構與打包規範
 
 ```text
 my-plugin/
 ├── plugin.json          # 必須位於 ZIP 根目錄
-├── locale/              # 標準多語系 JSON 目錄
+├── locale/              # 標準 16 國語系 JSON 目錄
 │   ├── en.json          # 必備預設 / Fallback 語系
 │   └── zh_TW.json       # 對應主系統語系代碼的翻譯檔
+├── seed/                # (選填) 首次啟用時供 PluginHandler.onEnabled 讀取的種子資料
+│   ├── SEC-001.gift
+│   └── SEC-001-i18n.json
 └── ui/
     ├── index.html       # 對應 plugin.json 的 "entry" 路徑
     ├── style.css
     └── app.js
 ```
 
-### 打包注意事項
-- `plugin.json` **必須位於 `.zip` 根目錄**（不可多包一層父資料夾）。
-- **Zip Slip 防護**：任何包含 `..`、跨目錄跳脫或絕對路徑的壓縮條目，上傳時都會被拒絕（`400 InvalidPluginPackage`）。
+### 打包與隨系統出貨規範 (`docs-plugins/dist/plugin-*.zip`)
+- `plugin.json` **必須位於 `.zip` 根目錄**（不可多包一層父資料夾），且壓縮條目路徑分隔符必須為 POSIX `/`（不可為 Windows `\`）。
+- 命名規範：所有放置於 `docs-plugins/dist/plugin-*.zip` 的壓縮包，在執行 `mvn process-resources` / `mvn package` 時，會由 `docs-core/pom.xml` 的 `maven-resources-plugin` 自動複製進 `docs-core` JAR 的 `plugins/` 目錄。
+- **自動植入 `plugins` 文件機制 (`PluginSeedService`)**：
+  - 系統首次安裝時，會等待管理員於首次登入彈窗（或設定頁）呼叫 `POST /api/app/file_encrypt` 選定「加密儲存」或「不加密儲存」後，立即將 `classpath:plugins/plugin-*.zip` 匯入管理員專屬的 `plugins` 文件（綁定一般顯示但僅 `admin` 有權限的 `plugins` 標籤），並在文件「說明（Description）」欄位寫入 16 語系安裝說明與各 `.zip` 用途。
+  - 已匯入過的檔名會記錄於 `T_CONFIG` 的 `PLUGINS_SEEDED`；未來系統升級若新增其他 `plugin-yyy.zip`，啟動時會自動比對並補入 `plugins` 文件。
 
 ---
 
-## 3. `plugin.json` 完整欄位規範
+## 4. `plugin.json` 完整欄位規範
 
 ```json
 {
-  "id": "my-plugin",
-  "name": "My Plugin",
-  "version": "1.0.0",
+  "id": "online-exam",
+  "name": "Online Exam",
+  "version": "1.3.0",
   "default_locale": "en",
-  "description": "顯示於「設定 → 外掛管理」的簡短說明。",
+  "description": "Moodle GIFT online exam system with tag-based access control, backend grading, and watermarked PDF export.",
   "entry": "ui/index.html",
-  "nav_label": "My Plugin",
+  "nav_label": "Online Exam",
   "nav_label_i18n": {
-    "en": "My Plugin",
-    "zh_TW": "我的外掛"
+    "en": "Online Exam",
+    "zh_TW": "線上考試"
   },
-  "nav_icon": "fas fa-puzzle-piece",
-  "handler": "my-plugin",
+  "nav_icon": "fas fa-graduation-cap",
+  "handler": "online-exam",
   "protected_tags": [
     {
       "role": "MANAGEMENT",
-      "name": "My Plugin Admin",
+      "name": "Online Exam Admin",
       "color": "#8b5cf6",
       "hidden": true
     }
@@ -73,52 +114,15 @@ my-plugin/
 | `version` | 是 | 版號字串（顯示於管理介面並用於靜態資源快取控制）。 |
 | `entry` | 否 | 外掛前端進入點相對路徑（預設 `index.html`）。 |
 | `nav_label` | 否 | 頂部導覽列預設顯示名稱。 |
-| `nav_label_i18n` | 否 | 依語系代碼對應導覽列名稱的物件，隨系統切換語系即時變換。 |
+| `nav_label_i18n` | 否 | 依 16 語系代碼對應導覽列名稱的物件，隨系統切換語系即時變換。 |
 | `nav_icon` | 否 | FontAwesome 圖示類別（例如 `fas fa-graduation-cap`）。 |
 | `default_locale` | 否 | 預設語系代碼（預設 `en`）。 |
 | `handler` | 否 | 對應 `PluginService` 註冊之 `PluginHandler` ID。 |
 | `protected_tags` | 否 | 安裝時自動建立並鎖定於 `T_PLUGIN_TAG` 的保護標籤清單。 |
 
-### 固定保護標籤 (`protected_tags`)
-- **`role`**：`"MANAGEMENT"`（外掛管理員識別標籤）或 `"PLUGIN_ROOT"`。
-- **`hidden`**：設為 `true` 時，該標籤會於一般文件側邊欄與標籤選擇器隱藏（`GET /api/tag/list` 預設過濾），僅於「標籤管理 (`#/tagadmin`)」顯示供管理員指派 ACL 權限。
-- **鎖定生命週期**：
-  - 外掛安裝期間（無論**啟用或停用**），受保護標籤皆**不可刪除、不可更名、不可更改隱藏狀態**（`400 ProtectedPluginTag`）。
-  - 僅於**解除安裝外掛**後才解除保護鎖，並保留既有 `T_TAG` 與文件關聯。
-
 ---
 
-## 4. 多語系 (i18n) 標準規範
-
-1. **宿主傳遞語系**：
-   - `PluginView.js` 載入外掛 `iframe` 時會附帶 `?v=<version>&lang=<currentLang>`，且當使用者於主系統切換語系時，會即時重新載入對應語系。
-2. **外掛讀取 `lang` 參數**：
-   ```js
-   const urlParams = new URLSearchParams(window.location.search);
-   const currentLang = urlParams.get('lang') || 'en';
-   ```
-3. **標準 `locale/*.json` 與錯誤碼對應**：
-   - 務必提供 `locale/en.json` 作為 Fallback 字典。
-   - 將後端錯誤碼（`{ "type": "ValidationError", "message": "..." }`）對應至 `error.<type>` 鍵值，實現前後端完整多語系化。
-4. **主系統支援的 16 種語系代碼**：
-   `en`、`zh_TW`、`zh_CN`、`ja`、`vi`、`de`、`fr`、`es`、`pt`、`pt_BR`、`it`、`pl`、`ru`、`el`、`sq_AL`、`sr`。
-
----
-
-## 5. 通用資料儲存 API (`T_PLUGIN_DATA`)
-
-| HTTP 方法與路徑 | 說明 |
-| --- | --- |
-| `GET /api/plugin/{id}/data/{collection}` | 列出指定集合的 JSON 資料。 |
-| `GET /api/plugin/{id}/data/{collection}/{key}` | 依 `key` 取得單筆 JSON 資料。 |
-| `PUT /api/plugin/{id}/data/{collection}/{key}` | 新增或更新 JSON（`Content-Type: application/json`）。 |
-| `DELETE /api/plugin/{id}/data/{collection}/{key}` | 刪除單筆資料（僅擁有者或管理員）。 |
-
-- **機密欄位自動遮罩**：非系統管理員查詢時，凡 JSON 鍵名以 `_`、`secret_` 或 `correct_` 開頭的欄位皆會被遞迴過濾，不會回傳至瀏覽器。
-
----
-
-## 6. 進階後端擴充 (`PluginHandler` SPI)
+## 5. 進階後端擴充 (`PluginHandler` SPI) 與資安五防線
 
 實作 `com.sismics.docs.core.util.plugin.PluginHandler` 並於 `PluginService` 註冊：
 
@@ -129,20 +133,31 @@ public interface PluginHandler {
     default Optional<String> findTagReferenceReason(String tagId) {
         return Optional.empty();
     }
+    default void onEnabled(String installerUserId) throws Exception {
+    }
 }
 ```
 
-- **`PluginContext`**：提供 `userId`、`username`、`userDisplayName`、`isAdmin()`、`targetIdList`（使用者與群組 ID）、`queryParams` 與 `requestBody`。
-- **`PluginResult`**：支援 `PluginResult.ok(JsonObject)`、`PluginResult.error(status, JsonObject)` 與 `PluginResult.binary(bytes, contentType, fileName)`。
-- **`findTagReferenceReason(tagId)`**：若外掛資料有引用使用者標籤，覆寫此方法後，主系統刪除該標籤時會自動阻擋並回傳 `400 TagInUseByPlugin`。
+### 外掛自動建置系統資源 (`onEnabled`) 的 5 道資通安全防線
+當外掛於 `onEnabled(installerUserId)` 自動建立群組、階層標籤、文件與檔案時，必須遵守：
+1. **禁止權限提升 (No Privilege Escalation)**：新建 `Group` 時 `setRoleId(null)` 必須為 `null`，嚴禁賦予 `ADMIN` 角色；若同名群組或標籤已存在，僅可沿用其 ID，不得修改既有群組或標籤的 ACL。
+2. **預設最小權限 (Least Privilege)**：自動建立的標籤與文件僅授權 `installerUserId` (`admin`) 及外掛專屬群組（如教師群組讀寫、學生群組唯讀），不對全系統所有帳號公開。
+3. **檔案安全與大小上限**：從外掛套件讀取種子檔案必須透過 `PluginPackageUtil.resolvePluginAsset(pluginId, relativePath)`（防範路徑穿越）並檢查檔案大小上限；寫入文件附件必須透過 `AppContext.getInstance().getFileService().createTemporaryFile(fileName)` 與 `FileUtil.createFile(...)` 以遵守系統加密設定、硬碟配額與背景純文字抽取／Lucene 索引流程。
+4. **標籤命名合規**：自動建立的一般顯示標籤（`hidden = false`）應使用不含空白與冒號的英文名稱（如 `OnlineExamMaterials` -> `SecurityFundamentals`），以符合 `ValidationUtil.validateTagName` 並支援 `tag:` 語法搜尋。
+5. **冪等執行 (Idempotency)**：於 `T_PLUGIN_DATA` 記錄初始化旗標（如 `demo_seeded = "true"`），確保停用後再啟用或版本升級時不會重複建立資料。
 
 ---
 
-## 7. 資安與開發最佳實踐檢查表
+## 6. 隨系統語系即時切換之多語系 PDF 報表匯出架構（四棒接力模式）
 
-- **Content Security Policy (CSP)**：外掛靜態資源會強制加上 `X-Content-Type-Options: nosniff` 與 `Content-Security-Policy`（禁止載入外部未授權腳本與內嵌 `<script>`）。
-  - 所有 JS/CSS 必須打包在 `.zip` 內，避免使用外部 CDN 或 HTML inline 事件（如 `onclick="..."`）。
-- **`GET` 請求不可帶 `Content-Type: application/json`**：前端使用 `fetch()` 時，僅在有 `body`（`POST`/`PUT`）時才附加 `Content-Type: application/json`，否則會觸發 `415 Unsupported Media Type`。
-- **防權限提升**：外掛內建授權功能應透過 `PluginTagDao.isManagementProtectedTag(tagId)` 禁止操作 `MANAGEMENT` 保護標籤。
-- **過濾停用帳號與無效群組**：授權清單僅列出 `disableTimestamp == null` 的帳號與未刪除群組，且後端寫入前必須二次驗證。
-- **稽核軌跡**：重要管理操作請透過 `AuditLogUtil.create(...)` 寫入系統稽核日誌。
+FormosaBearV Docs 外掛平台支援「當使用者於主系統切換任一語系（共 16 國語系）時，外掛內預覽與下載的 PDF 報表自動切換為該國語系」。未來 AI 開發新外掛的 PDF 匯出功能時，請遵循以下四棒接力架構：
+
+1. **第一棒（宿主框架 `PluginView.js` 自動注入 `?lang=`）**：
+   宿主載入外掛 `iframe` 時會自動帶入 `?v=<version>&lang=<currentLang>`，並在主系統切換語系時自動刷新 `iframe`。
+2. **第二棒（外掛前端 `ui/app.js` 傳遞 `&lang=`）**：
+   前端透過 `new URLSearchParams(window.location.search).get('lang')` 取得 `currentLang`，並在所有 API 查詢與 PDF 匯出超連結帶入 `&lang=${encodeURIComponent(currentLang)}`。
+3. **第三棒（後端 `PluginHandler` 動態本地化資料 `localizeExam(data, lang)`）**：
+   後端 Action 由 `ctx.getQueryParams().getOrDefault("lang", "en")` 取得語系代碼，若資料含 `"i18n"` 多語系字典，即時替換標題與內文欄位。
+4. **第四棒（OpenPDF + `PdfUtil.BUNDLED_CJK_FONT_FAMILY` + 16 語系表頭字典 + `PluginResult.binary`）**：
+   PDF 產製器內建 16 語系表頭字典（`PDF_LABELS_I18N`），並使用 `PdfUtil.getFontProvider().getFont(PdfUtil.BUNDLED_CJK_FONT_FAMILY, BaseFont.IDENTITY_H, ...)`（`Noto Sans CJK TC`）渲染文字，最後以 `PluginResult.binary(pdfBytes, "application/pdf", fileName)` 直接串流回傳下載。
+

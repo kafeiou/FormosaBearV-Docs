@@ -132,7 +132,11 @@
         "upload_new_version": "Ανλεβασε μια νέα έκδοση",
         "open_versions": "Προβολή ιστορικού εκδόσεων",
         "display_mode_list": "Εμφάνιση αρχείων σε λίστα",
-        "display_mode_grid": "Εμφάνιση αρχείων σε πλέγμα"
+        "display_mode_grid": "Εμφάνιση αρχείων σε πλέγμα",
+        "col_filename": "Όνομα αρχείου",
+        "col_type": "Τύπος",
+        "col_size": "Μέγεθος",
+        "col_version": "Έκδοση"
       },
       "workflow": {
         "workflow": "Ροή εργασίας",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "Πρόκειται να ορίσετε τη λειτουργία κρυπτογράφησης αρχείων σε '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Προειδοποίηση: Μόλις επιβεβαιωθεί, αυτή η ρύθμιση θα κλειδωθεί μόνιμα και δεν θα μπορεί να αλλάξει ποτέ!</span> Συνέχεια;",
       "first_time_encrypt_title": "Αρχική ρύθμιση: Επιλογή λειτουργίας κρυπτογράφησης αποθήκευσης αρχείων",
       "first_time_encrypt_message": "Καλώς ήρθατε στο FormosaBearV! Πριν μεταφορτώσετε αρχεία, επιλέξτε και κλειδώστε τη <strong>Λειτουργία αποθήκευσης αρχείων (file.encrypt)</strong>:<br/><br/>1. <strong>Μη κρυπτογραφημένη αποθήκευση (Συνιστάται)</strong>: Τα αρχεία αποθηκεύονται στην αρχική τους μορφή οργανωμένα σε φακέλους χρήστη και εγγράφου, διευκολύνοντας το άμεσο αντίγραφο ασφαλείας και τη συντήρηση.<br/>2. <strong>Κρυπτογραφημένη αποθήκευση AES-256</strong>: Όλα τα μεταφορτωμένα αρχεία κρυπτογραφούνται στον δίσκο και δεν μπορούν να αναγνωστούν απευθείας από το σύστημα αρχείων.<br/><br/><strong class='text-danger'>⚠️ Προειδοποίηση: Αυτή η ρύθμιση κλειδώνεται μόνιμα μετά την επιβεβαίωση (ή μετά την πρώτη μεταφόρτωση αρχείου) και δεν μπορεί να αλλάξει αργότερα!</strong>",
+      "file_encrypt_processing": "Εφαρμογή ρύθμισης αποθήκευσης και προετοιμασία ενσωματωμένων πρόσθετων, παρακαλώ περιμένετε...",
       "title_file_delete": "Λειτουργία διαγραφής αρχείων δίσκου (file.delete)",
       "file_delete_permanent": "Μόνιμη διαγραφή από τον δίσκο",
       "file_delete_recycle": "Μετακίνηση στον κατάλογο ανακύκλωσης (delete/storage)",
@@ -806,27 +811,27 @@
       "start_restore_button": "Έναρξη επαναφοράς συστήματος",
       "goto_login_button": "Μετάβαση στη σύνδεση"
     },
-    "menu_plugins": "Plugins",
+    "menu_plugins": "Πρόσθετα",
     "plugins": {
-      "title": "Plugin Management",
-      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
-      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
-      "upload_button": "Upload & Install",
-      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
-      "upload_failed": "Failed to install plugin package.",
-      "installed_title": "Installed Plugins",
-      "empty": "No plugins installed yet.",
-      "col_name": "Plugin",
-      "col_version": "Version",
-      "col_protected_tags": "Protected Tags",
-      "col_status": "Status",
-      "col_actions": "Actions",
-      "open": "Open",
-      "enable": "Enable",
-      "disable": "Disable",
-      "uninstall": "Uninstall",
-      "uninstall_title": "Uninstall Plugin",
-      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
+      "title": "Διαχείριση Προσθέτων",
+      "security_notice": "Εγκαταστήστε μόνο αξιόπιστα πακέτα .zip. Τα πρόσθετα μπορούν να ενεργοποιηθούν χωρίς επανεκκίνηση του διακομιστή.",
+      "upload_title": "Μεταφόρτωση & εγκατάσταση / αναβάθμιση προσθέτου (.zip)",
+      "upload_button": "Μεταφόρτωση & εγκατάσταση",
+      "upload_success": "Το πρόσθετο «{{ name }}» (v{{ version }}) εγκαταστάθηκε επιτυχώς.",
+      "upload_failed": "Αποτυχία εγκατάστασης πακέτου προσθέτου.",
+      "installed_title": "Εγκατεστημένα πρόσθετα",
+      "empty": "Δεν έχουν εγκατασταθεί πρόσθετα ακόμη.",
+      "col_name": "Πρόσθετο",
+      "col_version": "Έκδοση",
+      "col_protected_tags": "Προστατευμένες ετικέτες",
+      "col_status": "Κατάσταση",
+      "col_actions": "Ενέργειες",
+      "open": "Άνοιγμα",
+      "enable": "Ενεργοποίηση",
+      "disable": "Απενεργοποίηση",
+      "uninstall": "Απεγκατάσταση",
+      "uninstall_title": "Απεγκατάσταση προσθέτου",
+      "uninstall_message": "Είστε βέβαιοι ότι θέλετε να απεγκαταστήσετε το «{{ name }}» (v{{ version }}); Τα δεδομένα του θα διαγραφούν και οι προστατευμένες ετικέτες θα ξεκλειδωθούν (οι ετικέτες και τα έγγραφα διατηρούνται)."
     }
   },
   "feedback": {
@@ -1019,9 +1024,9 @@
     "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
   },
   "plugin": {
-    "not_available": "This plugin is not installed or currently disabled."
+    "not_available": "Αυτό το πρόσθετο δεν είναι εγκατεστημένο ή είναι απενεργοποιημένο."
   },
   "error": {
-    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+    "ProtectedPluginTag": "Αυτή η ετικέτα προστατεύεται από εγκατεστημένο πρόσθετο και δεν μπορεί να διαγραφεί μέχρι να απεγκατασταθεί το πρόσθετο."
   }
 }

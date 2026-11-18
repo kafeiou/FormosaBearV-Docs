@@ -97,6 +97,113 @@ public class TestOnlineExamPlugin extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE), JsonObject.class);
 
+        // 1b. Verify first-enable provisioning (English hierarchical tags, groups, textbook doc + 16 localized PDFs, plain-text extraction, and bound exam)
+        JsonObject adminExamsAfterEnable = target().path("/plugin/online-exam/action/exams").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, adminExamsAfterEnable.getJsonArray("exams").size());
+        JsonObject demoExamSummary = adminExamsAfterEnable.getJsonArray("exams").getJsonObject(0);
+        String demoExamId = demoExamSummary.getString("id");
+        Assert.assertEquals("SEC-001", demoExamSummary.getString("exam_code"));
+        Assert.assertEquals("Security Fundamentals Assessment", demoExamSummary.getString("title"));
+        JsonArray demoRefDocs = demoExamSummary.getJsonArray("reference_documents");
+        Assert.assertEquals(1, demoRefDocs.size());
+        Assert.assertEquals("Security Fundamentals Guide", demoRefDocs.getJsonObject(0).getString("title"));
+        String demoDocId = demoRefDocs.getJsonObject(0).getString("id");
+
+        // Verify SEC-001 dynamically switches title, questions, and choices across locales (e.g., zh_TW and ja)
+        JsonObject zhExams = target().path("/plugin/online-exam/action/exams").queryParam("lang", "zh_TW").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("資安基礎測驗", zhExams.getJsonArray("exams").getJsonObject(0).getString("title"));
+
+        JsonObject jaTake = target().path("/plugin/online-exam/action/take_exam")
+                .queryParam("examId", demoExamId).queryParam("lang", "ja").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("情報セキュリティ基礎試験", jaTake.getJsonObject("exam").getString("title"));
+        Assert.assertTrue(jaTake.getJsonObject("exam").getJsonArray("questions").getJsonObject(0).getString("prompt").contains("情報セキュリティ基礎ガイド"));
+
+        // Verify textbook document has multi-language description and all 16 localized PDF files attached
+        JsonObject demoDocDetail = target().path("/document/" + demoDocId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        String demoDocDesc = demoDocDetail.getString("description", "");
+        Assert.assertTrue(demoDocDesc.contains("[EN]"));
+        Assert.assertTrue(demoDocDesc.contains("[zh_TW]"));
+        Assert.assertTrue(demoDocDesc.contains("[pt_BR]"));
+
+        JsonObject demoDocFiles = target().path("/file/list").queryParam("id", demoDocId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(16, demoDocFiles.getJsonArray("files").size());
+        String enFileId = null;
+        String zhTwFileId = null;
+        for (int i = 0; i < demoDocFiles.getJsonArray("files").size(); i++) {
+            JsonObject f = demoDocFiles.getJsonArray("files").getJsonObject(i);
+            if ("Security Fundamentals Guide (English).pdf".equals(f.getString("name"))) {
+                enFileId = f.getString("id");
+            } else if ("資安基礎講義（繁體中文）.pdf".equals(f.getString("name"))) {
+                zhTwFileId = f.getString("id");
+            }
+        }
+        Assert.assertNotNull(enFileId);
+        Assert.assertNotNull(zhTwFileId);
+
+        // Wait briefly for async FileProcessingAsyncListener to finish extracting PDF plain text ("eye" button content)
+        for (int attempt = 0; attempt < 40; attempt++) {
+            JsonObject checkFiles = target().path("/file/list").queryParam("id", demoDocId).request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                    .get(JsonObject.class);
+            boolean anyProcessing = false;
+            for (int i = 0; i < checkFiles.getJsonArray("files").size(); i++) {
+                if (checkFiles.getJsonArray("files").getJsonObject(i).getBoolean("processing", false)) {
+                    anyProcessing = true;
+                    break;
+                }
+            }
+            if (!anyProcessing) {
+                break;
+            }
+            Thread.sleep(200);
+        }
+
+        String enPlainText = target().path("/file/" + enFileId + "/data").queryParam("size", "content").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(String.class);
+        Assert.assertTrue("Expected extracted English plain text for eye button", enPlainText.contains("3-2-1"));
+
+        String zhTwPlainText = target().path("/file/" + zhTwFileId + "/data").queryParam("size", "content").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(String.class);
+        Assert.assertTrue("Expected extracted Traditional Chinese plain text for eye button", zhTwPlainText.contains("3-2-1"));
+
+        // Verify hierarchical English tags "OnlineExamMaterials" -> "SecurityFundamentals"
+        JsonObject allTagsAfterEnable = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        String demoRootTagId = null;
+        String demoChildTagParentId = null;
+        for (int i = 0; i < allTagsAfterEnable.getJsonArray("tags").size(); i++) {
+            JsonObject t = allTagsAfterEnable.getJsonArray("tags").getJsonObject(i);
+            if ("OnlineExamMaterials".equals(t.getString("name"))) {
+                demoRootTagId = t.getString("id");
+            } else if ("SecurityFundamentals".equals(t.getString("name"))) {
+                demoChildTagParentId = t.getString("parent", "");
+            }
+        }
+        Assert.assertNotNull(demoRootTagId);
+        Assert.assertEquals(demoRootTagId, demoChildTagParentId);
+
+        // Re-enabling is idempotent (does not duplicate demo exam)
+        target().path("/plugin/online-exam/enable").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE), JsonObject.class);
+        JsonObject adminExamsAfterReEnable = target().path("/plugin/online-exam/action/exams").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, adminExamsAfterReEnable.getJsonArray("exams").size());
+
         // Grant exam_mgr READ ACL on MANAGEMENT protected tag -> Top Admin
         target().path("/acl").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
@@ -176,7 +283,7 @@ public class TestOnlineExamPlugin extends BaseJerseyTest {
         JsonObject mgrExams = target().path("/plugin/online-exam/action/exams").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, mgrToken)
                 .get(JsonObject.class);
-        Assert.assertEquals(2, mgrExams.getJsonArray("exams").size());
+        Assert.assertEquals(3, mgrExams.getJsonArray("exams").size());
 
         // 4. Teacher 1 grants exam_alice permission on Exam 1; disabled users excluded & rejected
         JsonObject aclTargets = target().path("/plugin/online-exam/action/list_acl_targets")
@@ -211,11 +318,69 @@ public class TestOnlineExamPlugin extends BaseJerseyTest {
                 .get(JsonObject.class);
         Assert.assertEquals(0, bobExams.getJsonArray("exams").size());
 
+        // 4b. Multi-document reference binding with strict READ permission filtering
+        String sharedDocId = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
+                .put(Entity.form(new jakarta.ws.rs.core.Form()
+                        .param("title", "SecGuide Shared")
+                        .param("language", "eng")), JsonObject.class)
+                .getString("id");
+        Response aclAddResp = target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
+                .put(Entity.form(new jakarta.ws.rs.core.Form()
+                        .param("source", sharedDocId)
+                        .param("perm", "READ")
+                        .param("target", "exam_alice")
+                        .param("type", "USER")));
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), aclAddResp.getStatus());
+
+        String privateDocId = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
+                .put(Entity.form(new jakarta.ws.rs.core.Form()
+                        .param("title", "SecGuide TeacherOnly")
+                        .param("language", "eng")), JsonObject.class)
+                .getString("id");
+
+        String t2SecretDocId = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t2Token)
+                .put(Entity.form(new jakarta.ws.rs.core.Form()
+                        .param("title", "Teacher2 Private Doc")
+                        .param("language", "eng")), JsonObject.class)
+                .getString("id");
+
+        // Teacher 1 cannot bind Teacher 2's private document
+        Response bindForbidden = target().path("/plugin/online-exam/action/set_exam_reference_documents").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
+                .post(Entity.json(Json.createObjectBuilder()
+                        .add("exam_id", exam1Id)
+                        .add("document_id", t2SecretDocId)
+                        .add("allow", true).build().toString()));
+        Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), bindForbidden.getStatus());
+
+        // Teacher 1 binds both sharedDocId and privateDocId to Exam 1
+        target().path("/plugin/online-exam/action/set_exam_reference_documents").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
+                .post(Entity.json(Json.createObjectBuilder()
+                        .add("exam_id", exam1Id)
+                        .add("reference_document_ids", Json.createArrayBuilder().add(sharedDocId).add(privateDocId))
+                        .build().toString()), JsonObject.class);
+
+        JsonObject t1RefList = target().path("/plugin/online-exam/action/list_reference_documents")
+                .queryParam("examId", exam1Id)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
+                .get(JsonObject.class);
+        Assert.assertEquals(2, t1RefList.getJsonArray("documents").size());
+
         JsonObject aliceTake = target().path("/plugin/online-exam/action/take_exam")
                 .queryParam("examId", exam1Id)
                 .request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, aliceToken)
                 .get(JsonObject.class);
+        JsonArray aliceRefDocs = aliceTake.getJsonObject("exam").getJsonArray("reference_documents");
+        Assert.assertEquals(1, aliceRefDocs.size());
+        Assert.assertEquals(sharedDocId, aliceRefDocs.getJsonObject(0).getString("id"));
+        Assert.assertEquals("SecGuide Shared", aliceRefDocs.getJsonObject(0).getString("title"));
         JsonArray questions = aliceTake.getJsonObject("exam").getJsonArray("questions");
         Assert.assertFalse(questions.getJsonObject(2).containsKey("correct_boolean"));
 

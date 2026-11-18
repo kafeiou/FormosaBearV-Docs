@@ -21,7 +21,7 @@
 - **Full System Backup, Restore & Migration**: Streaming full-system ZIP backup and restore with cross-database migration support between H2 and PostgreSQL.
 - **Document Lifecycle, Trash & Collaboration**: File versioning with custom version labels, Trash / Recycle Bin recovery, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas (including unlimited quota support), and URL sharing.
 - **Automated Import & Integration**: EML email import, automated IMAP inbox scanning, customizable SMTP notifications, RESTful Web API, and outgoing Webhooks.
-- **Extensible Plugin Platform**: Supports `.zip` third-party plugin upload, zero-restart enable/disable lifecycle, sandboxed UI containers, hidden/protected tag governance, 16-language plugin i18n standard, and Java `PluginHandler` SPI (including the built-in **Online Exam** showcase plugin; see [Plugin Development Guide](docs-plugins/PLUGIN_GUIDE.md)).
+- **Extensible Plugin Platform**: Supports `.zip` third-party plugin upload, bundled plugin auto-seeding, zero-restart enable/disable lifecycle, sandboxed UI containers, hidden/protected tag governance, 16-language plugin i18n standard, and Java `PluginHandler` SPI (including the built-in **Online Exam** showcase plugin; see [Plugin Development Guide](docs-plugins/PLUGIN_GUIDE.md) and [AI Plugin Rules](docs-plugins/AGENTS.md)).
 - **Multilingual User Interface**: Comprehensive internationalization covering 16 languages (English, French, German, Spanish, Italian, Portuguese, Brazilian Portuguese, Polish, Russian, Greek, Albanian, Serbian, Japanese, Vietnamese, Traditional Chinese, and Simplified Chinese).
 
 ## Building and Running from Source
@@ -48,10 +48,10 @@ mvn clean package -DskipTests
 ```
 *(or `mvn clean install -DskipTests`)*
 
-This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-2.08.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
+This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-3.01-SNAPSHOT.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
 
 ```text
-docs-web/target/docs-web-2.08.war
+docs-web/target/docs-web-3.01-SNAPSHOT.war
 ```
 
 ### Build Standalone Portable Edition (No Docker Required)
@@ -69,7 +69,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 This automatically downloads the base Jetty 12 ZIP into `tools/jetty/` if absent, compiles the WAR, assembles all modules, and outputs:
 
 ```text
-target/FormosaBearV-docs-2.08-portable.zip
+target/FormosaBearV-docs-3.01-SNAPSHOT-portable.zip
 ```
 
 Simply unzip this package on any computer with Java 21 and run `start.bat` or `./start.sh`!
@@ -93,7 +93,7 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # Step 2: Build the Docker image (or use docker compose)
-docker build -t formosabearv-docs:2.08 .
+docker build -t formosabearv-docs:3.01-SNAPSHOT .
 ```
 
 A `Dockerfile` is included to build a self-contained container image with OpenJDK 21, Jetty 12.1 (`ee10`), Tesseract OCR, `ffmpeg`, and `mediainfo`, listening on port `8080`.

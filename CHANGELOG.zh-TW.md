@@ -8,25 +8,30 @@
 
 ## [3.01-SNAPSHOT] - 2026-11-18
 
-> **基準點**: `v2.08` ➜ `3.01-SNAPSHOT` (`next-v3` 測試預覽版)
+> **基準點**: `v2.09` ➜ `3.01-SNAPSHOT` (`next-v3` 測試預覽版)
 
 ### 新增功能 (Added)
 - **外掛平台底座 (`plugin-platform`、DB v44–45)**：
   - 新增 `T_PLUGIN`、`T_PLUGIN_TAG`、`T_PLUGIN_DATA` 資料表（`dbupdate-044-0.sql`）與 `T_TAG.TAG_HIDDEN_B` 隱藏標籤欄位（`dbupdate-045-0.sql`），全面相容 H2 2.3 與 PostgreSQL。
-  - 支援 `.zip` 外掛上傳安裝（`POST /api/plugin/upload`）、`plugin.json` 解析（`id`、`version`、`entry`、`nav_label_i18n`、`default_locale`、`handler`、`protected_tags`）、Zip Slip 路徑遍歷防呆、免重啟啟用/停用/解除安裝、頂部導覽列動態選單、`#/settings/plugins` 管理頁與 `#/plugin/:id` 沙箱 `iframe` 容器。
+  - 支援 `.zip` 外掛上傳安裝（`POST /api/plugin/upload`）、`plugin.json` 解析（`id`、`version`、`entry`、`nav_label_i18n`、`default_locale`、`handler`、`protected_tags`）、Zip Slip 路徑遍歷防呆、免重啟啟用/停用/解除安裝、`PluginHandler.onEnabled(installerUserId)` 首次啟用資源建置掛鉤、頂部導覽列動態選單、`#/settings/plugins` 管理頁與 `#/plugin/:id` 沙箱 `iframe` 容器。
+  - 新增**配合加密鎖定之內建外掛自動植入機制（`PluginSeedService`、`ConfigType.PLUGINS_SEEDED`）**：將 `docs-plugins/dist/plugin-*.zip` 打包入 `docs-core`（`classpath:plugins/`）；全新系統等待管理員確認檔案加密設定（`POST /api/app/file_encrypt`，含前端轉圈處理中提示與 `$state.reload()` 自動重新整理列表）後，立即建立僅 `admin` 可見的 `plugins` 標籤（`hidden = false`）與 `plugins` 文件（含 16 語系 HTML `<ul><li>` 條列說明與 `.zip` 附件），重啟或升級時自動冪等比對補入。
   - 新增通用 JSON 儲存端點（`/api/plugin/{id}/data/{collection}/{key}`，對非管理員自動遞迴遮罩 `_`、`secret_`、`correct_` 機密欄位）與後端擴充 `PluginHandler` SPI（`/api/plugin/{id}/action/{action}`）。
-  - 新增**隱藏標籤 (`hidden`)** 屬性：隱藏標籤於一般文件側邊欄與標籤選擇器隱藏，僅於「標籤管理 (`#/tagadmin`)」顯示供設定權限。
+  - 新增**隱藏標籤 (`hidden` 與母子連帶隱藏 `effective_hidden`)** 屬性：隱藏標籤及其子孫標籤於一般文件側邊欄與標籤選擇器隱藏，僅於「標籤管理 (`#/tagadmin`)」顯示供設定權限。
   - 雙層標籤防誤刪與防改名機制：外掛安裝期間（啟用或停用）禁止刪除、更名或變更固定保護標籤可見性（`ProtectedPluginTag`）；透過 `PluginHandler.findTagReferenceReason` 通用檢查，凡被外掛資料引用的標籤亦禁止刪除（`TagInUseByPlugin`）。
   - 建立**外掛多語系標準規範**（`locale/<lang>.json`、`nav_label_i18n` 與 `$rootScope.$on('$translateChangeSuccess')` 即時刷新外掛語系）及外掛靜態資源嚴格 CSP / `X-Content-Type-Options: nosniff` 安全標頭。
-  - 新增中英文外掛開發指南：`docs-plugins/PLUGIN_GUIDE.md`、`docs-plugins/PLUGIN_GUIDE.zh-TW.md`。
+  - 新增含 Mermaid 架構與序列圖之 AI 外掛開發鐵律與指南：`docs-plugins/AGENTS.md`、`docs-plugins/PLUGIN_GUIDE.md`、`docs-plugins/PLUGIN_GUIDE.zh-TW.md`。
 - **線上考試示範外掛 (`online-exam` v1.3.0、`docs-plugins/dist/plugin-online-exam.zip`)**：
   - 實作 `ExamPluginHandler`、`GiftParser` 與 `ExamPdfExporter`（採用內建 `Noto Sans CJK TC` 字型）。
-  - **三層權限架構**：最高管理員（`ADMIN` 或具備 `Online Exam Admin` 標籤）> 各科出題老師（由最高管理員指派啟用中帳號/群組，如 `OnlineExam01`，跨科別嚴格隔離）> 應試學生（依考卷勾選之啟用中帳號/群組授權）。
+  - **首次啟用自動建置展示環境 (`onEnabled`)**：首次啟用外掛時自動建立無特權群組（`ExamTeachers`、`ExamStudents`）、英文階層標籤（`OnlineExamMaterials` -> `SecurityFundamentals`）、內含**全部 16 國語系專屬檔名與內容之 PDF 講義**的教材文件 `Security Fundamentals Guide`（支援點擊「眼睛」檢視純文字與 Lucene 全文檢索），以及綁定該教材之 16 語系考卷 `SEC-001`（`Security Fundamentals Assessment`）。
+  - **考卷綁定多份參考文件（嚴格權限模式 Strict Mode）**：出題老師可於建立或管理考卷時搜尋並勾選多份自己具備 `READ` 權限的參考文件（`list_reference_documents`、`set_exam_reference_documents`）；考生於考卷列表與作答畫面頂部僅會看到自己具備 `PermType.READ` 權限的參考文件膠囊連結（點擊以新分頁開啟 `#/document/view/{id}`），無權限文件自動過濾不洩漏標題。
+  - **三層權限架構**：最高管理員（`ADMIN` 或具備 `Online Exam Admin` 標籤）> 各科出題老師（由最高管理員指派啟用中帳號/群組，如 `ExamTeachers`，跨科別嚴格隔離）> 應試學生（依考卷勾選之啟用中帳號/群組授權）。
   - **Moodle GIFT 匯入與 100 分均分批改**：支援單選（`=`/`~`）、多選（`~%...%`）、是非題（`{TRUE}`/`{FALSE}`），內建 512 KB / 500 題 DoS 防護、考卷代號/版號、停用/啟用切換、刪除考卷前已應試人數警告且刪除後保留歷史成績快照，以及後端批改不洩漏正解與漏答送出提醒。
-  - **多語系 PDF 匯出**：空白考卷 PDF（無浮水印）、已作答考卷 PDF（含當時考試時間英文日期格式斜角半透明浮水印，無正解），以及可選時間區間（預設近 30 天）之橫向 A4 成績總覽彙總表 PDF（含出題老師/科別識別）。
-  - **完整 16 國語系與專屬樣板手冊**：提供系統全部 16 國慣用語翻譯（區分繁中/簡中、歐陸葡語/巴西葡語等）與專屬樣板指南（`docs-plugins/online-exam/README.md` / `README.zh-TW.md`）。
+  - **16 國語系動態考卷與 PDF 匯出（`localizeExam` + `PDF_LABELS_I18N`）**：空白考卷 PDF、已作答考卷 PDF（含當時考試時間英文日期格式斜角半透明浮水印，無正解）及橫向成績總覽彙總表 PDF，皆支援依當前介面語系即時切換題目與 16 國語系表頭欄位。
+  - **完整 16 國語系與專屬樣板手冊**：提供系統全部 16 國慣用語翻譯與完整架構拆解手冊（`docs-plugins/online-exam/README.md` / `README.zh-TW.md`）。
 
 ### 修復 (Fixed)
+- **Maven 版本號與頁尾顯示修正 (`v3.01-SNAPSHOT`)**：將 `pom.xml`、`docs-core/pom.xml`、`docs-web-common/pom.xml` 與 `docs-web/pom.xml` 的 `<version>` 統一修正為 `3.01-SNAPSHOT`，使頁尾正確顯示 `v3.01-SNAPSHOT`。
+- **16 國語系翻譯完整性修復**：修正 `zh_CN.json`（`download`、`rename`、`yes`、`tag.created_by`、`document.edit.allow_download_help`）與 `zh_TW.json`（`yes`、`group_used_*`、`base_dn`）殘留英文之項目，補齊全部 16 國語系的外掛管理與隱藏標籤翻譯，並將 `document.view.content.html` 檔案清單模式表頭（`Filename`、`Type`、`Size`、`Version`）改為多語系變數。
 - **頁尾巴西葡萄牙語 (`pt_BR`) 顯示修復**：於 `index.html` 語系選單補上 `<span ng-switch-when="pt_BR">Português (Brasil)</span>`，解決切換後只剩倒三角形、語言名稱消失的問題。
 
 ---

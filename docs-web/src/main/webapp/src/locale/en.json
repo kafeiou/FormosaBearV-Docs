@@ -132,7 +132,11 @@
         "upload_new_version": "Upload a new version",
         "open_versions": "Show version history",
         "display_mode_list": "Display files in list",
-        "display_mode_grid": "Display files in grid"
+        "display_mode_grid": "Display files in grid",
+        "col_filename": "Filename",
+        "col_type": "Type",
+        "col_size": "Size",
+        "col_version": "Version"
       },
       "workflow": {
         "workflow": "Workflow",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "You are about to set the file encryption mode to '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Warning: Once confirmed, this setting will be permanently locked and can never be changed!</span> Proceed?",
       "first_time_encrypt_title": "First-Time Setup: Choose File Storage Encryption Mode",
       "first_time_encrypt_message": "Welcome to FormosaBearV! Before uploading files, please choose and lock the <strong>File Storage Mode (file.encrypt)</strong>:<br/><br/>1. <strong>Unencrypted Storage (Recommended)</strong>: Files are stored in their original format organized by user and document folders, making direct backup and maintenance easy.<br/>2. <strong>AES-256 Encrypted Storage</strong>: All uploaded files are encrypted on disk and cannot be read directly from the filesystem.<br/><br/><strong class='text-danger'>⚠️ Warning: This setting is permanently locked after confirmation (or after the first file upload) and cannot be changed later!</strong>",
+      "file_encrypt_processing": "Applying storage setting and preparing bundled plugins, please wait...",
       "title_file_delete": "Disk File Deletion Mode (file.delete)",
       "file_delete_permanent": "Permanently Delete from Disk",
       "file_delete_recycle": "Move to Recycle Directory (delete/storage)",

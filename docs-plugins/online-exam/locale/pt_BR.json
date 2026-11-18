@@ -23,7 +23,8 @@
     "retake_exam": "Refazer prova",
     "view_result": "Ver resultado",
     "blank_pdf": "PDF da prova em branco",
-    "attempt_pdf": "PDF preenchido (com marca d'água)"
+    "attempt_pdf": "PDF preenchido (com marca d'água)",
+    "ref_docs_label": "Documentos de referência:"
   },
   "runner": {
     "back": "← Voltar para a lista de provas",
@@ -35,7 +36,8 @@
     "false_label": "Falso",
     "submit": "Enviar prova",
     "unanswered_warning": "A(s) questão(ões) {{questions}} não foi(ram) respondida(s). Responda a todas as questões antes de enviar.",
-    "submitted_success": "Prova enviada e corrigida!"
+    "submitted_success": "Prova enviada e corrigida!",
+    "ref_docs_label": "Documentos de referência (abre em nova aba):"
   },
   "scores": {
     "title": "Registros de notas",
@@ -96,7 +98,12 @@
     "gift_ph": "Cole aqui as questões no formato Moodle GIFT (Escolha única =/~, Múltipla escolha ~%50%, Verdadeiro/Falso {TRUE}/{FALSE})",
     "preview_header": "{{count}} questões analisadas com sucesso:",
     "save_btn": "Salvar e publicar prova",
-    "saved_success": "Prova publicada com sucesso!"
+    "saved_success": "Prova publicada com sucesso!",
+    "field_ref_docs": "Vincular documentos de referência (opcional, múltipla escolha; visíveis apenas para candidatos com permissão de leitura)",
+    "ref_docs_search_ph": "Pesquisar título do documento...",
+    "ref_docs_empty": "Nenhum documento acessível encontrado",
+    "btn_ref_docs": "Docs ref.",
+    "ref_docs_modal_title": "Documentos de referência: {{title}}"
   },
   "acl": {
     "modal_title": "Permissões de candidatos: {{title}}",

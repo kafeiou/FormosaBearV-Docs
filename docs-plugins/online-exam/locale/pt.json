@@ -23,7 +23,8 @@
     "retake_exam": "Repetir exame",
     "view_result": "Ver resultado",
     "blank_pdf": "PDF do exame em branco",
-    "attempt_pdf": "PDF concluído (com marca d'água)"
+    "attempt_pdf": "PDF concluído (com marca d'água)",
+    "ref_docs_label": "Documentos de referência:"
   },
   "runner": {
     "back": "← Voltar à lista de exames",
@@ -35,7 +36,8 @@
     "false_label": "Falso",
     "submit": "Submeter exame",
     "unanswered_warning": "A(s) pergunta(s) {{questions}} ainda não foi/foram respondida(s). Por favor, responda a todas as perguntas antes de submeter.",
-    "submitted_success": "Exame submetido e corrigido!"
+    "submitted_success": "Exame submetido e corrigido!",
+    "ref_docs_label": "Documentos de referência (abre num novo separador):"
   },
   "scores": {
     "title": "Registos de notas",
@@ -96,7 +98,12 @@
     "gift_ph": "Cole aqui as perguntas Moodle GIFT (Escolha única =/~, Escolha múltipla ~%50%, Verdadeiro/Falso {TRUE}/{FALSE})",
     "preview_header": "{{count}} perguntas analisadas com sucesso:",
     "save_btn": "Guardar e publicar exame",
-    "saved_success": "Exame publicado com sucesso!"
+    "saved_success": "Exame publicado com sucesso!",
+    "field_ref_docs": "Documentos de referência associados (opcional, seleção múltipla; visíveis apenas para examinandos com permissão de leitura)",
+    "ref_docs_search_ph": "Pesquisar título do documento...",
+    "ref_docs_empty": "Nenhum documento acessível encontrado",
+    "btn_ref_docs": "Docs ref.",
+    "ref_docs_modal_title": "Documentos de referência: {{title}}"
   },
   "acl": {
     "modal_title": "Permissões de examinandos: {{title}}",

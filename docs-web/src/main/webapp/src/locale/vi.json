@@ -132,7 +132,11 @@
         "upload_new_version": "Tải lên phiên bản mới",
         "open_versions": "Xem lịch sử phiên bản",
         "display_mode_list": "Hiển thị dạng danh sách",
-        "display_mode_grid": "Hiển thị dạng lưới"
+        "display_mode_grid": "Hiển thị dạng lưới",
+        "col_filename": "Tên tệp",
+        "col_type": "Loại",
+        "col_size": "Kích thước",
+        "col_version": "Phiên bản"
       },
       "workflow": {
         "workflow": "Quy trình làm việc",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "Bạn sắp thiết lập chế độ mã hóa tập tin thành '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Cảnh báo: Sau khi xác nhận, cài đặt này sẽ bị khóa vĩnh viễn và không bao giờ có thể thay đổi!</span> Bạn có chắc chắn tiếp tục?",
       "first_time_encrypt_title": "Thiết lập ban đầu: Chọn chế độ mã hóa lưu trữ tập tin",
       "first_time_encrypt_message": "Chào mừng bạn đến với FormosaBearV! Trước khi tải lên tập tin, vui lòng chọn và khóa <strong>Chế độ lưu trữ tập tin (file.encrypt)</strong>:<br/><br/>1. <strong>Lưu trữ không mã hóa (Khuyến nghị)</strong>: Tập tin được lưu ở định dạng ban đầu theo thư mục người dùng và tài liệu, giúp sao lưu và bảo trì dễ dàng.<br/>2. <strong>Lưu trữ mã hóa AES-256</strong>: Tất cả các tập tin tải lên đều được mã hóa trên đĩa và không thể đọc trực tiếp từ hệ thống tệp.<br/><br/><strong class='text-danger'>⚠️ Cảnh báo: Cài đặt này sẽ bị khóa vĩnh viễn sau khi xác nhận (hoặc sau lần tải lên tập tin đầu tiên) và không thể thay đổi sau này!</strong>",
+      "file_encrypt_processing": "Đang áp dụng cài đặt lưu trữ và chuẩn bị plugin đi kèm, vui lòng đợi...",
       "title_file_delete": "Chế độ xử lý xóa tập tin trên đĩa (file.delete)",
       "file_delete_permanent": "Xóa vĩnh viễn khỏi đĩa",
       "file_delete_recycle": "Chuyển vào thư mục thùng rác (delete/storage)",
@@ -806,27 +811,27 @@
       "start_restore_button": "Bắt đầu khôi phục hệ thống",
       "goto_login_button": "Đi đến trang đăng nhập"
     },
-    "menu_plugins": "Plugins",
+    "menu_plugins": "Quản lý Plugin",
     "plugins": {
-      "title": "Plugin Management",
-      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
-      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
-      "upload_button": "Upload & Install",
-      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
-      "upload_failed": "Failed to install plugin package.",
-      "installed_title": "Installed Plugins",
-      "empty": "No plugins installed yet.",
+      "title": "Quản lý Plugin",
+      "security_notice": "Chỉ cài đặt các gói plugin .zip đáng tin cậy. Các plugin đã tải lên có thể được bật hoặc tắt mà không cần khởi động lại máy chủ.",
+      "upload_title": "Tải lên & Cài đặt / Nâng cấp Plugin (.zip)",
+      "upload_button": "Tải lên & Cài đặt",
+      "upload_success": "Đã cài đặt thành công plugin \"{{ name }}\" (v{{ version }}).",
+      "upload_failed": "Cài đặt gói plugin thất bại.",
+      "installed_title": "Plugin đã cài đặt",
+      "empty": "Chưa có plugin nào được cài đặt.",
       "col_name": "Plugin",
-      "col_version": "Version",
-      "col_protected_tags": "Protected Tags",
-      "col_status": "Status",
-      "col_actions": "Actions",
-      "open": "Open",
-      "enable": "Enable",
-      "disable": "Disable",
-      "uninstall": "Uninstall",
-      "uninstall_title": "Uninstall Plugin",
-      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
+      "col_version": "Phiên bản",
+      "col_protected_tags": "Thẻ được bảo vệ",
+      "col_status": "Trạng thái",
+      "col_actions": "Thao tác",
+      "open": "Mở",
+      "enable": "Bật",
+      "disable": "Tắt",
+      "uninstall": "Gỡ cài đặt",
+      "uninstall_title": "Gỡ cài đặt Plugin",
+      "uninstall_message": "Bạn có chắc chắn muốn gỡ cài đặt \"{{ name }}\" (v{{ version }}) không? Dữ liệu plugin sẽ bị xóa và các thẻ bảo vệ sẽ được mở khóa (thẻ và tài liệu vẫn được giữ nguyên)."
     }
   },
   "feedback": {
@@ -1019,9 +1024,9 @@
     "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
   },
   "plugin": {
-    "not_available": "This plugin is not installed or currently disabled."
+    "not_available": "Plugin này chưa được cài đặt hoặc hiện đang bị tắt."
   },
   "error": {
-    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+    "ProtectedPluginTag": "Thẻ này được bảo vệ bởi một plugin đã cài đặt và không thể xóa cho đến khi gỡ cài đặt plugin đó."
   }
 }

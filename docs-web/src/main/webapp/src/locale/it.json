@@ -132,7 +132,11 @@
         "upload_new_version": "Effettua il caricamento di una nuova versione",
         "open_versions": "Mostra la cronologia delle versioni",
         "display_mode_list": "Mostra i file in lista",
-        "display_mode_grid": "Mostra i file in griglia"
+        "display_mode_grid": "Mostra i file in griglia",
+        "col_filename": "Nome file",
+        "col_type": "Tipo",
+        "col_size": "Dimensione",
+        "col_version": "Versione"
       },
       "workflow": {
         "workflow": "Flusso di lavoro",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "Stai per impostare la modalità di crittografia dei file su '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Attenzione: una volta confermata, questa impostazione verrà bloccata permanentemente e non potrà mai più essere modificata!</span> Procedere?",
       "first_time_encrypt_title": "Configurazione iniziale: Scegli la modalità di crittografia dell'archiviazione file",
       "first_time_encrypt_message": "Benvenuto in FormosaBearV! Prima di caricare file, scegli e blocca la <strong>Modalità di archiviazione file (file.encrypt)</strong>:<br/><br/>1. <strong>Archiviazione non crittografata (Consigliato)</strong>: i file vengono archiviati nel loro formato originale organizzati in cartelle per utente e documento, facilitando il backup diretto e la manutenzione.<br/>2. <strong>Archiviazione crittografata AES-256</strong>: tutti i file caricati vengono crittografati su disco e non possono essere letti direttamente dal filesystem.<br/><br/><strong class='text-danger'>⚠️ Attenzione: questa impostazione viene bloccata permanentemente dopo la conferma (o dopo il primo caricamento di un file) e non può essere modificata in seguito!</strong>",
+      "file_encrypt_processing": "Applicazione delle impostazioni di archiviazione e preparazione dei plugin inclusi, attendere...",
       "title_file_delete": "Modalità eliminazione file su disco (file.delete)",
       "file_delete_permanent": "Elimina permanentemente dal disco",
       "file_delete_recycle": "Sposta nella directory cestino (delete/storage)",
@@ -806,27 +811,27 @@
       "start_restore_button": "Avvia ripristino di sistema",
       "goto_login_button": "Vai al login"
     },
-    "menu_plugins": "Plugins",
+    "menu_plugins": "Plugin",
     "plugins": {
-      "title": "Plugin Management",
-      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
-      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
-      "upload_button": "Upload & Install",
-      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
-      "upload_failed": "Failed to install plugin package.",
-      "installed_title": "Installed Plugins",
-      "empty": "No plugins installed yet.",
+      "title": "Gestione Plugin",
+      "security_notice": "Installa solo pacchetti .zip affidabili. I plugin caricati possono essere abilitati senza riavviare il server.",
+      "upload_title": "Carica e installa / aggiorna plugin (.zip)",
+      "upload_button": "Carica e installa",
+      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installato con successo.",
+      "upload_failed": "Installazione del pacchetto plugin non riuscita.",
+      "installed_title": "Plugin installati",
+      "empty": "Nessun plugin installato.",
       "col_name": "Plugin",
-      "col_version": "Version",
-      "col_protected_tags": "Protected Tags",
-      "col_status": "Status",
-      "col_actions": "Actions",
-      "open": "Open",
-      "enable": "Enable",
-      "disable": "Disable",
-      "uninstall": "Uninstall",
-      "uninstall_title": "Uninstall Plugin",
-      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
+      "col_version": "Versione",
+      "col_protected_tags": "Tag protetti",
+      "col_status": "Stato",
+      "col_actions": "Azioni",
+      "open": "Apri",
+      "enable": "Abilita",
+      "disable": "Disabilita",
+      "uninstall": "Disinstalla",
+      "uninstall_title": "Disinstalla Plugin",
+      "uninstall_message": "Sei sicuro di voler disinstallare \"{{ name }}\" (v{{ version }})? I dati del plugin verranno rimossi e i tag protetti verranno sbloccati (tag e documenti saranno conservati)."
     }
   },
   "feedback": {
@@ -1019,9 +1024,9 @@
     "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
   },
   "plugin": {
-    "not_available": "This plugin is not installed or currently disabled."
+    "not_available": "Questo plugin non è installato o è attualmente disabilitato."
   },
   "error": {
-    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+    "ProtectedPluginTag": "Questo tag è protetto da un plugin installato e non può essere eliminato finché il plugin non viene disinstallato."
   }
 }

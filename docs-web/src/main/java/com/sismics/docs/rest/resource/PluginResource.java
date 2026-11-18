@@ -174,6 +174,9 @@ public class PluginResource extends BaseResource {
             throw new NotFoundException();
         }
         pluginDao.setEnabled(id, enabled);
+        if (enabled) {
+            PluginService.onEnabled(plugin, principal.getId());
+        }
         return Response.ok().entity(Json.createObjectBuilder().add("status", "ok").add("enabled", enabled).build()).build();
     }
 

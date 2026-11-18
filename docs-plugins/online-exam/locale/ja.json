@@ -23,7 +23,8 @@
     "retake_exam": "再受験する",
     "view_result": "結果を見る",
     "blank_pdf": "問題用紙 PDF（未回答）",
-    "attempt_pdf": "回答済み PDF（透かし入り）"
+    "attempt_pdf": "回答済み PDF（透かし入り）",
+    "ref_docs_label": "参考ドキュメント："
   },
   "runner": {
     "back": "← 試験一覧に戻る",
@@ -35,7 +36,8 @@
     "false_label": "誤り (False)",
     "submit": "解答を提出",
     "unanswered_warning": "問 {{questions}} が未回答です。すべての問題に回答してから提出してください。",
-    "submitted_success": "解答が提出され、採点が完了しました！"
+    "submitted_success": "解答が提出され、採点が完了しました！",
+    "ref_docs_label": "参考ドキュメント（新しいタブで開く）："
   },
   "scores": {
     "title": "成績履歴",
@@ -96,7 +98,12 @@
     "gift_ph": "Moodle GIFT 形式の問題をここに貼り付けてください（単一選択 =/~、複数選択 ~%50%、○× {TRUE}/{FALSE}）",
     "preview_header": "{{count}} 問の解析に成功しました：",
     "save_btn": "保存して試験を公開",
-    "saved_success": "試験が正常に公開されました！"
+    "saved_success": "試験が正常に公開されました！",
+    "field_ref_docs": "参考ドキュメントの紐付け（任意・複数選択可。閲覧権限のある受験者のみに表示されます）",
+    "ref_docs_search_ph": "ドキュメント名で検索...",
+    "ref_docs_empty": "選択可能なドキュメントがありません",
+    "btn_ref_docs": "参考資料",
+    "ref_docs_modal_title": "参考ドキュメント設定：{{title}}"
   },
   "acl": {
     "modal_title": "受験権限：{{title}}",

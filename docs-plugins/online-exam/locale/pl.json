@@ -23,7 +23,8 @@
     "retake_exam": "Powtórz egzamin",
     "view_result": "Zobacz wynik",
     "blank_pdf": "Pusty arkusz PDF",
-    "attempt_pdf": "Wypełniony PDF (ze znakiem wodnym)"
+    "attempt_pdf": "Wypełniony PDF (ze znakiem wodnym)",
+    "ref_docs_label": "Dokumenty referencyjne:"
   },
   "runner": {
     "back": "← Powrót do listy egzaminów",
@@ -35,7 +36,8 @@
     "false_label": "Fałsz",
     "submit": "Zakończ i wyślij",
     "unanswered_warning": "Pytania {{questions}} pozostały bez odpowiedzi. Uzupełnij wszystkie pytania przed wysłaniem.",
-    "submitted_success": "Egzamin został wysłany i oceniony!"
+    "submitted_success": "Egzamin został wysłany i oceniony!",
+    "ref_docs_label": "Dokumenty referencyjne (otwiera w nowej karcie):"
   },
   "scores": {
     "title": "Rejestr wyników",
@@ -96,7 +98,12 @@
     "gift_ph": "Wklej tutaj pytania Moodle GIFT (Jednokrotny wybór =/~, Wielokrotny wybór ~%50%, Prawda/Fałsz {TRUE}/{FALSE})",
     "preview_header": "Pomyślnie przetworzono {{count}} pytań:",
     "save_btn": "Zapisz i opublikuj egzamin",
-    "saved_success": "Egzamin został pomyślnie opublikowany!"
+    "saved_success": "Egzamin został pomyślnie opublikowany!",
+    "field_ref_docs": "Powiązane dokumenty referencyjne (opcjonalnie, wielokrotny wybór; widoczne tylko dla zdających z uprawnieniem do odczytu)",
+    "ref_docs_search_ph": "Szukaj tytułu dokumentu...",
+    "ref_docs_empty": "Brak dostępnych dokumentów",
+    "btn_ref_docs": "Dok. ref.",
+    "ref_docs_modal_title": "Dokumenty referencyjne: {{title}}"
   },
   "acl": {
     "modal_title": "Uprawnienia zdających: {{title}}",

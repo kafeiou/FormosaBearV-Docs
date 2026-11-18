@@ -23,7 +23,8 @@
     "retake_exam": "Ribëj provimin",
     "view_result": "Shiko rezultatin",
     "blank_pdf": "PDF bosh i provimit",
-    "attempt_pdf": "PDF i plotësuar (me watermark)"
+    "attempt_pdf": "PDF i plotësuar (me watermark)",
+    "ref_docs_label": "Dokumentet referuese:"
   },
   "runner": {
     "back": "← Kthehu te lista e provimeve",
@@ -35,7 +36,8 @@
     "false_label": "E gabuar",
     "submit": "Dorëzo provimin",
     "unanswered_warning": "Pyetja/pyetjet {{questions}} nuk kanë marrë përgjigje. Ju lutemi plotësoni të gjitha pyetjet para dorëzimit.",
-    "submitted_success": "Provimi u dorëzua dhe u vlerësua!"
+    "submitted_success": "Provimi u dorëzua dhe u vlerësua!",
+    "ref_docs_label": "Dokumentet referuese (hapet në skedë të re):"
   },
   "scores": {
     "title": "Regjistri i pikëve",
@@ -96,7 +98,12 @@
     "gift_ph": "Ngjitni pyetjet Moodle GIFT këtu (Zgjedhje e vetme =/~, Zgjedhje e shumëfishtë ~%50%, E vërtetë/E gabuar {TRUE}/{FALSE})",
     "preview_header": "U analizuan me sukses {{count}} pyetje:",
     "save_btn": "Ruaj dhe Publiko provimin",
-    "saved_success": "Provimi u publikua me sukses!"
+    "saved_success": "Provimi u publikua me sukses!",
+    "field_ref_docs": "Dokumentet referuese të lidhura (opsionale, zgjedhje e shumëfishtë; të dukshme vetëm për kandidatët me leje leximi)",
+    "ref_docs_search_ph": "Kërko titullin e dokumentit...",
+    "ref_docs_empty": "Nuk u gjetën dokumente të lexueshme",
+    "btn_ref_docs": "Dok. ref.",
+    "ref_docs_modal_title": "Dokumentet referuese: {{title}}"
   },
   "acl": {
     "modal_title": "Lejet e kandidatëve: {{title}}",

@@ -132,7 +132,11 @@
         "upload_new_version": "Ngarko një version të ri",
         "open_versions": "Shfaq historikun e versionit",
         "display_mode_list": "Shfaq skedarët në listë",
-        "display_mode_grid": "Shfaq skedarët në rrjet"
+        "display_mode_grid": "Shfaq skedarët në rrjet",
+        "col_filename": "Emri i skedarit",
+        "col_type": "Lloji",
+        "col_size": "Madhësia",
+        "col_version": "Versioni"
       },
       "workflow": {
         "workflow": "Rrjedha e punës",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "Po vendosni modalitetin e enkriptimit të skedarëve në '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Paralajmërim: Pasi të konfirmohet, ky cilësim do të kyçet përgjithmonë dhe nuk mund të ndryshohet kurrë!</span> Të vazhdohet?",
       "first_time_encrypt_title": "Konfigurimi i herës së parë: Zgjidhni modalitetin e enkriptimit të ruajtjes së skedarëve",
       "first_time_encrypt_message": "Mirë se vini në FormosaBearV! Përpara se të ngarkoni skedarë, ju lutemi zgjidhni dhe kyçni <strong>Modalitetin e ruajtjes së skedarëve (file.encrypt)</strong>:<br/><br/>1. <strong>Ruajtje e paenkriptuar (E rekomanduar)</strong>: Skedarët ruhen në formatin e tyre origjinal të organizuar sipas dosjeve të përdoruesit dhe dokumentit, duke lehtësuar kopjimin rezervë dhe mirëmbajtjen e drejtpërdrejtë.<br/>2. <strong>Ruajtje e enkriptuar AES-256</strong>: Të gjithë skedarët e ngarkuar enkriptohen në disk dhe nuk mund të lexohen drejtpërdrejt nga sistemi i skedarëve.<br/><br/><strong class='text-danger'>⚠️ Paralajmërim: Ky cilësim kyçet përgjithmonë pas konfirmimit (ose pas ngarkimit të skedarit të parë) dhe nuk mund të ndryshohet më vonë!</strong>",
+      "file_encrypt_processing": "Duke aplikuar cilësimin e ruajtjes dhe duke përgatitur shtojcat e përfshira, ju lutemi prisni...",
       "title_file_delete": "Modaliteti i fshirjes së skedarëve në disk (file.delete)",
       "file_delete_permanent": "Fshi përgjithmonë nga disku",
       "file_delete_recycle": "Lëviz te dosja e riciklimit (delete/storage)",
@@ -806,27 +811,27 @@
       "start_restore_button": "Fillo rikthimin e sistemit",
       "goto_login_button": "Shko te identifikimi"
     },
-    "menu_plugins": "Plugins",
+    "menu_plugins": "Shtojcat",
     "plugins": {
-      "title": "Plugin Management",
-      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
-      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
-      "upload_button": "Upload & Install",
-      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
-      "upload_failed": "Failed to install plugin package.",
-      "installed_title": "Installed Plugins",
-      "empty": "No plugins installed yet.",
-      "col_name": "Plugin",
-      "col_version": "Version",
-      "col_protected_tags": "Protected Tags",
-      "col_status": "Status",
-      "col_actions": "Actions",
-      "open": "Open",
-      "enable": "Enable",
-      "disable": "Disable",
-      "uninstall": "Uninstall",
-      "uninstall_title": "Uninstall Plugin",
-      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
+      "title": "Menaxhimi i Shtojcave",
+      "security_notice": "Instaloni vetëm paketa .zip të besueshme. Shtojcat e ngarkuara mund të aktivizohen pa rinisur serverin.",
+      "upload_title": "Ngarko & Instalo / Përditëso Shtojcën (.zip)",
+      "upload_button": "Ngarko & Instalo",
+      "upload_success": "Shtojca \"{{ name }}\" (v{{ version }}) u instalua me sukses.",
+      "upload_failed": "Instalimi i paketës së shtojcës dështoi.",
+      "installed_title": "Shtojcat e Instaluara",
+      "empty": "Nuk ka ende shtojca të instaluara.",
+      "col_name": "Shtojca",
+      "col_version": "Versioni",
+      "col_protected_tags": "Etiketat e Mbrojtura",
+      "col_status": "Statusi",
+      "col_actions": "Veprimet",
+      "open": "Hap",
+      "enable": "Aktivizo",
+      "disable": "Çaktivizo",
+      "uninstall": "Çinstalo",
+      "uninstall_title": "Çinstalo Shtojcën",
+      "uninstall_message": "Jeni i sigurt që dëshironi të çinstaloni \"{{ name }}\" (v{{ version }})? Të dhënat e shtojcës do të fshihen dhe etiketat e mbrojtura do të zhbllokohen (etiketat dhe dokumentet do të ruhen)."
     }
   },
   "feedback": {
@@ -1019,9 +1024,9 @@
     "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
   },
   "plugin": {
-    "not_available": "This plugin is not installed or currently disabled."
+    "not_available": "Kjo shtojcë nuk është e instaluar ose aktualisht është e çaktivizuar."
   },
   "error": {
-    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+    "ProtectedPluginTag": "Kjo etiketë mbrohet nga një shtojcë e instaluar dhe nuk mund të fshihet derisa shtojca të çinstalohet."
   }
 }

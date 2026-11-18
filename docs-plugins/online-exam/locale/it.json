@@ -23,7 +23,8 @@
     "retake_exam": "Ripeti esame",
     "view_result": "Visualizza risultato",
     "blank_pdf": "PDF esame in bianco",
-    "attempt_pdf": "PDF completato (con filigrana)"
+    "attempt_pdf": "PDF completato (con filigrana)",
+    "ref_docs_label": "Documenti di riferimento:"
   },
   "runner": {
     "back": "← Torna all'elenco esami",
@@ -35,7 +36,8 @@
     "false_label": "Falso",
     "submit": "Invia esame",
     "unanswered_warning": "Le domande {{questions}} non hanno risposta. Completa tutte le domande prima di inviare.",
-    "submitted_success": "Esame inviato e valutato!"
+    "submitted_success": "Esame inviato e valutato!",
+    "ref_docs_label": "Documenti di riferimento (si apre in una nuova scheda):"
   },
   "scores": {
     "title": "Registro punteggi",
@@ -96,7 +98,12 @@
     "gift_ph": "Incolla qui le domande Moodle GIFT (Scelta singola =/~, Scelta multipla ~%50%, Vero/Falso {TRUE}/{FALSE})",
     "preview_header": "{{count}} domande analizzate con successo:",
     "save_btn": "Salva e pubblica esame",
-    "saved_success": "Esame pubblicato con successo!"
+    "saved_success": "Esame pubblicato con successo!",
+    "field_ref_docs": "Documenti di riferimento collegati (opzionale, selezione multipla; visibili solo agli esaminandi con permesso di lettura)",
+    "ref_docs_search_ph": "Cerca titolo documento...",
+    "ref_docs_empty": "Nessun documento leggibile trovato",
+    "btn_ref_docs": "Doc. rif.",
+    "ref_docs_modal_title": "Documenti di riferimento: {{title}}"
   },
   "acl": {
     "modal_title": "Permessi candidati: {{title}}",

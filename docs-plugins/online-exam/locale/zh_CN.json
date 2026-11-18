@@ -23,7 +23,8 @@
     "retake_exam": "重新考试",
     "view_result": "查看作答结果",
     "blank_pdf": "空白试卷 PDF",
-    "attempt_pdf": "答卷 PDF（含水印）"
+    "attempt_pdf": "答卷 PDF（含水印）",
+    "ref_docs_label": "参考文件："
   },
   "runner": {
     "back": "← 返回试卷列表",
@@ -35,7 +36,8 @@
     "false_label": "错误 (False)",
     "submit": "提交试卷",
     "unanswered_warning": "第 {{questions}} 题尚未作答，请完成所有题目后再提交试卷！",
-    "submitted_success": "试卷已提交并完成批改！"
+    "submitted_success": "试卷已提交并完成批改！",
+    "ref_docs_label": "参考文件（点击在新标签页打开）："
   },
   "scores": {
     "title": "成绩记录",
@@ -96,7 +98,12 @@
     "gift_ph": "在此粘贴 Moodle GIFT 格式题目（支持单选 =/~、多选 ~%50%、判断 {TRUE}/{FALSE}）",
     "preview_header": "成功解析 {{count}} 道题目：",
     "save_btn": "保存并发布试卷",
-    "saved_success": "试卷已成功发布！"
+    "saved_success": "试卷已成功发布！",
+    "field_ref_docs": "绑定参考文件（选填，可多选；考生须具备该文件读取权限才可见）",
+    "ref_docs_search_ph": "搜索文件标题...",
+    "ref_docs_empty": "无可选择的文件",
+    "btn_ref_docs": "参考文件",
+    "ref_docs_modal_title": "参考文件绑定：{{title}}"
   },
   "acl": {
     "modal_title": "考生权限：{{title}}",

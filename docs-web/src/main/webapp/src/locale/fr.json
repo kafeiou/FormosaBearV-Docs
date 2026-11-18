@@ -132,7 +132,11 @@
         "upload_new_version": "Envoyer une nouvelle version",
         "open_versions": "Afficher l'historique de versions",
         "display_mode_list": "Afficher les fichiers en liste",
-        "display_mode_grid": "Afficher les fichiers en grille"
+        "display_mode_grid": "Afficher les fichiers en grille",
+        "col_filename": "Nom du fichier",
+        "col_type": "Type",
+        "col_size": "Taille",
+        "col_version": "Version"
       },
       "workflow": {
         "workflow": "Workflow",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "Vous êtes sur le point de définir le mode de chiffrement des fichiers sur '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Avertissement : Une fois confirmé, ce paramètre sera verrouillé de façon permanente et ne pourra jamais être modifié !</span> Continuer ?",
       "first_time_encrypt_title": "Configuration initiale : Choisir le mode de chiffrement du stockage",
       "first_time_encrypt_message": "Bienvenue dans FormosaBearV ! Avant de téléverser des fichiers, veuillez choisir et verrouiller le <strong>Mode de stockage des fichiers (file.encrypt)</strong> :<br/><br/>1. <strong>Stockage non chiffré (Recommandé)</strong> : Les fichiers sont stockés dans leur format d'origine organisés par dossiers d'utilisateur et de document, facilitant la sauvegarde directe et la maintenance.<br/>2. <strong>Stockage chiffré AES-256</strong> : Tous les fichiers téléversés sont chiffrés sur disque et ne peuvent pas être lus directement depuis le système de fichiers.<br/><br/><strong class='text-danger'>⚠️ Avertissement : Ce paramètre est verrouillé de façon permanente après confirmation (ou après le premier téléversement de fichier) et ne pourra plus être modifié par la suite !</strong>",
+      "file_encrypt_processing": "Application du mode de stockage et préparation des extensions intégrées, veuillez patienter...",
       "title_file_delete": "Mode de suppression des fichiers sur disque (file.delete)",
       "file_delete_permanent": "Supprimer définitivement du disque",
       "file_delete_recycle": "Déplacer vers le répertoire de corbeille (delete/storage)",
@@ -806,27 +811,27 @@
       "start_restore_button": "Démarrer la restauration du système",
       "goto_login_button": "Aller à la connexion"
     },
-    "menu_plugins": "Plugins",
+    "menu_plugins": "Extensions",
     "plugins": {
-      "title": "Plugin Management",
-      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
-      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
-      "upload_button": "Upload & Install",
-      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
-      "upload_failed": "Failed to install plugin package.",
-      "installed_title": "Installed Plugins",
-      "empty": "No plugins installed yet.",
-      "col_name": "Plugin",
+      "title": "Gestion des extensions",
+      "security_notice": "N’installez que des archives .zip de confiance. Les extensions téléversées peuvent être activées sans redémarrer le serveur.",
+      "upload_title": "Téléverser et installer / mettre à jour une extension (.zip)",
+      "upload_button": "Téléverser et installer",
+      "upload_success": "Extension « {{ name }} » (v{{ version }}) installée avec succès.",
+      "upload_failed": "Échec de l’installation de l’extension.",
+      "installed_title": "Extensions installées",
+      "empty": "Aucune extension installée.",
+      "col_name": "Extension",
       "col_version": "Version",
-      "col_protected_tags": "Protected Tags",
-      "col_status": "Status",
+      "col_protected_tags": "Tags protégés",
+      "col_status": "Statut",
       "col_actions": "Actions",
-      "open": "Open",
-      "enable": "Enable",
-      "disable": "Disable",
-      "uninstall": "Uninstall",
-      "uninstall_title": "Uninstall Plugin",
-      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
+      "open": "Ouvrir",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "uninstall": "Désinstaller",
+      "uninstall_title": "Désinstaller l’extension",
+      "uninstall_message": "Voulez-vous vraiment désinstaller « {{ name }} » (v{{ version }}) ? Ses données seront supprimées et ses tags protégés seront déverrouillés (les tags et documents seront conservés)."
     }
   },
   "feedback": {
@@ -1019,9 +1024,9 @@
     "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
   },
   "plugin": {
-    "not_available": "This plugin is not installed or currently disabled."
+    "not_available": "Cette extension n’est pas installée ou est actuellement désactivée."
   },
   "error": {
-    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+    "ProtectedPluginTag": "Ce tag est protégé par une extension installée et ne peut pas être supprimé tant que l’extension n’est pas désinstallée."
   }
 }

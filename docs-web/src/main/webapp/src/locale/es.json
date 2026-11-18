@@ -132,7 +132,11 @@
         "upload_new_version": "Subir una nueva versión",
         "open_versions": "Mostrar historial de versiones",
         "display_mode_list": "Mostrar documentos en lista",
-        "display_mode_grid": "Mostrar documentos en cuadrícula"
+        "display_mode_grid": "Mostrar documentos en cuadrícula",
+        "col_filename": "Nombre de archivo",
+        "col_type": "Tipo",
+        "col_size": "Tamaño",
+        "col_version": "Versión"
       },
       "workflow": {
         "workflow": "Flujo de trabajo",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "Está a punto de establecer el modo de cifrado de archivos en '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Advertencia: Una vez confirmada, esta configuración se bloqueará permanentemente y nunca podrá cambiarse!</span> ¿Continuar?",
       "first_time_encrypt_title": "Configuración inicial: Elegir modo de cifrado de almacenamiento de archivos",
       "first_time_encrypt_message": "¡Bienvenido a FormosaBearV! Antes de subir archivos, elija y bloquee el <strong>Modo de almacenamiento de archivos (file.encrypt)</strong>:<br/><br/>1. <strong>Almacenamiento sin cifrar (Recomendado)</strong>: Los archivos se almacenan en su formato original organizados por carpetas de usuario y documento, facilitando la copia de seguridad directa y el mantenimiento.<br/>2. <strong>Almacenamiento cifrado AES-256</strong>: Todos los archivos subidos se cifran en disco y no se pueden leer directamente desde el sistema de archivos.<br/><br/><strong class='text-danger'>⚠️ Advertencia: Esta configuración se bloquea permanentemente tras la confirmación (o tras la primera subida de archivo) y no se puede cambiar después!</strong>",
+      "file_encrypt_processing": "Aplicando la configuración de almacenamiento y preparando los complementos incluidos, espere por favor...",
       "title_file_delete": "Modo de eliminación de archivos en disco (file.delete)",
       "file_delete_permanent": "Eliminar permanentemente del disco",
       "file_delete_recycle": "Mover al directorio de reciclaje (delete/storage)",
@@ -806,27 +811,27 @@
       "start_restore_button": "Iniciar restauración del sistema",
       "goto_login_button": "Ir al inicio de sesión"
     },
-    "menu_plugins": "Plugins",
+    "menu_plugins": "Complementos",
     "plugins": {
-      "title": "Plugin Management",
-      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
-      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
-      "upload_button": "Upload & Install",
-      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
-      "upload_failed": "Failed to install plugin package.",
-      "installed_title": "Installed Plugins",
-      "empty": "No plugins installed yet.",
-      "col_name": "Plugin",
-      "col_version": "Version",
-      "col_protected_tags": "Protected Tags",
-      "col_status": "Status",
-      "col_actions": "Actions",
-      "open": "Open",
-      "enable": "Enable",
-      "disable": "Disable",
-      "uninstall": "Uninstall",
-      "uninstall_title": "Uninstall Plugin",
-      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
+      "title": "Gestión de complementos",
+      "security_notice": "Instale únicamente paquetes .zip de confianza. Los complementos subidos pueden activarse sin reiniciar el servidor.",
+      "upload_title": "Subir e instalar / actualizar complemento (.zip)",
+      "upload_button": "Subir e instalar",
+      "upload_success": "Complemento \"{{ name }}\" (v{{ version }}) instalado correctamente.",
+      "upload_failed": "Error al instalar el paquete del complemento.",
+      "installed_title": "Complementos instalados",
+      "empty": "Aún no hay complementos instalados.",
+      "col_name": "Complemento",
+      "col_version": "Versión",
+      "col_protected_tags": "Etiquetas protegidas",
+      "col_status": "Estado",
+      "col_actions": "Acciones",
+      "open": "Abrir",
+      "enable": "Activar",
+      "disable": "Desactivar",
+      "uninstall": "Desinstalar",
+      "uninstall_title": "Desinstalar complemento",
+      "uninstall_message": "¿Seguro que desea desinstalar \"{{ name }}\" (v{{ version }})? Sus datos se eliminarán y sus etiquetas protegidas se desbloquearán (las etiquetas y documentos se conservarán)."
     }
   },
   "feedback": {
@@ -1019,9 +1024,9 @@
     "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
   },
   "plugin": {
-    "not_available": "This plugin is not installed or currently disabled."
+    "not_available": "Este complemento no está instalado o está desactivado actualmente."
   },
   "error": {
-    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+    "ProtectedPluginTag": "Esta etiqueta está protegida por un complemento instalado y no puede eliminarse hasta desinstalarlo."
   }
 }

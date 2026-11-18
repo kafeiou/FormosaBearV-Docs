@@ -38,6 +38,7 @@
           <span class="badge" id="runnerCodeVersion"></span>
         </div>
       </div>
+      <div id="runnerRefDocs" class="ref-docs-box hidden"></div>
       <div id="runnerResultBanner" class="result-banner hidden"></div>
       <form id="examForm" class="question-list"></form>
       <div class="runner-actions">
@@ -143,6 +144,14 @@
           <span data-i18n="manage.field_enabled">立即啟用此考卷</span>
         </label>
 
+        <div class="ref-docs-picker">
+          <div class="ref-docs-picker-head">
+            <span class="field-label" data-i18n="manage.field_ref_docs">綁定參考文件（選填，可多選；考生須具備該文件讀取權限才可見）</span>
+            <input type="text" id="createRefDocsSearch" class="ref-docs-search" data-i18n-placeholder="manage.ref_docs_search_ph" placeholder="搜尋文件標題...">
+          </div>
+          <div id="createRefDocsList" class="acl-list ref-docs-checklist"></div>
+        </div>
+
         <div class="gift-toolbar">
           <label class="file-upload-btn">
             <span data-i18n="manage.upload_gift">上傳 .gift / .txt 檔案</span>
@@ -179,6 +188,21 @@
           <div id="aclGroupsList" class="acl-list"></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Reference Documents Modal -->
+  <div id="refDocsModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="panel-head">
+        <h2 id="refDocsModalTitle">參考文件綁定</h2>
+        <button type="button" class="btn btn-secondary btn-sm" id="closeRefDocsModalBtn" data-i18n="acl.close">關閉</button>
+      </div>
+      <p class="subtitle" data-i18n="manage.field_ref_docs">綁定參考文件（選填，可多選；考生須具備該文件讀取權限才可見）</p>
+      <div style="margin: 10px 0;">
+        <input type="text" id="modalRefDocsSearch" class="ref-docs-search" style="width:100%;" data-i18n-placeholder="manage.ref_docs_search_ph" placeholder="搜尋文件標題...">
+      </div>
+      <div id="modalRefDocsList" class="acl-list"></div>
     </div>
   </div>
 

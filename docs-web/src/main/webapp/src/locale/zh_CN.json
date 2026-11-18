@@ -132,7 +132,11 @@
         "upload_new_version": "传新版本",
         "open_versions": "显示历史版本",
         "display_mode_list": "以列表形式显示文件",
-        "display_mode_grid": "以网格方式显示文件"
+        "display_mode_grid": "以网格方式显示文件",
+        "col_filename": "文件名称",
+        "col_type": "类型",
+        "col_size": "大小",
+        "col_version": "版本"
       },
       "workflow": {
         "workflow": "工作流程",
@@ -179,7 +183,7 @@
       "rename_error": "文档异动失败",
       "allow_download": "允许文件下载",
       "allow_download_desc": "若系统开启全局禁止下载，勾选后具读取权限者仍可下载此文件之档案与 ZIP",
-      "allow_download_help": "Only the document creator, administrators, or users with tag edit permissions can change this setting"
+      "allow_download_help": "仅文档创建者、管理员或拥有标签编辑权限的用户可以更改此设置"
     },
     "default": {
       "upload_pending": "等待中...",
@@ -329,7 +333,7 @@
     "expand_all_files": "展开所有文件",
     "collapse_all_files": "收起所有文件",
     "tree_filter_placeholder": "搜索筛选标签...",
-    "created_by": "Created by: {{ creator }}",
+    "created_by": "创建者：{{ creator }}",
     "export": {
       "button": "导出报表",
       "title": "导出标签层级报表",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "您即将把文件加密模式设置为「<strong>{{ mode }}</strong>」。<br/><span class='text-danger'>注意：一旦确认后此设置将永久锁定，未来绝对无法再修改！</span>是否确定？",
       "first_time_encrypt_title": "首次使用系统初始化：请认定文件存储加密模式",
       "first_time_encrypt_message": "欢迎使用 FormosaBearV！在开始上传文件前，请先认定系统的<strong>文件存储模式 (file.encrypt)</strong>：<br/><br/>1. <strong>不加密存储（推荐）</strong>：文件以原始格式依用户与文档分层存放于硬盘，方便直接备份与维护。<br/>2. <strong>启用 AES-256 加密存储</strong>：所有上传文件皆以密钥加密存放，直接从硬盘无法读取。<br/><br/><strong class='text-danger'>⚠️ 注意：此设置在认定（或上传第一个文件）后即永久锁定，之后绝对无法变更！</strong>",
+      "file_encrypt_processing": "正在应用存储设置并导入内置插件，请稍候...",
       "title_file_delete": "删除文件时之磁盘处理模式 (file.delete)",
       "file_delete_permanent": "直接从磁盘永久删除",
       "file_delete_recycle": "移至回收区目录保留 (delete/storage)",
@@ -956,7 +961,7 @@
       "description": "您可以使用标签来模拟目录结构（如超级文件夹）。请在此处进行配置。"
     }
   },
-  "yes": "Yes",
+  "yes": "是",
   "no": "No",
   "ok": "确认",
   "cancel": "取消",
@@ -970,8 +975,8 @@
   "export": "导出",
   "edit": "编辑",
   "delete": "删除",
-  "rename": "Rename",
-  "download": "Download",
+  "rename": "重命名",
+  "download": "下载",
   "loading": "加载中...",
   "send": "发送",
   "enabled": "激活",

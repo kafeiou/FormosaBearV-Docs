@@ -132,7 +132,11 @@
         "upload_new_version": "Отпреми нову верзију",
         "open_versions": "Прикажи историју верзија",
         "display_mode_list": "Прикажи датотеке у листи",
-        "display_mode_grid": "Прикажи датотеке у мрежи"
+        "display_mode_grid": "Прикажи датотеке у мрежи",
+        "col_filename": "Назив датотеке",
+        "col_type": "Тип",
+        "col_size": "Величина",
+        "col_version": "Верзија"
       },
       "workflow": {
         "workflow": "Ток рада",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "Поставићете режим шифровања датотека на „<strong>{{ mode }}</strong>“.<br/><span class='text-danger'>Упозорење: Након потврде, ово подешавање биће трајно закључано и никада се не може променити!</span> Наставити?",
       "first_time_encrypt_title": "Прво подешавање: Изаберите режим шифровања складишта датотека",
       "first_time_encrypt_message": "Добродошли у FormosaBearV! Пре отпремања датотека, изаберите и закључајте <strong>Режим складиштења датотека (file.encrypt)</strong>:<br/><br/>1. <strong>Нешифровано складиштење (Препоручено)</strong>: Датотеке се чувају у оригиналном формату по фасциклама корисника и докумената, што олакшава директно прављење резервних копија и одржавање.<br/>2. <strong>AES-256 шифровано складиштење</strong>: Све отпремљене датотеке су шифроване на диску и не могу се директно читати из система датотека.<br/><br/><strong class='text-danger'>⚠️ Упозорење: Ово подешавање се трајно закључава након потврде (или након првог отпремања датотеке) и касније се не може променити!</strong>",
+      "file_encrypt_processing": "Примена подешавања складишта и припрема уграђених додатака, сачекајте...",
       "title_file_delete": "Режим брисања датотека са диска (file.delete)",
       "file_delete_permanent": "Трајно обриши са диска",
       "file_delete_recycle": "Премести у корпу (delete/storage)",
@@ -806,27 +811,27 @@
       "start_restore_button": "Покрени опоравак система",
       "goto_login_button": "Иди на пријаву"
     },
-    "menu_plugins": "Plugins",
+    "menu_plugins": "Додаци",
     "plugins": {
-      "title": "Plugin Management",
-      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
-      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
-      "upload_button": "Upload & Install",
-      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
-      "upload_failed": "Failed to install plugin package.",
-      "installed_title": "Installed Plugins",
-      "empty": "No plugins installed yet.",
-      "col_name": "Plugin",
-      "col_version": "Version",
-      "col_protected_tags": "Protected Tags",
-      "col_status": "Status",
-      "col_actions": "Actions",
-      "open": "Open",
-      "enable": "Enable",
-      "disable": "Disable",
-      "uninstall": "Uninstall",
-      "uninstall_title": "Uninstall Plugin",
-      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
+      "title": "Управљање додацима",
+      "security_notice": "Инсталирајте само поуздане .zip пакете додатака. Отпремљени додаци се могу омогућити без поновног покретања сервера.",
+      "upload_title": "Отпреми и инсталирај / надогради додатак (.zip)",
+      "upload_button": "Отпреми и инсталирај",
+      "upload_success": "Додатак „{{ name }}“ (v{{ version }}) је успешно инсталиран.",
+      "upload_failed": "Инсталација пакета додатка није успела.",
+      "installed_title": "Инсталирани додаци",
+      "empty": "Још увек нема инсталираних додатака.",
+      "col_name": "Додатак",
+      "col_version": "Верзија",
+      "col_protected_tags": "Заштићене ознаке",
+      "col_status": "Статус",
+      "col_actions": "Радње",
+      "open": "Отвори",
+      "enable": "Омогући",
+      "disable": "Онемогући",
+      "uninstall": "Деинсталирај",
+      "uninstall_title": "Деинсталирај додатак",
+      "uninstall_message": "Да ли сте сигурни да желите да деинсталирате „{{ name }}“ (v{{ version }})? Подаци додатка биће уклоњени, а заштићене ознаке откључане (ознаке и документи остају сачувани)."
     }
   },
   "feedback": {
@@ -1019,9 +1024,9 @@
     "error_parent_in_trash_message": "The parent document of this file is currently in the Trash. Please restore the parent document first."
   },
   "plugin": {
-    "not_available": "This plugin is not installed or currently disabled."
+    "not_available": "Овај додатак није инсталиран или је тренутно онемогућен."
   },
   "error": {
-    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+    "ProtectedPluginTag": "Ова ознака је заштићена инсталираним додатком и не може се обрисати док се додатак не деинсталира."
   }
 }

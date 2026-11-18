@@ -23,7 +23,8 @@
     "retake_exam": "Thi lại",
     "view_result": "Xem kết quả",
     "blank_pdf": "PDF đề trắng",
-    "attempt_pdf": "PDF bài làm (Có hình mờ)"
+    "attempt_pdf": "PDF bài làm (Có hình mờ)",
+    "ref_docs_label": "Tài liệu tham khảo:"
   },
   "runner": {
     "back": "← Quay lại danh sách bài thi",
@@ -35,7 +36,8 @@
     "false_label": "Sai (False)",
     "submit": "Nộp bài",
     "unanswered_warning": "Câu {{questions}} chưa được trả lời. Vui lòng hoàn thành tất cả các câu trước khi nộp bài.",
-    "submitted_success": "Đã nộp bài và chấm điểm thành công!"
+    "submitted_success": "Đã nộp bài và chấm điểm thành công!",
+    "ref_docs_label": "Tài liệu tham khảo (mở trong tab mới):"
   },
   "scores": {
     "title": "Lịch sử điểm",
@@ -96,7 +98,12 @@
     "gift_ph": "Dán câu hỏi định dạng Moodle GIFT tại đây (Chọn một =/~, Chọn nhiều ~%50%, Đúng/Sai {TRUE}/{FALSE})",
     "preview_header": "Đã phân tích thành công {{count}} câu hỏi:",
     "save_btn": "Lưu & Phát hành đề thi",
-    "saved_success": "Đã phát hành đề thi thành công!"
+    "saved_success": "Đã phát hành đề thi thành công!",
+    "field_ref_docs": "Tài liệu tham khảo đính kèm (tùy chọn, chọn nhiều; chỉ hiển thị cho thí sinh có quyền ĐỌC)",
+    "ref_docs_search_ph": "Tìm tiêu đề tài liệu...",
+    "ref_docs_empty": "Không có tài liệu nào khả dụng",
+    "btn_ref_docs": "Tài liệu TK",
+    "ref_docs_modal_title": "Tài liệu tham khảo: {{title}}"
   },
   "acl": {
     "modal_title": "Quyền dự thi: {{title}}",

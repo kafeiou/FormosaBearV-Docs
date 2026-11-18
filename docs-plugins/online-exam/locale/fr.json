@@ -23,7 +23,8 @@
     "retake_exam": "Repasser l'examen",
     "view_result": "Voir le résultat",
     "blank_pdf": "PDF de l'examen vierge",
-    "attempt_pdf": "PDF complété (avec filigrane)"
+    "attempt_pdf": "PDF complété (avec filigrane)",
+    "ref_docs_label": "Documents de référence :"
   },
   "runner": {
     "back": "← Retour à la liste des examens",
@@ -35,7 +36,8 @@
     "false_label": "Faux",
     "submit": "Soumettre l'examen",
     "unanswered_warning": "La ou les questions {{questions}} n'ont pas reçu de réponse. Veuillez répondre à toutes les questions avant de soumettre.",
-    "submitted_success": "Examen soumis et corrigé !"
+    "submitted_success": "Examen soumis et corrigé !",
+    "ref_docs_label": "Documents de référence (s’ouvre dans un nouvel onglet) :"
   },
   "scores": {
     "title": "Relevé de notes",
@@ -96,7 +98,12 @@
     "gift_ph": "Collez vos questions Moodle GIFT ici (Choix unique =/~, Choix multiple ~%50%, Vrai/Faux {TRUE}/{FALSE})",
     "preview_header": "{{count}} questions analysées avec succès :",
     "save_btn": "Enregistrer et publier l'examen",
-    "saved_success": "Examen publié avec succès !"
+    "saved_success": "Examen publié avec succès !",
+    "field_ref_docs": "Documents de référence liés (facultatif, sélection multiple ; visibles uniquement par les candidats ayant un droit de lecture)",
+    "ref_docs_search_ph": "Rechercher un titre de document...",
+    "ref_docs_empty": "Aucun document accessible trouvé",
+    "btn_ref_docs": "Docs réf.",
+    "ref_docs_modal_title": "Documents de référence : {{title}}"
   },
   "acl": {
     "modal_title": "Droits des candidats : {{title}}",

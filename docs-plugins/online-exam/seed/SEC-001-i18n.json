@@ -1,0 +1,306 @@
+{
+  "en": {
+    "title": "Security Fundamentals Assessment",
+    "q1": "According to Chapter 1 of the Security Fundamentals Guide, which of the following is a best practice for account security?",
+    "q1_choices": [
+      "Enable Multi-Factor Authentication (MFA) and use strong, unique passwords",
+      "Reuse the same password across all systems for convenience",
+      "Write passwords on sticky notes attached to the monitor",
+      "Disable account lockout protection after failed login attempts"
+    ],
+    "q2": "According to Chapter 2, which measures should be taken to defend against phishing and social engineering? (Multiple Choice)",
+    "q2_choices": [
+      "Carefully inspect sender domains and hyperlink URLs for spoofing",
+      "Never open email attachments from unknown or untrusted sources",
+      "Reply immediately with your password when an urgent email requests it",
+      "Disable antivirus and endpoint protection to receive emails faster"
+    ],
+    "q3": "According to Chapter 3, the 3-2-1 backup rule means keeping 3 copies of data on 2 different storage media, with at least 1 copy stored offsite or offline.",
+    "q4": "According to Chapter 4, the Principle of Least Privilege means granting all employees top Administrator (Admin) privileges by default for convenience."
+  },
+  "zh_TW": {
+    "title": "資安基礎測驗",
+    "q1": "根據《資安基礎講義》第一章，下列何者屬於強化帳號安全的最佳實務？",
+    "q1_choices": [
+      "啟用多因素驗證（MFA）並使用高強度且不重複的密碼",
+      "所有系統共用同一組密碼方便記憶",
+      "將密碼寫在螢幕便利貼上",
+      "停用登入失敗鎖定機制"
+    ],
+    "q2": "根據《資安基礎講義》第二章，防範網路釣魚（Phishing）與社交工程時應採取哪些措施？（複選）",
+    "q2_choices": [
+      "仔細檢查寄件者網域與連結網址是否偽造",
+      "切勿隨意開啟來源不明的郵件附加檔案",
+      "收到要求立即提供密碼的緊急信件時直接回覆密碼",
+      "關閉防毒與端點防護軟體以加快收信速度"
+    ],
+    "q3": "根據《資安基礎講義》第三章，「3-2-1 備份原則」是指保存 3 份資料、使用 2 種不同媒介，且至少 1 份存放於異地或離線環境。",
+    "q4": "根據《資安基礎講義》第四章，「最小權限原則（Least Privilege）」是指為了工作方便，預設應給予所有員工最高系統管理員（Admin）權限。"
+  },
+  "zh_CN": {
+    "title": "资安基础测验",
+    "q1": "根据《资安基础讲义》第一章，下列哪一项属于强化账号安全的最佳实践？",
+    "q1_choices": [
+      "启用多因素验证（MFA）并使用高强度且不重复的密码",
+      "所有系统共用同一组密码方便记忆",
+      "将密码写在显示器便利贴上",
+      "停用登录失败锁定机制"
+    ],
+    "q2": "根据《资安基础讲义》第二章，防范网络钓鱼（Phishing）与社会工程时应采取哪些措施？（多选）",
+    "q2_choices": [
+      "仔细检查发件人域名与链接网址是否伪造",
+      "切勿随意打开来源不明的邮件附件",
+      "收到要求立即提供密码的紧急邮件时直接回复密码",
+      "关闭杀毒与终端防护软件以加快收信速度"
+    ],
+    "q3": "根据《资安基础讲义》第三章，“3-2-1 备份原则”是指保存 3 份数据、使用 2 种不同介质，且至少 1 份存放于异地或离线环境。",
+    "q4": "根据《资安基础讲义》第四章，“最小权限原则（Least Privilege）”是指为了工作方便，默认应赋予所有员工最高系统管理员（Admin）权限。"
+  },
+  "ja": {
+    "title": "情報セキュリティ基礎試験",
+    "q1": "『情報セキュリティ基礎ガイド』第1章に基づき、アカウントのセキュリティを強化するベストプラクティスはどれですか？",
+    "q1_choices": [
+      "多要素認証（MFA）を有効にし、強力で固有のパスワードを使用する",
+      "覚えやすいようにすべてのシステムで同じパスワードを使い回す",
+      "パスワードを付箋に書いてモニターに貼る",
+      "ログイン失敗時のアカウントロック機能を無効にする"
+    ],
+    "q2": "第2章に基づき、フィッシングやソーシャルエンジニアリングを防ぐために取るべき対策はどれですか？（複数選択）",
+    "q2_choices": [
+      "送信元ドメインやリンク先URLが偽装されていないか注意深く確認する",
+      "出所不明のメール添付ファイルを安易に開かない",
+      "至急パスワードを送るよう求めるメールにそのまま返信する",
+      "メール受信を速くするためにウイルス対策ソフトを無効化する"
+    ],
+    "q3": "第3章に基づき、「3-2-1 バックアップ原則」とは、3つのデータコピーを2種類の異なる媒体に保存し、少なくとも1つをオフサイトまたはオフラインで保管することである。",
+    "q4": "第4章に基づき、「最小権限の原則（Least Privilege）」とは、業務の利便性のために全従業員へデフォルトで最高管理者（Admin）権限を付与することである。"
+  },
+  "vi": {
+    "title": "Bài kiểm tra Cơ bản về An ninh Mạng",
+    "q1": "Theo Chương 1 của Hướng dẫn Cơ bản về An ninh Mạng, đâu là phương pháp tốt nhất để bảo mật tài khoản?",
+    "q1_choices": [
+      "Bật Xác thực Đa yếu tố (MFA) và sử dụng mật khẩu mạnh, duy nhất",
+      "Dùng chung một mật khẩu cho tất cả hệ thống để dễ nhớ",
+      "Ghi mật khẩu lên giấy nhớ dán trên màn hình",
+      "Tắt tính năng khóa tài khoảnเมื่อ đăng nhập sai"
+    ],
+    "q2": "Theo Chương 2, cần thực hiện những biện pháp nào để phòng chống lừa đảo (Phishing)? (Chọn nhiều)",
+    "q2_choices": [
+      "Kiểm tra kỹ tên miền người gửi và đường dẫn URL xem có bị giả mạo không",
+      "Tuyệt đối không mở tệp đính kèm email từ nguồn không rõ ràng",
+      "Trả lời mật khẩu ngay lập tức khi nhận được email khẩn cấp yêu cầu",
+      "Tắt phần mềm diệt virus để nhận email nhanh hơn"
+    ],
+    "q3": "Theo Chương 3, quy tắc sao lưu 3-2-1 nghĩa là lưu giữ 3 bản sao dữ liệu trên 2 loại phương tiện khác nhau và ít nhất 1 bản ở ngoài cơ sở hoặc ngoại tuyến.",
+    "q4": "Theo Chương 4, Nguyên tắc Đặc quyền Tối thiểu (Least Privilege) nghĩa là mặc định cấp quyền Quản trị viên cao nhất (Admin) cho mọi nhân viên để thuận tiện làm việc."
+  },
+  "de": {
+    "title": "Prüfung IT-Sicherheitsgrundlagen",
+    "q1": "Welche Maßnahme entspricht laut Kapitel 1 des Leitfadens IT-Sicherheitsgrundlagen der Best Practice für Kontosicherheit?",
+    "q1_choices": [
+      "Multi-Faktor-Authentifizierung (MFA) aktivieren und starke, einzigartige Passwörter nutzen",
+      "Dasselbe Passwort bequem für alle Systeme wiederverwenden",
+      "Passwörter auf Haftnotizen am Monitor anbringen",
+      "Kontosperrung nach fehlgeschlagenen Anmeldeversuchen deaktivieren"
+    ],
+    "q2": "Welche Maßnahmen sollten laut Kapitel 2 zum Schutz vor Phishing ergriffen werden? (Mehrfachauswahl)",
+    "q2_choices": [
+      "Absenderdomänen und Hyperlink-URLs sorgfältig auf Fälschungen prüfen",
+      "Keine E-Mail-Anhänge aus unbekannten Quellen öffnen",
+      "Auf dringende E-Mails sofort mit dem eigenen Passwort antworten",
+      "Virenschutz deaktivieren, um E-Mails schneller zu laden"
+    ],
+    "q3": "Laut Kapitel 3 bedeutet die 3-2-1-Backup-Regel: 3 Datenkopien auf 2 verschiedenen Speichermedien, davon mindestens 1 Kopie extern oder offline.",
+    "q4": "Laut Kapitel 4 bedeutet das Prinzip der geringsten Rechte (Least Privilege), allen Mitarbeitenden standardmäßig volle Administratorrechte (Admin) zu geben."
+  },
+  "fr": {
+    "title": "Évaluation des Fondamentaux de la Sécurité",
+    "q1": "Selon le chapitre 1 du Guide des Fondamentaux de la Sécurité, quelle est la bonne pratique pour sécuriser un compte ?",
+    "q1_choices": [
+      "Activer l'authentification multifacteur (MFA) et utiliser des mots de passe forts et uniques",
+      "Réutiliser le même mot de passe sur tous les systèmes par commodité",
+      "Noter les mots de passe sur un post-it collé à l'écran",
+      "Désactiver le verrouillage de compte après des échecs de connexion"
+    ],
+    "q2": "Selon le chapitre 2, quelles mesures permettent de se protéger contre l'hameçonnage (Phishing) ? (Choix multiples)",
+    "q2_choices": [
+      "Vérifier attentivement le domaine de l'expéditeur et les liens URL",
+      "Ne jamais ouvrir de pièces jointes provenant de sources inconnues",
+      "Répondre immédiatement en donnant son mot de passe lors d'un courriel urgent",
+      "Désactiver l'antivirus pour accélérer la réception des courriels"
+    ],
+    "q3": "Selon le chapitre 3, la règle de sauvegarde 3-2-1 consiste à conserver 3 copies des données sur 2 supports différents, dont au moins 1 copie hors site ou hors ligne.",
+    "q4": "Selon le chapitre 4, le principe du moindre privilège consiste à accorder par défaut les droits Administrateur (Admin) à tous les employés."
+  },
+  "es": {
+    "title": "Evaluación de Fundamentos de Seguridad",
+    "q1": "Según el Capítulo 1 de la Guía de Fundamentos de Seguridad, ¿cuál es una buena práctica para la seguridad de las cuentas?",
+    "q1_choices": [
+      "Activar la autenticación multifactor (MFA) y usar contraseñas seguras y únicas",
+      "Reutilizar la misma contraseña en todos los sistemas por comodidad",
+      "Escribir las contraseñas en notas adhesivas pegadas al monitor",
+      "Desactivar el bloqueo de cuenta tras intentos fallidos de inicio de sesión"
+    ],
+    "q2": "Según el Capítulo 2, ¿qué medidas deben tomarse para prevenir el phishing y la ingeniería social? (Selección múltiple)",
+    "q2_choices": [
+      "Verificar cuidadosamente el dominio del remitente y las direcciones URL",
+      "No abrir nunca archivos adjuntos de remitentes desconocidos",
+      "Responder de inmediato con la contraseña ante un correo urgente",
+      "Desactivar el antivirus para recibir correos más rápido"
+    ],
+    "q3": "Según el Capítulo 3, la regla de respaldo 3-2-1 significa conservar 3 copias de datos en 2 medios distintos, con al menos 1 copia fuera del sitio o sin conexión.",
+    "q4": "Según el Capítulo 4, el principio de mínimo privilegio significa otorgar permisos de Administrador (Admin) por defecto a todos los empleados."
+  },
+  "pt": {
+    "title": "Avaliação de Fundamentos de Segurança",
+    "q1": "De acordo com o Capítulo 1 do Guia de Fundamentos de Segurança, qual das seguintes é uma boa prática para a segurança de contas?",
+    "q1_choices": [
+      "Ativar a autenticação multifator (MFA) e utilizar palavras-passe fortes e únicas",
+      "Reutilizar a mesma palavra-passe em todos os sistemas por conveniência",
+      "Escrever palavras-passe em notas adesivas coladas no monitor",
+      "Desativar o bloqueio de conta após tentativas de início de sessão falhadas"
+    ],
+    "q2": "De acordo com o Capítulo 2, que medidas devem ser tomadas contra phishing e engenharia social? (Escolha múltipla)",
+    "q2_choices": [
+      "Verificar cuidadosamente o domínio do remetente e os endereços URL",
+      "Nunca abrir anexos de e-mail de fontes desconhecidas",
+      "Responder imediatamente com a palavra-passe quando solicitado num e-mail urgente",
+      "Desativar o antivírus para acelerar a receção de e-mails"
+    ],
+    "q3": "De acordo com o Capítulo 3, a regra de cópia de segurança 3-2-1 significa manter 3 cópias de dados em 2 suportes diferentes e pelo menos 1 cópia fora do local ou offline.",
+    "q4": "De acordo com o Capítulo 4, o Princípio do Menor Privilégio significa atribuir permissões de Administrador (Admin) por predefinição a todos os colaboradores."
+  },
+  "pt_BR": {
+    "title": "Avaliação de Fundamentos de Segurança",
+    "q1": "De acordo com o Capítulo 1 do Guia de Fundamentos de Segurança, qual das opções a seguir é uma boa prática para a segurança de contas?",
+    "q1_choices": [
+      "Ativar a autenticação multifator (MFA) e usar senhas fortes e exclusivas",
+      "Reutilizar a mesma senha em todos os sistemas por conveniência",
+      "Anotar senhas em post-its colados no monitor",
+      "Desativar o bloqueio de conta após falhas de login"
+    ],
+    "q2": "De acordo com o Capítulo 2, quais medidas devem ser tomadas contra phishing e engenharia social? (Múltipla escolha)",
+    "q2_choices": [
+      "Verificar cuidadosamente o domínio do remetente e os links URL",
+      "Nunca abrir anexos de e-mail de remetentes desconhecidos",
+      "Responder imediatamente com sua senha ao receber um e-mail urgente",
+      "Desativar o antivírus para receber e-mails mais rápido"
+    ],
+    "q3": "De acordo com o Capítulo 3, a regra de backup 3-2-1 significa manter 3 cópias dos dados em 2 mídias diferentes e pelo menos 1 cópia externa ou offline.",
+    "q4": "De acordo com o Capítulo 4, o Princípio do Menor Privilégio significa conceder privilégios de Administrador (Admin) por padrão a todos os funcionários."
+  },
+  "it": {
+    "title": "Valutazione sui Fondamenti di Sicurezza",
+    "q1": "Secondo il Capitolo 1 della Guida ai Fondamenti di Sicurezza, quale tra le seguenti è una buona pratica per la sicurezza degli account?",
+    "q1_choices": [
+      "Abilitare l'autenticazione a più fattori (MFA) e usare password robuste e univoche",
+      "Riutilizzare la stessa password su tutti i sistemi per comodità",
+      "Scrivere le password su post-it attaccati al monitor",
+      "Disabilitare il blocco dell'account dopo tentativi di accesso falliti"
+    ],
+    "q2": "Secondo il Capitolo 2, quali misure adottare contro phishing e ingegneria sociale? (Scelta multipla)",
+    "q2_choices": [
+      "Controllare attentamente il dominio del mittente e gli URL dei collegamenti",
+      "Non aprire mai allegati e-mail provenienti da fonti sconosciute",
+      "Rispondere subito inviando la propria password a un'e-mail urgente",
+      "Disattivare l'antivirus per velocizzare la ricezione delle e-mail"
+    ],
+    "q3": "Secondo il Capitolo 3, la regola di backup 3-2-1 prevede di conservare 3 copie dei dati su 2 supporti diversi, con almeno 1 copia offsite o offline.",
+    "q4": "Secondo il Capitolo 4, il Principio del privilegio minimo prevede di assegnare i privilegi di Amministratore (Admin) per impostazione predefinita a tutti i dipendenti."
+  },
+  "pl": {
+    "title": "Egzamin z Podstaw Bezpieczeństwa",
+    "q1": "Zgodnie z Rozdziałem 1 Przewodnika Podstawy Bezpieczeństwa, co jest dobrą praktyką w zakresie bezpieczeństwa kont?",
+    "q1_choices": [
+      "Włączenie uwierzytelniania wieloskładnikowego (MFA) oraz stosowanie silnych, unikalnych haseł",
+      "Stosowanie tego samego hasła we wszystkich systemach dla wygody",
+      "Zapisywanie haseł na karteczkach samoprzylepnych na monitorze",
+      "Wyłączenie blokady konta po nieudanych próbach logowania"
+    ],
+    "q2": "Zgodnie z Rozdziałem 2, jakie środki należy podjąć, aby chronić się przed phishingiem? (Wielokrotny wybór)",
+    "q2_choices": [
+      "Dokładnie sprawdzać domeny nadawców oraz adresy URL linków",
+      "Nigdy nie otwierać załączników wiadomości e-mail z nieznanych źródeł",
+      "Natychmiast odpowiadać hasłem na pilne wiadomości e-mail",
+      "Wyłączyć program antywirusowy w celu szybszego odbierania poczty"
+    ],
+    "q3": "Zgodnie z Rozdziałem 3, reguła kopii zapasowych 3-2-1 oznacza przechowywanie 3 kopii danych na 2 różnych nośnikach, z czego co najmniej 1 kopia znajduje się poza siedzibą lub offline.",
+    "q4": "Zgodnie z Rozdziałem 4, zasada najmniejszych uprawnień oznacza domyślne nadawanie wszystkim pracownikom pełnych uprawnień Administratora (Admin)."
+  },
+  "ru": {
+    "title": "Тестирование по основам безопасности",
+    "q1": "Согласно главе 1 Руководства по основам безопасности, что является лучшей практикой защиты учетных записей?",
+    "q1_choices": [
+      "Включить многофакторную аутентификацию (MFA) и использовать надежные уникальные пароли",
+      "Использовать один и тот же пароль во всех системах для удобства",
+      "Записывать пароли на стикерах, приклеенных к монитору",
+      "Отключить блокировку учетной записи после неудачных попыток входа"
+    ],
+    "q2": "Согласно главе 2, какие меры следует принимать для защиты от фишинга? (Несколько вариантов)",
+    "q2_choices": [
+      "Внимательно проверять домен отправителя и URL-адреса ссылок",
+      "Никогда не открывать вложения из неизвестных источников",
+      "Немедленно отправлять свой пароль в ответ на срочное письмо",
+      "Отключать антивирус для ускорения получения писем"
+    ],
+    "q3": "Согласно главе 3, правило резервного копирования 3-2-1 означает хранение 3 копий данных на 2 разных носителях, при этом минимум 1 копия хранится удаленно или офлайн.",
+    "q4": "Согласно главе 4, принцип наименьших привилегий означает предоставление всем сотрудникам прав Администратора (Admin) по умолчанию."
+  },
+  "el": {
+    "title": "Αξιολόγηση Βασικών Αρχών Ασφάλειας",
+    "q1": "Σύμφωνα με το Κεφάλαιο 1 του Οδηγού Βασικών Αρχών Ασφάλειας, ποια είναι η βέλτιστη πρακτική για την ασφάλεια λογαριασμών;",
+    "q1_choices": [
+      "Ενεργοποίηση ελέγχου ταυτότητας πολλαπλών παραγόντων (MFA) και χρήση ισχυρών, μοναδικών κωδικών",
+      "Χρήση του ίδιου κωδικού πρόσβασης σε όλα τα συστήματα για ευκολία",
+      "Αναγραφή κωδικών πρόσβασης σε αυτοκόλλητες σημειώσεις στην οθόνη",
+      "Απενεργοποίηση κλειδώματος λογαριασμού μετά από αποτυχημένες συνδέσεις"
+    ],
+    "q2": "Σύμφωνα με το Κεφάλαιο 2, ποια μέτρα πρέπει να λαμβάνονται κατά του ηλεκτρονικού ψαρέματος (Phishing); (Πολλαπλή επιλογή)",
+    "q2_choices": [
+      "Προσεκτικός έλεγχος του τομέα αποστολέα και των συνδέσμων URL",
+      "Μη άνοιγμα συνημμένων email από άγνωστες πηγές",
+      "Άμεση απάντηση με τον κωδικό πρόσβασης σε επείγοντα email",
+      "Απενεργοποίηση του antivirus για ταχύτερη λήψη email"
+    ],
+    "q3": "Σύμφωνα με το Κεφάλαιο 3, ο κανόνας αντιγράφων ασφαλείας 3-2-1 σημαίνει διατήρηση 3 αντιγράφων δεδομένων σε 2 διαφορετικά μέσα, με τουλάχιστον 1 αντίγραφο εκτός εγκατάστασης ή εκτός σύνδεσης.",
+    "q4": "Σύμφωνα με το Κεφάλαιο 4, η Αρχή του Ελάχιστου Προνομίου σημαίνει εκχώρηση δικαιωμάτων Διαχειριστή (Admin) από προεπιλογή σε όλους τους υπαλλήλους."
+  },
+  "sq_AL": {
+    "title": "Vlerësimi i Bazave të Sigurisë",
+    "q1": "Sipas Kapitullit 1 të Udhëzuesit të Bazave të Sigurisë, cila është praktika më e mirë për sigurinë e llogarisë?",
+    "q1_choices": [
+      "Aktivizimi i Autentikimit me Shumë Faktorë (MFA) dhe përdorimi i fjalëkalimeve të forta e unike",
+      "Ripërdorimi i të njëjtit fjalëkalim në të gjitha sistemet për lehtësi",
+      "Shënimi i fjalëkalimeve në letra ngjitëse mbi monitor",
+      "Çaktivizimi i bllokimit të llogarisë pas tentativave të dështuara"
+    ],
+    "q2": "Sipas Kapitullit 2, cilat masa duhen marrë kundër phishing dhe inxhinierisë sociale? (Zgjedhje e shumëfishtë)",
+    "q2_choices": [
+      "Kontrollimi me kujdes i domenit të dërguesit dhe lidhjeve URL",
+      "Mos hapja e bashkëngjitjeve të email-eve nga burime të panjohura",
+      "Dërgimi i menjëhershëm i fjalëkalimit kur kërkohet nga një email urgjent",
+      "Çaktivizimi i antivirusit për të marrë email-et më shpejt"
+    ],
+    "q3": "Sipas Kapitullit 3, rregulli i rezervimit 3-2-1 nënkupton mbajtjen e 3 kopjeve të të dhënave në 2 media të ndryshme dhe të paktën 1 kopje jashtë vendndodhjes ose offline.",
+    "q4": "Sipas Kapitullit 4, Parimi i Privilegjit Minimal nënkupton dhënien e privilegjeve të Administratorit (Admin) si parazgjedhje për të gjithë punonjësit."
+  },
+  "sr": {
+    "title": "Провера знања о основама безбедности",
+    "q1": "Према Поглављу 1 Водича за основе безбедности, шта представља најбољу праксу за безбедност налога?",
+    "q1_choices": [
+      "Омогућавање вишефакторске аутентификације (MFA) и коришћење јаких, јединствених лозинки",
+      "Коришћење исте лозинке на свим системима ради лакшег памћења",
+      "Записивање лозинки на папирићима залепљеним на монитор",
+      "Искључивање закључавања налога након неуспешних пријава"
+    ],
+    "q2": "Према Поглављу 2, које мере треба предузети за заштиту од фишинга? (Вишеструки избор)",
+    "q2_choices": [
+      "Пажљиво проверавати домен пошиљаоца и URL адресе линкова",
+      "Никада не отварати прилоге е-поште из непознатих извора",
+      "Одмах одговорити слањем лозинке на хитну поруку е-поште",
+      "Искључити антивирус ради бржег пријема е-поште"
+    ],
+    "q3": "Према Поглављу 3, правило резервне копије 3-2-1 подразумева чување 3 копије података на 2 различита медија, уз најмање 1 копију ван локације или офлајн.",
+    "q4": "Према Поглављу 4, принцип најмањих привилегија подразумева подразумевано додељивање права Администратора (Admin) свим запосленима."
+  }
+}

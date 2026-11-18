@@ -430,3 +430,65 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea {
 .acl-item input {
   width: auto;
 }
+
+.ref-docs-box {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ref-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ref-doc-link:hover {
+  background: #dbeafe;
+  color: var(--primary-hover);
+}
+
+.ref-docs-picker {
+  margin: 12px 0;
+}
+
+.ref-docs-picker-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.ref-docs-picker-head .field-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ref-docs-search {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  min-width: 220px;
+}
+
+.ref-docs-checklist {
+  max-height: 160px;
+}

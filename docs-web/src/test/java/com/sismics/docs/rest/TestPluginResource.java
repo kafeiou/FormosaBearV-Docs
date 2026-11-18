@@ -152,4 +152,124 @@ public class TestPluginResource extends BaseJerseyTest {
                 .delete();
         Assert.assertEquals(Response.Status.OK.getStatusCode(), delTagUnlocked.getStatus());
     }
+
+    @Test
+    public void testBundledPluginSeededOnStartup() throws Exception {
+        java.nio.file.Files.deleteIfExists(
+                com.sismics.docs.core.util.DirectoryUtil.getStorageDirectory(null).resolve("plugin-online-exam.zip"));
+        String adminToken = adminToken();
+        clientUtil.createUser("plugin_seed_viewer");
+        String userToken = clientUtil.login("plugin_seed_viewer");
+
+        // 0. Before choosing encryption mode, file_encrypt_locked must remain false and plugins doc is not seeded yet
+        JsonObject appBefore = target().path("/app").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertFalse(appBefore.getBoolean("file_encrypt_locked"));
+
+        // Lock file encryption mode (enabled=true) -> triggers bundled plugin seed with encryption
+        Response lockResp = target().path("/app/file_encrypt").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new jakarta.ws.rs.core.Form().param("enabled", "true")));
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), lockResp.getStatus());
+
+        JsonObject appAfter = target().path("/app").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertTrue(appAfter.getBoolean("file_encrypt"));
+        Assert.assertTrue(appAfter.getBoolean("file_encrypt_locked"));
+
+        // 1. Admin sees the non-hidden "plugins" tag
+        JsonObject adminTags = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        String pluginsTagId = null;
+        for (int i = 0; i < adminTags.getJsonArray("tags").size(); i++) {
+            JsonObject t = adminTags.getJsonArray("tags").getJsonObject(i);
+            if ("plugins".equals(t.getString("name"))) {
+                pluginsTagId = t.getString("id");
+                Assert.assertFalse(t.getBoolean("hidden"));
+            }
+        }
+        Assert.assertNotNull("Expected 'plugins' tag for admin", pluginsTagId);
+
+        // 2. Non-admin does NOT see the "plugins" tag
+        JsonObject userTags = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        for (int i = 0; i < userTags.getJsonArray("tags").size(); i++) {
+            Assert.assertNotEquals("plugins", userTags.getJsonArray("tags").getJsonObject(i).getString("name"));
+        }
+
+        // 3. Admin sees the "plugins" document tagged with "plugins" and with file usage description
+        JsonObject adminDocs = target().path("/document/list")
+                .queryParam("search", "tag:plugins")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        String pluginsDocId = null;
+        JsonArray docs = adminDocs.getJsonArray("documents");
+        for (int i = 0; i < docs.size(); i++) {
+            JsonObject d = docs.getJsonObject(i);
+            if ("plugins".equals(d.getString("title"))) {
+                pluginsDocId = d.getString("id");
+            }
+        }
+        Assert.assertNotNull("Expected 'plugins' document for admin", pluginsDocId);
+
+        JsonObject docDetail = target().path("/document/" + pluginsDocId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        String description = docDetail.getString("description", "");
+        Assert.assertTrue("Expected plugin-online-exam.zip in description", description.contains("plugin-online-exam.zip"));
+        Assert.assertTrue("Expected Online Exam in description", description.contains("Online Exam"));
+
+        // 4. Non-admin cannot see or read the "plugins" document
+        JsonObject userDocs = target().path("/document/list")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        for (int i = 0; i < userDocs.getJsonArray("documents").size(); i++) {
+            Assert.assertNotEquals(pluginsDocId, userDocs.getJsonArray("documents").getJsonObject(i).getString("id"));
+        }
+        Response userDocResp = target().path("/document/" + pluginsDocId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get();
+        Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), userDocResp.getStatus());
+
+        // 5. "plugins" document contains plugin-online-exam.zip and it is downloadable
+        JsonObject filesResp = target().path("/file/list")
+                .queryParam("id", pluginsDocId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        JsonArray files = filesResp.getJsonArray("files");
+        String examFileId = null;
+        for (int i = 0; i < files.size(); i++) {
+            JsonObject f = files.getJsonObject(i);
+            if ("plugin-online-exam.zip".equals(f.getString("name"))) {
+                examFileId = f.getString("id");
+            }
+        }
+        Assert.assertNotNull("Expected plugin-online-exam.zip in plugins document", examFileId);
+
+        Response downloadResp = target().path("/file/" + examFileId + "/data").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get();
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), downloadResp.getStatus());
+        byte[] zipBytes = downloadResp.readEntity(byte[].class);
+        Assert.assertTrue(zipBytes.length > 100);
+        Assert.assertEquals((byte) 'P', zipBytes[0]);
+        Assert.assertEquals((byte) 'K', zipBytes[1]);
+
+        // 6. Re-running seed is idempotent and does not duplicate files
+        int fileCountBefore = files.size();
+        com.sismics.docs.core.util.plugin.PluginSeedService.seedBundledPlugins();
+        JsonObject filesAfter = target().path("/file/list")
+                .queryParam("id", pluginsDocId)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(fileCountBefore, filesAfter.getJsonArray("files").size());
+    }
 }

@@ -21,7 +21,7 @@
 - **完整系統備份、還原與跨庫遷移**：支援後台一鍵串流匯出完整系統 ZIP 備份與還原，並支援 H2 與 PostgreSQL 跨資料庫無縫遷移。
 - **文件生命週期、垃圾桶與協作工作流**：支援檔案多版本控制與自訂版本標記、垃圾桶還原與永久清理、Dublin Core 與自訂中繼資料、審核簽核流程 (Review Workflow)、留言討論、操作稽核日誌、個人儲存配額管理（含無上限配額）與安全外部連結分享。
 - **自動化匯入與系統整合**：支援 EML 郵件匯入、IMAP 收件匣自動掃描、SMTP 郵件通知、RESTful Web API 與 Webhooks 事件推播。
-- **可擴充外掛平台**：支援 `.zip` 第三方外掛上傳安裝、免重啟啟用/停用生命週期、沙箱化容器介面、隱藏與外掛保護標籤管控、16 國語系外掛標準規範及 Java `PluginHandler` SPI（內附 **線上考試系統** 示範外掛，詳見[外掛開發指南](docs-plugins/PLUGIN_GUIDE.zh-TW.md)）。
+- **可擴充外掛平台**：支援 `.zip` 第三方外掛上傳安裝、內建外掛隨包自動植入、免重啟啟用/停用生命週期、沙箱化容器介面、隱藏與外掛保護標籤管控、16 國語系外掛標準規範及 Java `PluginHandler` SPI（內附 **線上考試系統** 示範外掛，詳見[外掛開發指南](docs-plugins/PLUGIN_GUIDE.zh-TW.md)與 [AI 外掛開發鐵律](docs-plugins/AGENTS.md)）。
 - **多國語系介面**：支援 16 種國際語言完整在地化（英文、法文、德文、西班牙文、義大利文、葡萄牙文、巴西葡萄牙文、波蘭文、俄文、希臘文、阿爾巴尼亞文、塞爾維亞文、日文、越南文、繁體中文與簡體中文）。
 
 ## 從原始碼編譯與建置 (Building from Source)
@@ -48,10 +48,10 @@ mvn clean package -DskipTests
 ```
 *(或執行 `mvn clean install -DskipTests`)*
 
-本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-2.08.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
+本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-3.01-SNAPSHOT.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
 
 ```text
-docs-web/target/docs-web-2.08.war
+docs-web/target/docs-web-3.01-SNAPSHOT.war
 ```
 
 ### 打包免安裝可攜綠色版（無需 Docker）
@@ -69,7 +69,7 @@ chmod +x package-portable.sh && ./package-portable.sh
 此腳本會自動讀取 `tools/jetty/` 專案基底 Jetty 12 ZIP（缺少時自動從 Maven 中央倉庫下載），自動編譯 WAR 並組裝所有模組與腳本，最終產出：
 
 ```text
-target/FormosaBearV-docs-2.08-portable.zip
+target/FormosaBearV-docs-3.01-SNAPSHOT-portable.zip
 ```
 
 解壓後只要電腦有安裝 Java 21，雙擊 `start.bat`（或執行 `./start.sh`）即可直接秒速啟動！
@@ -93,7 +93,7 @@ mvn jetty:run
 mvn clean package -DskipTests
 
 # 第二步：建置 Docker 映像檔（或直接使用 docker compose）
-docker build -t formosabearv-docs:2.08 .
+docker build -t formosabearv-docs:3.01-SNAPSHOT .
 ```
 
 專案內建 `Dockerfile`，包含 OpenJDK 21、Jetty 12.1 (`ee10`)、Tesseract OCR、`ffmpeg` 與 `mediainfo`，預設接聽 `8080` 連接埠。

@@ -110,5 +110,9 @@ public enum ConfigType {
     LDAP_DEFAULT_STORAGE,
     LDAP_DEFAULT_GROUP,
     LDAP_DEFAULT_GROUPMEMBERSHIP,
-    LDAP_DEFAULT_NAMEATTRIBUTE
+    LDAP_DEFAULT_NAMEATTRIBUTE,
+    /**
+     * Comma-separated list of bundled plugin zip filenames already seeded into the plugins document.
+     */
+    PLUGINS_SEEDED
 }

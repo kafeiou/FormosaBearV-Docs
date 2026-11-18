@@ -1,9 +1,11 @@
 package com.sismics.docs.core.util.plugin.exam;
 
 import com.google.common.base.Strings;
+import com.sismics.docs.core.constant.AclType;
 import com.sismics.docs.core.constant.AuditLogType;
 import com.sismics.docs.core.constant.PermType;
 import com.sismics.docs.core.dao.AclDao;
+import com.sismics.docs.core.dao.DocumentDao;
 import com.sismics.docs.core.dao.GroupDao;
 import com.sismics.docs.core.dao.PluginDataDao;
 import com.sismics.docs.core.dao.PluginTagDao;
@@ -13,15 +15,22 @@ import com.sismics.docs.core.dao.criteria.GroupCriteria;
 import com.sismics.docs.core.dao.criteria.UserCriteria;
 import com.sismics.docs.core.dao.dto.GroupDto;
 import com.sismics.docs.core.dao.dto.UserDto;
+import com.sismics.docs.core.event.DocumentCreatedAsyncEvent;
+import com.sismics.docs.core.model.context.AppContext;
+import com.sismics.docs.core.model.jpa.Acl;
+import com.sismics.docs.core.model.jpa.Document;
 import com.sismics.docs.core.model.jpa.Group;
 import com.sismics.docs.core.model.jpa.PluginData;
 import com.sismics.docs.core.model.jpa.PluginTag;
 import com.sismics.docs.core.model.jpa.Tag;
 import com.sismics.docs.core.model.jpa.User;
 import com.sismics.docs.core.util.AuditLogUtil;
+import com.sismics.docs.core.util.FileUtil;
 import com.sismics.docs.core.util.plugin.PluginContext;
 import com.sismics.docs.core.util.plugin.PluginHandler;
+import com.sismics.docs.core.util.plugin.PluginPackageUtil;
 import com.sismics.docs.core.util.plugin.PluginResult;
+import com.sismics.util.context.ThreadLocalContext;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
@@ -29,14 +38,20 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonReader;
 import jakarta.json.JsonValue;
+import jakarta.persistence.EntityManager;
 
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -53,11 +68,278 @@ public class ExamPluginHandler implements PluginHandler {
     private static final String COLLECTION_ATTEMPTS = "attempts";
     private static final String COLLECTION_CONFIG = "config";
     private static final String KEY_TEACHERS = "teachers";
+    private static final String KEY_DEMO_SEEDED = "demo_seeded";
     private static final double DEFAULT_TOTAL_SCORE = 100.0;
+    private static final long MAX_DEMO_SEED_FILE_BYTES = 5L * 1024L * 1024L;
+
+    private static final String DEMO_TEACHERS_GROUP = "ExamTeachers";
+    private static final String DEMO_STUDENTS_GROUP = "ExamStudents";
+    private static final String DEMO_ROOT_TAG_NAME = "OnlineExamMaterials";
+    private static final String DEMO_CHILD_TAG_NAME = "SecurityFundamentals";
+    private static final String DEMO_DOC_TITLE = "Security Fundamentals Guide";
+    private static final String DEMO_EXAM_CODE = "SEC-001";
+    private static final String DEMO_EXAM_TITLE = "Security Fundamentals Assessment";
+    private static final String DEMO_DOC_DESCRIPTION =
+            "<ul>"
+                    + "<li><strong>[EN]</strong> Reference textbook for the Security Fundamentals Assessment (<code>SEC-001</code>). Includes PDF guides in all 16 supported languages.</li>"
+                    + "<li><strong>[zh_TW]</strong> 「<code>SEC-001</code> 資安基礎測驗」參考教材文件，內含全部 16 種支援語系之 PDF 講義，可於應試時開啟對照。</li>"
+                    + "<li><strong>[zh_CN]</strong> “<code>SEC-001</code> 资安基础测验”参考教材文件，内含全部 16 种支持语系的 PDF 讲义，可在考试时打开对照。</li>"
+                    + "<li><strong>[ja]</strong> 「<code>SEC-001</code> 情報セキュリティ基礎試験」の参考教材ドキュメント（全16言語のPDFガイドを収録）。</li>"
+                    + "<li><strong>[vi]</strong> Tài liệu giáo trình tham khảo cho bài kiểm tra <code>SEC-001</code> (bao gồm PDF bằng cả 16 ngôn ngữ được hỗ trợ).</li>"
+                    + "<li><strong>[de]</strong> Referenzlehrbuch für die Prüfung <code>SEC-001</code> (enthält PDF-Leitfäden in allen 16 unterstützten Sprachen).</li>"
+                    + "<li><strong>[fr]</strong> Manuel de référence pour l'évaluation <code>SEC-001</code> (inclut les guides PDF dans les 16 langues prises en charge).</li>"
+                    + "<li><strong>[es]</strong> Manual de referencia para la evaluación <code>SEC-001</code> (incluye guías PDF en los 16 idiomas admitidos).</li>"
+                    + "<li><strong>[pt]</strong> Manual de referência para a avaliação <code>SEC-001</code> (inclui guias em PDF nos 16 idiomas suportados).</li>"
+                    + "<li><strong>[pt_BR]</strong> Manual de referência para a avaliação <code>SEC-001</code> (inclui guias em PDF nos 16 idiomas suportados).</li>"
+                    + "<li><strong>[it]</strong> Manuale di riferimento per la valutazione <code>SEC-001</code> (include guide PDF in tutte le 16 lingue supportate).</li>"
+                    + "<li><strong>[pl]</strong> Podręcznik referencyjny do egzaminu <code>SEC-001</code> (zawiera przewodniki PDF we wszystkich 16 obsługiwanych językach).</li>"
+                    + "<li><strong>[ru]</strong> Справочное учебное пособие для экзамена <code>SEC-001</code> (включает PDF-руководства на всех 16 поддерживаемых языках).</li>"
+                    + "<li><strong>[el]</strong> Εγχειρίδιο αναφοράς για την εξέταση <code>SEC-001</code> (περιλαμβάνει οδηγούς PDF και στις 16 υποστηριζόμενες γλώσσες).</li>"
+                    + "<li><strong>[sq_AL]</strong> Libër referimi për provimin <code>SEC-001</code> (përfshin udhëzues PDF në të 16 gjuhët e mbështetura).</li>"
+                    + "<li><strong>[sr]</strong> Референтни уџбеник за испит <code>SEC-001</code> (садржи PDF водиче на свих 16 подржаних језика).</li>"
+                    + "</ul>";
+    private static final String DEFAULT_DEMO_GIFT =
+            "::Q1:: 根據《資安基礎講義》第一章，下列何者屬於強化帳號安全的最佳實務？ {\n"
+                    + "  =啟用多因素驗證（MFA）並使用高強度密碼\n"
+                    + "  ~所有系統共用同一組密碼方便記憶\n"
+                    + "  ~將密碼寫在螢幕便利貼上\n"
+                    + "  ~停用登入失敗鎖定機制\n"
+                    + "}\n\n"
+                    + "::Q2:: 根據《資安基礎講義》第二章，防範網路釣魚（Phishing）與社交工程時應採取哪些措施？（複選） {\n"
+                    + "  ~%50%仔細檢查寄件者網域與連結網址是否偽造\n"
+                    + "  ~%50%切勿隨意開啟來源不明的郵件附加檔案\n"
+                    + "  ~%-50%收到要求立即提供密碼的緊急信件時直接回覆密碼\n"
+                    + "  ~%-50%關閉防毒與端點防護軟體以加快收信速度\n"
+                    + "}\n\n"
+                    + "::Q3:: 根據《資安基礎講義》第三章，「3-2-1 備份原則」是指保存 3 份資料、使用 2 種不同媒介，且至少 1 份存放於異地或離線環境。 {TRUE}\n\n"
+                    + "::Q4:: 根據《資安基礎講義》第四章，「最小權限原則（Least Privilege）」是指為了工作方便，預設應給予所有員工最高系統管理員（Admin）權限。 {FALSE}\n";
 
     @Override
     public String getId() {
         return PLUGIN_ID;
+    }
+
+    @Override
+    public void onEnabled(String installerUserId) throws Exception {
+        String actorId = Strings.isNullOrEmpty(installerUserId) ? "admin" : installerUserId;
+        PluginDataDao dataDao = new PluginDataDao();
+        PluginData seededFlag = dataDao.getByKey(PLUGIN_ID, COLLECTION_CONFIG, KEY_DEMO_SEEDED);
+        if (seededFlag != null && "true".equalsIgnoreCase(seededFlag.getValue())) {
+            EntityManager em = ThreadLocalContext.get().getEntityManager();
+            List<Document> existing = em.createQuery(
+                    "select d from Document d where d.title = :title and d.deleteDate is null",
+                    Document.class)
+                    .setParameter("title", DEMO_DOC_TITLE)
+                    .setMaxResults(1)
+                    .getResultList();
+            if (!existing.isEmpty()) {
+                Document doc = existing.get(0);
+                if (!DEMO_DOC_DESCRIPTION.equals(doc.getDescription())) {
+                    doc.setDescription(DEMO_DOC_DESCRIPTION);
+                    new DocumentDao().update(doc, actorId);
+                }
+            }
+            return;
+        }
+
+        // 1. Groups (No Privilege Escalation: roleId is strictly null, existing groups are not modified)
+        GroupDao groupDao = new GroupDao();
+        Group teachersGroup = groupDao.getActiveByName(DEMO_TEACHERS_GROUP);
+        String teachersGroupId;
+        if (teachersGroup == null) {
+            Group g = new Group();
+            g.setName(DEMO_TEACHERS_GROUP);
+            g.setRoleId(null);
+            teachersGroupId = groupDao.create(g, actorId);
+        } else {
+            teachersGroupId = teachersGroup.getId();
+        }
+
+        Group studentsGroup = groupDao.getActiveByName(DEMO_STUDENTS_GROUP);
+        String studentsGroupId;
+        if (studentsGroup == null) {
+            Group g = new Group();
+            g.setName(DEMO_STUDENTS_GROUP);
+            g.setRoleId(null);
+            studentsGroupId = groupDao.create(g, actorId);
+        } else {
+            studentsGroupId = studentsGroup.getId();
+        }
+
+        // Authorize ExamTeachers group as subject teachers in plugin config
+        JsonObject teachersCfg = loadTeachersConfig();
+        Set<String> teacherUsers = jsonStringSet(teachersCfg, "users");
+        Set<String> teacherGroups = jsonStringSet(teachersCfg, "groups");
+        teacherGroups.add(teachersGroupId);
+        JsonObject updatedTeachersCfg = Json.createObjectBuilder()
+                .add("users", toJsonArray(teacherUsers))
+                .add("groups", toJsonArray(teacherGroups))
+                .build();
+        dataDao.upsert(PLUGIN_ID, COLLECTION_CONFIG, KEY_TEACHERS, actorId, updatedTeachersCfg.toString());
+
+        // 2. Hierarchical Tags ("線上考試教材" -> "資安基礎教材") with Least Privilege ACLs
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        String rootTagId = findOrCreateDemoTag(em, DEMO_ROOT_TAG_NAME, null, "#2563eb", actorId, teachersGroupId, studentsGroupId);
+        String childTagId = findOrCreateDemoTag(em, DEMO_CHILD_TAG_NAME, rootTagId, "#0ea5e9", actorId, teachersGroupId, studentsGroupId);
+
+        // 3. Demo Textbook Document + PDF File ("資安基礎教材（範例教科書）" + "資安基礎講義.pdf")
+        String demoDocId = findOrCreateDemoTextbookDocument(em, actorId, childTagId, teachersGroupId, studentsGroupId);
+
+        // 4. Demo Exam ("SEC-DEMO-101" bound to demoDocId)
+        createDemoExamIfAbsent(dataDao, actorId, teachersGroupId, studentsGroupId, demoDocId);
+
+        dataDao.upsert(PLUGIN_ID, COLLECTION_CONFIG, KEY_DEMO_SEEDED, actorId, "true");
+    }
+
+    private String findOrCreateDemoTag(EntityManager em, String name, String parentId, String color,
+                                       String actorId, String teachersGroupId, String studentsGroupId) {
+        List<Tag> existing = em.createQuery(
+                "select t from Tag t where t.name = :name and t.deleteDate is null",
+                Tag.class)
+                .setParameter("name", name)
+                .getResultList();
+        for (Tag t : existing) {
+            if ((parentId == null && t.getParentId() == null) || (parentId != null && parentId.equals(t.getParentId()))) {
+                return t.getId();
+            }
+        }
+
+        Tag tag = new Tag();
+        tag.setName(name);
+        tag.setParentId(parentId);
+        tag.setColor(color);
+        tag.setUserId(actorId);
+        tag.setCreateDate(new Date());
+        tag.setInheritAcl(true);
+        tag.setHidden(false);
+        String tagId = new TagDao().create(tag, actorId);
+
+        grantTargetAclIfAbsent(tagId, actorId, PermType.READ, actorId);
+        grantTargetAclIfAbsent(tagId, actorId, PermType.WRITE, actorId);
+        grantTargetAclIfAbsent(tagId, teachersGroupId, PermType.READ, actorId);
+        grantTargetAclIfAbsent(tagId, teachersGroupId, PermType.WRITE, actorId);
+        grantTargetAclIfAbsent(tagId, studentsGroupId, PermType.READ, actorId);
+        return tagId;
+    }
+
+    private String findOrCreateDemoTextbookDocument(EntityManager em, String actorId, String tagId,
+                                                    String teachersGroupId, String studentsGroupId) throws Exception {
+        List<Document> existing = em.createQuery(
+                "select d from Document d where d.title = :title and d.deleteDate is null",
+                Document.class)
+                .setParameter("title", DEMO_DOC_TITLE)
+                .setMaxResults(1)
+                .getResultList();
+        if (!existing.isEmpty()) {
+            return existing.get(0).getId();
+        }
+
+        Document doc = new Document();
+        doc.setUserId(actorId);
+        doc.setTitle(DEMO_DOC_TITLE);
+        doc.setDescription(DEMO_DOC_DESCRIPTION);
+        doc.setLanguage("eng");
+        doc.setCreateDate(new Date());
+        String docId = new DocumentDao().create(doc, actorId);
+
+        grantTargetAclIfAbsent(docId, actorId, PermType.READ, actorId);
+        grantTargetAclIfAbsent(docId, actorId, PermType.WRITE, actorId);
+        grantTargetAclIfAbsent(docId, teachersGroupId, PermType.READ, actorId);
+        grantTargetAclIfAbsent(docId, teachersGroupId, PermType.WRITE, actorId);
+        grantTargetAclIfAbsent(docId, studentsGroupId, PermType.READ, actorId);
+
+        new TagDao().updateTagList(docId, Set.of(tagId));
+
+        DocumentCreatedAsyncEvent event = new DocumentCreatedAsyncEvent();
+        event.setUserId(actorId);
+        event.setDocumentId(docId);
+        ThreadLocalContext.get().addAsyncEvent(event);
+
+        // Generate & attach all 16 localized textbook PDFs using FileService temporary files so async text extraction & Lucene indexing succeed
+        for (String localeCode : ExamPdfExporter.SUPPORTED_TEXTBOOK_LOCALES) {
+            String pdfFileName = ExamPdfExporter.getTextbookFileName(localeCode);
+            byte[] pdfBytes = ExamPdfExporter.exportTextbookPdf(localeCode);
+            if (pdfBytes.length > 0 && pdfBytes.length <= MAX_DEMO_SEED_FILE_BYTES) {
+                Path tempPdf = AppContext.getInstance().getFileService().createTemporaryFile(pdfFileName);
+                Files.write(tempPdf, pdfBytes);
+                FileUtil.createFile(pdfFileName, null, tempPdf, pdfBytes.length, "eng", actorId, docId);
+            }
+        }
+        return docId;
+    }
+
+    private void createDemoExamIfAbsent(PluginDataDao dataDao, String actorId,
+                                        String teachersGroupId, String studentsGroupId, String demoDocId) throws Exception {
+        for (PluginData row : dataDao.findByCollection(PLUGIN_ID, COLLECTION_EXAMS)) {
+            JsonObject ex = parseJson(row.getValue());
+            if (DEMO_EXAM_CODE.equals(ex.getString("exam_code", ""))) {
+                return;
+            }
+        }
+
+        String giftText = DEFAULT_DEMO_GIFT;
+        Path giftAsset = PluginPackageUtil.resolvePluginAsset(PLUGIN_ID, "seed/SEC-001.gift");
+        if (giftAsset != null && Files.size(giftAsset) <= 256 * 1024L) {
+            String fileContent = Files.readString(giftAsset, StandardCharsets.UTF_8);
+            if (!fileContent.trim().isEmpty()) {
+                giftText = fileContent;
+            }
+        }
+
+        List<GiftParser.GiftQuestion> parsed = GiftParser.parse(giftText);
+        JsonArray questionsArr = GiftParser.toJsonArray(parsed, true);
+
+        JsonObject i18nObj = null;
+        Path i18nAsset = PluginPackageUtil.resolvePluginAsset(PLUGIN_ID, "seed/SEC-001-i18n.json");
+        if (i18nAsset != null && Files.size(i18nAsset) <= 512 * 1024L) {
+            i18nObj = parseJson(Files.readString(i18nAsset, StandardCharsets.UTF_8));
+        }
+
+        User actorUser = new UserDao().getById(actorId);
+        String actorUsername = actorUser != null ? actorUser.getUsername() : "admin";
+        String ownerLabel = actorUsername + " (" + DEMO_TEACHERS_GROUP + ")";
+        String examId = UUID.randomUUID().toString();
+
+        JsonObjectBuilder examBuilder = Json.createObjectBuilder()
+                .add("id", examId)
+                .add("title", DEMO_EXAM_TITLE)
+                .add("exam_code", DEMO_EXAM_CODE)
+                .add("exam_version", "1.0")
+                .add("owner_user_id", actorId)
+                .add("owner_username", actorUsername)
+                .add("owner_display_name", actorUsername)
+                .add("owner_group_id", teachersGroupId)
+                .add("owner_group_name", DEMO_TEACHERS_GROUP)
+                .add("owner_label", ownerLabel)
+                .add("allowed_users", Json.createArrayBuilder().add(actorId))
+                .add("allowed_groups", Json.createArrayBuilder().add(studentsGroupId))
+                .add("reference_document_ids", Json.createArrayBuilder().add(demoDocId))
+                .add("retake_allowed", true)
+                .add("enabled", true)
+                .add("total_score", DEFAULT_TOTAL_SCORE)
+                .add("question_count", questionsArr.size())
+                .add("updated_at", System.currentTimeMillis())
+                .add("questions", questionsArr);
+        if (i18nObj != null && !i18nObj.isEmpty()) {
+            examBuilder.add("i18n", i18nObj);
+        }
+
+        dataDao.upsert(PLUGIN_ID, COLLECTION_EXAMS, examId, actorId, examBuilder.build().toString());
+    }
+
+    private void grantTargetAclIfAbsent(String sourceId, String targetId, PermType perm, String actorId) {
+        if (Strings.isNullOrEmpty(sourceId) || Strings.isNullOrEmpty(targetId)) {
+            return;
+        }
+        AclDao aclDao = new AclDao();
+        if (!aclDao.hasDirectAcl(sourceId, perm, targetId, AclType.USER)) {
+            Acl acl = new Acl();
+            acl.setSourceId(sourceId);
+            acl.setTargetId(targetId);
+            acl.setPerm(perm);
+            acl.setType(AclType.USER);
+            aclDao.create(acl, actorId);
+        }
     }
 
     @Override
@@ -105,6 +387,10 @@ public class ExamPluginHandler implements PluginHandler {
                 return handleListAclTargets(context);
             case "set_exam_acl":
                 return isPost ? handleSetExamAcl(context) : error(405, "MethodNotAllowed", "POST required");
+            case "list_reference_documents":
+                return handleListReferenceDocuments(context);
+            case "set_exam_reference_documents":
+                return isPost ? handleSetExamReferenceDocuments(context) : error(405, "MethodNotAllowed", "POST required");
             case "export_blank_pdf":
                 return handleExportBlankPdf(context);
             case "export_attempt_pdf":
@@ -333,6 +619,28 @@ public class ExamPluginHandler implements PluginHandler {
                 : Json.createArrayBuilder().build();
         String legacyTagId = existingExam != null ? existingExam.getString("tag_id", "") : body.getString("tag_id", "").trim();
 
+        Set<String> refDocIds = new LinkedHashSet<>();
+        if (body.containsKey("reference_document_ids") && body.get("reference_document_ids").getValueType() == JsonValue.ValueType.ARRAY) {
+            AclDao aclDao = new AclDao();
+            DocumentDao docDao = new DocumentDao();
+            Set<String> existingRefIds = existingExam != null ? jsonStringSet(existingExam, "reference_document_ids") : Set.of();
+            JsonArray reqDocs = body.getJsonArray("reference_document_ids");
+            for (int i = 0; i < reqDocs.size(); i++) {
+                String docId = reqDocs.getString(i, "").trim();
+                if (docId.isEmpty()) {
+                    continue;
+                }
+                if (!existingRefIds.contains(docId)) {
+                    if (docDao.getById(docId) == null || !aclDao.checkPermission(docId, PermType.READ, ctx.getTargetIdList())) {
+                        return error(403, "ForbiddenError", "No READ permission on reference document: " + docId);
+                    }
+                }
+                refDocIds.add(docId);
+            }
+        } else if (existingExam != null && existingExam.containsKey("reference_document_ids")) {
+            refDocIds.addAll(jsonStringSet(existingExam, "reference_document_ids"));
+        }
+
         long now = System.currentTimeMillis();
         JsonObjectBuilder examBuilder = Json.createObjectBuilder()
                 .add("id", examId)
@@ -347,6 +655,7 @@ public class ExamPluginHandler implements PluginHandler {
                 .add("owner_label", ownerLabel)
                 .add("allowed_users", allowedUsers)
                 .add("allowed_groups", allowedGroups)
+                .add("reference_document_ids", toJsonArray(refDocIds))
                 .add("retake_allowed", retakeAllowed)
                 .add("enabled", enabled)
                 .add("total_score", totalScore)
@@ -363,7 +672,7 @@ public class ExamPluginHandler implements PluginHandler {
                 "Exam saved: " + examCode + " v" + examVersion + " (" + title + ") by " + ownerLabel);
 
         return PluginResult.ok(Json.createObjectBuilder()
-                .add("exam", buildExamSummary(examObj, null, countAttemptsForExam(examId), true, canTakeExam(ctx, examObj)))
+                .add("exam", buildExamSummary(examObj, null, countAttemptsForExam(examId), true, canTakeExam(ctx, examObj), ctx.getTargetIdList()))
                 .build());
     }
 
@@ -393,7 +702,7 @@ public class ExamPluginHandler implements PluginHandler {
                 "Exam " + (nextEnabled ? "enabled" : "disabled") + ": " + exam.getString("exam_code", examId));
 
         return PluginResult.ok(Json.createObjectBuilder()
-                .add("exam", buildExamSummary(savedObj, null, countAttemptsForExam(examId), true, canTakeExam(ctx, savedObj)))
+                .add("exam", buildExamSummary(savedObj, null, countAttemptsForExam(examId), true, canTakeExam(ctx, savedObj), ctx.getTargetIdList()))
                 .build());
     }
 
@@ -432,6 +741,7 @@ public class ExamPluginHandler implements PluginHandler {
     }
 
     private PluginResult handleListExams(PluginContext ctx) {
+        String lang = ctx.getQueryParams().getOrDefault("lang", "en").trim();
         boolean topAdmin = isTopAdmin(ctx);
         boolean teacher = topAdmin || isTeacher(ctx, loadTeachersConfig());
         PluginDataDao dataDao = new PluginDataDao();
@@ -440,7 +750,7 @@ public class ExamPluginHandler implements PluginHandler {
 
         JsonArrayBuilder arr = Json.createArrayBuilder();
         for (PluginData row : examRows) {
-            JsonObject exam = parseJson(row.getValue());
+            JsonObject exam = localizeExam(parseJson(row.getValue()), lang);
             boolean manageable = canManageExam(ctx, exam);
             boolean takeable = exam.getBoolean("enabled", true) && canTakeExam(ctx, exam);
             String examId = exam.getString("id");
@@ -450,7 +760,7 @@ public class ExamPluginHandler implements PluginHandler {
             if (!manageable && !takeable && myAttempt == null) {
                 continue;
             }
-            arr.add(buildExamSummary(exam, myAttempt, attemptCounts.getOrDefault(examId, 0), manageable, takeable));
+            arr.add(buildExamSummary(exam, myAttempt, attemptCounts.getOrDefault(examId, 0), manageable, takeable, ctx.getTargetIdList()));
         }
 
         return PluginResult.ok(Json.createObjectBuilder()
@@ -463,10 +773,12 @@ public class ExamPluginHandler implements PluginHandler {
 
     private PluginResult handleTakeExam(PluginContext ctx) {
         String examId = ctx.getQueryParams().getOrDefault("examId", "").trim();
-        JsonObject exam = loadExam(examId);
-        if (exam == null) {
+        String lang = ctx.getQueryParams().getOrDefault("lang", "en").trim();
+        JsonObject rawExam = loadExam(examId);
+        if (rawExam == null) {
             return error(404, "ExamNotFound", "Exam not found");
         }
+        JsonObject exam = localizeExam(rawExam, lang);
         boolean manageable = canManageExam(ctx, exam);
         boolean takeable = canTakeExam(ctx, exam);
         PluginData myAttemptRow = new PluginDataDao().getByKey(PLUGIN_ID, COLLECTION_ATTEMPTS, examId + ":" + ctx.getUserId());
@@ -477,7 +789,7 @@ public class ExamPluginHandler implements PluginHandler {
             return error(403, "ExamDisabled", "This exam is currently disabled");
         }
         JsonObjectBuilder resp = Json.createObjectBuilder()
-                .add("exam", stripAnswersFromExam(exam));
+                .add("exam", stripAnswersFromExam(exam, ctx.getTargetIdList()));
         if (myAttemptRow != null) {
             resp.add("my_attempt", parseJson(myAttemptRow.getValue()));
         }
@@ -743,6 +1055,121 @@ public class ExamPluginHandler implements PluginHandler {
         return PluginResult.ok(Json.createObjectBuilder().add("status", "ok").build());
     }
 
+    private PluginResult handleListReferenceDocuments(PluginContext ctx) {
+        if (!isTopAdmin(ctx) && !isTeacher(ctx, loadTeachersConfig())) {
+            return error(403, "ForbiddenError", "Only teachers or top admins can list reference documents");
+        }
+        String examId = ctx.getQueryParams().getOrDefault("examId", "").trim();
+        String query = ctx.getQueryParams().getOrDefault("q", "").trim().toLowerCase(Locale.ROOT);
+        Set<String> boundIds = Set.of();
+        if (!examId.isEmpty()) {
+            JsonObject exam = loadExam(examId);
+            if (exam == null) {
+                return error(404, "ExamNotFound", "Exam not found");
+            }
+            if (!canManageExam(ctx, exam)) {
+                return error(403, "ForbiddenError", "Permission denied");
+            }
+            boundIds = jsonStringSet(exam, "reference_document_ids");
+        }
+
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        List<Document> allDocs = em.createQuery(
+                "select d from Document d where d.deleteDate is null order by d.updateDate desc",
+                Document.class)
+                .getResultList();
+
+        AclDao aclDao = new AclDao();
+        JsonArrayBuilder docsArr = Json.createArrayBuilder();
+        int count = 0;
+        for (Document d : allDocs) {
+            String title = d.getTitle() == null ? "" : d.getTitle();
+            if (!query.isEmpty() && !title.toLowerCase(Locale.ROOT).contains(query)) {
+                continue;
+            }
+            if (!aclDao.checkPermission(d.getId(), PermType.READ, ctx.getTargetIdList())) {
+                continue;
+            }
+            docsArr.add(Json.createObjectBuilder()
+                    .add("id", d.getId())
+                    .add("title", title)
+                    .add("allowed", boundIds.contains(d.getId())));
+            if (++count >= 100) {
+                break;
+            }
+        }
+        return PluginResult.ok(Json.createObjectBuilder()
+                .add("documents", docsArr)
+                .build());
+    }
+
+    private PluginResult handleSetExamReferenceDocuments(PluginContext ctx) {
+        JsonObject body = parseJson(ctx.getRequestBody());
+        String examId = body.getString("exam_id", "").trim();
+        JsonObject exam = loadExam(examId);
+        if (exam == null) {
+            return error(404, "ExamNotFound", "Exam not found");
+        }
+        if (!canManageExam(ctx, exam)) {
+            return error(403, "ForbiddenError", "Permission denied");
+        }
+
+        AclDao aclDao = new AclDao();
+        DocumentDao docDao = new DocumentDao();
+        Set<String> refDocIds = new LinkedHashSet<>(jsonStringSet(exam, "reference_document_ids"));
+
+        if (body.containsKey("reference_document_ids") && body.get("reference_document_ids").getValueType() == JsonValue.ValueType.ARRAY) {
+            Set<String> nextSet = new LinkedHashSet<>();
+            JsonArray arr = body.getJsonArray("reference_document_ids");
+            for (int i = 0; i < arr.size(); i++) {
+                String docId = arr.getString(i, "").trim();
+                if (docId.isEmpty()) {
+                    continue;
+                }
+                if (!refDocIds.contains(docId)) {
+                    if (docDao.getById(docId) == null || !aclDao.checkPermission(docId, PermType.READ, ctx.getTargetIdList())) {
+                        return error(403, "ForbiddenError", "No READ permission on reference document: " + docId);
+                    }
+                }
+                nextSet.add(docId);
+            }
+            refDocIds = nextSet;
+        } else {
+            String docId = body.getString("document_id", "").trim();
+            boolean allow = body.getBoolean("allow", true);
+            if (docId.isEmpty()) {
+                return error(400, "ValidationError", "document_id is required");
+            }
+            if (allow) {
+                if (docDao.getById(docId) == null || !aclDao.checkPermission(docId, PermType.READ, ctx.getTargetIdList())) {
+                    return error(403, "ForbiddenError", "No READ permission on reference document: " + docId);
+                }
+                refDocIds.add(docId);
+            } else {
+                refDocIds.remove(docId);
+            }
+        }
+
+        JsonObjectBuilder updated = Json.createObjectBuilder();
+        for (String k : exam.keySet()) {
+            if (!"reference_document_ids".equals(k) && !"updated_at".equals(k)) {
+                updated.add(k, exam.get(k));
+            }
+        }
+        updated.add("reference_document_ids", toJsonArray(refDocIds));
+        updated.add("updated_at", System.currentTimeMillis());
+        JsonObject savedObj = updated.build();
+        new PluginDataDao().upsert(PLUGIN_ID, COLLECTION_EXAMS, examId, ctx.getUserId(), savedObj.toString());
+
+        auditExamAction(ctx, AuditLogType.UPDATE,
+                "Exam reference documents updated on " + exam.getString("exam_code", examId) + " (count=" + refDocIds.size() + ")");
+
+        return PluginResult.ok(Json.createObjectBuilder()
+                .add("status", "ok")
+                .add("exam", buildExamSummary(savedObj, null, countAttemptsForExam(examId), true, canTakeExam(ctx, savedObj), ctx.getTargetIdList()))
+                .build());
+    }
+
     private PluginResult handleExportBlankPdf(PluginContext ctx) throws Exception {
         String examId = ctx.getQueryParams().getOrDefault("examId", "").trim();
         String lang = ctx.getQueryParams().getOrDefault("lang", "en").trim();
@@ -753,7 +1180,7 @@ public class ExamPluginHandler implements PluginHandler {
         if (!canManageExam(ctx, exam) && !canTakeExam(ctx, exam)) {
             return error(403, "ForbiddenError", "No permission for this exam");
         }
-        byte[] pdfBytes = ExamPdfExporter.exportBlankPdf(stripAnswersFromExam(exam), lang);
+        byte[] pdfBytes = ExamPdfExporter.exportBlankPdf(stripAnswersFromExam(localizeExam(exam, lang)), lang);
         String fileName = sanitizeFileName(exam.getString("exam_code", "exam") + "_v" + exam.getString("exam_version", "1")) + "_blank.pdf";
         return PluginResult.binary(pdfBytes, "application/pdf", fileName);
     }
@@ -779,7 +1206,7 @@ public class ExamPluginHandler implements PluginHandler {
 
         JsonObject pdfExam;
         if (exam != null) {
-            pdfExam = stripAnswersFromExam(exam);
+            pdfExam = stripAnswersFromExam(localizeExam(exam, lang));
         } else {
             pdfExam = Json.createObjectBuilder()
                     .add("id", examId)
@@ -988,7 +1415,77 @@ public class ExamPluginHandler implements PluginHandler {
         return row == null ? null : parseJson(row.getValue());
     }
 
+    private JsonObject localizeExam(JsonObject exam, String lang) {
+        if (exam == null || !exam.containsKey("i18n") || exam.get("i18n").getValueType() != JsonValue.ValueType.OBJECT) {
+            return exam;
+        }
+        JsonObject i18n = exam.getJsonObject("i18n");
+        String code = Strings.isNullOrEmpty(lang) ? "en" : lang.trim();
+        JsonObject loc = i18n.containsKey(code) ? i18n.getJsonObject(code) : null;
+        if (loc == null && code.contains("_")) {
+            String base = code.split("_")[0];
+            if (i18n.containsKey(base)) {
+                loc = i18n.getJsonObject(base);
+            }
+        }
+        if (loc == null && i18n.containsKey("en")) {
+            loc = i18n.getJsonObject("en");
+        }
+        if (loc == null) {
+            return exam;
+        }
+
+        JsonArray origQuestions = exam.getJsonArray("questions");
+        JsonArrayBuilder localizedQuestions = Json.createArrayBuilder();
+        for (int i = 0; i < origQuestions.size(); i++) {
+            JsonObject q = origQuestions.getJsonObject(i);
+            String qId = q.getString("id", "q" + (i + 1));
+            JsonObjectBuilder qb = Json.createObjectBuilder();
+            for (String k : q.keySet()) {
+                if (!"prompt".equals(k) && !"choices".equals(k)) {
+                    qb.add(k, q.get(k));
+                }
+            }
+            qb.add("prompt", loc.getString(qId, q.getString("prompt", "")));
+            if (q.containsKey("choices")) {
+                JsonArray origChoices = q.getJsonArray("choices");
+                JsonArray locChoices = loc.containsKey(qId + "_choices") && loc.get(qId + "_choices").getValueType() == JsonValue.ValueType.ARRAY
+                        ? loc.getJsonArray(qId + "_choices")
+                        : null;
+                JsonArrayBuilder cbArr = Json.createArrayBuilder();
+                for (int c = 0; c < origChoices.size(); c++) {
+                    JsonObject ch = origChoices.getJsonObject(c);
+                    JsonObjectBuilder chb = Json.createObjectBuilder();
+                    for (String ck : ch.keySet()) {
+                        if (!"text".equals(ck)) {
+                            chb.add(ck, ch.get(ck));
+                        }
+                    }
+                    String text = (locChoices != null && c < locChoices.size()) ? locChoices.getString(c, ch.getString("text", "")) : ch.getString("text", "");
+                    chb.add("text", text);
+                    cbArr.add(chb);
+                }
+                qb.add("choices", cbArr);
+            }
+            localizedQuestions.add(qb);
+        }
+
+        JsonObjectBuilder eb = Json.createObjectBuilder();
+        for (String k : exam.keySet()) {
+            if (!"title".equals(k) && !"questions".equals(k)) {
+                eb.add(k, exam.get(k));
+            }
+        }
+        eb.add("title", loc.getString("title", exam.getString("title", "")));
+        eb.add("questions", localizedQuestions);
+        return eb.build();
+    }
+
     private JsonObject stripAnswersFromExam(JsonObject exam) {
+        return stripAnswersFromExam(exam, null);
+    }
+
+    private JsonObject stripAnswersFromExam(JsonObject exam, List<String> viewerTargetIds) {
         JsonArrayBuilder strippedQuestions = Json.createArrayBuilder();
         JsonArray questions = exam.getJsonArray("questions");
         for (int i = 0; i < questions.size(); i++) {
@@ -1022,11 +1519,12 @@ public class ExamPluginHandler implements PluginHandler {
                 .add("enabled", exam.getBoolean("enabled", true))
                 .add("total_score", exam.containsKey("total_score") ? exam.getJsonNumber("total_score").doubleValue() : DEFAULT_TOTAL_SCORE)
                 .add("question_count", questions.size())
+                .add("reference_documents", resolveReadableReferenceDocuments(exam, viewerTargetIds))
                 .add("questions", strippedQuestions)
                 .build();
     }
 
-    private JsonObject buildExamSummary(JsonObject exam, JsonObject myAttempt, int attemptCount, boolean canManage, boolean canTake) {
+    private JsonObject buildExamSummary(JsonObject exam, JsonObject myAttempt, int attemptCount, boolean canManage, boolean canTake, List<String> viewerTargetIds) {
         JsonObjectBuilder b = Json.createObjectBuilder()
                 .add("id", exam.getString("id"))
                 .add("title", exam.getString("title", ""))
@@ -1040,6 +1538,7 @@ public class ExamPluginHandler implements PluginHandler {
                 .add("enabled", exam.getBoolean("enabled", true))
                 .add("total_score", exam.containsKey("total_score") ? exam.getJsonNumber("total_score").doubleValue() : DEFAULT_TOTAL_SCORE)
                 .add("question_count", exam.getInt("question_count", 0))
+                .add("reference_documents", resolveReadableReferenceDocuments(exam, viewerTargetIds))
                 .add("updated_at", exam.containsKey("updated_at") ? exam.getJsonNumber("updated_at").longValue() : 0L);
         if (canManage) {
             b.add("attempt_count", attemptCount);
@@ -1051,6 +1550,37 @@ public class ExamPluginHandler implements PluginHandler {
                     .add("submitted_at", myAttempt.getJsonNumber("submitted_at").longValue()));
         }
         return b.build();
+    }
+
+    private JsonArray resolveReadableReferenceDocuments(JsonObject exam, List<String> viewerTargetIds) {
+        JsonArrayBuilder arr = Json.createArrayBuilder();
+        if (exam == null || viewerTargetIds == null || viewerTargetIds.isEmpty()) {
+            return arr.build();
+        }
+        if (!exam.containsKey("reference_document_ids") || exam.get("reference_document_ids").getValueType() != JsonValue.ValueType.ARRAY) {
+            return arr.build();
+        }
+        AclDao aclDao = new AclDao();
+        DocumentDao docDao = new DocumentDao();
+        JsonArray rawIds = exam.getJsonArray("reference_document_ids");
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < rawIds.size(); i++) {
+            String docId = rawIds.getString(i, "").trim();
+            if (docId.isEmpty() || !seen.add(docId)) {
+                continue;
+            }
+            Document doc = docDao.getById(docId);
+            if (doc == null) {
+                continue;
+            }
+            if (!aclDao.checkPermission(docId, PermType.READ, viewerTargetIds)) {
+                continue;
+            }
+            arr.add(Json.createObjectBuilder()
+                    .add("id", doc.getId())
+                    .add("title", doc.getTitle() == null ? "" : doc.getTitle()));
+        }
+        return arr.build();
     }
 
     private static Set<String> jsonStringSet(JsonObject obj, String key) {

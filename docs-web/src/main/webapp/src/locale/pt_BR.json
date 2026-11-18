@@ -132,7 +132,11 @@
         "upload_new_version": "Enviar uma nova versão",
         "open_versions": "Mostrar histórico de versões",
         "display_mode_list": "Mostrar arquivos em lista",
-        "display_mode_grid": "Mostrar arquivos em grelha"
+        "display_mode_grid": "Mostrar arquivos em grelha",
+        "col_filename": "Nome do arquivo",
+        "col_type": "Tipo",
+        "col_size": "Tamanho",
+        "col_version": "Versão"
       },
       "workflow": {
         "workflow": "Fluxo de trabalho",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "Está prestes a definir o modo de encriptação de arquivos para '<strong>{{ mode }}</strong>'.<br/><span class='text-danger'>Aviso: após a confirmação, esta configuração será bloqueada permanentemente e nunca poderá ser alterada!</span> Continuar?",
       "first_time_encrypt_title": "Configuração inicial: Escolher modo de encriptação do armazenamento de arquivos",
       "first_time_encrypt_message": "Bem-vindo ao FormosaBearV! Antes de carregar arquivos, escolha e bloqueie o <strong>Modo de armazenamento de arquivos (file.encrypt)</strong>:<br/><br/>1. <strong>Armazenamento não encriptado (Recomendado)</strong>: os arquivos são armazenados no seu formato original organizados em pastas por usuário e documento, facilitando cópias de segurança diretas e manutenção.<br/>2. <strong>Armazenamento encriptado AES-256</strong>: todos os arquivos carregados são encriptados em disco e não podem ser lidos diretamente a partir do sistema de arquivos.<br/><br/><strong class='text-danger'>⚠️ Aviso: esta configuração é bloqueada permanentemente após a confirmação (ou após o primeiro envio de um arquivo) e não pode ser alterada mais tarde!</strong>",
+      "file_encrypt_processing": "Aplicando a configuração de armazenamento e preparando os plugins incluídos, aguarde...",
       "title_file_delete": "Modo de exclusão de arquivos em disco (file.delete)",
       "file_delete_permanent": "Excluir permanentemente do disco",
       "file_delete_recycle": "Mover para o diretório de reciclagem (delete/storage)",
@@ -809,16 +814,16 @@
     "menu_plugins": "Plugins",
     "plugins": {
       "title": "Gerenciamento de Plugins",
-      "security_notice": "Instale apenas pacotes .zip de plugins confiáveis. Os plugins enviados podem ser ativados sem reiniciar o servidor.",
-      "upload_title": "Enviar e Instalar / Atualizar Plugin (.zip)",
-      "upload_button": "Enviar e Instalar",
+      "security_notice": "Instale apenas pacotes .zip confiáveis. Os plugins enviados podem ser ativados sem reiniciar o servidor.",
+      "upload_title": "Enviar e instalar / atualizar plugin (.zip)",
+      "upload_button": "Enviar e instalar",
       "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) instalado com sucesso.",
       "upload_failed": "Falha ao instalar o pacote do plugin.",
-      "installed_title": "Plugins Instalados",
+      "installed_title": "Plugins instalados",
       "empty": "Nenhum plugin instalado ainda.",
       "col_name": "Plugin",
       "col_version": "Versão",
-      "col_protected_tags": "Etiquetas Protegidas",
+      "col_protected_tags": "Tags protegidas",
       "col_status": "Status",
       "col_actions": "Ações",
       "open": "Abrir",
@@ -826,7 +831,7 @@
       "disable": "Desativar",
       "uninstall": "Desinstalar",
       "uninstall_title": "Desinstalar Plugin",
-      "uninstall_message": "Tem certeza de que deseja desinstalar \"{{ name }}\" (v{{ version }})? Os dados do plugin serão removidos e suas etiquetas protegidas serão desbloqueadas."
+      "uninstall_message": "Tem certeza de que deseja desinstalar \"{{ name }}\" (v{{ version }})? Os dados do plugin serão removidos e as tags protegidas serão desbloqueadas (tags e documentos serão preservados)."
     }
   },
   "feedback": {
@@ -1022,6 +1027,6 @@
     "not_available": "Este plugin não está instalado ou está desativado no momento."
   },
   "error": {
-    "ProtectedPluginTag": "Esta etiqueta está protegida por um plugin instalado e não pode ser excluída até que o plugin seja desinstalado."
+    "ProtectedPluginTag": "Esta tag é protegida por um plugin instalado e não pode ser excluída até que o plugin seja desinstalado."
   }
 }

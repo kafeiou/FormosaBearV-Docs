@@ -3,7 +3,7 @@
 /**
  * Settings config page controller.
  */
-angular.module('docs').controller('SettingsConfig', function($scope, $rootScope, Restangular, $dialog, $translate, $timeout) {
+angular.module('docs').controller('SettingsConfig', function($scope, $rootScope, Restangular, $dialog, $translate, $timeout, $uibModal, $state) {
   var EN_MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var EN_MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var EN_DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -290,11 +290,25 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
 
     $dialog.messageBox(title, msg, btns, function (result) {
       if (result === 'ok') {
+        var processingModal = $uibModal.open({
+          template: '<div class="modal-body text-center" style="padding: 25px;">'
+            + '<span class="fas fa-circle-notch fa-spin fa-2x text-primary"></span>'
+            + '<p style="margin-top: 12px; margin-bottom: 0;">'
+            + $translate.instant('settings.config.file_encrypt_processing')
+            + '</p></div>',
+          backdrop: 'static',
+          keyboard: false,
+          size: 'sm'
+        });
         Restangular.one('app').post('file_encrypt', {
           enabled: enabled
         }).then(function () {
           $scope.app.file_encrypt = enabled;
           $scope.app.file_encrypt_locked = true;
+          processingModal.close();
+          $state.reload();
+        }, function () {
+          processingModal.close();
         });
       }
     });

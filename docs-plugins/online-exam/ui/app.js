@@ -1,8 +1,22 @@
 (() => {
   const pathMatch = window.location.pathname.match(/^(.*\/plugin\/[^/]+)\/assets\//);
   const ACTION_BASE = pathMatch ? `${pathMatch[1]}/action` : '../../action';
+  const appRootMatch = window.location.pathname.match(/^(.*)\/api\/plugin\/[^/]+\/assets\//);
+  const APP_ROOT = appRootMatch ? (appRootMatch[1] || '') : '';
   const urlParams = new URLSearchParams(window.location.search);
   const currentLang = urlParams.get('lang') || 'zh_TW';
+
+  function buildDocumentViewUrl(docId) {
+    return `${APP_ROOT}/#/document/view/${encodeURIComponent(docId)}`;
+  }
+
+  function renderRefDocsLinksHtml(docs, labelKey) {
+    if (!Array.isArray(docs) || !docs.length) return '';
+    const links = docs.map(d =>
+      `<a class="ref-doc-link" href="${buildDocumentViewUrl(d.id)}" target="_blank" rel="noopener">📄 ${escapeHtml(d.title || d.id)}</a>`
+    ).join('');
+    return `<div class="ref-docs-box"><span>${escapeHtml(t(labelKey))}</span>${links}</div>`;
+  }
 
   let i18nDict = {};
   let fallbackDict = {};
@@ -12,6 +26,8 @@
     user: null,
     teacherGroups: [],
     exams: [],
+    availableRefDocs: [],
+    selectedCreateRefDocIds: new Set(),
     currentExam: null,
     currentAttempt: null
   };
@@ -122,6 +138,9 @@
         loadScores();
       } else if (btn.dataset.tab === 'exams' || btn.dataset.tab === 'manage') {
         loadExams();
+        if (btn.dataset.tab === 'manage' && (state.isTeacher || state.isTopAdmin)) {
+          loadCreateRefDocs();
+        }
       }
     });
   });
@@ -163,6 +182,7 @@
         if (state.teacherGroups.length > 1) {
           document.getElementById('ownerGroupRow').classList.remove('hidden');
         }
+        await loadCreateRefDocs();
       }
 
       await loadExams();
@@ -173,7 +193,7 @@
   }
 
   async function loadExams() {
-    const data = await api('exams');
+    const data = await api(`exams?lang=${encodeURIComponent(currentLang)}`);
     state.exams = data.exams || [];
     renderMyExams();
     renderSummaryExamFilter();
@@ -212,6 +232,7 @@
       const canTake = exam.enabled && exam.can_take && (!attempt || exam.retake_allowed);
       const totalScore = exam.total_score || 100;
       const takeLabel = canTake ? (attempt ? t('exams.retake_exam') : t('exams.start_exam')) : t('exams.view_result');
+      const refDocsHtml = renderRefDocsLinksHtml(exam.reference_documents, 'exams.ref_docs_label');
       card.innerHTML = `
         <h3>${escapeHtml(exam.title)}</h3>
         <div class="meta-row">
@@ -220,6 +241,7 @@
           <span class="badge">${escapeHtml(t('exams.questions_total', { count: exam.question_count, score: totalScore }))}</span>
           <span class="badge ${exam.retake_allowed ? 'success' : ''}">${escapeHtml(exam.retake_allowed ? t('exams.retake_allowed') : t('exams.single_attempt'))}</span>
         </div>
+        ${refDocsHtml}
         ${attempt ? `<p>${escapeHtml(t('exams.latest_score'))} <strong>${attempt.score} / ${attempt.max_score}</strong></p>` : `<p class="subtitle">${escapeHtml(t('exams.not_taken'))}</p>`}
         <div class="card-actions">
           ${(exam.enabled && exam.can_take) || attempt ? `<button class="btn btn-primary btn-take">${escapeHtml(takeLabel)}</button>` : ''}
@@ -249,9 +271,14 @@
       const tr = document.createElement('tr');
       const totalScore = exam.total_score || 100;
       const attemptCount = exam.attempt_count || 0;
+      const refDocsBadges = Array.isArray(exam.reference_documents) && exam.reference_documents.length
+        ? `<div style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px;">` +
+          exam.reference_documents.map(d => `<a class="ref-doc-link" href="${buildDocumentViewUrl(d.id)}" target="_blank" rel="noopener">📄 ${escapeHtml(d.title || d.id)}</a>`).join('') +
+          `</div>`
+        : '';
       tr.innerHTML = `
         <td><span class="badge primary">${escapeHtml(exam.exam_code)} v${escapeHtml(exam.exam_version)}</span></td>
-        <td><strong>${escapeHtml(exam.title)}</strong></td>
+        <td><strong>${escapeHtml(exam.title)}</strong>${refDocsBadges}</td>
         <td><span class="badge">${escapeHtml(exam.owner_label || '')}</span></td>
         <td>${escapeHtml(t('manage.q_score_val', { count: exam.question_count, score: totalScore }))}</td>
         <td><span class="badge ${exam.enabled ? 'success' : 'danger'}">${escapeHtml(exam.enabled ? t('manage.status_enabled') : t('manage.status_disabled'))}</span></td>
@@ -259,12 +286,14 @@
         <td>
           <div style="display:flex; flex-wrap:wrap; gap:6px;">
             <a class="btn btn-secondary btn-sm" href="${ACTION_BASE}/export_blank_pdf?examId=${encodeURIComponent(exam.id)}&lang=${encodeURIComponent(currentLang)}" target="_blank">${escapeHtml(t('manage.btn_blank_pdf'))}</a>
+            <button type="button" class="btn btn-secondary btn-sm btn-ref-docs">${escapeHtml(t('manage.btn_ref_docs'))}</button>
             <button type="button" class="btn btn-secondary btn-sm btn-acl">${escapeHtml(t('manage.btn_acl'))}</button>
             <button type="button" class="btn btn-secondary btn-sm btn-toggle">${escapeHtml(exam.enabled ? t('manage.btn_disable') : t('manage.btn_enable'))}</button>
             <button type="button" class="btn btn-danger btn-sm btn-del">${escapeHtml(t('manage.btn_delete'))}</button>
           </div>
         </td>
       `;
+      tr.querySelector('.btn-ref-docs').addEventListener('click', () => openRefDocsModal(exam));
       tr.querySelector('.btn-acl').addEventListener('click', () => openAclModal(exam));
       tr.querySelector('.btn-toggle').addEventListener('click', async () => {
         await api('toggle_exam', { method: 'POST', body: JSON.stringify({ id: exam.id, enabled: !exam.enabled }) });
@@ -296,7 +325,7 @@
   document.getElementById('refreshManageExamsBtn').addEventListener('click', loadExams);
 
   async function openExam(examId) {
-    const data = await api(`take_exam?examId=${encodeURIComponent(examId)}`);
+    const data = await api(`take_exam?examId=${encodeURIComponent(examId)}&lang=${encodeURIComponent(currentLang)}`);
     state.currentExam = data.exam;
     state.currentAttempt = data.my_attempt || null;
 
@@ -318,9 +347,23 @@
     const form = document.getElementById('examForm');
     form.innerHTML = '';
     const locked = !!attempt && !exam.retake_allowed;
+    const refBox = document.getElementById('runnerRefDocs');
     const banner = document.getElementById('runnerResultBanner');
     const pdfBtn = document.getElementById('downloadAttemptPdfBtn');
     const submitBtn = document.getElementById('submitExamBtn');
+
+    if (refBox) {
+      if (Array.isArray(exam.reference_documents) && exam.reference_documents.length > 0) {
+        const links = exam.reference_documents.map(d =>
+          `<a class="ref-doc-link" href="${buildDocumentViewUrl(d.id)}" target="_blank" rel="noopener">📄 ${escapeHtml(d.title || d.id)}</a>`
+        ).join('');
+        refBox.innerHTML = `<span style="font-weight:600;">${escapeHtml(t('runner.ref_docs_label'))}</span>${links}`;
+        refBox.classList.remove('hidden');
+      } else {
+        refBox.innerHTML = '';
+        refBox.classList.add('hidden');
+      }
+    }
 
     if (attempt) {
       banner.textContent = t('runner.result_banner', { score: attempt.score, maxScore: attempt.max_score });
@@ -430,7 +473,7 @@
 
   async function loadScores() {
     try {
-      const data = await api('attempts');
+      const data = await api(`attempts?lang=${encodeURIComponent(currentLang)}`);
       const tbody = document.getElementById('scoresTableBody');
       tbody.innerHTML = '';
       (data.attempts || []).forEach(att => {
@@ -503,6 +546,7 @@
         owner_group_id: ownerGroupId,
         retake_allowed: document.getElementById('examRetakeAllowed').checked,
         enabled: document.getElementById('examEnabled').checked,
+        reference_document_ids: Array.from(state.selectedCreateRefDocIds),
         gift: document.getElementById('giftTextarea').value
       };
       if (!payload.title || !payload.exam_code || !payload.exam_version || !payload.gift.trim()) {
@@ -518,6 +562,8 @@
       document.getElementById('examEnabled').checked = true;
       document.getElementById('giftTextarea').value = '';
       document.getElementById('giftPreviewBox').classList.add('hidden');
+      state.selectedCreateRefDocIds.clear();
+      renderCreateRefDocsChecklist();
       await loadExams();
     } catch (e) {
       showAlert(e.message, 'error');
@@ -589,6 +635,110 @@
   document.getElementById('closeAclModalBtn').addEventListener('click', () => {
     document.getElementById('aclModal').classList.add('hidden');
   });
+
+  async function loadCreateRefDocs() {
+    try {
+      const data = await api('list_reference_documents');
+      state.availableRefDocs = data.documents || [];
+      renderCreateRefDocsChecklist();
+    } catch (e) {
+      // Ignore quietly if not teacher
+    }
+  }
+
+  function renderCreateRefDocsChecklist() {
+    const box = document.getElementById('createRefDocsList');
+    if (!box) return;
+    const searchEl = document.getElementById('createRefDocsSearch');
+    const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+    box.innerHTML = '';
+    const filtered = state.availableRefDocs.filter(d => !q || String(d.title || '').toLowerCase().includes(q));
+    if (!filtered.length) {
+      box.innerHTML = `<div class="subtitle">${escapeHtml(t('manage.ref_docs_empty'))}</div>`;
+      return;
+    }
+    filtered.forEach(d => {
+      const label = document.createElement('label');
+      label.className = 'acl-item';
+      const checked = state.selectedCreateRefDocIds.has(d.id) ? 'checked' : '';
+      label.innerHTML = `<input type="checkbox" ${checked}> <span>📄 ${escapeHtml(d.title)}</span>`;
+      label.querySelector('input').addEventListener('change', e => {
+        if (e.target.checked) {
+          state.selectedCreateRefDocIds.add(d.id);
+        } else {
+          state.selectedCreateRefDocIds.delete(d.id);
+        }
+      });
+      box.appendChild(label);
+    });
+  }
+
+  const createRefSearchEl = document.getElementById('createRefDocsSearch');
+  if (createRefSearchEl) {
+    createRefSearchEl.addEventListener('input', renderCreateRefDocsChecklist);
+  }
+
+  let modalRefDocsItems = [];
+  let modalRefDocsExam = null;
+
+  function renderModalRefDocsChecklist() {
+    const box = document.getElementById('modalRefDocsList');
+    if (!box || !modalRefDocsExam) return;
+    const searchEl = document.getElementById('modalRefDocsSearch');
+    const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+    box.innerHTML = '';
+    const filtered = modalRefDocsItems.filter(d => !q || String(d.title || '').toLowerCase().includes(q));
+    if (!filtered.length) {
+      box.innerHTML = `<div class="subtitle">${escapeHtml(t('manage.ref_docs_empty'))}</div>`;
+      return;
+    }
+    filtered.forEach(d => {
+      const label = document.createElement('label');
+      label.className = 'acl-item';
+      label.innerHTML = `<input type="checkbox" ${d.allowed ? 'checked' : ''}> <span>📄 ${escapeHtml(d.title)}</span>`;
+      label.querySelector('input').addEventListener('change', async e => {
+        try {
+          await api('set_exam_reference_documents', {
+            method: 'POST',
+            body: JSON.stringify({ exam_id: modalRefDocsExam.id, document_id: d.id, allow: e.target.checked })
+          });
+          d.allowed = e.target.checked;
+          await loadExams();
+        } catch (err) {
+          e.target.checked = !e.target.checked;
+          showAlert(err.message, 'error');
+        }
+      });
+      box.appendChild(label);
+    });
+  }
+
+  async function openRefDocsModal(exam) {
+    try {
+      modalRefDocsExam = exam;
+      const searchEl = document.getElementById('modalRefDocsSearch');
+      if (searchEl) searchEl.value = '';
+      const data = await api(`list_reference_documents?examId=${encodeURIComponent(exam.id)}`);
+      modalRefDocsItems = data.documents || [];
+      document.getElementById('refDocsModalTitle').textContent = t('manage.ref_docs_modal_title', { title: exam.title });
+      renderModalRefDocsChecklist();
+      document.getElementById('refDocsModal').classList.remove('hidden');
+    } catch (e) {
+      showAlert(e.message, 'error');
+    }
+  }
+
+  const modalRefSearchEl = document.getElementById('modalRefDocsSearch');
+  if (modalRefSearchEl) {
+    modalRefSearchEl.addEventListener('input', renderModalRefDocsChecklist);
+  }
+
+  const closeRefDocsModalBtn = document.getElementById('closeRefDocsModalBtn');
+  if (closeRefDocsModalBtn) {
+    closeRefDocsModalBtn.addEventListener('click', () => {
+      document.getElementById('refDocsModal').classList.add('hidden');
+    });
+  }
 
   function escapeHtml(str) {
     return String(str || '').replace(/[&<>"']/g, s => ({

@@ -3,7 +3,7 @@
 /**
  * Navigation controller.
  */
-angular.module('docs').controller('Navigation', function($scope, $state, $stateParams, $rootScope, User, Restangular, $dialog, $translate) {
+angular.module('docs').controller('Navigation', function($scope, $state, $stateParams, $rootScope, User, Restangular, $dialog, $translate, $uibModal) {
   var encryptPromptShown = false;
 
   var checkFirstTimeFileEncrypt = function(userData) {
@@ -26,6 +26,16 @@ angular.module('docs').controller('Navigation', function($scope, $state, $stateP
           ];
           $dialog.messageBox(title, msg, btns, function(encryptChoice) {
             if (encryptChoice === true || encryptChoice === false) {
+              var processingModal = $uibModal.open({
+                template: '<div class="modal-body text-center" style="padding: 25px;">'
+                  + '<span class="fas fa-circle-notch fa-spin fa-2x text-primary"></span>'
+                  + '<p style="margin-top: 12px; margin-bottom: 0;">'
+                  + $translate.instant('settings.config.file_encrypt_processing')
+                  + '</p></div>',
+                backdrop: 'static',
+                keyboard: false,
+                size: 'sm'
+              });
               Restangular.one('app').post('file_encrypt', {
                 enabled: encryptChoice
               }).then(function() {
@@ -33,6 +43,11 @@ angular.module('docs').controller('Navigation', function($scope, $state, $stateP
                   $rootScope.app.file_encrypt = encryptChoice;
                   $rootScope.app.file_encrypt_locked = true;
                 }
+                processingModal.close();
+                $state.reload();
+              }, function() {
+                processingModal.close();
+                encryptPromptShown = false;
               });
             } else {
               encryptPromptShown = false;

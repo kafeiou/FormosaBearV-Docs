@@ -132,6 +132,24 @@ public class PluginService {
     }
 
     /**
+     * Triggers the handler's {@link PluginHandler#onEnabled(String)} lifecycle hook when a plugin is enabled.
+     */
+    public static void onEnabled(Plugin plugin, String installerUserId) {
+        if (plugin == null) {
+            return;
+        }
+        PluginHandler handler = getHandler(plugin.getHandler());
+        if (handler != null) {
+            try {
+                handler.onEnabled(installerUserId);
+            } catch (Exception e) {
+                org.slf4j.LoggerFactory.getLogger(PluginService.class)
+                        .error("Error running onEnabled hook for plugin {}", plugin.getId(), e);
+            }
+        }
+    }
+
+    /**
      * Checks all installed plugins' handlers to see if any plugin data actively references the given tagId.
      */
     public static Optional<String> findTagReferenceReason(String tagId) {

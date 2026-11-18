@@ -130,6 +130,9 @@ public class AppContext {
         // Initialize tag orders if needed
         new com.sismics.docs.core.dao.TagDao().initializeTagOrdersIfNeeded();
 
+        // Seed bundled plugins into admin-only plugins document if needed
+        com.sismics.docs.core.util.plugin.PluginSeedService.seedBundledPlugins();
+
         // Change the admin email if needed
         String envAdminEmail = System.getenv(Constants.ADMIN_EMAIL_INIT_ENV);
         if (!Strings.isNullOrEmpty(envAdminEmail)) {

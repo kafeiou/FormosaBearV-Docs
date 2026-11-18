@@ -23,4 +23,10 @@ public interface PluginHandler {
     default Optional<String> findTagReferenceReason(String tagId) {
         return Optional.empty();
     }
+
+    /**
+     * Invoked when the plugin is enabled by an administrator.
+     */
+    default void onEnabled(String installerUserId) throws Exception {
+    }
 }

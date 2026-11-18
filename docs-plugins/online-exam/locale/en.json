@@ -23,7 +23,8 @@
     "retake_exam": "Retake Exam",
     "view_result": "View Result",
     "blank_pdf": "Blank Exam PDF",
-    "attempt_pdf": "Completed PDF (Watermarked)"
+    "attempt_pdf": "Completed PDF (Watermarked)",
+    "ref_docs_label": "Reference Documents:"
   },
   "runner": {
     "back": "← Back to Exam List",
@@ -35,7 +36,8 @@
     "false_label": "False",
     "submit": "Submit Exam",
     "unanswered_warning": "Question(s) {{questions}} have not been answered. Please complete all questions before submitting.",
-    "submitted_success": "Exam submitted and graded!"
+    "submitted_success": "Exam submitted and graded!",
+    "ref_docs_label": "Reference Documents (opens in new tab):"
   },
   "scores": {
     "title": "Score Records",
@@ -96,7 +98,12 @@
     "gift_ph": "Paste Moodle GIFT questions here (Single choice =/~, Multiple choice ~%50%, True/False {TRUE}/{FALSE})",
     "preview_header": "Successfully parsed {{count}} questions:",
     "save_btn": "Save & Publish Exam",
-    "saved_success": "Exam published successfully!"
+    "saved_success": "Exam published successfully!",
+    "field_ref_docs": "Reference Documents (optional, multi-select; visible only to examinees with READ permission)",
+    "ref_docs_search_ph": "Search document title...",
+    "ref_docs_empty": "No readable documents found",
+    "btn_ref_docs": "Ref. Docs",
+    "ref_docs_modal_title": "Reference Documents: {{title}}"
   },
   "acl": {
     "modal_title": "Examinee Permissions: {{title}}",

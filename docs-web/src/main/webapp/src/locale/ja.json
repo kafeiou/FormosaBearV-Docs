@@ -132,7 +132,11 @@
         "upload_new_version": "新しいバージョンをアップロード",
         "open_versions": "バージョン履歴を表示",
         "display_mode_list": "リスト表示",
-        "display_mode_grid": "グリッド表示"
+        "display_mode_grid": "グリッド表示",
+        "col_filename": "ファイル名",
+        "col_type": "種類",
+        "col_size": "サイズ",
+        "col_version": "バージョン"
       },
       "workflow": {
         "workflow": "ワークフロー",
@@ -451,6 +455,7 @@
       "file_encrypt_confirm_message": "ファイル暗号化モードを「<strong>{{ mode }}</strong>」に設定しようとしています。<br/><span class='text-danger'>注意：一度確定するとこの設定は永久にロックされ、以後二度と変更できません！</span>続行しますか？",
       "first_time_encrypt_title": "初期セットアップ：ファイルストレージ暗号化モードの選択",
       "first_time_encrypt_message": "FormosaBearVへようこそ！ファイルをアップロードする前に、システムの<strong>ファイル保存モード (file.encrypt)</strong>を選択・確定してください：<br/><br/>1. <strong>非暗号化ストレージ（推奨）</strong>：ファイルはオリジナルの形式でユーザーおよびドキュメント別にフォルダ保存され、直接のバックアップや保守が容易です。<br/>2. <strong>AES-256 暗号化ストレージ</strong>：アップロードされたすべてのファイルは暗号化キーで保護され、ファイルシステムから直接読み取ることはできません。<br/><br/><strong class='text-danger'>⚠️ 警告：この設定は確定後（または最初のファイルがアップロードされた後）に永久ロックされ、後から変更することは絶対にできません！</strong>",
+      "file_encrypt_processing": "ストレージ設定を適用し、同梱プラグインを準備しています。お待ちください...",
       "title_file_delete": "ファイル削除時のディスク処理モード (file.delete)",
       "file_delete_permanent": "ディスクから永久に削除",
       "file_delete_recycle": "ごみ箱ディレクトリに移動して保持 (delete/storage)",
@@ -806,27 +811,27 @@
       "start_restore_button": "システム復元を開始",
       "goto_login_button": "ログイン画面へ進む"
     },
-    "menu_plugins": "Plugins",
+    "menu_plugins": "プラグイン管理",
     "plugins": {
-      "title": "Plugin Management",
-      "security_notice": "Only install trusted .zip plugin packages. Uploaded plugins are extracted safely and can be enabled without restarting the server.",
-      "upload_title": "Upload & Install / Upgrade Plugin (.zip)",
-      "upload_button": "Upload & Install",
-      "upload_success": "Plugin \"{{ name }}\" (v{{ version }}) installed successfully.",
-      "upload_failed": "Failed to install plugin package.",
-      "installed_title": "Installed Plugins",
-      "empty": "No plugins installed yet.",
-      "col_name": "Plugin",
-      "col_version": "Version",
-      "col_protected_tags": "Protected Tags",
-      "col_status": "Status",
-      "col_actions": "Actions",
-      "open": "Open",
-      "enable": "Enable",
-      "disable": "Disable",
-      "uninstall": "Uninstall",
-      "uninstall_title": "Uninstall Plugin",
-      "uninstall_message": "Are you sure you want to uninstall \"{{ name }}\" (v{{ version }})? Its plugin data will be removed, and its protected tags will be unlocked (tags and documents will be preserved)."
+      "title": "プラグイン管理",
+      "security_notice": "信頼できる .zip プラグインパッケージのみをインストールしてください。アップロード後、サーバーを再起動せずに有効化・無効化できます。",
+      "upload_title": "プラグインのアップロード・インストール / 更新 (.zip)",
+      "upload_button": "アップロードしてインストール",
+      "upload_success": "プラグイン「{{ name }}」(v{{ version }}) をインストールしました。",
+      "upload_failed": "プラグインパッケージのインストールに失敗しました。",
+      "installed_title": "インストール済みプラグイン",
+      "empty": "インストールされているプラグインはありません。",
+      "col_name": "プラグイン",
+      "col_version": "バージョン",
+      "col_protected_tags": "保護タグ",
+      "col_status": "状態",
+      "col_actions": "操作",
+      "open": "開く",
+      "enable": "有効化",
+      "disable": "無効化",
+      "uninstall": "アンインストール",
+      "uninstall_title": "プラグインのアンインストール",
+      "uninstall_message": "「{{ name }}」(v{{ version }}) をアンインストールしますか？プラグインデータは削除され、保護タグのロックは解除されます（タグとドキュメントは保持されます）。"
     }
   },
   "feedback": {
@@ -1019,9 +1024,9 @@
     "error_parent_in_trash_message": "このファイルの親ドキュメントも現在ゴミ箱にあります。先に「削除されたドキュメント」タブから親ドキュメントを復元してください。"
   },
   "plugin": {
-    "not_available": "This plugin is not installed or currently disabled."
+    "not_available": "このプラグインはインストールされていないか、現在無効になっています。"
   },
   "error": {
-    "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+    "ProtectedPluginTag": "このタグはインストール済みのプラグインによって保護されているため、プラグインをアンインストールするまで削除できません。"
   }
 }

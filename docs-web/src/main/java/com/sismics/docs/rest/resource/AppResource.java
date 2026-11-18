@@ -479,6 +479,7 @@ public class AppResource extends BaseResource {
         }
 
         ConfigUtil.lockFileEncrypt(enabled);
+        com.sismics.docs.core.util.plugin.PluginSeedService.seedBundledPlugins();
         return Response.ok().build();
     }
 

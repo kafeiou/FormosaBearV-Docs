@@ -23,7 +23,8 @@
     "retake_exam": "重新測驗",
     "view_result": "檢視作答結果",
     "blank_pdf": "空白考卷 PDF",
-    "attempt_pdf": "作答 PDF（浮水印）"
+    "attempt_pdf": "作答 PDF（浮水印）",
+    "ref_docs_label": "參考文件："
   },
   "runner": {
     "back": "← 返回考卷列表",
@@ -35,7 +36,8 @@
     "false_label": "否 (False)",
     "submit": "送出考卷",
     "unanswered_warning": "尚有第 {{questions}} 題尚未作答，請全部作答完成後再送出考卷！",
-    "submitted_success": "考卷已送出並完成批改！"
+    "submitted_success": "考卷已送出並完成批改！",
+    "ref_docs_label": "參考文件（點擊於新分頁開啟）："
   },
   "scores": {
     "title": "成績紀錄",
@@ -96,7 +98,12 @@
     "gift_ph": "在此貼上 Moodle GIFT 格式題目（支援單選 =/~、複選 ~%50%、是非 {TRUE}/{FALSE}）",
     "preview_header": "成功解析 {{count}} 題：",
     "save_btn": "儲存並發布考卷",
-    "saved_success": "考卷已成功發布！"
+    "saved_success": "考卷已成功發布！",
+    "field_ref_docs": "綁定參考文件（選填，可多選；考生須具備該文件讀取權限才可見）",
+    "ref_docs_search_ph": "搜尋文件標題...",
+    "ref_docs_empty": "無可選擇的文件",
+    "btn_ref_docs": "參考文件",
+    "ref_docs_modal_title": "參考文件綁定：{{title}}"
   },
   "acl": {
     "modal_title": "應試權限：{{title}}",

@@ -23,7 +23,8 @@
     "retake_exam": "Prüfung wiederholen",
     "view_result": "Ergebnis ansehen",
     "blank_pdf": "Leere Prüfung (PDF)",
-    "attempt_pdf": "Ausgefüllte Prüfung (PDF mit Wasserzeichen)"
+    "attempt_pdf": "Ausgefüllte Prüfung (PDF mit Wasserzeichen)",
+    "ref_docs_label": "Referenzdokumente:"
   },
   "runner": {
     "back": "← Zurück zur Prüfungsliste",
@@ -35,7 +36,8 @@
     "false_label": "Falsch",
     "submit": "Prüfung abgeben",
     "unanswered_warning": "Frage(n) {{questions}} wurden noch nicht beantwortet. Bitte beantworten Sie alle Fragen vor der Abgabe.",
-    "submitted_success": "Prüfung abgegeben und bewertet!"
+    "submitted_success": "Prüfung abgegeben und bewertet!",
+    "ref_docs_label": "Referenzdokumente (öffnet in neuem Tab):"
   },
   "scores": {
     "title": "Ergebnisse",
@@ -96,7 +98,12 @@
     "gift_ph": "Moodle-GIFT-Fragen hier einfügen (Single-Choice =/~, Multiple-Choice ~%50%, Wahr/Falsch {TRUE}/{FALSE})",
     "preview_header": "{{count}} Fragen erfolgreich geparst:",
     "save_btn": "Speichern & Prüfung veröffentlichen",
-    "saved_success": "Prüfung erfolgreich veröffentlicht!"
+    "saved_success": "Prüfung erfolgreich veröffentlicht!",
+    "field_ref_docs": "Referenzdokumente verknüpfen (optional, Mehrfachauswahl; nur sichtbar für Prüflinge mit Leseberechtigung)",
+    "ref_docs_search_ph": "Dokumenttitel suchen...",
+    "ref_docs_empty": "Keine lesbaren Dokumente gefunden",
+    "btn_ref_docs": "Referenzdok.",
+    "ref_docs_modal_title": "Referenzdokumente: {{title}}"
   },
   "acl": {
     "modal_title": "Teilnehmerrechte: {{title}}",
