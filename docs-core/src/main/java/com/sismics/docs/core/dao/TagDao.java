@@ -204,6 +204,7 @@ public class TagDao {
         tagDb.setParentId(tag.getParentId());
         tagDb.setOrder(tag.getOrder());
         tagDb.setInheritAcl(tag.isInheritAcl());
+        tagDb.setHidden(tag.isHidden());
         
         // Create audit log
         AuditLogUtil.create(tagDb, AuditLogType.UPDATE, userId);
@@ -360,7 +361,7 @@ public class TagDao {
         Map<String, Object> parameterMap = new HashMap<>();
         List<String> criteriaList = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4, t.TAG_ORDER_N as c5, t.TAG_CREATEDATE_D as c6, t.TAG_INHERIT_ACL_B as c7, coalesce(t.TAG_ORDER_N, 999999999) as c8 ");
+        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4, t.TAG_ORDER_N as c5, t.TAG_CREATEDATE_D as c6, t.TAG_INHERIT_ACL_B as c7, t.TAG_HIDDEN_B as c8, coalesce(t.TAG_ORDER_N, 999999999) as c9 ");
         sb.append(" from T_TAG t ");
         sb.append(" join T_USER u on t.TAG_IDUSER_C = u.USE_ID_C ");
 
@@ -386,6 +387,10 @@ public class TagDao {
             sb.append(" join T_DOCUMENT_TAG dt on dt.DOT_IDTAG_C = t.TAG_ID_C and dt.DOT_DELETEDATE_D is null ");
             criteriaList.add("dt.DOT_IDDOCUMENT_C = :documentId");
             parameterMap.put("documentId", criteria.getDocumentId());
+        }
+        if (criteria.getHidden() != null) {
+            criteriaList.add("t.TAG_HIDDEN_B = :hidden");
+            parameterMap.put("hidden", criteria.getHidden());
         }
 
         criteriaList.add("t.TAG_DELETEDATE_D is null");
@@ -418,6 +423,8 @@ public class TagDao {
             i++;
             tagDto.setCreateDate((Date) o[i++]);
             tagDto.setInheritAcl(o[i] == null ? true : (Boolean) o[i]);
+            i++;
+            tagDto.setHidden(o[i] != null && (Boolean) o[i]);
             tagDto.setContainer(containerTagIds.contains(tagDto.getId()));
             tagDtoList.add(tagDto);
         }

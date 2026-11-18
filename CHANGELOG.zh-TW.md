@@ -6,6 +6,17 @@
 
 ---
 
+## [v2.09] - 2026-11-18
+
+> **基準點**: `v2.08` ➜ `v2.09`
+
+### 新增功能 (Added)
+- **隱藏標籤屬性（`TAG_HIDDEN_B`、DB v44）**：
+  - 於 `T_TAG` 新增 `TAG_HIDDEN_B` 欄位（`dbupdate-044-0.sql`），並於 `Tag`、`TagDto`、`TagCriteria`、`TagDao` 與 `TagResource`（`PUT /api/tag`、`POST /api/tag/{id}`、`GET /api/tag/{id}` 與 `GET /api/tag/list?include_hidden=true`）全面支援 `hidden` 屬性。
+  - 設為隱藏的標籤於一般文件標籤側邊欄與選擇器預設隱藏，僅於「標籤管理（`#/tagadmin`）」顯示（附帶隱藏圖示）並支援設定 ACL 權限與切換隱藏狀態。
+
+---
+
 ## [v2.08] - 2026-11-17
 
 > **基準點**: `v2.07` (`34b41713`) ➜ `v2.08`

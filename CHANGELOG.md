@@ -6,6 +6,17 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
+## [v2.09] - 2026-11-18
+
+> **Baseline**: `v2.08` ➜ `v2.09`
+
+### Added
+- **Hidden Tags (`TAG_HIDDEN_B`, DB v44)**:
+  - Added `hidden` flag to `T_TAG` (`dbupdate-044-0.sql`), `Tag`, `TagDto`, `TagCriteria`, `TagDao`, and `TagResource` (`PUT /api/tag`, `POST /api/tag/{id}`, `GET /api/tag/{id}`, and `GET /api/tag/list?include_hidden=true`).
+  - Hidden tags are excluded from regular document tag sidebars and pickers by default, while remaining visible (with an eye-slash indicator) and editable in Tag Administration (`#/tagadmin`) for ACL management.
+
+---
+
 ## [v2.08] - 2026-11-17
 
 > **Baseline**: `v2.07` (`34b41713`) ➜ `v2.08`

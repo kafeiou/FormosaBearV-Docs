@@ -809,4 +809,50 @@ public class TestTagResource extends BaseJerseyTest {
         target().path("/user/h_writer").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, sysAdminToken).delete();
         target().path("/user/h_unauth").request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, sysAdminToken).delete();
     }
+
+    /**
+     * Test hidden tag creation, filtering, and visibility toggle.
+     */
+    @Test
+    public void testHiddenTag() {
+        clientUtil.createUser("hidden_tag_user");
+        String userToken = clientUtil.login("hidden_tag_user");
+
+        JsonObject visibleJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("name", "VisibleTag")
+                        .param("color", "#111111")), JsonObject.class);
+        String visibleId = visibleJson.getString("id");
+
+        JsonObject hiddenJson = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("name", "SecretHiddenTag")
+                        .param("color", "#222222")
+                        .param("hidden", "true")), JsonObject.class);
+        String hiddenId = hiddenJson.getString("id");
+
+        // Default /tag/list excludes hidden tags
+        JsonObject defaultList = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, defaultList.getJsonArray("tags").size());
+        Assert.assertEquals(visibleId, defaultList.getJsonArray("tags").getJsonObject(0).getString("id"));
+
+        // include_hidden=true includes hidden tags with hidden=true
+        JsonObject allList = target().path("/tag/list").queryParam("include_hidden", true).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(2, allList.getJsonArray("tags").size());
+
+        // Toggle hidden=false makes it visible
+        target().path("/tag/" + hiddenId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form().param("hidden", "false")), JsonObject.class);
+        JsonObject afterToggle = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(2, afterToggle.getJsonArray("tags").size());
+    }
 }

@@ -59,14 +59,18 @@ public class TagResource extends BaseResource {
      */
     @GET
     @Path("/list")
-    public Response list() {
+    public Response list(@QueryParam("include_hidden") @DefaultValue("false") boolean includeHidden) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
         
         TagDao tagDao = new TagDao();
         List<String> targetIdList = getTargetIdList(null);
-        List<TagDto> tagDtoList = tagDao.findByCriteria(new TagCriteria().setTargetIdList(targetIdList), null);
+        TagCriteria criteria = new TagCriteria().setTargetIdList(targetIdList);
+        if (!includeHidden) {
+            criteria.setHidden(false);
+        }
+        List<TagDto> tagDtoList = tagDao.findByCriteria(criteria, null);
         Map<String, Set<String>> directDocsByTag = tagDao.getReadableDocumentIdsByTag(targetIdList);
 
         // Extract tag IDs
@@ -104,6 +108,7 @@ public class TagResource extends BaseResource {
                     .add("color", tagDto.getColor())
                     .add("document_count", tagDto.isContainer() ? 0 : totalDocs.size())
                     .add("inherit_acl", tagDto.isInheritAcl())
+                    .add("hidden", tagDto.isHidden())
                     .add("is_container", tagDto.isContainer());
             if (tagDto.getOrder() != null) {
                 item.add("order", tagDto.getOrder());
@@ -171,6 +176,7 @@ public class TagResource extends BaseResource {
                 .add("name", tagDto.getName())
                 .add("color", tagDto.getColor())
                 .add("inherit_acl", tagDto.isInheritAcl())
+                .add("hidden", tagDto.isHidden())
                 .add("is_container", tagDto.isContainer());
         if (tagDto.getOrder() != null) {
             tag.add("order", tagDto.getOrder());
@@ -249,7 +255,8 @@ public class TagResource extends BaseResource {
             @FormParam("color") String color,
             @FormParam("parent") String parentId,
             @FormParam("order") Integer order,
-            @FormParam("inherit_acl") Boolean inheritAcl) {
+            @FormParam("inherit_acl") Boolean inheritAcl,
+            @FormParam("hidden") Boolean hidden) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -277,6 +284,7 @@ public class TagResource extends BaseResource {
         tag.setUserId(principal.getId());
         tag.setParentId(parentId);
         tag.setInheritAcl(inheritAcl != null ? inheritAcl : true);
+        tag.setHidden(hidden != null && hidden);
         if (order != null) {
             tag.setOrder(order);
         }
@@ -337,7 +345,8 @@ public class TagResource extends BaseResource {
             @FormParam("color") String color,
             @FormParam("parent") String parentId,
             @FormParam("order") Integer order,
-            @FormParam("inherit_acl") Boolean inheritAcl) {
+            @FormParam("inherit_acl") Boolean inheritAcl,
+            @FormParam("hidden") Boolean hidden) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -381,6 +390,9 @@ public class TagResource extends BaseResource {
         }
         if (!StringUtils.isEmpty(color)) {
             tag.setColor(color);
+        }
+        if (hidden != null) {
+            tag.setHidden(hidden);
         }
         // Handle parent change and order
         boolean parentChanged = (parentId == null && tag.getParentId() != null)

@@ -53,6 +53,11 @@ public class TagDto {
      */
     private boolean container = false;
 
+    /**
+     * Whether this tag is hidden from the regular document tag sidebar/pickers.
+     */
+    private boolean hidden = false;
+
     public String getId() {
         return id;
     }
@@ -131,6 +136,15 @@ public class TagDto {
 
     public TagDto setContainer(boolean container) {
         this.container = container;
+        return this;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public TagDto setHidden(boolean hidden) {
+        this.hidden = hidden;
         return this;
     }
 }

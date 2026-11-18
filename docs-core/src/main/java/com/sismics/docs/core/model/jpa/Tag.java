@@ -72,6 +72,12 @@ public class Tag implements Loggable {
     @Column(name = "TAG_INHERIT_ACL_B", nullable = false)
     private boolean inheritAcl = true;
 
+    /**
+     * Whether this tag is hidden from the regular document tag sidebar/pickers.
+     */
+    @Column(name = "TAG_HIDDEN_B", nullable = false)
+    private boolean hidden = false;
+
     public String getId() {
         return id;
     }
@@ -143,6 +149,14 @@ public class Tag implements Loggable {
 
     public void setInheritAcl(boolean inheritAcl) {
         this.inheritAcl = inheritAcl;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 
     @Override
