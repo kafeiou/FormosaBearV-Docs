@@ -58,6 +58,11 @@ public class TagDto {
      */
     private boolean hidden = false;
 
+    /**
+     * Whether this tag is effectively hidden (either itself or an ancestor tag is hidden).
+     */
+    private boolean effectiveHidden = false;
+
     public String getId() {
         return id;
     }
@@ -145,6 +150,15 @@ public class TagDto {
 
     public TagDto setHidden(boolean hidden) {
         this.hidden = hidden;
+        return this;
+    }
+
+    public boolean isEffectiveHidden() {
+        return effectiveHidden;
+    }
+
+    public TagDto setEffectiveHidden(boolean effectiveHidden) {
+        this.effectiveHidden = effectiveHidden;
         return this;
     }
 }

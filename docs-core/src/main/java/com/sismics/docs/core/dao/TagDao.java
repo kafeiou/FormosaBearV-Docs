@@ -388,10 +388,6 @@ public class TagDao {
             criteriaList.add("dt.DOT_IDDOCUMENT_C = :documentId");
             parameterMap.put("documentId", criteria.getDocumentId());
         }
-        if (criteria.getHidden() != null) {
-            criteriaList.add("t.TAG_HIDDEN_B = :hidden");
-            parameterMap.put("hidden", criteria.getHidden());
-        }
 
         criteriaList.add("t.TAG_DELETEDATE_D is null");
 
@@ -410,6 +406,7 @@ public class TagDao {
         List<Object[]> l = QueryUtil.getNativeQuery(queryParam).getResultList();
 
         // Assemble results
+        Set<String> effectiveHiddenIds = getEffectiveHiddenTagIds();
         List<TagDto> tagDtoList = new ArrayList<>();
         for (Object[] o : l) {
             int i = 0;
@@ -425,6 +422,11 @@ public class TagDao {
             tagDto.setInheritAcl(o[i] == null ? true : (Boolean) o[i]);
             i++;
             tagDto.setHidden(o[i] != null && (Boolean) o[i]);
+            boolean effHidden = tagDto.isHidden() || effectiveHiddenIds.contains(tagDto.getId());
+            tagDto.setEffectiveHidden(effHidden);
+            if (criteria.getHidden() != null && criteria.getHidden().booleanValue() != effHidden) {
+                continue;
+            }
             tagDto.setContainer(containerTagIds.contains(tagDto.getId()));
             tagDtoList.add(tagDto);
         }
@@ -434,6 +436,37 @@ public class TagDao {
         }
 
         return tagDtoList;
+    }
+
+    /**
+     * Returns the set of tag IDs that are hidden either directly or via an ancestor tag.
+     */
+    @SuppressWarnings("unchecked")
+    public Set<String> getEffectiveHiddenTagIds() {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        List<Object[]> rows = em.createNativeQuery(
+                "select t.TAG_ID_C, t.TAG_IDPARENT_C, t.TAG_HIDDEN_B from T_TAG t where t.TAG_DELETEDATE_D is null")
+                .getResultList();
+        Map<String, String> parentMap = new HashMap<>();
+        Map<String, Boolean> hiddenMap = new HashMap<>();
+        for (Object[] row : rows) {
+            String id = (String) row[0];
+            parentMap.put(id, (String) row[1]);
+            hiddenMap.put(id, row[2] != null && (Boolean) row[2]);
+        }
+        Set<String> effectiveHidden = new HashSet<>();
+        for (String id : hiddenMap.keySet()) {
+            Set<String> visited = new HashSet<>();
+            String curr = id;
+            while (curr != null && visited.add(curr)) {
+                if (Boolean.TRUE.equals(hiddenMap.get(curr))) {
+                    effectiveHidden.add(id);
+                    break;
+                }
+                curr = parentMap.get(curr);
+            }
+        }
+        return effectiveHidden;
     }
 
     /**
