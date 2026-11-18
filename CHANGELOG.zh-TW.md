@@ -14,6 +14,10 @@
 - **隱藏標籤屬性（`TAG_HIDDEN_B`、DB v44）**：
   - 於 `T_TAG` 新增 `TAG_HIDDEN_B` 欄位（`dbupdate-044-0.sql`），並於 `Tag`、`TagDto`、`TagCriteria`、`TagDao` 與 `TagResource`（`PUT /api/tag`、`POST /api/tag/{id}`、`GET /api/tag/{id}` 與 `GET /api/tag/list?include_hidden=true`）全面支援 `hidden` 屬性。
   - 設為隱藏的標籤於一般文件標籤側邊欄與選擇器預設隱藏，僅於「標籤管理（`#/tagadmin`）」顯示（附帶隱藏圖示）並支援設定 ACL 權限與切換隱藏狀態。
+  - 隱藏父標籤時會自動連帶有效隱藏（`effective_hidden`）所有下層子標籤；當父標籤取消隱藏時，未單獨設定隱藏的子標籤將自動恢復顯示。
+
+### 修復 (Fixed)
+- **頁尾巴西葡萄牙語 (`pt_BR`) 顯示修復**：於 `index.html` 語系選單補上 `<span ng-switch-when="pt_BR">Português (Brasil)</span>`，解決切換後只剩倒三角形、語言名稱消失的問題。
 
 ---
 

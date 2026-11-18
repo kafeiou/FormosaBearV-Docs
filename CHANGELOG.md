@@ -14,6 +14,10 @@ This document details the notable changes, security enhancements, architecture i
 - **Hidden Tags (`TAG_HIDDEN_B`, DB v44)**:
   - Added `hidden` flag to `T_TAG` (`dbupdate-044-0.sql`), `Tag`, `TagDto`, `TagCriteria`, `TagDao`, and `TagResource` (`PUT /api/tag`, `POST /api/tag/{id}`, `GET /api/tag/{id}`, and `GET /api/tag/list?include_hidden=true`).
   - Hidden tags are excluded from regular document tag sidebars and pickers by default, while remaining visible (with an eye-slash indicator) and editable in Tag Administration (`#/tagadmin`) for ACL management.
+  - Parent-tag hiding cascades effectively (`effective_hidden`) to all descendant tags while preserving each tag's own `hidden` setting when the parent is unhidden.
+
+### Fixed
+- **Footer `pt_BR` Language Label**: Added the missing `<span ng-switch-when="pt_BR">Português (Brasil)</span>` case in `index.html` so switching to Brazilian Portuguese displays its label next to the dropdown caret.
 
 ---
 
