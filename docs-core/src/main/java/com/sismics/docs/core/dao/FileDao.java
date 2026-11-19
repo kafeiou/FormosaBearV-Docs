@@ -61,6 +61,17 @@ public class FileDao {
         q.setMaxResults(limit);
         return q.getResultList();
     }
+
+    /**
+     * Returns the number of active files.
+     *
+     * @return Number of files
+     */
+    public long getFileCount() {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Query query = em.createNativeQuery("select count(f.FIL_ID_C) from T_FILE f where f.FIL_DELETEDATE_D is null");
+        return ((Number) query.getSingleResult()).longValue();
+    }
     
     /**
      * Returns the list of all files from a user.

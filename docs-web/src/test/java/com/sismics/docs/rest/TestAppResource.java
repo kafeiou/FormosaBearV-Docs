@@ -63,11 +63,23 @@ public class TestAppResource extends BaseJerseyTest {
         Assert.assertTrue(json.containsKey("global_storage_current"));
         Assert.assertTrue(json.getJsonNumber("active_user_count").longValue() > 0);
 
-        // Rebuild Lucene index
+        // Rebuild Lucene index (with OCR mode MISSING) and verify status endpoint
         Response response = target().path("/app/batch/reindex").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
-                .post(Entity.form(new Form()));
+                .post(Entity.form(new Form().param("ocr_mode", "MISSING")));
         Assert.assertEquals(Status.OK, Status.fromStatusCode(response.getStatus()));
+
+        JsonObject reindexStatus = target().path("/app/batch/reindex/status").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("MISSING", reindexStatus.getString("ocr_mode"));
+        Assert.assertTrue(reindexStatus.containsKey("phase"));
+        Assert.assertTrue(reindexStatus.containsKey("percent"));
+        Assert.assertTrue(reindexStatus.containsKey("errors"));
+
+        // Non-admin cannot read reindex status
+        Response unauthStatus = target().path("/app/batch/reindex/status").request().get();
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(unauthStatus.getStatus()));
 
         // Clean storage
         response = target().path("/app/batch/clean_storage").request()

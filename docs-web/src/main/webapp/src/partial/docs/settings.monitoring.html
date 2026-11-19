@@ -7,10 +7,88 @@
 <p>{{ 'settings.monitoring.queued_tasks_explain' | translate }}</p>
 
 <h2 translate="settings.monitoring.indexing"></h2>
-{{ 'settings.monitoring.indexing_info' | translate }}
-<div class="mt-10">
-  <button class="btn btn-danger" ng-click="startReindexing()" ng-show="!reindexingStarted">{{ 'settings.monitoring.start_reindexing' | translate }}</button>
-  <span class="text-danger" ng-show="reindexingStarted"><strong>{{ 'settings.monitoring.reindexing_started' | translate }}</strong></span>
+<p>{{ 'settings.monitoring.indexing_info' | translate }}</p>
+<div class="form-inline mt-10">
+  <div class="form-group" style="margin-right: 10px;">
+    <label for="reindexOcrMode" style="margin-right: 6px;">{{ 'settings.monitoring.ocr_mode_label' | translate }}</label>
+    <select id="reindexOcrMode" class="form-control" ng-model="ocrMode" ng-disabled="reindexStatus && reindexStatus.running">
+      <option value="NONE">{{ 'settings.monitoring.ocr_mode_none' | translate }}</option>
+      <option value="MISSING">{{ 'settings.monitoring.ocr_mode_missing' | translate }}</option>
+      <option value="ALL">{{ 'settings.monitoring.ocr_mode_all' | translate }}</option>
+    </select>
+  </div>
+  <button class="btn btn-danger" ng-click="startReindexing()" ng-disabled="reindexStatus && reindexStatus.running">
+    <span class="fas fa-circle-notch fa-spin" ng-if="reindexStatus && reindexStatus.running"></span>
+    {{ 'settings.monitoring.start_reindexing' | translate }}
+  </button>
+</div>
+
+<div class="panel mt-10"
+     ng-if="reindexStatus && reindexStatus.phase && reindexStatus.phase !== 'IDLE'"
+     ng-class="{ 'panel-info': reindexStatus.running, 'panel-success': !reindexStatus.running && reindexStatus.phase === 'DONE', 'panel-danger': !reindexStatus.running && reindexStatus.phase === 'ERROR' }"
+     style="margin-top: 14px;">
+  <div class="panel-heading">
+    <strong>{{ 'settings.monitoring.reindex_progress_title' | translate }}</strong>
+    <span class="pull-right">
+      {{ ('settings.monitoring.reindex_phase_' + reindexStatus.phase) | translate }} ({{ reindexStatus.percent }}%)
+    </span>
+  </div>
+  <div class="panel-body">
+    <div class="progress" style="margin-bottom: 10px;">
+      <div class="progress-bar"
+           role="progressbar"
+           ng-class="{ 'progress-bar-striped active': reindexStatus.running, 'progress-bar-success': !reindexStatus.running && reindexStatus.phase === 'DONE', 'progress-bar-danger': !reindexStatus.running && reindexStatus.phase === 'ERROR' }"
+           ng-style="{ width: reindexStatus.percent + '%' }"
+           style="min-width: 2.5em;">
+        {{ reindexStatus.percent }}%
+      </div>
+    </div>
+
+    <div class="row" style="margin-bottom: 6px;">
+      <div class="col-sm-4">
+        <strong>{{ 'settings.monitoring.reindex_docs_progress' | translate }}:</strong>
+        {{ reindexStatus.processed_documents }} / {{ reindexStatus.total_documents }}
+      </div>
+      <div class="col-sm-4">
+        <strong>{{ 'settings.monitoring.reindex_files_progress' | translate }}:</strong>
+        {{ reindexStatus.processed_files }} / {{ reindexStatus.total_files }}
+      </div>
+      <div class="col-sm-4" ng-if="reindexStatus.ocr_mode !== 'NONE'">
+        <strong>{{ 'settings.monitoring.reindex_ocr_progress' | translate }}:</strong>
+        {{ reindexStatus.ocr_processed }} / {{ reindexStatus.ocr_total }}
+        ({{ 'settings.monitoring.reindex_ocr_summary' | translate: { succeeded: reindexStatus.ocr_succeeded, skipped: reindexStatus.ocr_skipped, failed: reindexStatus.ocr_failed } }})
+      </div>
+    </div>
+
+    <p class="text-muted" style="margin-bottom: 4px;" ng-if="reindexStatus.running && reindexStatus.current_item">
+      {{ 'settings.monitoring.reindex_current_item' | translate }}: <code>{{ reindexStatus.current_item }}</code>
+    </p>
+    <p class="text-muted" style="margin-bottom: 0; font-size: 12px;">
+      <span ng-if="reindexStatus.started_at">{{ 'settings.monitoring.reindex_started_at' | translate }}: {{ reindexStatus.started_at | date: dateTimeFormat }}</span>
+      <span ng-if="reindexStatus.finished_at" style="margin-left: 14px;">{{ 'settings.monitoring.reindex_finished_at' | translate }}: {{ reindexStatus.finished_at | date: dateTimeFormat }}</span>
+    </p>
+    <div class="alert alert-danger" style="margin-top: 10px; margin-bottom: 0;" ng-if="reindexStatus.error_message">
+      {{ reindexStatus.error_message }}
+    </div>
+
+    <div ng-if="reindexStatus.errors && reindexStatus.errors.length > 0" style="margin-top: 12px;">
+      <strong class="text-danger">{{ 'settings.monitoring.reindex_failed_files' | translate: { count: reindexStatus.ocr_failed } }}</strong>
+      <table class="table table-condensed table-striped" style="margin-top: 6px; margin-bottom: 0;">
+        <thead>
+          <tr>
+            <th>{{ 'settings.monitoring.reindex_failed_file' | translate }}</th>
+            <th>{{ 'settings.monitoring.reindex_failed_reason' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="err in reindexStatus.errors">
+            <td><code>{{ err.file_name || err.file_id }}</code></td>
+            <td class="text-danger">{{ err.message }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <h2 translate="settings.monitoring.server_logs"></h2>

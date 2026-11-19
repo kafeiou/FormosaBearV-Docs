@@ -1065,19 +1065,44 @@ public class AppResource extends BaseResource {
      */
     @POST
     @Path("batch/reindex")
-    public Response batchReindex() {
+    public Response batchReindex(@FormParam("ocr_mode") String ocrModeStr) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
         checkBaseFunction(BaseFunction.ADMIN);
 
-        RebuildIndexAsyncEvent rebuildIndexAsyncEvent = new RebuildIndexAsyncEvent();
-        ThreadLocalContext.get().addAsyncEvent(rebuildIndexAsyncEvent);
+        RebuildIndexAsyncEvent.OcrMode ocrMode = RebuildIndexAsyncEvent.OcrMode.fromString(ocrModeStr);
+        boolean started = com.sismics.docs.core.util.indexing.ReindexProgress.tryQueue(ocrMode);
+        if (started) {
+            RebuildIndexAsyncEvent rebuildIndexAsyncEvent = new RebuildIndexAsyncEvent(ocrMode);
+            ThreadLocalContext.get().addAsyncEvent(rebuildIndexAsyncEvent);
+        }
 
-        // Always return OK
         JsonObjectBuilder response = Json.createObjectBuilder()
-                .add("status", "ok");
+                .add("status", started ? "ok" : "already_running")
+                .add("progress", com.sismics.docs.core.util.indexing.ReindexProgress.toJson());
         return Response.ok().entity(response.build()).build();
+    }
+
+    /**
+     * Returns the current status and progress of search index rebuilding.
+     *
+     * @api {get} /app/batch/reindex/status Get index rebuild progress
+     * @apiName GetAppBatchReindexStatus
+     * @apiGroup App
+     * @apiPermission admin
+     *
+     * @return Response
+     */
+    @GET
+    @Path("batch/reindex/status")
+    public Response batchReindexStatus() {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        return Response.ok().entity(com.sismics.docs.core.util.indexing.ReindexProgress.toJson()).build();
     }
 
     /**
