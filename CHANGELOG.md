@@ -11,6 +11,7 @@ This document details the notable changes, security enhancements, architecture i
 > **Baseline**: `v2.09` ➜ `3.01-SNAPSHOT` (`next-v3` pre-release)
 
 ### Added
+- **Dynamic Runtime Jetty & Java Versions in Footer (`GET /api/app`)**: Added live runtime `jetty_version` (detected via `ServletContext.getServerInfo()`) and `java_version` (`System.getProperty("java.version")`) to `/api/app` and displayed `Jetty <version>` and `Java <version>` in the footer of `index.html` and `share.html`.
 - **Plugin Platform Foundation (`plugin-platform`, DB v44–45)**:
   - Added `T_PLUGIN`, `T_PLUGIN_TAG`, and `T_PLUGIN_DATA` tables (`dbupdate-044-0.sql`) plus `T_TAG.TAG_HIDDEN_B` (`dbupdate-045-0.sql`) for H2 2.3 and PostgreSQL.
   - Added `.zip` plugin upload (`POST /api/plugin/upload`) with `plugin.json` manifest parsing (`id`, `version`, `entry`, `nav_label_i18n`, `default_locale`, `handler`, `protected_tags`), Zip Slip traversal defense, zero-restart enable/disable/uninstall lifecycle, `PluginHandler.onEnabled(installerUserId)` first-enable provisioning hook, dynamic navbar tabs, `#/settings/plugins` management page, and `#/plugin/:id` sandboxed iframe container.

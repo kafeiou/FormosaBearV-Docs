@@ -11,6 +11,7 @@
 > **基準點**: `v2.09` ➜ `3.01-SNAPSHOT` (`next-v3` 測試預覽版)
 
 ### 新增功能 (Added)
+- **頁尾動態顯示執行期 Jetty 與 Java 版本（`GET /api/app`）**：於 `/api/app` 動態偵測並回傳目前伺服器實際執行中的 `jetty_version`（由 `ServletContext.getServerInfo()` 擷取）與 `java_version`（由 `System.getProperty("java.version")` 擷取），並於 `index.html` 與 `share.html` 頁尾顯示 `Jetty <版本>` 與 `Java <版本>`。
 - **外掛平台底座 (`plugin-platform`、DB v44–45)**：
   - 新增 `T_PLUGIN`、`T_PLUGIN_TAG`、`T_PLUGIN_DATA` 資料表（`dbupdate-044-0.sql`）與 `T_TAG.TAG_HIDDEN_B` 隱藏標籤欄位（`dbupdate-045-0.sql`），全面相容 H2 2.3 與 PostgreSQL。
   - 支援 `.zip` 外掛上傳安裝（`POST /api/plugin/upload`）、`plugin.json` 解析（`id`、`version`、`entry`、`nav_label_i18n`、`default_locale`、`handler`、`protected_tags`）、Zip Slip 路徑遍歷防呆、免重啟啟用/停用/解除安裝、`PluginHandler.onEnabled(installerUserId)` 首次啟用資源建置掛鉤、頂部導覽列動態選單、`#/settings/plugins` 管理頁與 `#/plugin/:id` 沙箱 `iframe` 容器。
