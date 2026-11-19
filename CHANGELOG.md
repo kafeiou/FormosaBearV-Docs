@@ -11,6 +11,7 @@ This document details the notable changes, security enhancements, architecture i
 > **Baseline**: `v2.08` ➜ `v2.09`
 
 ### Added
+- **Dynamic Runtime Jetty & Java Versions in Footer (`GET /api/app`)**: Added live runtime `jetty_version` (detected via `ServletContext.getServerInfo()`) and `java_version` (`System.getProperty("java.version")`) to `/api/app` and displayed `Jetty <version>` and `Java <version>` in the footer of `index.html` and `share.html`.
 - **Hidden Tags (`TAG_HIDDEN_B`, DB v44)**:
   - Added `hidden` flag to `T_TAG` (`dbupdate-044-0.sql`), `Tag`, `TagDto`, `TagCriteria`, `TagDao`, and `TagResource` (`PUT /api/tag`, `POST /api/tag/{id}`, `GET /api/tag/{id}`, and `GET /api/tag/list?include_hidden=true`).
   - Hidden tags are excluded from regular document tag sidebars and pickers by default, while remaining visible (with an eye-slash indicator) and editable in Tag Administration (`#/tagadmin`) for ACL management.

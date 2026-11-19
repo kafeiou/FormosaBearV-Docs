@@ -131,9 +131,31 @@ public class AppResource extends BaseResource {
             globalQuota = Long.valueOf(globalQuotaStr);
         }
 
+        String javaVersion = System.getProperty("java.version", "");
+        String jettyVersion = "";
+        if (request != null && request.getServletContext() != null) {
+            String serverInfo = request.getServletContext().getServerInfo();
+            if (!Strings.isNullOrEmpty(serverInfo)) {
+                int slashIdx = serverInfo.indexOf('/');
+                jettyVersion = slashIdx >= 0 ? serverInfo.substring(slashIdx + 1).trim() : serverInfo.trim();
+            }
+        }
+        if (jettyVersion.isEmpty()) {
+            try {
+                Class<?> jettyClass = Class.forName("org.eclipse.jetty.util.Jetty");
+                Object ver = jettyClass.getField("VERSION").get(null);
+                if (ver != null) {
+                    jettyVersion = ver.toString();
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+
         JsonObjectBuilder response = Json.createObjectBuilder()
                 .add("current_version", currentVersion)
                 .add("min_version", minVersion)
+                .add("jetty_version", jettyVersion)
+                .add("java_version", javaVersion)
                 .add("guest_login", guestLogin)
                 .add("ocr_enabled", ocrEnabled)
                 .add("ocr_engine", ocrConfig.getEngine())
