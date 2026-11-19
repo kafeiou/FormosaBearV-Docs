@@ -8,7 +8,7 @@ ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64/
 ENV JAVA_OPTIONS="-Dfile.encoding=UTF-8 -Xmx1g"
-ENV JETTY_VERSION=12.1.14
+ARG JETTY_VERSION=latest
 ENV JETTY_HOME=/opt/jetty
 
 # Install packages
@@ -51,10 +51,20 @@ RUN apt-get update && apt-get upgrade libgnutls30 -y -q && \
     rm -rf /var/lib/apt/lists/*
 RUN dpkg-reconfigure -f noninteractive tzdata
 
-# Install Jetty
-RUN wget -nv -O /tmp/jetty.tar.gz \
-    "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${JETTY_VERSION}/jetty-home-${JETTY_VERSION}.tar.gz" \
+# Install Jetty (resolves latest Jetty 12.x stable release when JETTY_VERSION=latest)
+RUN if [ "$JETTY_VERSION" = "latest" ] || [ -z "$JETTY_VERSION" ]; then \
+        JETTY_VERSION=$(wget -qO- "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/maven-metadata.xml" \
+            | grep -oE '<version>12\.[0-9]+\.[0-9]+</version>' \
+            | sed -E 's#</?version>##g' \
+            | sort -V \
+            | tail -n 1); \
+    fi \
+    && test -n "$JETTY_VERSION" \
+    && echo "Installing Eclipse Jetty ${JETTY_VERSION}..." \
+    && wget -nv -O /tmp/jetty.tar.gz \
+        "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${JETTY_VERSION}/jetty-home-${JETTY_VERSION}.tar.gz" \
     && tar xzf /tmp/jetty.tar.gz -C /opt \
+    && rm -f /tmp/jetty.tar.gz \
     && mv /opt/jetty* /opt/jetty \
     && useradd jetty -U -s /bin/false \
     && chown -R jetty:jetty /opt/jetty \
