@@ -24,7 +24,14 @@
     "view_result": "結果を見る",
     "blank_pdf": "問題用紙 PDF（未回答）",
     "attempt_pdf": "回答済み PDF（透かし入り）",
-    "ref_docs_label": "参考ドキュメント："
+    "ref_docs_label": "参考ドキュメント：",
+    "search_ph": "試験名、コード、作成者で検索...",
+    "filter_all": "すべて",
+    "filter_not_taken": "未受験",
+    "filter_taken": "受験済み",
+    "sort_newest": "更新日時が新しい順",
+    "sort_title": "試験名順",
+    "sort_code": "試験コード順"
   },
   "runner": {
     "back": "← 試験一覧に戻る",
@@ -55,7 +62,10 @@
     "col_score": "スコア",
     "col_time": "提出日時",
     "col_export": "出力",
-    "download_pdf": "PDF ダウンロード"
+    "download_pdf": "PDF ダウンロード",
+    "search_label": "キーワード検索",
+    "search_ph": "受験者、試験名、コードで検索...",
+    "empty": "該当する成績記録がありません。"
   },
   "manage": {
     "list_title": "公開中の試験",
@@ -94,7 +104,7 @@
     "field_retake": "再受験を許可する（再提出時に最新スコアを上書き）",
     "field_enabled": "この試験をすぐに有効化する",
     "upload_gift": ".gift / .txt ファイルをアップロード",
-    "preview_gift": "解析してプレビュー",
+    "preview_gift": "構文チェック",
     "gift_ph": "Moodle GIFT 形式の問題をここに貼り付けてください（単一選択 =/~、複数選択 ~%50%、○× {TRUE}/{FALSE}）",
     "preview_header": "{{count}} 問の解析に成功しました：",
     "save_btn": "保存して試験を公開",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "ドキュメント名で検索...",
     "ref_docs_empty": "選択可能なドキュメントがありません",
     "btn_ref_docs": "参考資料",
-    "ref_docs_modal_title": "参考ドキュメント設定：{{title}}"
+    "ref_docs_modal_title": "参考ドキュメント設定：{{title}}",
+    "ref_docs_col_title": "ドキュメント名",
+    "ref_docs_col_created": "作成日時",
+    "ref_docs_selected_count": "{{count}} 件選択中",
+    "page_prev": "前へ",
+    "page_next": "次へ",
+    "page_info": "{{page}} / {{pages}} ページ（全 {{total}} 件）",
+    "btn_create_exam": "＋ 試験を作成",
+    "btn_collapse_create": "フォームを閉じる",
+    "search_ph": "コード、版、試験名、作成者で検索...",
+    "filter_all": "すべての状態",
+    "col_updated": "更新日時"
   },
   "acl": {
     "modal_title": "受験権限：{{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "選択されたユーザーまたはグループが存在しないか、無効になっています。",
     "AttemptNotFound": "受験記録が見つかりません。",
     "default": "操作に失敗しました"
+  },
+  "common": {
+    "page_size": "表示件数"
   }
 }

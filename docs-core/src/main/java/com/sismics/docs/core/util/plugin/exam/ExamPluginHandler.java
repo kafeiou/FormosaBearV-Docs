@@ -1061,6 +1061,19 @@ public class ExamPluginHandler implements PluginHandler {
         }
         String examId = ctx.getQueryParams().getOrDefault("examId", "").trim();
         String query = ctx.getQueryParams().getOrDefault("q", "").trim().toLowerCase(Locale.ROOT);
+        String sort = ctx.getQueryParams().getOrDefault("sort", "create_date").trim().toLowerCase(Locale.ROOT);
+        boolean asc = "true".equalsIgnoreCase(ctx.getQueryParams().getOrDefault("asc", "false").trim());
+        int offset = 0;
+        int limit = 10;
+        try {
+            offset = Math.max(0, Integer.parseInt(ctx.getQueryParams().getOrDefault("offset", "0").trim()));
+        } catch (NumberFormatException ignored) {
+        }
+        try {
+            limit = Math.max(1, Math.min(100, Integer.parseInt(ctx.getQueryParams().getOrDefault("limit", "10").trim())));
+        } catch (NumberFormatException ignored) {
+        }
+
         Set<String> boundIds = Set.of();
         if (!examId.isEmpty()) {
             JsonObject exam = loadExam(examId);
@@ -1074,31 +1087,79 @@ public class ExamPluginHandler implements PluginHandler {
         }
 
         EntityManager em = ThreadLocalContext.get().getEntityManager();
+        Set<String> excludedTagIds = new HashSet<>(new TagDao().getEffectiveHiddenTagIds());
+        List<Tag> adminPluginsTags = em.createQuery(
+                "select t from Tag t where t.name = 'plugins' and t.userId = 'admin' and t.deleteDate is null",
+                Tag.class)
+                .getResultList();
+        for (Tag t : adminPluginsTags) {
+            excludedTagIds.add(t.getId());
+        }
+        Set<String> excludedDocIds = new HashSet<>();
+        if (!excludedTagIds.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            List<String> taggedDocIds = em.createQuery(
+                    "select distinct dt.documentId from DocumentTag dt where dt.tagId in :tagIds and dt.deleteDate is null")
+                    .setParameter("tagIds", excludedTagIds)
+                    .getResultList();
+            excludedDocIds.addAll(taggedDocIds);
+        }
+
         List<Document> allDocs = em.createQuery(
-                "select d from Document d where d.deleteDate is null order by d.updateDate desc",
+                "select d from Document d where d.deleteDate is null",
                 Document.class)
                 .getResultList();
 
         AclDao aclDao = new AclDao();
-        JsonArrayBuilder docsArr = Json.createArrayBuilder();
-        int count = 0;
+        List<Document> filtered = new ArrayList<>();
         for (Document d : allDocs) {
             String title = d.getTitle() == null ? "" : d.getTitle();
+            if (!boundIds.contains(d.getId())) {
+                if (("plugins".equals(title) && "admin".equals(d.getUserId())) || excludedDocIds.contains(d.getId())) {
+                    continue;
+                }
+            }
             if (!query.isEmpty() && !title.toLowerCase(Locale.ROOT).contains(query)) {
                 continue;
             }
             if (!aclDao.checkPermission(d.getId(), PermType.READ, ctx.getTargetIdList())) {
                 continue;
             }
+            filtered.add(d);
+        }
+
+        Comparator<Document> comparator;
+        if ("title".equals(sort)) {
+            comparator = Comparator.comparing(
+                    d -> (d.getTitle() == null ? "" : d.getTitle()).toLowerCase(Locale.ROOT));
+        } else {
+            comparator = Comparator.comparingLong(
+                    d -> d.getCreateDate() == null ? 0L : d.getCreateDate().getTime());
+        }
+        if (!asc) {
+            comparator = comparator.reversed();
+        }
+        filtered.sort(comparator.thenComparing(d -> d.getId() == null ? "" : d.getId()));
+
+        int total = filtered.size();
+        int fromIdx = Math.min(offset, total);
+        int toIdx = Math.min(fromIdx + limit, total);
+
+        JsonArrayBuilder docsArr = Json.createArrayBuilder();
+        for (int i = fromIdx; i < toIdx; i++) {
+            Document d = filtered.get(i);
+            String title = d.getTitle() == null ? "" : d.getTitle();
+            long createDateMs = d.getCreateDate() == null ? 0L : d.getCreateDate().getTime();
             docsArr.add(Json.createObjectBuilder()
                     .add("id", d.getId())
                     .add("title", title)
+                    .add("create_date", createDateMs)
                     .add("allowed", boundIds.contains(d.getId())));
-            if (++count >= 100) {
-                break;
-            }
         }
         return PluginResult.ok(Json.createObjectBuilder()
+                .add("total", total)
+                .add("offset", offset)
+                .add("limit", limit)
                 .add("documents", docsArr)
                 .build());
     }

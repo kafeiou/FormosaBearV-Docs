@@ -24,7 +24,14 @@
     "view_result": "Zobacz wynik",
     "blank_pdf": "Pusty arkusz PDF",
     "attempt_pdf": "Wypełniony PDF (ze znakiem wodnym)",
-    "ref_docs_label": "Dokumenty referencyjne:"
+    "ref_docs_label": "Dokumenty referencyjne:",
+    "search_ph": "Szukaj nazwy, kodu lub autora...",
+    "filter_all": "Wszystkie statusy",
+    "filter_not_taken": "Nierozpoczęty",
+    "filter_taken": "Ukończony",
+    "sort_newest": "Najnowsze najpierw",
+    "sort_title": "Nazwa A-Z",
+    "sort_code": "Kod A-Z"
   },
   "runner": {
     "back": "← Powrót do listy egzaminów",
@@ -55,7 +62,10 @@
     "col_score": "Wynik",
     "col_time": "Czas wysłania",
     "col_export": "Eksport",
-    "download_pdf": "Pobierz PDF"
+    "download_pdf": "Pobierz PDF",
+    "search_label": "Szukaj",
+    "search_ph": "Szukaj zdającego, egzaminu lub kodu...",
+    "empty": "Brak pasujących wyników."
   },
   "manage": {
     "list_title": "Opublikowane egzaminy",
@@ -94,7 +104,7 @@
     "field_retake": "Zezwalaj na powtarzanie (nadpisuje ostatni wynik po ponownym wysłaniu)",
     "field_enabled": "Włącz ten egzamin natychmiast",
     "upload_gift": "Prześlij plik .gift / .txt",
-    "preview_gift": "Przetwórz i podglądaj",
+    "preview_gift": "Sprawdź składnię",
     "gift_ph": "Wklej tutaj pytania Moodle GIFT (Jednokrotny wybór =/~, Wielokrotny wybór ~%50%, Prawda/Fałsz {TRUE}/{FALSE})",
     "preview_header": "Pomyślnie przetworzono {{count}} pytań:",
     "save_btn": "Zapisz i opublikuj egzamin",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "Szukaj tytułu dokumentu...",
     "ref_docs_empty": "Brak dostępnych dokumentów",
     "btn_ref_docs": "Dok. ref.",
-    "ref_docs_modal_title": "Dokumenty referencyjne: {{title}}"
+    "ref_docs_modal_title": "Dokumenty referencyjne: {{title}}",
+    "ref_docs_col_title": "Nazwa dokumentu",
+    "ref_docs_col_created": "Data utworzenia",
+    "ref_docs_selected_count": "Wybrano: {{count}}",
+    "page_prev": "Poprzednia",
+    "page_next": "Następna",
+    "page_info": "Strona {{page}} / {{pages}} (Łącznie {{total}})",
+    "btn_create_exam": "+ Utwórz egzamin",
+    "btn_collapse_create": "Zwiń formularz",
+    "search_ph": "Szukaj kodu, wersji, nazwy lub autora...",
+    "filter_all": "Wszystkie statusy",
+    "col_updated": "Zaktualizowano"
   },
   "acl": {
     "modal_title": "Uprawnienia zdających: {{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "Wybrany użytkownik lub grupa nie istnieje bądź jest wyłączona.",
     "AttemptNotFound": "Nie znaleziono rekordu podejścia do egzaminu.",
     "default": "Operacja nie powiodła się"
+  },
+  "common": {
+    "page_size": "Na stronę"
   }
 }

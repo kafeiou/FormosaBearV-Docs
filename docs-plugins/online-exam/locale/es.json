@@ -24,7 +24,14 @@
     "view_result": "Ver resultado",
     "blank_pdf": "PDF del examen en blanco",
     "attempt_pdf": "PDF completado (con marca de agua)",
-    "ref_docs_label": "Documentos de referencia:"
+    "ref_docs_label": "Documentos de referencia:",
+    "search_ph": "Buscar título, código o autor...",
+    "filter_all": "Todos los estados",
+    "filter_not_taken": "Pendiente",
+    "filter_taken": "Completado",
+    "sort_newest": "Más recientes primero",
+    "sort_title": "Título A-Z",
+    "sort_code": "Código A-Z"
   },
   "runner": {
     "back": "← Volver a la lista de exámenes",
@@ -55,7 +62,10 @@
     "col_score": "Calificación",
     "col_time": "Fecha de envío",
     "col_export": "Exportar",
-    "download_pdf": "Descargar PDF"
+    "download_pdf": "Descargar PDF",
+    "search_label": "Buscar",
+    "search_ph": "Buscar examinado, examen o código...",
+    "empty": "No hay registros coincidentes."
   },
   "manage": {
     "list_title": "Exámenes publicados",
@@ -94,7 +104,7 @@
     "field_retake": "Permitir repetir el examen (sobrescribe la última calificación al reenviar)",
     "field_enabled": "Habilitar este examen inmediatamente",
     "upload_gift": "Subir archivo .gift / .txt",
-    "preview_gift": "Analizar y previsualizar",
+    "preview_gift": "Comprobar sintaxis",
     "gift_ph": "Pega aquí las preguntas en formato GIFT de Moodle (Opción única =/~, Opción múltiple ~%50%, Verdadero/Falso {TRUE}/{FALSE})",
     "preview_header": "Se analizaron correctamente {{count}} preguntas:",
     "save_btn": "Guardar y publicar examen",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "Buscar título del documento...",
     "ref_docs_empty": "No se encontraron documentos legibles",
     "btn_ref_docs": "Docs ref.",
-    "ref_docs_modal_title": "Documentos de referencia: {{title}}"
+    "ref_docs_modal_title": "Documentos de referencia: {{title}}",
+    "ref_docs_col_title": "Nombre del documento",
+    "ref_docs_col_created": "Fecha de creación",
+    "ref_docs_selected_count": "{{count}} seleccionado(s)",
+    "page_prev": "Anterior",
+    "page_next": "Siguiente",
+    "page_info": "Página {{page}} / {{pages}} (Total {{total}})",
+    "btn_create_exam": "+ Crear examen",
+    "btn_collapse_create": "Ocultar formulario",
+    "search_ph": "Buscar código, versión, título o autor...",
+    "filter_all": "Todos los estados",
+    "col_updated": "Actualizado"
   },
   "acl": {
     "modal_title": "Permisos de examinandos: {{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "El usuario o grupo seleccionado no existe o está deshabilitado.",
     "AttemptNotFound": "No se encontró ningún registro de intento de examen.",
     "default": "Error en la operación"
+  },
+  "common": {
+    "page_size": "Por página"
   }
 }

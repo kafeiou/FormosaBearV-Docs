@@ -24,7 +24,14 @@
     "view_result": "Voir le résultat",
     "blank_pdf": "PDF de l'examen vierge",
     "attempt_pdf": "PDF complété (avec filigrane)",
-    "ref_docs_label": "Documents de référence :"
+    "ref_docs_label": "Documents de référence :",
+    "search_ph": "Rechercher titre, code ou auteur...",
+    "filter_all": "Tous les statuts",
+    "filter_not_taken": "Non passé",
+    "filter_taken": "Terminé",
+    "sort_newest": "Plus récents d'abord",
+    "sort_title": "Titre A-Z",
+    "sort_code": "Code A-Z"
   },
   "runner": {
     "back": "← Retour à la liste des examens",
@@ -55,7 +62,10 @@
     "col_score": "Note",
     "col_time": "Date de soumission",
     "col_export": "Exporter",
-    "download_pdf": "Télécharger le PDF"
+    "download_pdf": "Télécharger le PDF",
+    "search_label": "Recherche",
+    "search_ph": "Rechercher candidat, examen ou code...",
+    "empty": "Aucun résultat correspondant."
   },
   "manage": {
     "list_title": "Examens publiés",
@@ -94,7 +104,7 @@
     "field_retake": "Autoriser les nouvelles tentatives (remplace la dernière note en cas de nouvelle soumission)",
     "field_enabled": "Activer cet examen immédiatement",
     "upload_gift": "Importer un fichier .gift / .txt",
-    "preview_gift": "Analyser et prévisualiser",
+    "preview_gift": "Vérifier la syntaxe",
     "gift_ph": "Collez vos questions Moodle GIFT ici (Choix unique =/~, Choix multiple ~%50%, Vrai/Faux {TRUE}/{FALSE})",
     "preview_header": "{{count}} questions analysées avec succès :",
     "save_btn": "Enregistrer et publier l'examen",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "Rechercher un titre de document...",
     "ref_docs_empty": "Aucun document accessible trouvé",
     "btn_ref_docs": "Docs réf.",
-    "ref_docs_modal_title": "Documents de référence : {{title}}"
+    "ref_docs_modal_title": "Documents de référence : {{title}}",
+    "ref_docs_col_title": "Nom du document",
+    "ref_docs_col_created": "Date de création",
+    "ref_docs_selected_count": "{{count}} sélectionné(s)",
+    "page_prev": "Précédent",
+    "page_next": "Suivant",
+    "page_info": "Page {{page}} / {{pages}} (Total {{total}})",
+    "btn_create_exam": "+ Créer un examen",
+    "btn_collapse_create": "Masquer le formulaire",
+    "search_ph": "Rechercher code, version, titre ou auteur...",
+    "filter_all": "Tous les statuts",
+    "col_updated": "Mis à jour"
   },
   "acl": {
     "modal_title": "Droits des candidats : {{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "L'utilisateur ou le groupe sélectionné n'existe pas ou est désactivé.",
     "AttemptNotFound": "Aucune tentative d'examen trouvée.",
     "default": "Échec de l'opération"
+  },
+  "common": {
+    "page_size": "Par page"
   }
 }

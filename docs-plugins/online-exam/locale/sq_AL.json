@@ -24,7 +24,14 @@
     "view_result": "Shiko rezultatin",
     "blank_pdf": "PDF bosh i provimit",
     "attempt_pdf": "PDF i plotësuar (me watermark)",
-    "ref_docs_label": "Dokumentet referuese:"
+    "ref_docs_label": "Dokumentet referuese:",
+    "search_ph": "Kërko titullin, kodin ose autorin...",
+    "filter_all": "Të gjitha statuset",
+    "filter_not_taken": "Pa plotësuar",
+    "filter_taken": "Përfunduar",
+    "sort_newest": "Më të rejat së pari",
+    "sort_title": "Titulli A-Z",
+    "sort_code": "Kodi A-Z"
   },
   "runner": {
     "back": "← Kthehu te lista e provimeve",
@@ -55,7 +62,10 @@
     "col_score": "Pikët",
     "col_time": "Koha e dorëzimit",
     "col_export": "Eksporti",
-    "download_pdf": "Shkarko PDF"
+    "download_pdf": "Shkarko PDF",
+    "search_label": "Kërko",
+    "search_ph": "Kërko kandidatin, provimin ose kodin...",
+    "empty": "Nuk ka rezultate përputhëse."
   },
   "manage": {
     "list_title": "Provimet e publikuara",
@@ -94,7 +104,7 @@
     "field_retake": "Lejo riprovimin (mbishkruan rezultatin e fundit në ridorëzim)",
     "field_enabled": "Aktivizo këtë provim menjëherë",
     "upload_gift": "Ngarko skedar .gift / .txt",
-    "preview_gift": "Analizo dhe Parashiko",
+    "preview_gift": "Kontrollo sintaksën",
     "gift_ph": "Ngjitni pyetjet Moodle GIFT këtu (Zgjedhje e vetme =/~, Zgjedhje e shumëfishtë ~%50%, E vërtetë/E gabuar {TRUE}/{FALSE})",
     "preview_header": "U analizuan me sukses {{count}} pyetje:",
     "save_btn": "Ruaj dhe Publiko provimin",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "Kërko titullin e dokumentit...",
     "ref_docs_empty": "Nuk u gjetën dokumente të lexueshme",
     "btn_ref_docs": "Dok. ref.",
-    "ref_docs_modal_title": "Dokumentet referuese: {{title}}"
+    "ref_docs_modal_title": "Dokumentet referuese: {{title}}",
+    "ref_docs_col_title": "Emri i dokumentit",
+    "ref_docs_col_created": "Data e krijimit",
+    "ref_docs_selected_count": "Zgjedhur: {{count}}",
+    "page_prev": "E mëparshme",
+    "page_next": "Tjetra",
+    "page_info": "Faqja {{page}} / {{pages}} (Gjithsej {{total}})",
+    "btn_create_exam": "+ Krijo provim",
+    "btn_collapse_create": "Mbyll formularin",
+    "search_ph": "Kërko kodin, versionin, titullin ose autorin...",
+    "filter_all": "Të gjitha statuset",
+    "col_updated": "Përditësuar"
   },
   "acl": {
     "modal_title": "Lejet e kandidatëve: {{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "Përdoruesi ose grupi i zgjedhur nuk ekziston ose është i çaktivizuar.",
     "AttemptNotFound": "Nuk u gjet asnjë regjistër tentative për provimin.",
     "default": "Veprimi dështoi"
+  },
+  "common": {
+    "page_size": "Për faqe"
   }
 }

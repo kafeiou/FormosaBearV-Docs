@@ -24,7 +24,14 @@
     "view_result": "Ver resultado",
     "blank_pdf": "PDF da prova em branco",
     "attempt_pdf": "PDF preenchido (com marca d'água)",
-    "ref_docs_label": "Documentos de referência:"
+    "ref_docs_label": "Documentos de referência:",
+    "search_ph": "Pesquisar título, código ou autor...",
+    "filter_all": "Todos os status",
+    "filter_not_taken": "Não realizado",
+    "filter_taken": "Concluído",
+    "sort_newest": "Mais recentes primeiro",
+    "sort_title": "Título A-Z",
+    "sort_code": "Código A-Z"
   },
   "runner": {
     "back": "← Voltar para a lista de provas",
@@ -55,7 +62,10 @@
     "col_score": "Nota",
     "col_time": "Data de envio",
     "col_export": "Exportar",
-    "download_pdf": "Baixar PDF"
+    "download_pdf": "Baixar PDF",
+    "search_label": "Pesquisar",
+    "search_ph": "Pesquisar participante, prova ou código...",
+    "empty": "Nenhum registro correspondente."
   },
   "manage": {
     "list_title": "Provas publicadas",
@@ -94,7 +104,7 @@
     "field_retake": "Permitir novas tentativas (sobrescreve a última nota ao reenviar)",
     "field_enabled": "Ativar esta prova imediatamente",
     "upload_gift": "Enviar arquivo .gift / .txt",
-    "preview_gift": "Analisar e visualizar",
+    "preview_gift": "Verificar sintaxe",
     "gift_ph": "Cole aqui as questões no formato Moodle GIFT (Escolha única =/~, Múltipla escolha ~%50%, Verdadeiro/Falso {TRUE}/{FALSE})",
     "preview_header": "{{count}} questões analisadas com sucesso:",
     "save_btn": "Salvar e publicar prova",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "Pesquisar título do documento...",
     "ref_docs_empty": "Nenhum documento acessível encontrado",
     "btn_ref_docs": "Docs ref.",
-    "ref_docs_modal_title": "Documentos de referência: {{title}}"
+    "ref_docs_modal_title": "Documentos de referência: {{title}}",
+    "ref_docs_col_title": "Nome do documento",
+    "ref_docs_col_created": "Data de criação",
+    "ref_docs_selected_count": "{{count}} selecionado(s)",
+    "page_prev": "Anterior",
+    "page_next": "Próxima",
+    "page_info": "Página {{page}} / {{pages}} (Total {{total}})",
+    "btn_create_exam": "+ Criar prova",
+    "btn_collapse_create": "Ocultar formulário",
+    "search_ph": "Pesquisar código, versão, título ou autor...",
+    "filter_all": "Todos os status",
+    "col_updated": "Atualizado"
   },
   "acl": {
     "modal_title": "Permissões de candidatos: {{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "O usuário ou grupo selecionado não existe ou está desativado.",
     "AttemptNotFound": "Nenhum registro de tentativa de prova encontrado.",
     "default": "Falha na operação"
+  },
+  "common": {
+    "page_size": "Por página"
   }
 }

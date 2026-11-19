@@ -24,7 +24,14 @@
     "view_result": "查看作答结果",
     "blank_pdf": "空白试卷 PDF",
     "attempt_pdf": "答卷 PDF（含水印）",
-    "ref_docs_label": "参考文件："
+    "ref_docs_label": "参考文件：",
+    "search_ph": "搜索试卷名称、代号或出题来源...",
+    "filter_all": "全部状态",
+    "filter_not_taken": "尚未作答",
+    "filter_taken": "已作答",
+    "sort_newest": "最新更新优先",
+    "sort_title": "试卷名称 A→Z",
+    "sort_code": "试卷代号 A→Z"
   },
   "runner": {
     "back": "← 返回试卷列表",
@@ -55,7 +62,10 @@
     "col_score": "得分",
     "col_time": "交卷时间",
     "col_export": "导出",
-    "download_pdf": "下载 PDF"
+    "download_pdf": "下载 PDF",
+    "search_label": "关键字搜索",
+    "search_ph": "搜索应试人员、试卷或代号...",
+    "empty": "暂无符合条件的成绩记录。"
   },
   "manage": {
     "list_title": "已发布试卷",
@@ -94,7 +104,7 @@
     "field_retake": "允许重考（再次提交将覆盖最新成绩）",
     "field_enabled": "立即启用此试卷",
     "upload_gift": "上传 .gift / .txt 文件",
-    "preview_gift": "解析并预览",
+    "preview_gift": "语法检查",
     "gift_ph": "在此粘贴 Moodle GIFT 格式题目（支持单选 =/~、多选 ~%50%、判断 {TRUE}/{FALSE}）",
     "preview_header": "成功解析 {{count}} 道题目：",
     "save_btn": "保存并发布试卷",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "搜索文件标题...",
     "ref_docs_empty": "无可选择的文件",
     "btn_ref_docs": "参考文件",
-    "ref_docs_modal_title": "参考文件绑定：{{title}}"
+    "ref_docs_modal_title": "参考文件绑定：{{title}}",
+    "ref_docs_col_title": "文档名称",
+    "ref_docs_col_created": "创建日期",
+    "ref_docs_selected_count": "已选 {{count}} 份",
+    "page_prev": "上一页",
+    "page_next": "下一页",
+    "page_info": "第 {{page}} / {{pages}} 页（共 {{total}} 份）",
+    "btn_create_exam": "＋ 创建试卷",
+    "btn_collapse_create": "收起创建表单",
+    "search_ph": "搜索试卷代号、版本号、名称或出题来源...",
+    "filter_all": "全部状态",
+    "col_updated": "更新时间"
   },
   "acl": {
     "modal_title": "考生权限：{{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "所选用户或分组不存在或已停用。",
     "AttemptNotFound": "未找到作答记录。",
     "default": "操作失败"
+  },
+  "common": {
+    "page_size": "每页显示"
   }
 }

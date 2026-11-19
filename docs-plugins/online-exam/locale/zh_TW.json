@@ -24,7 +24,14 @@
     "view_result": "檢視作答結果",
     "blank_pdf": "空白考卷 PDF",
     "attempt_pdf": "作答 PDF（浮水印）",
-    "ref_docs_label": "參考文件："
+    "ref_docs_label": "參考文件：",
+    "search_ph": "搜尋考卷名稱、代號或出題來源...",
+    "filter_all": "全部狀態",
+    "filter_not_taken": "尚未作答",
+    "filter_taken": "已作答",
+    "sort_newest": "最新更新優先",
+    "sort_title": "考卷名稱 A→Z",
+    "sort_code": "考卷代號 A→Z"
   },
   "runner": {
     "back": "← 返回考卷列表",
@@ -55,7 +62,10 @@
     "col_score": "分數",
     "col_time": "應試時間",
     "col_export": "匯出",
-    "download_pdf": "下載 PDF"
+    "download_pdf": "下載 PDF",
+    "search_label": "關鍵字搜尋",
+    "search_ph": "搜尋應試人員、考卷或代號...",
+    "empty": "尚無符合條件的成績紀錄。"
   },
   "manage": {
     "list_title": "考卷管理列表",
@@ -94,7 +104,7 @@
     "field_retake": "允許重考（勾選後可重複送出並覆蓋最新成績）",
     "field_enabled": "立即啟用此考卷",
     "upload_gift": "上傳 .gift / .txt 檔案",
-    "preview_gift": "解析預覽",
+    "preview_gift": "語法檢查",
     "gift_ph": "在此貼上 Moodle GIFT 格式題目（支援單選 =/~、複選 ~%50%、是非 {TRUE}/{FALSE}）",
     "preview_header": "成功解析 {{count}} 題：",
     "save_btn": "儲存並發布考卷",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "搜尋文件標題...",
     "ref_docs_empty": "無可選擇的文件",
     "btn_ref_docs": "參考文件",
-    "ref_docs_modal_title": "參考文件綁定：{{title}}"
+    "ref_docs_modal_title": "參考文件綁定：{{title}}",
+    "ref_docs_col_title": "文件名稱",
+    "ref_docs_col_created": "建立日期",
+    "ref_docs_selected_count": "已選 {{count}} 份",
+    "page_prev": "上一頁",
+    "page_next": "下一頁",
+    "page_info": "第 {{page}} / {{pages}} 頁（共 {{total}} 份）",
+    "btn_create_exam": "＋ 建立考卷",
+    "btn_collapse_create": "收合建立表單",
+    "search_ph": "搜尋考卷代號、版號、名稱或出題來源...",
+    "filter_all": "全部狀態",
+    "col_updated": "更新時間"
   },
   "acl": {
     "modal_title": "應試權限：{{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "目標帳號或群組不存在或已停用",
     "AttemptNotFound": "找不到作答紀錄",
     "default": "操作失敗"
+  },
+  "common": {
+    "page_size": "每頁顯示"
   }
 }

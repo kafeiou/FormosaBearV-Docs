@@ -370,7 +370,55 @@ public class TestOnlineExamPlugin extends BaseJerseyTest {
                 .request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
                 .get(JsonObject.class);
+        Assert.assertEquals(2, t1RefList.getInt("total"));
         Assert.assertEquals(2, t1RefList.getJsonArray("documents").size());
+        Assert.assertTrue(t1RefList.getJsonArray("documents").getJsonObject(0).getJsonNumber("create_date").longValue() > 0);
+
+        // Verify pagination & title sorting on list_reference_documents
+        JsonObject t1RefPage1 = target().path("/plugin/online-exam/action/list_reference_documents")
+                .queryParam("examId", exam1Id)
+                .queryParam("sort", "title")
+                .queryParam("asc", "true")
+                .queryParam("offset", 0)
+                .queryParam("limit", 1)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
+                .get(JsonObject.class);
+        Assert.assertEquals(2, t1RefPage1.getInt("total"));
+        Assert.assertEquals(1, t1RefPage1.getJsonArray("documents").size());
+        Assert.assertEquals("SecGuide Shared", t1RefPage1.getJsonArray("documents").getJsonObject(0).getString("title"));
+
+        JsonObject t1RefPage2 = target().path("/plugin/online-exam/action/list_reference_documents")
+                .queryParam("examId", exam1Id)
+                .queryParam("sort", "title")
+                .queryParam("asc", "true")
+                .queryParam("offset", 1)
+                .queryParam("limit", 1)
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
+                .get(JsonObject.class);
+        Assert.assertEquals(2, t1RefPage2.getInt("total"));
+        Assert.assertEquals(1, t1RefPage2.getJsonArray("documents").size());
+        Assert.assertEquals("SecGuide TeacherOnly", t1RefPage2.getJsonArray("documents").getJsonObject(0).getString("title"));
+
+        JsonObject t1RefSearch = target().path("/plugin/online-exam/action/list_reference_documents")
+                .queryParam("examId", exam1Id)
+                .queryParam("q", "Shared")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, t1RefSearch.getInt("total"));
+        Assert.assertEquals("SecGuide Shared", t1RefSearch.getJsonArray("documents").getJsonObject(0).getString("title"));
+
+        // Verify admin's reference document candidate list excludes the system "plugins" document
+        com.sismics.docs.core.util.plugin.PluginSeedService.seedBundledPlugins();
+        JsonObject adminRefList = target().path("/plugin/online-exam/action/list_reference_documents")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        for (int i = 0; i < adminRefList.getJsonArray("documents").size(); i++) {
+            Assert.assertNotEquals("plugins", adminRefList.getJsonArray("documents").getJsonObject(i).getString("title"));
+        }
 
         JsonObject aliceTake = target().path("/plugin/online-exam/action/take_exam")
                 .queryParam("examId", exam1Id)

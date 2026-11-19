@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Online Exam</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1.3.1">
 </head>
 <body>
   <div class="exam-shell">
@@ -26,7 +26,36 @@
 
     <!-- Tab 1: Exams List -->
     <section id="tab-exams" class="tab-panel active">
+      <div class="list-toolbar">
+        <input type="text" id="myExamsSearch" class="toolbar-search" data-i18n-placeholder="exams.search_ph" placeholder="搜尋考卷名稱、代號或出題來源...">
+        <select id="myExamsStatusFilter" class="toolbar-select">
+          <option value="all" data-i18n="exams.filter_all">全部狀態</option>
+          <option value="not_taken" data-i18n="exams.filter_not_taken">尚未作答</option>
+          <option value="taken" data-i18n="exams.filter_taken">已作答</option>
+        </select>
+        <select id="myExamsSort" class="toolbar-select">
+          <option value="updated_desc" data-i18n="exams.sort_newest">最新更新優先</option>
+          <option value="title_asc" data-i18n="exams.sort_title">考卷名稱 A→Z</option>
+          <option value="code_asc" data-i18n="exams.sort_code">考卷代號 A→Z</option>
+        </select>
+      </div>
       <div id="examGrid" class="card-grid"></div>
+      <div class="list-pagination" id="myExamsPagination">
+        <div class="page-size-wrap">
+          <span class="subtitle" data-i18n="common.page_size">每頁顯示</span>
+          <select id="myExamsPageSize" class="page-size-select">
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div class="page-nav-wrap">
+          <button type="button" class="btn btn-secondary btn-sm" id="myExamsPrev" data-i18n="manage.page_prev">上一頁</button>
+          <span class="subtitle" id="myExamsPageInfo"></span>
+          <button type="button" class="btn btn-secondary btn-sm" id="myExamsNext" data-i18n="manage.page_next">下一頁</button>
+        </div>
+      </div>
     </section>
 
     <!-- Tab 1b: Exam Runner View -->
@@ -64,6 +93,9 @@
           <label><span data-i18n="scores.date_to">結束日期</span>
             <input type="date" id="summaryToDate">
           </label>
+          <label><span data-i18n="scores.search_label">關鍵字搜尋</span>
+            <input type="text" id="scoresSearch" data-i18n-placeholder="scores.search_ph" placeholder="搜尋應試人員、考卷或代號...">
+          </label>
           <div>
             <button type="button" class="btn btn-primary" id="exportSummaryPdfBtn" data-i18n="scores.export_summary_pdf">下載成績彙總表 PDF</button>
           </div>
@@ -72,18 +104,48 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th data-i18n="scores.col_code">考卷代號</th>
-                <th data-i18n="scores.col_version">版號</th>
-                <th data-i18n="scores.col_title">考卷名稱</th>
-                <th data-i18n="scores.col_owner">出題來源</th>
-                <th data-i18n="scores.col_examinee">應試人員</th>
-                <th data-i18n="scores.col_score">分數</th>
-                <th data-i18n="scores.col_time">應試時間</th>
+                <th class="sortable-th" data-table="scores" data-sort="exam_code">
+                  <span data-i18n="scores.col_code">考卷代號</span><span class="sort-indicator" data-sort-ind="scores:exam_code"></span>
+                </th>
+                <th class="sortable-th" data-table="scores" data-sort="exam_version">
+                  <span data-i18n="scores.col_version">版號</span><span class="sort-indicator" data-sort-ind="scores:exam_version"></span>
+                </th>
+                <th class="sortable-th" data-table="scores" data-sort="exam_title">
+                  <span data-i18n="scores.col_title">考卷名稱</span><span class="sort-indicator" data-sort-ind="scores:exam_title"></span>
+                </th>
+                <th class="sortable-th" data-table="scores" data-sort="owner_label">
+                  <span data-i18n="scores.col_owner">出題來源</span><span class="sort-indicator" data-sort-ind="scores:owner_label"></span>
+                </th>
+                <th class="sortable-th" data-table="scores" data-sort="examinee">
+                  <span data-i18n="scores.col_examinee">應試人員</span><span class="sort-indicator" data-sort-ind="scores:examinee"></span>
+                </th>
+                <th class="sortable-th" data-table="scores" data-sort="score">
+                  <span data-i18n="scores.col_score">分數</span><span class="sort-indicator" data-sort-ind="scores:score"></span>
+                </th>
+                <th class="sortable-th" data-table="scores" data-sort="submitted_at">
+                  <span data-i18n="scores.col_time">應試時間</span><span class="sort-indicator" data-sort-ind="scores:submitted_at">▼</span>
+                </th>
                 <th data-i18n="scores.col_export">匯出</th>
               </tr>
             </thead>
             <tbody id="scoresTableBody"></tbody>
           </table>
+        </div>
+        <div class="list-pagination" id="scoresPagination">
+          <div class="page-size-wrap">
+            <span class="subtitle" data-i18n="common.page_size">每頁顯示</span>
+            <select id="scoresPageSize" class="page-size-select">
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <div class="page-nav-wrap">
+            <button type="button" class="btn btn-secondary btn-sm" id="scoresPrev" data-i18n="manage.page_prev">上一頁</button>
+            <span class="subtitle" id="scoresPageInfo"></span>
+            <button type="button" class="btn btn-secondary btn-sm" id="scoresNext" data-i18n="manage.page_next">下一頁</button>
+          </div>
         </div>
       </div>
     </section>
@@ -93,30 +155,70 @@
       <div class="panel-card" style="margin-bottom: 18px;">
         <div class="panel-head">
           <h2 data-i18n="manage.list_title">考卷管理列表</h2>
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary btn-sm" id="toggleCreateExamBtn" data-i18n="manage.btn_create_exam">＋ 建立考卷</button>
             <button type="button" class="btn btn-secondary btn-sm top-admin-only hidden" id="openTeachersModalBtn" data-i18n="manage.btn_teachers">出題老師授權</button>
             <button class="btn btn-secondary btn-sm" id="refreshManageExamsBtn" data-i18n="scores.refresh">重新整理</button>
           </div>
+        </div>
+        <div class="list-toolbar" style="margin-bottom: 12px;">
+          <input type="text" id="manageExamsSearch" class="toolbar-search" data-i18n-placeholder="manage.search_ph" placeholder="搜尋考卷代號、版號、名稱或出題來源...">
+          <select id="manageExamsStatusFilter" class="toolbar-select">
+            <option value="all" data-i18n="manage.filter_all">全部狀態</option>
+            <option value="enabled" data-i18n="manage.status_enabled">啟用中</option>
+            <option value="disabled" data-i18n="manage.status_disabled">已停用</option>
+          </select>
         </div>
         <div class="table-wrap">
           <table class="data-table">
             <thead>
               <tr>
-                <th data-i18n="manage.col_code_ver">代號 / 版號</th>
-                <th data-i18n="manage.col_title">考卷名稱</th>
-                <th data-i18n="manage.col_owner">出題來源</th>
-                <th data-i18n="manage.col_q_score">題數 / 總分</th>
-                <th data-i18n="manage.col_status">狀態</th>
-                <th data-i18n="manage.col_attempts">已應試人數</th>
+                <th class="sortable-th" data-table="manage" data-sort="exam_code">
+                  <span data-i18n="manage.col_code_ver">代號 / 版號</span><span class="sort-indicator" data-sort-ind="manage:exam_code"></span>
+                </th>
+                <th class="sortable-th" data-table="manage" data-sort="title">
+                  <span data-i18n="manage.col_title">考卷名稱</span><span class="sort-indicator" data-sort-ind="manage:title"></span>
+                </th>
+                <th class="sortable-th" data-table="manage" data-sort="owner_label">
+                  <span data-i18n="manage.col_owner">出題來源</span><span class="sort-indicator" data-sort-ind="manage:owner_label"></span>
+                </th>
+                <th class="sortable-th" data-table="manage" data-sort="question_count">
+                  <span data-i18n="manage.col_q_score">題數 / 總分</span><span class="sort-indicator" data-sort-ind="manage:question_count"></span>
+                </th>
+                <th class="sortable-th" data-table="manage" data-sort="enabled">
+                  <span data-i18n="manage.col_status">狀態</span><span class="sort-indicator" data-sort-ind="manage:enabled"></span>
+                </th>
+                <th class="sortable-th" data-table="manage" data-sort="attempt_count">
+                  <span data-i18n="manage.col_attempts">已應試人數</span><span class="sort-indicator" data-sort-ind="manage:attempt_count"></span>
+                </th>
+                <th class="sortable-th" data-table="manage" data-sort="updated_at">
+                  <span data-i18n="manage.col_updated">更新時間</span><span class="sort-indicator" data-sort-ind="manage:updated_at">▼</span>
+                </th>
                 <th data-i18n="manage.col_actions">管理操作</th>
               </tr>
             </thead>
             <tbody id="manageExamsTableBody"></tbody>
           </table>
         </div>
+        <div class="list-pagination" id="manageExamsPagination">
+          <div class="page-size-wrap">
+            <span class="subtitle" data-i18n="common.page_size">每頁顯示</span>
+            <select id="manageExamsPageSize" class="page-size-select">
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <div class="page-nav-wrap">
+            <button type="button" class="btn btn-secondary btn-sm" id="manageExamsPrev" data-i18n="manage.page_prev">上一頁</button>
+            <span class="subtitle" id="manageExamsPageInfo"></span>
+            <button type="button" class="btn btn-secondary btn-sm" id="manageExamsNext" data-i18n="manage.page_next">下一頁</button>
+          </div>
+        </div>
       </div>
 
-      <div class="panel-card">
+      <div id="createExamPanel" class="panel-card hidden">
         <h2 data-i18n="manage.create_title">建立 / 上傳 GIFT 考卷</h2>
         <div class="form-grid">
           <label><span data-i18n="manage.field_title">考卷名稱</span>
@@ -146,10 +248,35 @@
 
         <div class="ref-docs-picker">
           <div class="ref-docs-picker-head">
-            <span class="field-label" data-i18n="manage.field_ref_docs">綁定參考文件（選填，可多選；考生須具備該文件讀取權限才可見）</span>
+            <div>
+              <span class="field-label" data-i18n="manage.field_ref_docs">綁定參考文件（選填，可多選；考生須具備該文件讀取權限才可見）</span>
+              <span id="createRefDocsSelectedBadge" class="badge primary" style="margin-left: 6px;"></span>
+            </div>
             <input type="text" id="createRefDocsSearch" class="ref-docs-search" data-i18n-placeholder="manage.ref_docs_search_ph" placeholder="搜尋文件標題...">
           </div>
-          <div id="createRefDocsList" class="acl-list ref-docs-checklist"></div>
+          <div class="ref-docs-table-wrap">
+            <table class="data-table ref-docs-table">
+              <thead>
+                <tr>
+                  <th style="width: 36px;"></th>
+                  <th class="sortable-th" data-picker="create" data-sort="title">
+                    <span data-i18n="manage.ref_docs_col_title">文件名稱</span>
+                    <span class="sort-indicator" id="createSortTitle"></span>
+                  </th>
+                  <th class="sortable-th" data-picker="create" data-sort="create_date" style="width: 170px;">
+                    <span data-i18n="manage.ref_docs_col_created">建立日期</span>
+                    <span class="sort-indicator" id="createSortDate">▼</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="createRefDocsList"></tbody>
+            </table>
+          </div>
+          <div class="ref-docs-pagination">
+            <button type="button" class="btn btn-secondary btn-sm" id="createRefDocsPrev" data-i18n="manage.page_prev">上一頁</button>
+            <span class="subtitle" id="createRefDocsPageInfo"></span>
+            <button type="button" class="btn btn-secondary btn-sm" id="createRefDocsNext" data-i18n="manage.page_next">下一頁</button>
+          </div>
         </div>
 
         <div class="gift-toolbar">
@@ -157,7 +284,7 @@
             <span data-i18n="manage.upload_gift">上傳 .gift / .txt 檔案</span>
             <input type="file" id="giftFileInput" accept=".gift,.txt">
           </label>
-          <button type="button" class="btn btn-secondary btn-sm" id="previewGiftBtn" data-i18n="manage.preview_gift">解析預覽</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="previewGiftBtn" data-i18n="manage.preview_gift">語法檢查</button>
         </div>
         <textarea id="giftTextarea" rows="10" data-i18n-placeholder="manage.gift_ph" placeholder="在此貼上 Moodle GIFT 格式題目"></textarea>
 
@@ -202,10 +329,32 @@
       <div style="margin: 10px 0;">
         <input type="text" id="modalRefDocsSearch" class="ref-docs-search" style="width:100%;" data-i18n-placeholder="manage.ref_docs_search_ph" placeholder="搜尋文件標題...">
       </div>
-      <div id="modalRefDocsList" class="acl-list"></div>
+      <div class="ref-docs-table-wrap">
+        <table class="data-table ref-docs-table">
+          <thead>
+            <tr>
+              <th style="width: 36px;"></th>
+              <th class="sortable-th" data-picker="modal" data-sort="title">
+                <span data-i18n="manage.ref_docs_col_title">文件名稱</span>
+                <span class="sort-indicator" id="modalSortTitle"></span>
+              </th>
+              <th class="sortable-th" data-picker="modal" data-sort="create_date" style="width: 170px;">
+                <span data-i18n="manage.ref_docs_col_created">建立日期</span>
+                <span class="sort-indicator" id="modalSortDate">▼</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="modalRefDocsList"></tbody>
+        </table>
+      </div>
+      <div class="ref-docs-pagination">
+        <button type="button" class="btn btn-secondary btn-sm" id="modalRefDocsPrev" data-i18n="manage.page_prev">上一頁</button>
+        <span class="subtitle" id="modalRefDocsPageInfo"></span>
+        <button type="button" class="btn btn-secondary btn-sm" id="modalRefDocsNext" data-i18n="manage.page_next">下一頁</button>
+      </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=1.3.1"></script>
 </body>
 </html>

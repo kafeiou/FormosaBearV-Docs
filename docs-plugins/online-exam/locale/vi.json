@@ -24,7 +24,14 @@
     "view_result": "Xem kết quả",
     "blank_pdf": "PDF đề trắng",
     "attempt_pdf": "PDF bài làm (Có hình mờ)",
-    "ref_docs_label": "Tài liệu tham khảo:"
+    "ref_docs_label": "Tài liệu tham khảo:",
+    "search_ph": "Tìm tên bài thi, mã hoặc người tạo...",
+    "filter_all": "Tất cả trạng thái",
+    "filter_not_taken": "Chưa làm",
+    "filter_taken": "Đã làm",
+    "sort_newest": "Mới cập nhật nhất",
+    "sort_title": "Tên bài thi A-Z",
+    "sort_code": "Mã bài thi A-Z"
   },
   "runner": {
     "back": "← Quay lại danh sách bài thi",
@@ -55,7 +62,10 @@
     "col_score": "Điểm",
     "col_time": "Thời gian nộp",
     "col_export": "Xuất",
-    "download_pdf": "Tải PDF"
+    "download_pdf": "Tải PDF",
+    "search_label": "Tìm kiếm",
+    "search_ph": "Tìm thí sinh, bài thi hoặc mã...",
+    "empty": "Không có bản ghi điểm phù hợp."
   },
   "manage": {
     "list_title": "Danh sách bài thi đã phát hành",
@@ -94,7 +104,7 @@
     "field_retake": "Cho phép thi lại (ghi đè điểm mới nhất khi nộp lại)",
     "field_enabled": "Kích hoạt bài thi này ngay",
     "upload_gift": "Tải lên tệp .gift / .txt",
-    "preview_gift": "Phân tích & Xem trước",
+    "preview_gift": "Kiểm tra cú pháp",
     "gift_ph": "Dán câu hỏi định dạng Moodle GIFT tại đây (Chọn một =/~, Chọn nhiều ~%50%, Đúng/Sai {TRUE}/{FALSE})",
     "preview_header": "Đã phân tích thành công {{count}} câu hỏi:",
     "save_btn": "Lưu & Phát hành đề thi",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "Tìm tiêu đề tài liệu...",
     "ref_docs_empty": "Không có tài liệu nào khả dụng",
     "btn_ref_docs": "Tài liệu TK",
-    "ref_docs_modal_title": "Tài liệu tham khảo: {{title}}"
+    "ref_docs_modal_title": "Tài liệu tham khảo: {{title}}",
+    "ref_docs_col_title": "Tên tài liệu",
+    "ref_docs_col_created": "Ngày tạo",
+    "ref_docs_selected_count": "Đã chọn {{count}}",
+    "page_prev": "Trước",
+    "page_next": "Sau",
+    "page_info": "Trang {{page}} / {{pages}} (Tổng {{total}})",
+    "btn_create_exam": "+ Tạo bài thi",
+    "btn_collapse_create": "Thu gọn biểu mẫu",
+    "search_ph": "Tìm mã, phiên bản, tên hoặc người tạo...",
+    "filter_all": "Tất cả trạng thái",
+    "col_updated": "Cập nhật"
   },
   "acl": {
     "modal_title": "Quyền dự thi: {{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "Người dùng hoặc nhóm đã chọn không tồn tại hoặc đã bị vô hiệu hóa.",
     "AttemptNotFound": "Không tìm thấy bản ghi bài làm.",
     "default": "Thao tác thất bại"
+  },
+  "common": {
+    "page_size": "Mỗi trang"
   }
 }

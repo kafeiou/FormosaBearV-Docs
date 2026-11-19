@@ -26,11 +26,54 @@
     user: null,
     teacherGroups: [],
     exams: [],
+    attempts: [],
     availableRefDocs: [],
     selectedCreateRefDocIds: new Set(),
     currentExam: null,
     currentAttempt: null
   };
+
+  const myExamsState = { q: '', status: 'all', sort: 'updated_desc', page: 1, limit: 10 };
+  const scoresState = { q: '', sort: 'submitted_at', asc: false, page: 1, limit: 10 };
+  const manageExamsState = { q: '', status: 'all', sort: 'updated_at', asc: false, page: 1, limit: 10 };
+
+  function compareStr(a, b) {
+    return String(a || '').localeCompare(String(b || ''), undefined, { numeric: true, sensitivity: 'base' });
+  }
+
+  function updateTableSortIndicators(tableName, st) {
+    document.querySelectorAll(`[data-sort-ind^="${tableName}:"]`).forEach(el => {
+      const col = el.getAttribute('data-sort-ind').split(':')[1];
+      el.textContent = st.sort === col ? (st.asc ? '▲' : '▼') : '';
+    });
+  }
+
+  function updateListPagination(prefix, st, total) {
+    const totalPages = Math.max(1, Math.ceil(total / st.limit));
+    if (st.page > totalPages) st.page = totalPages;
+    if (st.page < 1) st.page = 1;
+    const infoEl = document.getElementById(`${prefix}PageInfo`);
+    const prevBtn = document.getElementById(`${prefix}Prev`);
+    const nextBtn = document.getElementById(`${prefix}Next`);
+    if (infoEl) {
+      infoEl.textContent = t('manage.page_info', { page: st.page, pages: totalPages, total });
+    }
+    if (prevBtn) prevBtn.disabled = st.page <= 1;
+    if (nextBtn) nextBtn.disabled = st.page >= totalPages;
+  }
+
+  function setCreateExamPanelExpanded(expanded) {
+    const panel = document.getElementById('createExamPanel');
+    const btn = document.getElementById('toggleCreateExamBtn');
+    if (panel) panel.classList.toggle('hidden', !expanded);
+    if (btn) {
+      btn.setAttribute('data-i18n', expanded ? 'manage.btn_collapse_create' : 'manage.btn_create_exam');
+      btn.textContent = t(expanded ? 'manage.btn_collapse_create' : 'manage.btn_create_exam');
+    }
+    if (expanded && panel) {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
 
   function resolveKey(obj, keyPath) {
     return keyPath.split('.').reduce((acc, k) => (acc && acc[k] !== undefined ? acc[k] : undefined), obj);
@@ -219,13 +262,39 @@
   function renderMyExams() {
     const grid = document.getElementById('examGrid');
     grid.innerHTML = '';
-    const takeableExams = state.exams.filter(exam => (exam.can_take && exam.enabled) || exam.my_attempt);
-    if (!takeableExams.length) {
+    const q = myExamsState.q.trim().toLowerCase();
+    let takeableExams = state.exams.filter(exam => (exam.can_take && exam.enabled) || exam.my_attempt);
+    if (myExamsState.status === 'taken') {
+      takeableExams = takeableExams.filter(exam => !!exam.my_attempt);
+    } else if (myExamsState.status === 'not_taken') {
+      takeableExams = takeableExams.filter(exam => !exam.my_attempt);
+    }
+    if (q) {
+      takeableExams = takeableExams.filter(exam =>
+        `${exam.title || ''} ${exam.exam_code || ''} ${exam.exam_version || ''} ${exam.owner_label || ''}`.toLowerCase().includes(q)
+      );
+    }
+    takeableExams = takeableExams.slice().sort((a, b) => {
+      if (myExamsState.sort === 'title_asc') {
+        return compareStr(a.title, b.title);
+      }
+      if (myExamsState.sort === 'code_asc') {
+        return compareStr(`${a.exam_code || ''} ${a.exam_version || ''}`, `${b.exam_code || ''} ${b.exam_version || ''}`);
+      }
+      return (b.updated_at || 0) - (a.updated_at || 0);
+    });
+
+    const total = takeableExams.length;
+    updateListPagination('myExams', myExamsState, total);
+    if (!total) {
       grid.innerHTML = `<div class="panel-card">${escapeHtml(t('exams.empty'))}</div>`;
       return;
     }
 
-    takeableExams.forEach(exam => {
+    const start = (myExamsState.page - 1) * myExamsState.limit;
+    const pageItems = takeableExams.slice(start, start + myExamsState.limit);
+
+    pageItems.forEach(exam => {
       const card = document.createElement('div');
       card.className = 'exam-card';
       const attempt = exam.my_attempt;
@@ -260,14 +329,53 @@
   function renderManageExams() {
     const tbody = document.getElementById('manageExamsTableBody');
     if (!tbody) return;
+    updateTableSortIndicators('manage', manageExamsState);
     tbody.innerHTML = '';
-    const managedExams = state.exams.filter(exam => exam.can_manage);
-    if (!managedExams.length) {
-      tbody.innerHTML = `<tr><td colspan="7">${escapeHtml(t('manage.empty'))}</td></tr>`;
+    const q = manageExamsState.q.trim().toLowerCase();
+    let managedExams = state.exams.filter(exam => exam.can_manage);
+    if (manageExamsState.status === 'enabled') {
+      managedExams = managedExams.filter(exam => !!exam.enabled);
+    } else if (manageExamsState.status === 'disabled') {
+      managedExams = managedExams.filter(exam => !exam.enabled);
+    }
+    if (q) {
+      managedExams = managedExams.filter(exam =>
+        `${exam.exam_code || ''} ${exam.exam_version || ''} ${exam.title || ''} ${exam.owner_label || ''}`.toLowerCase().includes(q)
+      );
+    }
+
+    const dir = manageExamsState.asc ? 1 : -1;
+    managedExams = managedExams.slice().sort((a, b) => {
+      switch (manageExamsState.sort) {
+        case 'exam_code':
+          return dir * compareStr(`${a.exam_code || ''} ${a.exam_version || ''}`, `${b.exam_code || ''} ${b.exam_version || ''}`);
+        case 'title':
+          return dir * compareStr(a.title, b.title);
+        case 'owner_label':
+          return dir * compareStr(a.owner_label, b.owner_label);
+        case 'question_count':
+          return dir * ((a.question_count || 0) - (b.question_count || 0));
+        case 'enabled':
+          return dir * ((a.enabled ? 1 : 0) - (b.enabled ? 1 : 0));
+        case 'attempt_count':
+          return dir * ((a.attempt_count || 0) - (b.attempt_count || 0));
+        case 'updated_at':
+        default:
+          return dir * ((a.updated_at || 0) - (b.updated_at || 0));
+      }
+    });
+
+    const total = managedExams.length;
+    updateListPagination('manageExams', manageExamsState, total);
+    if (!total) {
+      tbody.innerHTML = `<tr><td colspan="8">${escapeHtml(t('manage.empty'))}</td></tr>`;
       return;
     }
 
-    managedExams.forEach(exam => {
+    const start = (manageExamsState.page - 1) * manageExamsState.limit;
+    const pageItems = managedExams.slice(start, start + manageExamsState.limit);
+
+    pageItems.forEach(exam => {
       const tr = document.createElement('tr');
       const totalScore = exam.total_score || 100;
       const attemptCount = exam.attempt_count || 0;
@@ -283,6 +391,7 @@
         <td>${escapeHtml(t('manage.q_score_val', { count: exam.question_count, score: totalScore }))}</td>
         <td><span class="badge ${exam.enabled ? 'success' : 'danger'}">${escapeHtml(exam.enabled ? t('manage.status_enabled') : t('manage.status_disabled'))}</span></td>
         <td>${escapeHtml(t('manage.attempts_val', { count: attemptCount }))}</td>
+        <td>${escapeHtml(formatDocDate(exam.updated_at))}</td>
         <td>
           <div style="display:flex; flex-wrap:wrap; gap:6px;">
             <a class="btn btn-secondary btn-sm" href="${ACTION_BASE}/export_blank_pdf?examId=${encodeURIComponent(exam.id)}&lang=${encodeURIComponent(currentLang)}" target="_blank">${escapeHtml(t('manage.btn_blank_pdf'))}</a>
@@ -474,26 +583,87 @@
   async function loadScores() {
     try {
       const data = await api(`attempts?lang=${encodeURIComponent(currentLang)}`);
-      const tbody = document.getElementById('scoresTableBody');
-      tbody.innerHTML = '';
-      (data.attempts || []).forEach(att => {
-        const tr = document.createElement('tr');
-        const dateStr = att.submitted_at ? new Date(att.submitted_at).toLocaleString() : '-';
-        tr.innerHTML = `
-          <td>${escapeHtml(att.exam_code)}</td>
-          <td>${escapeHtml(att.exam_version)}</td>
-          <td>${escapeHtml(att.exam_title)}</td>
-          <td>${escapeHtml(att.owner_label || '')}</td>
-          <td>${escapeHtml(att.display_name || att.username)} (${escapeHtml(att.username)})</td>
-          <td><strong>${att.score} / ${att.max_score}</strong></td>
-          <td>${escapeHtml(dateStr)}</td>
-          <td><a class="btn btn-secondary btn-sm" href="${ACTION_BASE}/export_attempt_pdf?examId=${encodeURIComponent(att.exam_id)}&userId=${encodeURIComponent(att.user_id)}&lang=${encodeURIComponent(currentLang)}" target="_blank">${escapeHtml(t('scores.download_pdf'))}</a></td>
-        `;
-        tbody.appendChild(tr);
-      });
+      state.attempts = data.attempts || [];
+      renderScores();
     } catch (e) {
       showAlert(e.message, 'error');
     }
+  }
+
+  function renderScores() {
+    const tbody = document.getElementById('scoresTableBody');
+    if (!tbody) return;
+    updateTableSortIndicators('scores', scoresState);
+    tbody.innerHTML = '';
+
+    const examFilter = document.getElementById('summaryExamId') ? document.getElementById('summaryExamId').value : '';
+    const fromStr = document.getElementById('summaryFromDate') ? document.getElementById('summaryFromDate').value : '';
+    const toStr = document.getElementById('summaryToDate') ? document.getElementById('summaryToDate').value : '';
+    const fromMs = fromStr ? new Date(`${fromStr}T00:00:00`).getTime() : null;
+    const toMs = toStr ? new Date(`${toStr}T23:59:59.999`).getTime() : null;
+    const q = scoresState.q.trim().toLowerCase();
+
+    let list = state.attempts.slice();
+    if (examFilter) {
+      list = list.filter(att => att.exam_id === examFilter);
+    }
+    if (fromMs && !Number.isNaN(fromMs)) {
+      list = list.filter(att => (att.submitted_at || 0) >= fromMs);
+    }
+    if (toMs && !Number.isNaN(toMs)) {
+      list = list.filter(att => (att.submitted_at || 0) <= toMs);
+    }
+    if (q) {
+      list = list.filter(att =>
+        `${att.exam_code || ''} ${att.exam_version || ''} ${att.exam_title || ''} ${att.owner_label || ''} ${att.display_name || ''} ${att.username || ''}`.toLowerCase().includes(q)
+      );
+    }
+
+    const dir = scoresState.asc ? 1 : -1;
+    list.sort((a, b) => {
+      switch (scoresState.sort) {
+        case 'exam_code':
+          return dir * compareStr(a.exam_code, b.exam_code);
+        case 'exam_version':
+          return dir * compareStr(a.exam_version, b.exam_version);
+        case 'exam_title':
+          return dir * compareStr(a.exam_title, b.exam_title);
+        case 'owner_label':
+          return dir * compareStr(a.owner_label, b.owner_label);
+        case 'examinee':
+          return dir * compareStr(a.display_name || a.username, b.display_name || b.username);
+        case 'score':
+          return dir * ((Number(a.score) || 0) - (Number(b.score) || 0));
+        case 'submitted_at':
+        default:
+          return dir * ((a.submitted_at || 0) - (b.submitted_at || 0));
+      }
+    });
+
+    const total = list.length;
+    updateListPagination('scores', scoresState, total);
+    if (!total) {
+      tbody.innerHTML = `<tr><td colspan="8" class="subtitle">${escapeHtml(t('scores.empty'))}</td></tr>`;
+      return;
+    }
+
+    const start = (scoresState.page - 1) * scoresState.limit;
+    const pageItems = list.slice(start, start + scoresState.limit);
+    pageItems.forEach(att => {
+      const tr = document.createElement('tr');
+      const dateStr = att.submitted_at ? formatDocDate(att.submitted_at) : '-';
+      tr.innerHTML = `
+        <td>${escapeHtml(att.exam_code)}</td>
+        <td>${escapeHtml(att.exam_version)}</td>
+        <td>${escapeHtml(att.exam_title)}</td>
+        <td>${escapeHtml(att.owner_label || '')}</td>
+        <td>${escapeHtml(att.display_name || att.username)} (${escapeHtml(att.username)})</td>
+        <td><strong>${att.score} / ${att.max_score}</strong></td>
+        <td>${escapeHtml(dateStr)}</td>
+        <td><a class="btn btn-secondary btn-sm" href="${ACTION_BASE}/export_attempt_pdf?examId=${encodeURIComponent(att.exam_id)}&userId=${encodeURIComponent(att.user_id)}&lang=${encodeURIComponent(currentLang)}" target="_blank">${escapeHtml(t('scores.download_pdf'))}</a></td>
+      `;
+      tbody.appendChild(tr);
+    });
   }
 
   document.getElementById('refreshScoresBtn').addEventListener('click', loadScores);
@@ -564,6 +734,7 @@
       document.getElementById('giftPreviewBox').classList.add('hidden');
       state.selectedCreateRefDocIds.clear();
       renderCreateRefDocsChecklist();
+      setCreateExamPanelExpanded(false);
       await loadExams();
     } catch (e) {
       showAlert(e.message, 'error');
@@ -636,10 +807,65 @@
     document.getElementById('aclModal').classList.add('hidden');
   });
 
+  function formatDocDate(ts) {
+    if (!ts) return '-';
+    const d = new Date(ts);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  const createRefState = { offset: 0, limit: 10, total: 0, sort: 'create_date', asc: false, q: '' };
+  const modalRefState = { offset: 0, limit: 10, total: 0, sort: 'create_date', asc: false, q: '' };
+  let createRefSearchTimer = null;
+  let modalRefSearchTimer = null;
+  let modalRefDocsItems = [];
+  let modalRefDocsExam = null;
+
+  function updateSortIndicators(prefix, st) {
+    const titleInd = document.getElementById(`${prefix}SortTitle`);
+    const dateInd = document.getElementById(`${prefix}SortDate`);
+    if (titleInd) titleInd.textContent = st.sort === 'title' ? (st.asc ? '▲' : '▼') : '';
+    if (dateInd) dateInd.textContent = st.sort === 'create_date' ? (st.asc ? '▲' : '▼') : '';
+  }
+
+  function updateCreateRefSelectedBadge() {
+    const badge = document.getElementById('createRefDocsSelectedBadge');
+    if (!badge) return;
+    const count = state.selectedCreateRefDocIds.size;
+    if (count > 0) {
+      badge.textContent = t('manage.ref_docs_selected_count', { count });
+      badge.classList.remove('hidden');
+    } else {
+      badge.textContent = '';
+      badge.classList.add('hidden');
+    }
+  }
+
+  function updatePaginationBar(prefix, st) {
+    const totalPages = Math.max(1, Math.ceil(st.total / st.limit));
+    const currentPage = Math.floor(st.offset / st.limit) + 1;
+    const infoEl = document.getElementById(`${prefix}RefDocsPageInfo`);
+    const prevBtn = document.getElementById(`${prefix}RefDocsPrev`);
+    const nextBtn = document.getElementById(`${prefix}RefDocsNext`);
+    if (infoEl) {
+      infoEl.textContent = t('manage.page_info', { page: currentPage, pages: totalPages, total: st.total });
+    }
+    if (prevBtn) prevBtn.disabled = st.offset <= 0;
+    if (nextBtn) nextBtn.disabled = st.offset + st.limit >= st.total;
+  }
+
   async function loadCreateRefDocs() {
     try {
-      const data = await api('list_reference_documents');
+      const params = new URLSearchParams({
+        q: createRefState.q,
+        sort: createRefState.sort,
+        asc: String(createRefState.asc),
+        offset: String(createRefState.offset),
+        limit: String(createRefState.limit)
+      });
+      const data = await api(`list_reference_documents?${params.toString()}`);
       state.availableRefDocs = data.documents || [];
+      createRefState.total = data.total || 0;
       renderCreateRefDocsChecklist();
     } catch (e) {
       // Ignore quietly if not teacher
@@ -647,56 +873,113 @@
   }
 
   function renderCreateRefDocsChecklist() {
-    const box = document.getElementById('createRefDocsList');
-    if (!box) return;
-    const searchEl = document.getElementById('createRefDocsSearch');
-    const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
-    box.innerHTML = '';
-    const filtered = state.availableRefDocs.filter(d => !q || String(d.title || '').toLowerCase().includes(q));
-    if (!filtered.length) {
-      box.innerHTML = `<div class="subtitle">${escapeHtml(t('manage.ref_docs_empty'))}</div>`;
+    const tbody = document.getElementById('createRefDocsList');
+    if (!tbody) return;
+    updateSortIndicators('create', createRefState);
+    updateCreateRefSelectedBadge();
+    updatePaginationBar('create', createRefState);
+    tbody.innerHTML = '';
+    if (!state.availableRefDocs.length) {
+      tbody.innerHTML = `<tr><td colspan="3" class="subtitle">${escapeHtml(t('manage.ref_docs_empty'))}</td></tr>`;
       return;
     }
-    filtered.forEach(d => {
-      const label = document.createElement('label');
-      label.className = 'acl-item';
+    state.availableRefDocs.forEach(d => {
+      const tr = document.createElement('tr');
       const checked = state.selectedCreateRefDocIds.has(d.id) ? 'checked' : '';
-      label.innerHTML = `<input type="checkbox" ${checked}> <span>📄 ${escapeHtml(d.title)}</span>`;
-      label.querySelector('input').addEventListener('change', e => {
+      tr.innerHTML = `
+        <td><input type="checkbox" ${checked}></td>
+        <td style="text-align:left;"><span class="ref-doc-row-label">📄 ${escapeHtml(d.title)}</span></td>
+        <td>${escapeHtml(formatDocDate(d.create_date))}</td>
+      `;
+      const cb = tr.querySelector('input[type="checkbox"]');
+      const label = tr.querySelector('.ref-doc-row-label');
+      label.addEventListener('click', () => {
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event('change'));
+      });
+      cb.addEventListener('change', e => {
         if (e.target.checked) {
           state.selectedCreateRefDocIds.add(d.id);
         } else {
           state.selectedCreateRefDocIds.delete(d.id);
         }
+        updateCreateRefSelectedBadge();
       });
-      box.appendChild(label);
+      tbody.appendChild(tr);
     });
   }
 
   const createRefSearchEl = document.getElementById('createRefDocsSearch');
   if (createRefSearchEl) {
-    createRefSearchEl.addEventListener('input', renderCreateRefDocsChecklist);
+    createRefSearchEl.addEventListener('input', () => {
+      clearTimeout(createRefSearchTimer);
+      createRefSearchTimer = setTimeout(() => {
+        createRefState.q = createRefSearchEl.value.trim();
+        createRefState.offset = 0;
+        loadCreateRefDocs();
+      }, 250);
+    });
   }
 
-  let modalRefDocsItems = [];
-  let modalRefDocsExam = null;
+  const createPrevBtn = document.getElementById('createRefDocsPrev');
+  if (createPrevBtn) {
+    createPrevBtn.addEventListener('click', () => {
+      if (createRefState.offset > 0) {
+        createRefState.offset = Math.max(0, createRefState.offset - createRefState.limit);
+        loadCreateRefDocs();
+      }
+    });
+  }
+  const createNextBtn = document.getElementById('createRefDocsNext');
+  if (createNextBtn) {
+    createNextBtn.addEventListener('click', () => {
+      if (createRefState.offset + createRefState.limit < createRefState.total) {
+        createRefState.offset += createRefState.limit;
+        loadCreateRefDocs();
+      }
+    });
+  }
+
+  async function loadModalRefDocs() {
+    if (!modalRefDocsExam) return;
+    const params = new URLSearchParams({
+      examId: modalRefDocsExam.id,
+      q: modalRefState.q,
+      sort: modalRefState.sort,
+      asc: String(modalRefState.asc),
+      offset: String(modalRefState.offset),
+      limit: String(modalRefState.limit)
+    });
+    const data = await api(`list_reference_documents?${params.toString()}`);
+    modalRefDocsItems = data.documents || [];
+    modalRefState.total = data.total || 0;
+    renderModalRefDocsChecklist();
+  }
 
   function renderModalRefDocsChecklist() {
-    const box = document.getElementById('modalRefDocsList');
-    if (!box || !modalRefDocsExam) return;
-    const searchEl = document.getElementById('modalRefDocsSearch');
-    const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
-    box.innerHTML = '';
-    const filtered = modalRefDocsItems.filter(d => !q || String(d.title || '').toLowerCase().includes(q));
-    if (!filtered.length) {
-      box.innerHTML = `<div class="subtitle">${escapeHtml(t('manage.ref_docs_empty'))}</div>`;
+    const tbody = document.getElementById('modalRefDocsList');
+    if (!tbody || !modalRefDocsExam) return;
+    updateSortIndicators('modal', modalRefState);
+    updatePaginationBar('modal', modalRefState);
+    tbody.innerHTML = '';
+    if (!modalRefDocsItems.length) {
+      tbody.innerHTML = `<tr><td colspan="3" class="subtitle">${escapeHtml(t('manage.ref_docs_empty'))}</td></tr>`;
       return;
     }
-    filtered.forEach(d => {
-      const label = document.createElement('label');
-      label.className = 'acl-item';
-      label.innerHTML = `<input type="checkbox" ${d.allowed ? 'checked' : ''}> <span>📄 ${escapeHtml(d.title)}</span>`;
-      label.querySelector('input').addEventListener('change', async e => {
+    modalRefDocsItems.forEach(d => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="checkbox" ${d.allowed ? 'checked' : ''}></td>
+        <td style="text-align:left;"><span class="ref-doc-row-label">📄 ${escapeHtml(d.title)}</span></td>
+        <td>${escapeHtml(formatDocDate(d.create_date))}</td>
+      `;
+      const cb = tr.querySelector('input[type="checkbox"]');
+      const label = tr.querySelector('.ref-doc-row-label');
+      label.addEventListener('click', () => {
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event('change'));
+      });
+      cb.addEventListener('change', async e => {
         try {
           await api('set_exam_reference_documents', {
             method: 'POST',
@@ -709,19 +992,21 @@
           showAlert(err.message, 'error');
         }
       });
-      box.appendChild(label);
+      tbody.appendChild(tr);
     });
   }
 
   async function openRefDocsModal(exam) {
     try {
       modalRefDocsExam = exam;
+      modalRefState.offset = 0;
+      modalRefState.q = '';
+      modalRefState.sort = 'create_date';
+      modalRefState.asc = false;
       const searchEl = document.getElementById('modalRefDocsSearch');
       if (searchEl) searchEl.value = '';
-      const data = await api(`list_reference_documents?examId=${encodeURIComponent(exam.id)}`);
-      modalRefDocsItems = data.documents || [];
       document.getElementById('refDocsModalTitle').textContent = t('manage.ref_docs_modal_title', { title: exam.title });
-      renderModalRefDocsChecklist();
+      await loadModalRefDocs();
       document.getElementById('refDocsModal').classList.remove('hidden');
     } catch (e) {
       showAlert(e.message, 'error');
@@ -730,7 +1015,217 @@
 
   const modalRefSearchEl = document.getElementById('modalRefDocsSearch');
   if (modalRefSearchEl) {
-    modalRefSearchEl.addEventListener('input', renderModalRefDocsChecklist);
+    modalRefSearchEl.addEventListener('input', () => {
+      clearTimeout(modalRefSearchTimer);
+      modalRefSearchTimer = setTimeout(() => {
+        modalRefState.q = modalRefSearchEl.value.trim();
+        modalRefState.offset = 0;
+        loadModalRefDocs();
+      }, 250);
+    });
+  }
+
+  const modalPrevBtn = document.getElementById('modalRefDocsPrev');
+  if (modalPrevBtn) {
+    modalPrevBtn.addEventListener('click', () => {
+      if (modalRefState.offset > 0) {
+        modalRefState.offset = Math.max(0, modalRefState.offset - modalRefState.limit);
+        loadModalRefDocs();
+      }
+    });
+  }
+  const modalNextBtn = document.getElementById('modalRefDocsNext');
+  if (modalNextBtn) {
+    modalNextBtn.addEventListener('click', () => {
+      if (modalRefState.offset + modalRefState.limit < modalRefState.total) {
+        modalRefState.offset += modalRefState.limit;
+        loadModalRefDocs();
+      }
+    });
+  }
+
+  document.querySelectorAll('.sortable-th').forEach(th => {
+    th.addEventListener('click', () => {
+      const picker = th.dataset.picker;
+      const table = th.dataset.table;
+      const sortField = th.dataset.sort;
+      if (picker) {
+        const st = picker === 'modal' ? modalRefState : createRefState;
+        if (st.sort === sortField) {
+          st.asc = !st.asc;
+        } else {
+          st.sort = sortField;
+          st.asc = sortField === 'title';
+        }
+        st.offset = 0;
+        if (picker === 'modal') {
+          loadModalRefDocs();
+        } else {
+          loadCreateRefDocs();
+        }
+      } else if (table === 'scores') {
+        if (scoresState.sort === sortField) {
+          scoresState.asc = !scoresState.asc;
+        } else {
+          scoresState.sort = sortField;
+          scoresState.asc = sortField !== 'submitted_at' && sortField !== 'score';
+        }
+        scoresState.page = 1;
+        renderScores();
+      } else if (table === 'manage') {
+        if (manageExamsState.sort === sortField) {
+          manageExamsState.asc = !manageExamsState.asc;
+        } else {
+          manageExamsState.sort = sortField;
+          manageExamsState.asc = sortField !== 'updated_at' && sortField !== 'attempt_count' && sortField !== 'question_count';
+        }
+        manageExamsState.page = 1;
+        renderManageExams();
+      }
+    });
+  });
+
+  // Tab 1: My Exams toolbar & pagination listeners
+  const myExamsSearchEl = document.getElementById('myExamsSearch');
+  if (myExamsSearchEl) {
+    myExamsSearchEl.addEventListener('input', () => {
+      myExamsState.q = myExamsSearchEl.value;
+      myExamsState.page = 1;
+      renderMyExams();
+    });
+  }
+  const myExamsStatusEl = document.getElementById('myExamsStatusFilter');
+  if (myExamsStatusEl) {
+    myExamsStatusEl.addEventListener('change', () => {
+      myExamsState.status = myExamsStatusEl.value;
+      myExamsState.page = 1;
+      renderMyExams();
+    });
+  }
+  const myExamsSortEl = document.getElementById('myExamsSort');
+  if (myExamsSortEl) {
+    myExamsSortEl.addEventListener('change', () => {
+      myExamsState.sort = myExamsSortEl.value;
+      myExamsState.page = 1;
+      renderMyExams();
+    });
+  }
+  const myExamsPageSizeEl = document.getElementById('myExamsPageSize');
+  if (myExamsPageSizeEl) {
+    myExamsPageSizeEl.addEventListener('change', () => {
+      myExamsState.limit = Number(myExamsPageSizeEl.value) || 10;
+      myExamsState.page = 1;
+      renderMyExams();
+    });
+  }
+  const myExamsPrevBtn = document.getElementById('myExamsPrev');
+  if (myExamsPrevBtn) {
+    myExamsPrevBtn.addEventListener('click', () => {
+      if (myExamsState.page > 1) {
+        myExamsState.page--;
+        renderMyExams();
+      }
+    });
+  }
+  const myExamsNextBtn = document.getElementById('myExamsNext');
+  if (myExamsNextBtn) {
+    myExamsNextBtn.addEventListener('click', () => {
+      myExamsState.page++;
+      renderMyExams();
+    });
+  }
+
+  // Tab 2: Scores toolbar & pagination listeners
+  const scoresSearchEl = document.getElementById('scoresSearch');
+  if (scoresSearchEl) {
+    scoresSearchEl.addEventListener('input', () => {
+      scoresState.q = scoresSearchEl.value;
+      scoresState.page = 1;
+      renderScores();
+    });
+  }
+  ['summaryExamId', 'summaryFromDate', 'summaryToDate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', () => {
+        scoresState.page = 1;
+        renderScores();
+      });
+    }
+  });
+  const scoresPageSizeEl = document.getElementById('scoresPageSize');
+  if (scoresPageSizeEl) {
+    scoresPageSizeEl.addEventListener('change', () => {
+      scoresState.limit = Number(scoresPageSizeEl.value) || 10;
+      scoresState.page = 1;
+      renderScores();
+    });
+  }
+  const scoresPrevBtn = document.getElementById('scoresPrev');
+  if (scoresPrevBtn) {
+    scoresPrevBtn.addEventListener('click', () => {
+      if (scoresState.page > 1) {
+        scoresState.page--;
+        renderScores();
+      }
+    });
+  }
+  const scoresNextBtn = document.getElementById('scoresNext');
+  if (scoresNextBtn) {
+    scoresNextBtn.addEventListener('click', () => {
+      scoresState.page++;
+      renderScores();
+    });
+  }
+
+  // Tab 3: Manage Exams toolbar, pagination & collapsible create panel listeners
+  const toggleCreateExamBtn = document.getElementById('toggleCreateExamBtn');
+  if (toggleCreateExamBtn) {
+    toggleCreateExamBtn.addEventListener('click', () => {
+      const panel = document.getElementById('createExamPanel');
+      const isHidden = panel ? panel.classList.contains('hidden') : true;
+      setCreateExamPanelExpanded(isHidden);
+    });
+  }
+  const manageExamsSearchEl = document.getElementById('manageExamsSearch');
+  if (manageExamsSearchEl) {
+    manageExamsSearchEl.addEventListener('input', () => {
+      manageExamsState.q = manageExamsSearchEl.value;
+      manageExamsState.page = 1;
+      renderManageExams();
+    });
+  }
+  const manageExamsStatusEl = document.getElementById('manageExamsStatusFilter');
+  if (manageExamsStatusEl) {
+    manageExamsStatusEl.addEventListener('change', () => {
+      manageExamsState.status = manageExamsStatusEl.value;
+      manageExamsState.page = 1;
+      renderManageExams();
+    });
+  }
+  const manageExamsPageSizeEl = document.getElementById('manageExamsPageSize');
+  if (manageExamsPageSizeEl) {
+    manageExamsPageSizeEl.addEventListener('change', () => {
+      manageExamsState.limit = Number(manageExamsPageSizeEl.value) || 10;
+      manageExamsState.page = 1;
+      renderManageExams();
+    });
+  }
+  const manageExamsPrevBtn = document.getElementById('manageExamsPrev');
+  if (manageExamsPrevBtn) {
+    manageExamsPrevBtn.addEventListener('click', () => {
+      if (manageExamsState.page > 1) {
+        manageExamsState.page--;
+        renderManageExams();
+      }
+    });
+  }
+  const manageExamsNextBtn = document.getElementById('manageExamsNext');
+  if (manageExamsNextBtn) {
+    manageExamsNextBtn.addEventListener('click', () => {
+      manageExamsState.page++;
+      renderManageExams();
+    });
   }
 
   const closeRefDocsModalBtn = document.getElementById('closeRefDocsModalBtn');

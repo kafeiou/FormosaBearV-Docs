@@ -24,7 +24,14 @@
     "view_result": "Ergebnis ansehen",
     "blank_pdf": "Leere Prüfung (PDF)",
     "attempt_pdf": "Ausgefüllte Prüfung (PDF mit Wasserzeichen)",
-    "ref_docs_label": "Referenzdokumente:"
+    "ref_docs_label": "Referenzdokumente:",
+    "search_ph": "Prüfungstitel, Code oder Ersteller suchen...",
+    "filter_all": "Alle Status",
+    "filter_not_taken": "Nicht absolviert",
+    "filter_taken": "Absolviert",
+    "sort_newest": "Neueste zuerst",
+    "sort_title": "Titel A-Z",
+    "sort_code": "Prüfungscode A-Z"
   },
   "runner": {
     "back": "← Zurück zur Prüfungsliste",
@@ -55,7 +62,10 @@
     "col_score": "Punktzahl",
     "col_time": "Abgabezeit",
     "col_export": "Export",
-    "download_pdf": "PDF herunterladen"
+    "download_pdf": "PDF herunterladen",
+    "search_label": "Suche",
+    "search_ph": "Teilnehmer, Prüfung oder Code suchen...",
+    "empty": "Keine passenden Ergebnisse gefunden."
   },
   "manage": {
     "list_title": "Veröffentlichte Prüfungen",
@@ -94,7 +104,7 @@
     "field_retake": "Wiederholung erlauben (überschreibt letztes Ergebnis bei erneuter Abgabe)",
     "field_enabled": "Diese Prüfung sofort aktivieren",
     "upload_gift": ".gift- / .txt-Datei hochladen",
-    "preview_gift": "Parsen & Vorschau",
+    "preview_gift": "Syntaxprüfung",
     "gift_ph": "Moodle-GIFT-Fragen hier einfügen (Single-Choice =/~, Multiple-Choice ~%50%, Wahr/Falsch {TRUE}/{FALSE})",
     "preview_header": "{{count}} Fragen erfolgreich geparst:",
     "save_btn": "Speichern & Prüfung veröffentlichen",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "Dokumenttitel suchen...",
     "ref_docs_empty": "Keine lesbaren Dokumente gefunden",
     "btn_ref_docs": "Referenzdok.",
-    "ref_docs_modal_title": "Referenzdokumente: {{title}}"
+    "ref_docs_modal_title": "Referenzdokumente: {{title}}",
+    "ref_docs_col_title": "Dokumentname",
+    "ref_docs_col_created": "Erstellungsdatum",
+    "ref_docs_selected_count": "{{count}} ausgewählt",
+    "page_prev": "Zurück",
+    "page_next": "Weiter",
+    "page_info": "Seite {{page}} / {{pages}} (Gesamt {{total}})",
+    "btn_create_exam": "+ Prüfung erstellen",
+    "btn_collapse_create": "Formular einklappen",
+    "search_ph": "Code, Version, Titel oder Ersteller suchen...",
+    "filter_all": "Alle Status",
+    "col_updated": "Aktualisiert"
   },
   "acl": {
     "modal_title": "Teilnehmerrechte: {{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "Der ausgewählte Benutzer oder die ausgewählte Gruppe existiert nicht oder ist deaktiviert.",
     "AttemptNotFound": "Kein Prüfungsversuch gefunden.",
     "default": "Vorgang fehlgeschlagen"
+  },
+  "common": {
+    "page_size": "Pro Seite"
   }
 }

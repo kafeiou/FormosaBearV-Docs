@@ -24,7 +24,14 @@
     "view_result": "View Result",
     "blank_pdf": "Blank Exam PDF",
     "attempt_pdf": "Completed PDF (Watermarked)",
-    "ref_docs_label": "Reference Documents:"
+    "ref_docs_label": "Reference Documents:",
+    "search_ph": "Search exam title, code, or owner...",
+    "filter_all": "All statuses",
+    "filter_not_taken": "Not taken",
+    "filter_taken": "Completed",
+    "sort_newest": "Newest first",
+    "sort_title": "Title A-Z",
+    "sort_code": "Exam Code A-Z"
   },
   "runner": {
     "back": "← Back to Exam List",
@@ -55,7 +62,10 @@
     "col_score": "Score",
     "col_time": "Submitted Time",
     "col_export": "Export",
-    "download_pdf": "Download PDF"
+    "download_pdf": "Download PDF",
+    "search_label": "Search",
+    "search_ph": "Search examinee, exam, or code...",
+    "empty": "No matching score records."
   },
   "manage": {
     "list_title": "Published Exams",
@@ -94,7 +104,7 @@
     "field_retake": "Allow retakes (overwrites latest score on resubmit)",
     "field_enabled": "Enable this exam immediately",
     "upload_gift": "Upload .gift / .txt File",
-    "preview_gift": "Parse & Preview",
+    "preview_gift": "Syntax Check",
     "gift_ph": "Paste Moodle GIFT questions here (Single choice =/~, Multiple choice ~%50%, True/False {TRUE}/{FALSE})",
     "preview_header": "Successfully parsed {{count}} questions:",
     "save_btn": "Save & Publish Exam",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "Search document title...",
     "ref_docs_empty": "No readable documents found",
     "btn_ref_docs": "Ref. Docs",
-    "ref_docs_modal_title": "Reference Documents: {{title}}"
+    "ref_docs_modal_title": "Reference Documents: {{title}}",
+    "ref_docs_col_title": "Document Name",
+    "ref_docs_col_created": "Created Date",
+    "ref_docs_selected_count": "Selected {{count}}",
+    "page_prev": "Prev",
+    "page_next": "Next",
+    "page_info": "Page {{page}} / {{pages}} (Total {{total}})",
+    "btn_create_exam": "+ Create Exam",
+    "btn_collapse_create": "Collapse Form",
+    "search_ph": "Search code, version, title, or owner...",
+    "filter_all": "All statuses",
+    "col_updated": "Updated"
   },
   "acl": {
     "modal_title": "Examinee Permissions: {{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "The selected user or group does not exist or is disabled.",
     "AttemptNotFound": "No exam attempt record found.",
     "default": "Operation failed"
+  },
+  "common": {
+    "page_size": "Per page"
   }
 }

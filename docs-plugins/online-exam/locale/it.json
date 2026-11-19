@@ -24,7 +24,14 @@
     "view_result": "Visualizza risultato",
     "blank_pdf": "PDF esame in bianco",
     "attempt_pdf": "PDF completato (con filigrana)",
-    "ref_docs_label": "Documenti di riferimento:"
+    "ref_docs_label": "Documenti di riferimento:",
+    "search_ph": "Cerca titolo, codice o autore...",
+    "filter_all": "Tutti gli stati",
+    "filter_not_taken": "Non svolto",
+    "filter_taken": "Completato",
+    "sort_newest": "Più recenti prima",
+    "sort_title": "Titolo A-Z",
+    "sort_code": "Codice A-Z"
   },
   "runner": {
     "back": "← Torna all'elenco esami",
@@ -55,7 +62,10 @@
     "col_score": "Punteggio",
     "col_time": "Data e ora di invio",
     "col_export": "Esporta",
-    "download_pdf": "Scarica PDF"
+    "download_pdf": "Scarica PDF",
+    "search_label": "Cerca",
+    "search_ph": "Cerca candidato, esame o codice...",
+    "empty": "Nessun risultato corrispondente."
   },
   "manage": {
     "list_title": "Esami pubblicati",
@@ -94,7 +104,7 @@
     "field_retake": "Consenti ripetizioni (sovrascrive l'ultimo punteggio al reinvio)",
     "field_enabled": "Abilita subito questo esame",
     "upload_gift": "Carica file .gift / .txt",
-    "preview_gift": "Analizza e anteprima",
+    "preview_gift": "Controlla sintassi",
     "gift_ph": "Incolla qui le domande Moodle GIFT (Scelta singola =/~, Scelta multipla ~%50%, Vero/Falso {TRUE}/{FALSE})",
     "preview_header": "{{count}} domande analizzate con successo:",
     "save_btn": "Salva e pubblica esame",
@@ -103,7 +113,18 @@
     "ref_docs_search_ph": "Cerca titolo documento...",
     "ref_docs_empty": "Nessun documento leggibile trovato",
     "btn_ref_docs": "Doc. rif.",
-    "ref_docs_modal_title": "Documenti di riferimento: {{title}}"
+    "ref_docs_modal_title": "Documenti di riferimento: {{title}}",
+    "ref_docs_col_title": "Nome documento",
+    "ref_docs_col_created": "Data di creazione",
+    "ref_docs_selected_count": "{{count}} selezionato/i",
+    "page_prev": "Precedente",
+    "page_next": "Successiva",
+    "page_info": "Pagina {{page}} / {{pages}} (Totale {{total}})",
+    "btn_create_exam": "+ Crea esame",
+    "btn_collapse_create": "Nascondi modulo",
+    "search_ph": "Cerca codice, versione, titolo o autore...",
+    "filter_all": "Tutti gli stati",
+    "col_updated": "Aggiornato"
   },
   "acl": {
     "modal_title": "Permessi candidati: {{title}}",
@@ -124,5 +145,8 @@
     "InvalidTarget": "L'utente o il gruppo selezionato non esiste o è disabilitato.",
     "AttemptNotFound": "Nessun tentativo d'esame trovato.",
     "default": "Operazione non riuscita"
+  },
+  "common": {
+    "page_size": "Per pagina"
   }
 }

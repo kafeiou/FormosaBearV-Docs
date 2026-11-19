@@ -492,3 +492,101 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea {
 .ref-docs-checklist {
   max-height: 160px;
 }
+
+.ref-docs-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  background: var(--card);
+}
+
+.ref-docs-table th, .ref-docs-table td {
+  padding: 7px 10px;
+}
+
+.ref-docs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sortable-th:hover {
+  color: var(--primary);
+}
+
+.sort-indicator {
+  font-size: 11px;
+  margin-left: 4px;
+  color: var(--primary);
+}
+
+.ref-docs-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.ref-doc-row-label {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: left;
+  gap: 6px;
+  cursor: pointer;
+  margin: 0;
+  font-weight: 500;
+}
+
+.list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.list-toolbar .toolbar-search {
+  flex: 1 1 240px;
+  min-width: 180px;
+  width: auto;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.list-toolbar .toolbar-select {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 140px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.list-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.page-size-wrap, .page-nav-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-size-select {
+  width: auto;
+  padding: 5px 8px;
+  font-size: 13px;
+}
