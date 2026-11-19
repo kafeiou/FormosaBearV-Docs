@@ -513,6 +513,22 @@ public class TestOnlineExamPlugin extends BaseJerseyTest {
             Assert.assertFalse(text.contains("exam_bob"));
         }
 
+        // Blank exam PDF should be an interactive AcroForm PDF without "空白考卷" header label
+        byte[] blankExamZh = target().path("/plugin/online-exam/action/export_blank_pdf")
+                .queryParam("examId", exam1Id).queryParam("lang", "zh_TW")
+                .request().cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token).get(byte[].class);
+        try (PDDocument doc = PDDocument.load(blankExamZh)) {
+            String text = new PDFTextStripper().getText(doc);
+            Assert.assertFalse(text.contains("空白考卷"));
+            org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
+            Assert.assertNotNull(acroForm);
+            Assert.assertNotNull(acroForm.getField("examinee_name"));
+            Assert.assertNotNull(acroForm.getField("exam_date"));
+            Assert.assertNotNull(acroForm.getField("q_q1"));
+            Assert.assertNotNull(acroForm.getField("q_q2_c1"));
+            Assert.assertNotNull(acroForm.getField("q_q3"));
+        }
+
         // 6. Delete exam with attempts warning -> force delete preserves attempt & PDF export
         Response delWarn = target().path("/plugin/online-exam/action/delete_exam").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, t1Token)

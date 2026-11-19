@@ -9,12 +9,17 @@ import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfBorderDictionary;
 import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfFormField;
 import com.lowagie.text.pdf.PdfGState;
 import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPCellEvent;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfPageEventHelper;
 import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.RadioCheckField;
+import com.lowagie.text.pdf.TextField;
 import com.sismics.docs.core.util.ConfigUtil;
 import com.sismics.docs.core.util.PdfUtil;
 import fr.opensagres.xdocreport.itext.extension.font.IFontProvider;
@@ -591,6 +596,11 @@ public class ExamPdfExporter {
         String title = exam.getString("title", "Online Exam");
         String examCode = exam.getString("exam_code", "-");
         String examVersion = exam.getString("exam_version", "-");
+        boolean isBlank = (attempt == null);
+
+        if (isBlank) {
+            writer.getAcroForm().setNeedAppearances(true);
+        }
 
         Paragraph header = new Paragraph(title, titleFont);
         header.setSpacingAfter(6f);
@@ -599,8 +609,8 @@ public class ExamPdfExporter {
         PdfPTable metaTable = new PdfPTable(2);
         metaTable.setWidthPercentage(100);
         metaTable.setSpacingAfter(14f);
-        addMetaCell(metaTable, msg(lang, "exam_code") + ": " + examCode + "   |   " + msg(lang, "version") + ": " + examVersion, metaFont);
         if (attempt != null) {
+            addMetaCell(metaTable, msg(lang, "exam_code") + ": " + examCode + "   |   " + msg(lang, "version") + ": " + examVersion, metaFont);
             String displayName = attempt.getString("display_name", attempt.getString("username", ""));
             String username = attempt.getString("username", "");
             long submittedAt = attempt.containsKey("submitted_at") ? attempt.getJsonNumber("submitted_at").longValue() : System.currentTimeMillis();
@@ -611,9 +621,16 @@ public class ExamPdfExporter {
             addMetaCell(metaTable, msg(lang, "examinee") + ": " + displayName + " (" + username + ")", metaFont);
             addMetaCell(metaTable, msg(lang, "exam_time") + ": " + formattedDate, metaFont);
         } else {
-            addMetaCell(metaTable, msg(lang, "blank_paper"), metaFont);
-            addMetaCell(metaTable, msg(lang, "name_line"), metaFont);
-            addMetaCell(metaTable, msg(lang, "date_line"), metaFont);
+            String codeVerText = msg(lang, "exam_code") + ": " + examCode + "   |   " + msg(lang, "version") + ": " + examVersion;
+            PdfPCell spanCell = new PdfPCell(new Phrase(codeVerText, metaFont));
+            spanCell.setColspan(2);
+            spanCell.setBorder(Rectangle.BOX);
+            spanCell.setBorderColor(new Color(220, 225, 232));
+            spanCell.setPadding(6f);
+            spanCell.setBackgroundColor(new Color(248, 250, 252));
+            metaTable.addCell(spanCell);
+            addFillableMetaCell(metaTable, stripUnderscores(msg(lang, "name_line")), "examinee_name", metaFont, writer);
+            addFillableMetaCell(metaTable, stripUnderscores(msg(lang, "date_line")), "exam_date", metaFont, writer);
         }
         doc.add(metaTable);
 
@@ -647,28 +664,68 @@ public class ExamPdfExporter {
 
                 Set<String> selectedIds = extractSelectedIds(answersMap, qId);
 
-                if (GiftParser.TYPE_TRUE_FALSE.equals(qType)) {
-                    String tfMarkTrue = selectedIds.contains("true") ? "[■] " : "[  ] ";
-                    String tfMarkFalse = selectedIds.contains("false") ? "[■] " : "[  ] ";
-                    Paragraph pTrue = new Paragraph("    " + tfMarkTrue + msg(lang, "true_opt"), optFont);
-                    Paragraph pFalse = new Paragraph("    " + tfMarkFalse + msg(lang, "false_opt"), optFont);
-                    pFalse.setSpacingAfter(6f);
-                    doc.add(pTrue);
-                    doc.add(pFalse);
-                } else {
-                    JsonArray choices = q.getJsonArray("choices");
-                    if (choices != null) {
-                        for (int cIdx = 0; cIdx < choices.size(); cIdx++) {
-                            JsonObject choice = choices.getJsonObject(cIdx);
-                            String cId = choice.getString("id", "");
-                            String cText = choice.getString("text", "");
-                            String mark = selectedIds.contains(cId) ? "[■] " : "[  ] ";
-                            char letter = (char) ('A' + cIdx);
-                            Paragraph cPara = new Paragraph("    " + mark + letter + ". " + cText, optFont);
-                            if (cIdx == choices.size() - 1) {
-                                cPara.setSpacingAfter(6f);
+                if (isBlank) {
+                    if (GiftParser.TYPE_TRUE_FALSE.equals(qType)) {
+                        PdfFormField radioGroup = PdfFormField.createRadioButton(writer, true);
+                        radioGroup.setFieldName("q_" + qId);
+                        PdfPTable optTable = createOptionTable();
+                        addRadioOptionRow(optTable, writer, radioGroup, "true", msg(lang, "true_opt"), optFont);
+                        addRadioOptionRow(optTable, writer, radioGroup, "false", msg(lang, "false_opt"), optFont);
+                        optTable.setSpacingAfter(6f);
+                        doc.add(optTable);
+                        writer.addAnnotation(radioGroup);
+                    } else {
+                        JsonArray choices = q.getJsonArray("choices");
+                        if (choices != null && !choices.isEmpty()) {
+                            boolean isMulti = GiftParser.TYPE_MULTIPLE_CHOICE.equals(qType);
+                            PdfFormField radioGroup = isMulti ? null : PdfFormField.createRadioButton(writer, true);
+                            if (radioGroup != null) {
+                                radioGroup.setFieldName("q_" + qId);
                             }
-                            doc.add(cPara);
+                            PdfPTable optTable = createOptionTable();
+                            for (int cIdx = 0; cIdx < choices.size(); cIdx++) {
+                                JsonObject choice = choices.getJsonObject(cIdx);
+                                String cId = choice.getString("id", "c" + (cIdx + 1));
+                                String cText = choice.getString("text", "");
+                                char letter = (char) ('A' + cIdx);
+                                String label = letter + ". " + cText;
+                                if (isMulti) {
+                                    addCheckboxOptionRow(optTable, writer, "q_" + qId + "_" + cId, label, optFont);
+                                } else {
+                                    addRadioOptionRow(optTable, writer, radioGroup, cId, label, optFont);
+                                }
+                            }
+                            optTable.setSpacingAfter(6f);
+                            doc.add(optTable);
+                            if (radioGroup != null) {
+                                writer.addAnnotation(radioGroup);
+                            }
+                        }
+                    }
+                } else {
+                    if (GiftParser.TYPE_TRUE_FALSE.equals(qType)) {
+                        String tfMarkTrue = selectedIds.contains("true") ? "[■] " : "[  ] ";
+                        String tfMarkFalse = selectedIds.contains("false") ? "[■] " : "[  ] ";
+                        Paragraph pTrue = new Paragraph("    " + tfMarkTrue + msg(lang, "true_opt"), optFont);
+                        Paragraph pFalse = new Paragraph("    " + tfMarkFalse + msg(lang, "false_opt"), optFont);
+                        pFalse.setSpacingAfter(6f);
+                        doc.add(pTrue);
+                        doc.add(pFalse);
+                    } else {
+                        JsonArray choices = q.getJsonArray("choices");
+                        if (choices != null) {
+                            for (int cIdx = 0; cIdx < choices.size(); cIdx++) {
+                                JsonObject choice = choices.getJsonObject(cIdx);
+                                String cId = choice.getString("id", "");
+                                String cText = choice.getString("text", "");
+                                String mark = selectedIds.contains(cId) ? "[■] " : "[  ] ";
+                                char letter = (char) ('A' + cIdx);
+                                Paragraph cPara = new Paragraph("    " + mark + letter + ". " + cText, optFont);
+                                if (cIdx == choices.size() - 1) {
+                                    cPara.setSpacingAfter(6f);
+                                }
+                                doc.add(cPara);
+                            }
                         }
                     }
                 }
@@ -677,6 +734,165 @@ public class ExamPdfExporter {
 
         doc.close();
         return baos.toByteArray();
+    }
+
+    private static String stripUnderscores(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        return raw.replace("_", "").trim();
+    }
+
+    private static void addFillableMetaCell(PdfPTable parentTable, String label, String fieldName,
+                                            Font labelFont, PdfWriter writer) {
+        PdfPTable inner = new PdfPTable(new float[]{1.2f, 2.8f});
+        inner.setWidthPercentage(100);
+
+        PdfPCell lblCell = new PdfPCell(new Phrase(label, labelFont));
+        lblCell.setBorder(Rectangle.NO_BORDER);
+        lblCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        lblCell.setPadding(2f);
+        inner.addCell(lblCell);
+
+        PdfPCell inputCell = new PdfPCell();
+        inputCell.setBorder(Rectangle.NO_BORDER);
+        inputCell.setMinimumHeight(18f);
+        inputCell.setCellEvent(new TextFieldCellEvent(writer, fieldName));
+        inner.addCell(inputCell);
+
+        PdfPCell wrapper = new PdfPCell(inner);
+        wrapper.setBorder(Rectangle.BOX);
+        wrapper.setBorderColor(new Color(220, 225, 232));
+        wrapper.setPadding(5f);
+        wrapper.setBackgroundColor(new Color(248, 250, 252));
+        parentTable.addCell(wrapper);
+    }
+
+    private static PdfPTable createOptionTable() throws Exception {
+        PdfPTable table = new PdfPTable(new float[]{1.2f, 22f});
+        table.setWidthPercentage(96);
+        table.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        return table;
+    }
+
+    private static void addRadioOptionRow(PdfPTable table, PdfWriter writer, PdfFormField radioGroup,
+                                          String onValue, String label, Font font) {
+        PdfPCell boxCell = new PdfPCell();
+        boxCell.setBorder(Rectangle.NO_BORDER);
+        boxCell.setMinimumHeight(18f);
+        boxCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        boxCell.setCellEvent(new RadioOptionCellEvent(writer, radioGroup, onValue));
+        table.addCell(boxCell);
+
+        PdfPCell textCell = new PdfPCell(new Phrase(label, font));
+        textCell.setBorder(Rectangle.NO_BORDER);
+        textCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        textCell.setPaddingTop(2f);
+        textCell.setPaddingBottom(3f);
+        table.addCell(textCell);
+    }
+
+    private static void addCheckboxOptionRow(PdfPTable table, PdfWriter writer, String fieldName,
+                                             String label, Font font) {
+        PdfPCell boxCell = new PdfPCell();
+        boxCell.setBorder(Rectangle.NO_BORDER);
+        boxCell.setMinimumHeight(18f);
+        boxCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        boxCell.setCellEvent(new CheckboxOptionCellEvent(writer, fieldName));
+        table.addCell(boxCell);
+
+        PdfPCell textCell = new PdfPCell(new Phrase(label, font));
+        textCell.setBorder(Rectangle.NO_BORDER);
+        textCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        textCell.setPaddingTop(2f);
+        textCell.setPaddingBottom(3f);
+        table.addCell(textCell);
+    }
+
+    private static final class TextFieldCellEvent implements PdfPCellEvent {
+        private final PdfWriter writer;
+        private final String fieldName;
+
+        TextFieldCellEvent(PdfWriter writer, String fieldName) {
+            this.writer = writer;
+            this.fieldName = fieldName;
+        }
+
+        @Override
+        public void cellLayout(PdfPCell cell, Rectangle rect, PdfContentByte[] canvases) {
+            try {
+                Rectangle box = new Rectangle(rect.getLeft() + 1f, rect.getBottom() + 1f, rect.getRight() - 1f, rect.getTop() - 1f);
+                TextField tf = new TextField(writer, box, fieldName);
+                tf.setFontSize(10f);
+                tf.setTextColor(Color.BLACK);
+                tf.setBackgroundColor(Color.WHITE);
+                tf.setBorderColor(new Color(148, 163, 184));
+                tf.setBorderWidth(0.8f);
+                tf.setBorderStyle(PdfBorderDictionary.STYLE_SOLID);
+                writer.addAnnotation(tf.getTextField());
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private static final class RadioOptionCellEvent implements PdfPCellEvent {
+        private final PdfWriter writer;
+        private final PdfFormField radioGroup;
+        private final String onValue;
+
+        RadioOptionCellEvent(PdfWriter writer, PdfFormField radioGroup, String onValue) {
+            this.writer = writer;
+            this.radioGroup = radioGroup;
+            this.onValue = onValue;
+        }
+
+        @Override
+        public void cellLayout(PdfPCell cell, Rectangle rect, PdfContentByte[] canvases) {
+            try {
+                float size = 11f;
+                float cx = (rect.getLeft() + rect.getRight()) / 2f;
+                float cy = (rect.getBottom() + rect.getTop()) / 2f;
+                Rectangle box = new Rectangle(cx - size / 2f, cy - size / 2f, cx + size / 2f, cy + size / 2f);
+                RadioCheckField rcf = new RadioCheckField(writer, box, null, onValue);
+                rcf.setCheckType(RadioCheckField.TYPE_CIRCLE);
+                rcf.setChecked(false);
+                rcf.setBackgroundColor(Color.WHITE);
+                rcf.setBorderColor(new Color(100, 116, 139));
+                rcf.setBorderWidth(1f);
+                rcf.setTextColor(new Color(30, 64, 175));
+                radioGroup.addKid(rcf.getRadioField());
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private static final class CheckboxOptionCellEvent implements PdfPCellEvent {
+        private final PdfWriter writer;
+        private final String fieldName;
+
+        CheckboxOptionCellEvent(PdfWriter writer, String fieldName) {
+            this.writer = writer;
+            this.fieldName = fieldName;
+        }
+
+        @Override
+        public void cellLayout(PdfPCell cell, Rectangle rect, PdfContentByte[] canvases) {
+            try {
+                float size = 11f;
+                float cx = (rect.getLeft() + rect.getRight()) / 2f;
+                float cy = (rect.getBottom() + rect.getTop()) / 2f;
+                Rectangle box = new Rectangle(cx - size / 2f, cy - size / 2f, cx + size / 2f, cy + size / 2f);
+                RadioCheckField rcf = new RadioCheckField(writer, box, fieldName, "Yes");
+                rcf.setCheckType(RadioCheckField.TYPE_CHECK);
+                rcf.setChecked(false);
+                rcf.setBackgroundColor(Color.WHITE);
+                rcf.setBorderColor(new Color(100, 116, 139));
+                rcf.setBorderWidth(1f);
+                rcf.setTextColor(new Color(30, 64, 175));
+                writer.addAnnotation(rcf.getCheckField());
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     private static void addMetaCell(PdfPTable table, String text, Font font) {
