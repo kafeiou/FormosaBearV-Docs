@@ -30,6 +30,7 @@
   - **完整 16 國語系與專屬樣板手冊**：提供系統全部 16 國慣用語翻譯與完整架構拆解手冊（`docs-plugins/online-exam/README.md` / `README.zh-TW.md`）。
 
 ### 修復 (Fixed)
+- **可攜版打包腳本優化（`scripts/package-portable.ps1` 與 `package-portable.sh`）**：不再寫死 `jetty-home-12.1.14.zip`，改為自動以版本號排序選取 `tools/jetty/` 目錄下最新版本的 `jetty-home-*.zip`；若該目錄為空，則自動連線至 `https://jetty.org/download.html`（含 Maven Central 備援）抓取並下載最新版 Jetty 12。
 - **Maven 版本號與頁尾顯示修正 (`v3.01-SNAPSHOT`)**：將 `pom.xml`、`docs-core/pom.xml`、`docs-web-common/pom.xml` 與 `docs-web/pom.xml` 的 `<version>` 統一修正為 `3.01-SNAPSHOT`，使頁尾正確顯示 `v3.01-SNAPSHOT`。
 - **16 國語系翻譯完整性修復**：修正 `zh_CN.json`（`download`、`rename`、`yes`、`tag.created_by`、`document.edit.allow_download_help`）與 `zh_TW.json`（`yes`、`group_used_*`、`base_dn`）殘留英文之項目，補齊全部 16 國語系的外掛管理與隱藏標籤翻譯，並將 `document.view.content.html` 檔案清單模式表頭（`Filename`、`Type`、`Size`、`Version`）改為多語系變數。
 - **頁尾巴西葡萄牙語 (`pt_BR`) 顯示修復**：於 `index.html` 語系選單補上 `<span ng-switch-when="pt_BR">Português (Brasil)</span>`，解決切換後只剩倒三角形、語言名稱消失的問題。
