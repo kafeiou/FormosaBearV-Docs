@@ -8,10 +8,11 @@
 
       <table class="row table table-hover">
         <tbody>
-        <tr class="pointer" ng-repeat="group in groups | filter: searchGroup"
+        <tr class="pointer" ng-repeat="group in groups | filter: { name: searchGroup }"
             ng-click="openGroup(group)" ng-class="{ active: $stateParams.name == group.name }">
           <td class="col-xs-4">
-            {{ group.name }}
+            <div>{{ group.name }}</div>
+            <div class="small text-muted" ng-if="group.description">{{ group.description }}</div>
           </td>
         </tr>
         </tbody>

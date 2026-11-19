@@ -697,7 +697,9 @@
         "parent_group_help": "Wählen Sie eine übergeordnete Gruppe direkt aus dem Dropdown-Menü aus oder lassen Sie das Feld leer für eine Gruppe auf oberster Ebene.",
         "select_user_dropdown": "-- Konto zum Hinzufügen auswählen --",
         "add_member_hint": "Nach Benutzernamen suchen oder direkt aus dem Dropdown-Menü auswählen, um Mitglieder hinzuzufügen.",
-        "no_members": "Noch keine Mitglieder in dieser Gruppe"
+        "no_members": "Noch keine Mitglieder in dieser Gruppe",
+        "description": "Beschreibung",
+        "description_placeholder": "Optionale Beschreibung oder Alias (max. 200 Zeichen)"
       }
     },
     "account": {

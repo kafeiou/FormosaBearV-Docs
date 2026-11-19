@@ -697,7 +697,9 @@
         "parent_group_help": "直接下拉選取上層群組，若不選取則為頂層獨立群組。",
         "select_user_dropdown": "-- 直接選擇帳號加入 --",
         "add_member_hint": "您可輸入關鍵字搜尋帳號，或直接由右側下拉選單選取帳號加入群組。",
-        "no_members": "目前群組尚無成員"
+        "no_members": "目前群組尚無成員",
+        "description": "群組描述",
+        "description_placeholder": "選填，例如中文名稱或用途說明（最多 200 字）"
       }
     },
     "account": {

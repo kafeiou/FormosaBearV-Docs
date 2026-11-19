@@ -122,12 +122,24 @@ public class TestGroupResource extends BaseJerseyTest {
         groups = json.getJsonArray("groups");
         Assert.assertEquals(4, groups.size());
         
-        // Update group g12
+        // Update group g12 (including description)
         target().path("/group/g12").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .post(Entity.form(new Form()
                         .param("name", "g12new")
+                        .param("description", "資安與稽核群組")
                         .param("parent", "g11")), JsonObject.class);
+
+        // Built-in group administrators can update description when name is unchanged
+        target().path("/group/administrators").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form()
+                        .param("name", "administrators")
+                        .param("description", "最高系統管理員群組")), JsonObject.class);
+        JsonObject adminGroupJson = target().path("/group/administrators").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("最高系統管理員群組", adminGroupJson.getString("description"));
         
         // Check group1 groups with admin (only direct groups)
         json = target().path("/user/group1").request()
@@ -143,7 +155,17 @@ public class TestGroupResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .get(JsonObject.class);
         Assert.assertEquals("g12new", json.getString("name"));
+        Assert.assertEquals("資安與稽核群組", json.getString("description"));
         Assert.assertEquals("g11", json.getString("parent"));
+
+        // Verify ACL target search returns group description (and searches by group name only)
+        JsonObject aclTargets = target().path("/acl/target/search")
+                .queryParam("search", "g12new")
+                .request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, aclTargets.getJsonArray("groups").size());
+        Assert.assertEquals("資安與稽核群組", aclTargets.getJsonArray("groups").getJsonObject(0).getString("description"));
         JsonArray members = json.getJsonArray("members");
         Assert.assertEquals(1, members.size());
         Assert.assertEquals("group1", members.getString(0));

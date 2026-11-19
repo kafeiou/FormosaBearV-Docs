@@ -697,7 +697,9 @@
         "parent_group_help": "Wybierz grupę nadrzędną bezpośrednio z listy rozwijanej lub pozostaw puste dla grupy najwyższego poziomu.",
         "select_user_dropdown": "-- Wybierz konto do dodania --",
         "add_member_hint": "Wyszukaj po nazwie użytkownika lub wybierz bezpośrednio z listy rozwijanej, aby dodać członków.",
-        "no_members": "Brak członków w tej grupie"
+        "no_members": "Brak członków w tej grupie",
+        "description": "Opis",
+        "description_placeholder": "Opcjonalny opis lub alias (maks. 200 znaków)"
       }
     },
     "account": {

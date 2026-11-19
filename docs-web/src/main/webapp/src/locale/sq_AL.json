@@ -697,7 +697,9 @@
         "parent_group_help": "Zgjidhni një grup prind drejtpërdrejt nga lista rënëse, ose lëreni bosh për një grup të nivelit të lartë.",
         "select_user_dropdown": "-- Zgjidhni një llogari për ta shtuar --",
         "add_member_hint": "Kërkoni sipas emrit të përdoruesit ose zgjidhni drejtpërdrejt nga lista rënëse për të shtuar anëtarë.",
-        "no_members": "Ende nuk ka anëtarë në këtë grup"
+        "no_members": "Ende nuk ka anëtarë në këtë grup",
+        "description": "Përshkrimi",
+        "description_placeholder": "Përshkrim ose pseudonim opsional (maks. 200 karaktere)"
       }
     },
     "account": {

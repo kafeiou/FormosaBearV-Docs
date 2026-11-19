@@ -73,7 +73,9 @@ public class ExamPluginHandler implements PluginHandler {
     private static final long MAX_DEMO_SEED_FILE_BYTES = 5L * 1024L * 1024L;
 
     private static final String DEMO_TEACHERS_GROUP = "ExamTeachers";
+    private static final String DEMO_TEACHERS_GROUP_DESC = "Online Exam subject teachers (create and manage exams)";
     private static final String DEMO_STUDENTS_GROUP = "ExamStudents";
+    private static final String DEMO_STUDENTS_GROUP_DESC = "Online Exam examinees (take assigned exams)";
     private static final String DEMO_ROOT_TAG_NAME = "OnlineExamMaterials";
     private static final String DEMO_CHILD_TAG_NAME = "SecurityFundamentals";
     private static final String DEMO_DOC_TITLE = "Security Fundamentals Guide";
@@ -125,6 +127,17 @@ public class ExamPluginHandler implements PluginHandler {
         PluginDataDao dataDao = new PluginDataDao();
         PluginData seededFlag = dataDao.getByKey(PLUGIN_ID, COLLECTION_CONFIG, KEY_DEMO_SEEDED);
         if (seededFlag != null && "true".equalsIgnoreCase(seededFlag.getValue())) {
+            GroupDao groupDao = new GroupDao();
+            Group existingTeachers = groupDao.getActiveByName(DEMO_TEACHERS_GROUP);
+            if (existingTeachers != null && Strings.isNullOrEmpty(existingTeachers.getDescription())) {
+                existingTeachers.setDescription(DEMO_TEACHERS_GROUP_DESC);
+                groupDao.update(existingTeachers, actorId);
+            }
+            Group existingStudents = groupDao.getActiveByName(DEMO_STUDENTS_GROUP);
+            if (existingStudents != null && Strings.isNullOrEmpty(existingStudents.getDescription())) {
+                existingStudents.setDescription(DEMO_STUDENTS_GROUP_DESC);
+                groupDao.update(existingStudents, actorId);
+            }
             EntityManager em = ThreadLocalContext.get().getEntityManager();
             List<Document> existing = em.createQuery(
                     "select d from Document d where d.title = :title and d.deleteDate is null",
@@ -149,9 +162,14 @@ public class ExamPluginHandler implements PluginHandler {
         if (teachersGroup == null) {
             Group g = new Group();
             g.setName(DEMO_TEACHERS_GROUP);
+            g.setDescription(DEMO_TEACHERS_GROUP_DESC);
             g.setRoleId(null);
             teachersGroupId = groupDao.create(g, actorId);
         } else {
+            if (Strings.isNullOrEmpty(teachersGroup.getDescription())) {
+                teachersGroup.setDescription(DEMO_TEACHERS_GROUP_DESC);
+                groupDao.update(teachersGroup, actorId);
+            }
             teachersGroupId = teachersGroup.getId();
         }
 
@@ -160,9 +178,14 @@ public class ExamPluginHandler implements PluginHandler {
         if (studentsGroup == null) {
             Group g = new Group();
             g.setName(DEMO_STUDENTS_GROUP);
+            g.setDescription(DEMO_STUDENTS_GROUP_DESC);
             g.setRoleId(null);
             studentsGroupId = groupDao.create(g, actorId);
         } else {
+            if (Strings.isNullOrEmpty(studentsGroup.getDescription())) {
+                studentsGroup.setDescription(DEMO_STUDENTS_GROUP_DESC);
+                groupDao.update(studentsGroup, actorId);
+            }
             studentsGroupId = studentsGroup.getId();
         }
 
@@ -413,7 +436,8 @@ public class ExamPluginHandler implements PluginHandler {
             if (teacherGroupIds.contains(g.getId()) && (topAdmin || ctx.getTargetIdList().contains(g.getId()))) {
                 userTeacherGroups.add(Json.createObjectBuilder()
                         .add("id", g.getId())
-                        .add("name", g.getName()));
+                        .add("name", g.getName())
+                        .add("description", Strings.nullToEmpty(g.getDescription())));
             }
         }
 
@@ -453,6 +477,7 @@ public class ExamPluginHandler implements PluginHandler {
             groupsArr.add(Json.createObjectBuilder()
                     .add("id", g.getId())
                     .add("name", g.getName())
+                    .add("description", Strings.nullToEmpty(g.getDescription()))
                     .add("allowed", teacherGroups.contains(g.getId())));
         }
 
@@ -986,6 +1011,7 @@ public class ExamPluginHandler implements PluginHandler {
             groupsArr.add(Json.createObjectBuilder()
                     .add("id", g.getId())
                     .add("name", g.getName())
+                    .add("description", Strings.nullToEmpty(g.getDescription()))
                     .add("allowed", allowedGroups.contains(g.getId())));
         }
 

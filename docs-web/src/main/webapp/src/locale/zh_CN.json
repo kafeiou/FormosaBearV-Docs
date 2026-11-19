@@ -697,7 +697,9 @@
         "parent_group_help": "直接下拉选取上层群组，若不选取则为顶层独立群组。",
         "select_user_dropdown": "-- 直接选择账号加入 --",
         "add_member_hint": "您可输入关键字搜索账号，或直接由右侧下拉菜单选取账号加入群组。",
-        "no_members": "目前群组尚无成员"
+        "no_members": "目前群组尚无成员",
+        "description": "群组描述",
+        "description_placeholder": "选填，例如中文名称或用途说明（最多 200 字）"
       }
     },
     "account": {

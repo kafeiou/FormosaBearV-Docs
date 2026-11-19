@@ -697,7 +697,9 @@
         "parent_group_help": "Select a parent group directly from the dropdown, or leave empty for a top-level group.",
         "select_user_dropdown": "-- Select an account to add --",
         "add_member_hint": "Search by username or select directly from the dropdown to add members.",
-        "no_members": "No members in this group yet"
+        "no_members": "No members in this group yet",
+        "description": "Description",
+        "description_placeholder": "Optional description or alias (max 200 chars)"
       }
     },
     "account": {

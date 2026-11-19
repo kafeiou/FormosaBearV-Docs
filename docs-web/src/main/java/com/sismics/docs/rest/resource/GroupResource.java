@@ -68,7 +68,8 @@ public class GroupResource extends BaseResource {
      */
     @PUT
     public Response add(@FormParam("parent") String parentName,
-            @FormParam("name") String name) {
+            @FormParam("name") String name,
+            @FormParam("description") String description) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -77,6 +78,7 @@ public class GroupResource extends BaseResource {
         // Validate input
         name = ValidationUtil.validateLength(name, "name", 1, 50, false);
         ValidationUtil.validateAlphanumeric(name, "name");
+        description = ValidationUtil.validateLength(description, "description", 0, 200, true);
         
         // Avoid duplicates
         GroupDao groupDao = new GroupDao();
@@ -98,6 +100,7 @@ public class GroupResource extends BaseResource {
         // Create the group
         groupDao.create(new Group()
                 .setName(name)
+                .setDescription(description)
                 .setParentId(parentId), principal.getId());
         
         // Always return OK
@@ -129,7 +132,8 @@ public class GroupResource extends BaseResource {
     @Path("{groupName: [a-zA-Z0-9_]+}")
     public Response update(@PathParam("groupName") String groupName,
             @FormParam("parent") String parentName,
-            @FormParam("name") String name) {
+            @FormParam("name") String name,
+            @FormParam("description") String description) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -138,6 +142,7 @@ public class GroupResource extends BaseResource {
         // Validate input
         name = ValidationUtil.validateLength(name, "name", 1, 50, false);
         ValidationUtil.validateAlphanumeric(name, "name");
+        description = ValidationUtil.validateLength(description, "description", 0, 200, true);
         
         // Get the group (by its old name)
         GroupDao groupDao = new GroupDao();
@@ -178,6 +183,7 @@ public class GroupResource extends BaseResource {
         
         // Update the group
         groupDao.update(group.setName(name)
+                .setDescription(description != null ? description : group.getDescription())
                 .setParentId(parentId), principal.getId());
         
         // Always return OK
@@ -413,6 +419,7 @@ public class GroupResource extends BaseResource {
             groups.add(Json.createObjectBuilder()
             .add("name", groupDto.getName())
             .add("id", groupDto.getId())
+            .add("description", JsonUtil.nullable(groupDto.getDescription()))
             .add("parent", JsonUtil.nullable(groupDto.getParentName())));
         }
         
@@ -471,7 +478,8 @@ public class GroupResource extends BaseResource {
         
         // Build the response
         JsonObjectBuilder response = Json.createObjectBuilder()
-                .add("name", group.getName());
+                .add("name", group.getName())
+                .add("description", JsonUtil.nullable(group.getDescription()));
         
         // Get the parent
         if (group.getParentId() != null) {

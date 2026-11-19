@@ -779,9 +779,10 @@ angular.module('docs',
   }
 
   /**
-   * Global user display name map and formatting helpers.
+   * Global user display name & group description maps and formatting helpers.
    */
   $rootScope.userDisplayMap = {};
+  $rootScope.groupDescriptionMap = {};
   $rootScope.refreshUserDisplayMap = function() {
     if ($rootScope.userInfo && !$rootScope.userInfo.anonymous) {
       if ($rootScope.userInfo.username && $rootScope.userInfo.name) {
@@ -797,6 +798,24 @@ angular.module('docs',
           });
         }
         $rootScope.userDisplayMap = map;
+      });
+    }
+  };
+
+  $rootScope.refreshGroupDescriptionMap = function() {
+    if ($rootScope.userInfo && !$rootScope.userInfo.anonymous && $rootScope.userInfo.username !== 'guest') {
+      Restangular.one('group').get().then(function(data) {
+        var map = {};
+        if (data && data.groups) {
+          angular.forEach(data.groups, function(g) {
+            if (g.name && g.description) {
+              map[g.name] = g.description;
+            }
+          });
+        }
+        $rootScope.groupDescriptionMap = map;
+      }, function() {
+        $rootScope.groupDescriptionMap = {};
       });
     }
   };
@@ -828,9 +847,11 @@ angular.module('docs',
   $rootScope.$watch('userInfo', function(newVal) {
     if (newVal && !newVal.anonymous) {
       $rootScope.refreshUserDisplayMap();
+      $rootScope.refreshGroupDescriptionMap();
       $rootScope.refreshEnabledPlugins();
     } else {
       $rootScope.userDisplayMap = {};
+      $rootScope.groupDescriptionMap = {};
       $rootScope.enabledPlugins = [];
     }
   });
@@ -857,6 +878,21 @@ angular.module('docs',
     }
     var displayName = explicitName || ($rootScope.userDisplayMap && $rootScope.userDisplayMap[username]);
     return displayName ? (displayName + ' (' + username + ')') : username;
+  };
+
+  $rootScope.formatGroupFull = function(groupName, explicitDesc) {
+    if (!groupName) {
+      return '';
+    }
+    var desc = explicitDesc || ($rootScope.groupDescriptionMap && $rootScope.groupDescriptionMap[groupName]);
+    return desc ? (groupName + ' (' + desc + ')') : groupName;
+  };
+
+  $rootScope.getGroupTooltip = function(groupName, explicitDesc) {
+    if (!groupName) {
+      return '';
+    }
+    return explicitDesc || ($rootScope.groupDescriptionMap && $rootScope.groupDescriptionMap[groupName]) || '';
   };
 
   /**

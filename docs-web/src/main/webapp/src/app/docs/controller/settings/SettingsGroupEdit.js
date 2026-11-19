@@ -3,7 +3,7 @@
 /**
  * Settings group edition page controller.
  */
-angular.module('docs').controller('SettingsGroupEdit', function($scope, $dialog, $state, $stateParams, Restangular, $q, $translate) {
+angular.module('docs').controller('SettingsGroupEdit', function($scope, $rootScope, $dialog, $state, $stateParams, Restangular, $q, $translate) {
   /**
    * Returns true if in edit mode (false in add mode).
    */
@@ -59,6 +59,9 @@ angular.module('docs').controller('SettingsGroupEdit', function($scope, $dialog,
     
     promise.then(function() {
       $scope.loadGroups();
+      if ($rootScope.refreshGroupDescriptionMap) {
+        $rootScope.refreshGroupDescriptionMap();
+      }
       if ($scope.isEdit()) {
         if ($stateParams.name !== group.name) {
           $state.go('settings.group.edit', { name: group.name });
@@ -104,6 +107,9 @@ angular.module('docs').controller('SettingsGroupEdit', function($scope, $dialog,
       if (result === 'ok') {
         Restangular.one('group', $stateParams.name).remove().then(function() {
           $scope.loadGroups();
+          if ($rootScope.refreshGroupDescriptionMap) {
+            $rootScope.refreshGroupDescriptionMap();
+          }
           $state.go('settings.group');
         }, function(e) {
           if (e.data.type === 'GroupUsedInRouteModel') {

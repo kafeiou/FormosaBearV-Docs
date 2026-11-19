@@ -256,8 +256,12 @@ public class AclResource extends BaseResource {
         for (GroupDto groupDto : groupDtoList) {
             // No need to add users who will skip ACL check anyways
             if (!SecurityUtil.skipAclCheck(Lists.newArrayList(groupDto.getId()))) {
-                groups.add(Json.createObjectBuilder()
-                        .add("name", groupDto.getName()));
+                JsonObjectBuilder groupJson = Json.createObjectBuilder()
+                        .add("name", groupDto.getName());
+                if (groupDto.getDescription() != null && !groupDto.getDescription().isEmpty()) {
+                    groupJson.add("description", groupDto.getDescription());
+                }
+                groups.add(groupJson);
             }
         }
         

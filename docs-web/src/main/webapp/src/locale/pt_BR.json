@@ -697,7 +697,9 @@
         "parent_group_help": "Selecione um grupo superior diretamente na lista pendente ou deixe em branco para um grupo de nível superior.",
         "select_user_dropdown": "-- Selecione uma conta para adicionar --",
         "add_member_hint": "Pesquise por nome de usuário ou selecione diretamente na lista pendente para adicionar membros.",
-        "no_members": "Ainda não existem membros neste grupo"
+        "no_members": "Ainda não existem membros neste grupo",
+        "description": "Descrição",
+        "description_placeholder": "Descrição ou apelido opcional (máx. 200 caracteres)"
       }
     },
     "account": {

@@ -219,7 +219,7 @@
         state.teacherGroups.forEach(g => {
           const opt = document.createElement('option');
           opt.value = g.id;
-          opt.textContent = g.name;
+          opt.textContent = g.description ? `${g.name} (${g.description})` : g.name;
           groupSelect.appendChild(opt);
         });
         if (state.teacherGroups.length > 1) {
@@ -758,7 +758,10 @@
     (data.groups || []).forEach(g => {
       const label = document.createElement('label');
       label.className = 'acl-item';
-      label.innerHTML = `<input type="checkbox" ${g.allowed ? 'checked' : ''}> <span>${escapeHtml(g.name)}</span>`;
+      const groupTitle = g.description
+        ? `${escapeHtml(g.name)} <span class="subtitle">(${escapeHtml(g.description)})</span>`
+        : escapeHtml(g.name);
+      label.innerHTML = `<input type="checkbox" ${g.allowed ? 'checked' : ''}> <span>${groupTitle}</span>`;
       label.querySelector('input').addEventListener('change', e => onToggle('GROUP', g.id, e));
       groupsBox.appendChild(label);
     });

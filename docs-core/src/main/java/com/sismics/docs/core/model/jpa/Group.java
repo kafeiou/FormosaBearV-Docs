@@ -37,6 +37,12 @@ public class Group implements Loggable {
     private String name;
 
     /**
+     * Group description.
+     */
+    @Column(name = "GRP_DESCRIPTION_C", length = 200)
+    private String description;
+
+    /**
      * Role ID.
      */
     @Column(name = "GRP_IDROLE_C", length = 36)
@@ -72,6 +78,15 @@ public class Group implements Loggable {
 
     public Group setName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Group setDescription(String description) {
+        this.description = description;
         return this;
     }
 

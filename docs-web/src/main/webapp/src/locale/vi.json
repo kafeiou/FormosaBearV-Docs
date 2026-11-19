@@ -697,7 +697,9 @@
         "parent_group_help": "Chọn nhóm cha trực tiếp từ danh sách thả xuống hoặc để trống cho nhóm cấp cao nhất.",
         "select_user_dropdown": "-- Chọn tài khoản để thêm --",
         "add_member_hint": "Tìm kiếm bằng tên người dùng hoặc chọn trực tiếp từ danh sách thả xuống để thêm thành viên.",
-        "no_members": "Chưa có thành viên nào trong nhóm này"
+        "no_members": "Chưa có thành viên nào trong nhóm này",
+        "description": "Mô tả nhóm",
+        "description_placeholder": "Tùy chọn: tên hiển thị hoặc mục đích (tối đa 200 ký tự)"
       }
     },
     "account": {

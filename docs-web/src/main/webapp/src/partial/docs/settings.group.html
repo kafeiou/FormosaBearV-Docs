@@ -14,7 +14,10 @@
       <tbody>
         <tr ng-repeat="group in groups | orderBy: 'name'" ng-click="editGroup(group)"
             ng-class="{ active: $stateParams.name == group.name }">
-          <td>{{ group.name }}</td>
+          <td>
+            <div>{{ group.name }}</div>
+            <div class="small text-muted" ng-if="group.description">{{ group.description }}</div>
+          </td>
         </tr>
       </tbody>
     </table>

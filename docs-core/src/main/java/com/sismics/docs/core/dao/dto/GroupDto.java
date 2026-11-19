@@ -17,6 +17,11 @@ public class GroupDto {
     private String name;
 
     /**
+     * Description.
+     */
+    private String description;
+
+    /**
      * Parent ID.
      */
     private String parentId;
@@ -46,6 +51,15 @@ public class GroupDto {
 
     public GroupDto setName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public GroupDto setDescription(String description) {
+        this.description = description;
         return this;
     }
 

@@ -697,7 +697,9 @@
         "parent_group_help": "Seleccione un grupo padre directamente desde la lista desplegable o déjelo vacío para un grupo de nivel superior.",
         "select_user_dropdown": "-- Seleccione una cuenta para añadir --",
         "add_member_hint": "Busque por nombre de usuario o seleccione directamente desde la lista desplegable para añadir miembros.",
-        "no_members": "Aún no hay miembros en este grupo"
+        "no_members": "Aún no hay miembros en este grupo",
+        "description": "Descripción",
+        "description_placeholder": "Descripción o alias opcional (máx. 200 caracteres)"
       }
     },
     "account": {
