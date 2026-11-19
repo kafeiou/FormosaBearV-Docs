@@ -4,32 +4,57 @@ set -e
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
+APP_VERSION=$(grep -m 1 -o '<version>[^<]*</version>' "$DIR/pom.xml" | sed 's/<[^>]*>//g' | tr -d '[:space:]')
+if [ -z "$APP_VERSION" ]; then
+    echo "[ERROR] 無法從 pom.xml 讀取專案版本號！"
+    exit 1
+fi
+
 echo "=========================================================="
-echo "  FormosaBearV (v2.03) Portable Package Builder"
+echo "  FormosaBearV (v${APP_VERSION}) Portable Package Builder"
 echo "=========================================================="
 
-JETTY_ZIP="$DIR/tools/jetty/jetty-home-12.1.14.zip"
-WAR_FILE="$DIR/docs-web/target/docs-web-2.03.war"
+JETTY_DIR="$DIR/tools/jetty"
+WAR_FILE="$DIR/docs-web/target/docs-web-${APP_VERSION}.war"
 OUTPUT_DIR="$DIR/target"
-OUTPUT_ZIP="$OUTPUT_DIR/FormosaBearV-docs-2.03-portable.zip"
+OUTPUT_ZIP="$OUTPUT_DIR/FormosaBearV-docs-${APP_VERSION}-portable.zip"
 STAGING_ROOT="$OUTPUT_DIR/portable-staging"
-BUNDLE_DIR="$STAGING_ROOT/FormosaBearV-docs-2.03-portable"
+BUNDLE_DIR="$STAGING_ROOT/FormosaBearV-docs-${APP_VERSION}-portable"
 
-# 1. Base Jetty ZIP
-mkdir -p "$DIR/tools/jetty"
-if [ ! -f "$JETTY_ZIP" ]; then
-    echo "[1/5] 找不到 $JETTY_ZIP，正在從 Maven 中央倉庫下載..."
-    mvn dependency:get "-Dartifact=org.eclipse.jetty:jetty-home:12.1.14:zip" -Dtransitive=false
-    M2_ZIP="$HOME/.m2/repository/org/eclipse/jetty/jetty-home/12.1.14/jetty-home-12.1.14.zip"
-    if [ -f "$M2_ZIP" ]; then
-        cp "$M2_ZIP" "$JETTY_ZIP"
-        echo "       已成功快取基底 Jetty ZIP 至 $JETTY_ZIP"
-    else
-        echo "[ERROR] 下載 jetty-home 失敗！"
+# 1. Resolve highest-version local Jetty ZIP or download latest from jetty.org / Maven Central
+mkdir -p "$JETTY_DIR"
+JETTY_ZIP=$(find "$JETTY_DIR" -maxdepth 1 -type f -name "jetty-home-*.zip" -size +0c 2>/dev/null | sort -V | tail -n 1 || true)
+
+if [ -z "$JETTY_ZIP" ] || [ ! -f "$JETTY_ZIP" ]; then
+    echo "[1/5] $JETTY_DIR 內無現有 Jetty ZIP，正在從 https://jetty.org/download.html 查詢最新版本..."
+    LATEST_VER=$(curl -fsSL --max-time 15 "https://jetty.org/download.html" 2>/dev/null | grep -oE 'jetty-home-12\.[0-9]+\.[0-9]+\.zip' | sed -E 's/jetty-home-(.*)\.zip/\1/' | sort -V | tail -n 1 || true)
+    if [ -z "$LATEST_VER" ]; then
+        echo "       改從 Maven Central metadata 查詢最新 Jetty 12 版本..."
+        LATEST_VER=$(curl -fsSL --max-time 15 "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/maven-metadata.xml" 2>/dev/null | grep -oE '<version>12\.[0-9]+\.[0-9]+</version>' | sed -E 's/<\/?version>//g' | sort -V | tail -n 1 || true)
+    fi
+    if [ -z "$LATEST_VER" ]; then
+        echo "[ERROR] 無法從 https://jetty.org/download.html 或 Maven Central 取得最新 Jetty 12 版本號！"
         exit 1
     fi
+    JETTY_ZIP="$JETTY_DIR/jetty-home-${LATEST_VER}.zip"
+    DOWNLOAD_URL="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${LATEST_VER}/jetty-home-${LATEST_VER}.zip"
+    echo "       正在下載 jetty-home-${LATEST_VER}.zip ($DOWNLOAD_URL)..."
+    if curl -fL --retry 2 -o "$JETTY_ZIP" "$DOWNLOAD_URL"; then
+        echo "       已成功下載並快取基底 Jetty ZIP 至 $JETTY_ZIP"
+    else
+        rm -f "$JETTY_ZIP"
+        mvn dependency:get "-Dartifact=org.eclipse.jetty:jetty-home:${LATEST_VER}:zip" -Dtransitive=false
+        M2_ZIP="$HOME/.m2/repository/org/eclipse/jetty/jetty-home/${LATEST_VER}/jetty-home-${LATEST_VER}.zip"
+        if [ -f "$M2_ZIP" ]; then
+            cp "$M2_ZIP" "$JETTY_ZIP"
+            echo "       已成功快取基底 Jetty ZIP 至 $JETTY_ZIP"
+        else
+            echo "[ERROR] 下載 jetty-home-${LATEST_VER}.zip 失敗！"
+            exit 1
+        fi
+    fi
 else
-    echo "[1/5] 使用專案基底 Jetty ZIP: $JETTY_ZIP"
+    echo "[1/5] 使用最高版本基底 Jetty ZIP: $JETTY_ZIP"
 fi
 
 # 2. Check WAR
@@ -86,7 +111,7 @@ rm -f "$OUTPUT_ZIP"
 )
 
 # Also sync to unzipped directory in output directory for immediate local use
-UNZIPPED_TARGET="$OUTPUT_DIR/FormosaBearV-docs-2.03-portable"
+UNZIPPED_TARGET="$OUTPUT_DIR/FormosaBearV-docs-${APP_VERSION}-portable"
 rm -rf "$UNZIPPED_TARGET"
 mkdir -p "$UNZIPPED_TARGET"
 cp -r "$BUNDLE_DIR"/* "$UNZIPPED_TARGET"/

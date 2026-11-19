@@ -1,6 +1,6 @@
 ﻿# FormosaBearV Portable Distribution Packaging Script (PowerShell)
 param(
-    [string]$JettyZipPath = "$PSScriptRoot\..\tools\jetty\jetty-home-12.1.14.zip",
+    [string]$JettyZipPath = "",
     [string]$WarFilePath = "",
     [string]$OutputDirectory = "$PSScriptRoot\..\target",
     [string]$OutputZipName = ""
@@ -22,12 +22,6 @@ if ([string]::IsNullOrWhiteSpace($OutputZipName)) {
     $OutputZipName = "FormosaBearV-docs-$AppVersion-portable.zip"
 }
 
-$JettyZip = (Resolve-Path $JettyZipPath -ErrorAction SilentlyContinue)
-if (-not $JettyZip) {
-    $JettyZip = [System.IO.Path]::GetFullPath("$ProjectRoot\tools\jetty\jetty-home-12.1.14.zip")
-} else {
-    $JettyZip = $JettyZip.Path
-}
 $WarFile = (Resolve-Path $WarFilePath -ErrorAction SilentlyContinue)
 if (-not $WarFile) {
     $WarFile = [System.IO.Path]::GetFullPath($WarFilePath)
@@ -40,24 +34,92 @@ Write-Host "  FormosaBearV (v$AppVersion) Portable Package Builder" -ForegroundC
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Project Root: $ProjectRoot"
 
-# 1. Check or Download Base Jetty ZIP
-$JettyDir = Split-Path $JettyZip -Parent
+# 1. Resolve or Download Base Jetty ZIP
+function Get-JettySortVersion([string]$FileName) {
+    if ($FileName -match 'jetty-home-(\d+(?:\.\d+)+)\.zip$') {
+        try { return [version]$Matches[1] } catch {}
+    }
+    return [version]"0.0.0"
+}
+
+function Get-LatestJetty12VersionFromWeb {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    # Primary: parse https://jetty.org/download.html for latest jetty-home-12.x.y.zip
+    try {
+        Write-Host "       Checking latest Jetty 12 release on https://jetty.org/download.html ..." -ForegroundColor Gray
+        $html = (Invoke-WebRequest -Uri "https://jetty.org/download.html" -UseBasicParsing -TimeoutSec 15).Content
+        $versions = [regex]::Matches($html, 'jetty-home-(12\.\d+\.\d+)\.zip') |
+            ForEach-Object { [version]$_.Groups[1].Value } |
+            Sort-Object -Unique
+        if ($versions -and $versions.Count -gt 0) {
+            return ($versions | Select-Object -Last 1).ToString()
+        }
+    } catch {
+        Write-Host "       Warning: Could not query jetty.org/download.html ($($_.Exception.Message)). Falling back to Maven Central metadata..." -ForegroundColor Yellow
+    }
+
+    # Fallback: Maven Central maven-metadata.xml
+    try {
+        $metaXml = (Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/maven-metadata.xml" -UseBasicParsing -TimeoutSec 15).Content
+        $versions = ([xml]$metaXml).metadata.versioning.versions.version |
+            Where-Object { $_ -match '^12\.\d+\.\d+$' } |
+            ForEach-Object { [version]$_ } |
+            Sort-Object -Unique
+        if ($versions -and $versions.Count -gt 0) {
+            return ($versions | Select-Object -Last 1).ToString()
+        }
+    } catch {
+        Write-Host "       Warning: Could not query Maven Central metadata ($($_.Exception.Message))." -ForegroundColor Yellow
+    }
+    throw "Unable to determine latest Jetty 12 version from https://jetty.org/download.html or Maven Central."
+}
+
+$JettyDir = [System.IO.Path]::GetFullPath("$ProjectRoot\tools\jetty")
 if (-not (Test-Path $JettyDir)) {
     New-Item -ItemType Directory -Path $JettyDir -Force | Out-Null
 }
 
-if (-not (Test-Path $JettyZip)) {
-    Write-Host "[1/5] Base Jetty ZIP not found at $JettyZip. Downloading from Maven Central..." -ForegroundColor Yellow
-    & mvn dependency:get "-Dartifact=org.eclipse.jetty:jetty-home:12.1.14:zip" -Dtransitive=false
-    $M2Zip = "$env:USERPROFILE\.m2\repository\org\eclipse\jetty\jetty-home\12.1.14\jetty-home-12.1.14.zip"
-    if (Test-Path $M2Zip) {
-        Copy-Item -Path $M2Zip -Destination $JettyZip -Force
-        Write-Host "       Successfully cached Jetty ZIP to $JettyZip" -ForegroundColor Green
+$JettyZip = $null
+if (-not [string]::IsNullOrWhiteSpace($JettyZipPath)) {
+    $Resolved = Resolve-Path $JettyZipPath -ErrorAction SilentlyContinue
+    $JettyZip = if ($Resolved) { $Resolved.Path } else { [System.IO.Path]::GetFullPath($JettyZipPath) }
+} else {
+    $LocalJettyZips = Get-ChildItem -Path $JettyDir -Filter "jetty-home-*.zip" -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Length -gt 0 } |
+        Sort-Object -Property @{ Expression = { Get-JettySortVersion $_.Name } }, Name
+    if ($LocalJettyZips -and $LocalJettyZips.Count -gt 0) {
+        $JettyZip = ($LocalJettyZips | Select-Object -Last 1).FullName
+    }
+}
+
+if (-not $JettyZip -or -not (Test-Path $JettyZip)) {
+    $TargetVer = $null
+    if ($JettyZip -and ($JettyZip -match 'jetty-home-(\d+(?:\.\d+)+)\.zip$')) {
+        $TargetVer = $Matches[1]
     } else {
-        throw "Failed to acquire jetty-home-12.1.14.zip from Maven repository."
+        $TargetVer = Get-LatestJetty12VersionFromWeb
+        $JettyZip = "$JettyDir\jetty-home-$TargetVer.zip"
+    }
+
+    $DownloadUrl = "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/$TargetVer/jetty-home-$TargetVer.zip"
+    Write-Host "[1/5] No local Jetty ZIP found. Downloading jetty-home-$TargetVer.zip from $DownloadUrl ..." -ForegroundColor Yellow
+    try {
+        Invoke-WebRequest -Uri $DownloadUrl -OutFile $JettyZip -UseBasicParsing
+        Write-Host "       Successfully downloaded and cached Jetty ZIP to $JettyZip" -ForegroundColor Green
+    } catch {
+        if (Test-Path $JettyZip) { Remove-Item $JettyZip -Force -ErrorAction SilentlyContinue }
+        Write-Host "       Direct HTTP download failed, trying mvn dependency:get..." -ForegroundColor Yellow
+        & mvn dependency:get "-Dartifact=org.eclipse.jetty:jetty-home:$TargetVer:zip" -Dtransitive=false
+        $M2Zip = "$env:USERPROFILE\.m2\repository\org\eclipse\jetty\jetty-home\$TargetVer\jetty-home-$TargetVer.zip"
+        if (Test-Path $M2Zip) {
+            Copy-Item -Path $M2Zip -Destination $JettyZip -Force
+            Write-Host "       Successfully cached Jetty ZIP to $JettyZip" -ForegroundColor Green
+        } else {
+            throw "Failed to download jetty-home-$TargetVer.zip."
+        }
     }
 } else {
-    Write-Host "[1/5] Using base Jetty ZIP: $JettyZip" -ForegroundColor Green
+    Write-Host "[1/5] Using highest-version local Jetty ZIP: $JettyZip" -ForegroundColor Green
 }
 
 # 2. Check or Build docs-web WAR

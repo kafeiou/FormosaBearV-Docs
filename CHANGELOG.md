@@ -17,6 +17,7 @@ This document details the notable changes, security enhancements, architecture i
   - Parent-tag hiding cascades effectively (`effective_hidden`) to all descendant tags while preserving each tag's own `hidden` setting when the parent is unhidden.
 
 ### Fixed
+- **Portable Packaging Script (`scripts/package-portable.ps1` & `package-portable.sh`)**: Automatically selects the highest-version `jetty-home-*.zip` in `tools/jetty/` using version sorting instead of hardcoding `12.1.14`, and automatically queries `https://jetty.org/download.html` (with Maven Central metadata fallback) to download the latest Jetty 12 release if `tools/jetty/` is empty.
 - **16-Language Localization Completeness**: Fixed untranslated English strings in `zh_CN.json` (`download`, `rename`, `yes`, `tag.created_by`, `document.edit.allow_download_help`) and `zh_TW.json` (`yes`, `group_used_*`, `base_dn`), and localized the file list view table headers (`Filename`, `Type`, `Size`, `Version`) in `document.view.content.html` across all 16 languages.
 - **Footer `pt_BR` Language Label**: Added the missing `<span ng-switch-when="pt_BR">Português (Brasil)</span>` case in `index.html` so switching to Brazilian Portuguese displays its label next to the dropdown caret.
 
