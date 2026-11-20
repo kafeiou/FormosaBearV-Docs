@@ -326,7 +326,8 @@
       "no_inherited_acls": "親タグに設定された権限はありません",
       "direct_acls_title": "このタグ固有のアクセス権限",
       "restore_inheritance_title": "権限継承の復元確認",
-      "restore_inheritance_confirm": "権限継承を再開すると、このタグに設定されたカスタム権限はすべてクリアされ、親タグの権限に完全に従うようになります。元に戻しますか？"
+      "restore_inheritance_confirm": "権限継承を再開すると、このタグに設定されたカスタム権限はすべてクリアされ、親タグの権限に完全に従うようになります。元に戻しますか？",
+      "description": "説明"
     },
     "expand_files": "ファイルを展開",
     "collapse_files": "ファイルを折りたたむ",
@@ -358,7 +359,9 @@
     },
     "hidden_label": "このタグを非表示にする（通常の文書タグ一覧には表示されません）",
     "hidden_tooltip": "非表示タグ（通常の文書タグ一覧から除外）",
-    "effective_hidden_tooltip": "親タグが非表示のため連動して非表示"
+    "effective_hidden_tooltip": "親タグが非表示のため連動して非表示",
+    "description_tooltip": "説明：{{ description }}",
+    "description_placeholder": "タグの説明（任意、最大200文字）"
   },
   "group": {
     "profile": {

@@ -123,6 +123,9 @@ public class TagResource extends BaseResource {
             if (tagDto.getCreator() != null) {
                 item.add("creator", tagDto.getCreator());
             }
+            if (tagDto.getDescription() != null) {
+                item.add("description", tagDto.getDescription());
+            }
             items.add(item);
         }
         
@@ -193,6 +196,9 @@ public class TagResource extends BaseResource {
         if (tagDto.getCreateDate() != null) {
             tag.add("create_date", tagDto.getCreateDate().getTime());
         }
+        if (tagDto.getDescription() != null) {
+            tag.add("description", tagDto.getDescription());
+        }
 
         // Add the parent if its visible
         AclDao aclDao = new AclDao();
@@ -262,6 +268,7 @@ public class TagResource extends BaseResource {
     public Response add(
             @FormParam("name") String name,
             @FormParam("color") String color,
+            @FormParam("description") String description,
             @FormParam("parent") String parentId,
             @FormParam("order") Integer order,
             @FormParam("inherit_acl") Boolean inheritAcl,
@@ -274,6 +281,7 @@ public class TagResource extends BaseResource {
         name = ValidationUtil.validateLength(name, "name", 1, 36, false);
         ValidationUtil.validateHexColor(color, "color", true);
         ValidationUtil.validateTagName(name);
+        description = normalizeTagDescription(description);
 
         // Check the parent
         if (StringUtils.isEmpty(parentId)) {
@@ -290,6 +298,7 @@ public class TagResource extends BaseResource {
         Tag tag = new Tag();
         tag.setName(name);
         tag.setColor(color);
+        tag.setDescription(description);
         tag.setUserId(principal.getId());
         tag.setParentId(parentId);
         tag.setInheritAcl(inheritAcl != null ? inheritAcl : true);
@@ -352,6 +361,7 @@ public class TagResource extends BaseResource {
             @PathParam("id") String id,
             @FormParam("name") String name,
             @FormParam("color") String color,
+            @FormParam("description") String description,
             @FormParam("parent") String parentId,
             @FormParam("order") Integer order,
             @FormParam("inherit_acl") Boolean inheritAcl,
@@ -365,6 +375,10 @@ public class TagResource extends BaseResource {
         ValidationUtil.validateHexColor(color, "color", true);
         if (name != null) {
             ValidationUtil.validateTagName(name);
+        }
+        boolean hasDescriptionParam = description != null;
+        if (hasDescriptionParam) {
+            description = normalizeTagDescription(description);
         }
 
         // Check permission
@@ -406,6 +420,9 @@ public class TagResource extends BaseResource {
         }
         if (!StringUtils.isEmpty(color)) {
             tag.setColor(color);
+        }
+        if (hasDescriptionParam) {
+            tag.setDescription(description);
         }
         if (hidden != null) {
             tag.setHidden(hidden);
@@ -822,5 +839,24 @@ public class TagResource extends BaseResource {
                 .header("Content-Type", contentType)
                 .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
                 .build();
+    }
+
+    /**
+     * Normalizes a single-line tag description: replaces line breaks with spaces,
+     * trims surrounding whitespace, converts blank values to null, and enforces
+     * the 200-character limit.
+     *
+     * @param description Raw description input
+     * @return Normalized description or null
+     */
+    private static String normalizeTagDescription(String description) {
+        if (description == null) {
+            return null;
+        }
+        String normalized = description.replaceAll("[\\r\\n]+", " ").trim();
+        if (normalized.isEmpty()) {
+            return null;
+        }
+        return ValidationUtil.validateLength(normalized, "description", 1, 200, true);
     }
 }

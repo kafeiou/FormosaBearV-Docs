@@ -326,7 +326,8 @@
       "no_inherited_acls": "Aucune permission d'accès définie sur les tags ancêtres",
       "direct_acls_title": "Permissions directes pour ce tag",
       "restore_inheritance_title": "Confirmer la restauration de l'héritage des permissions",
-      "restore_inheritance_confirm": "La réactivation de l'héritage effacera toutes les permissions locales personnalisées sur ce tag et rendra le contrôle aux tags ancêtres. Êtes-vous sûr de vouloir restaurer l'héritage ?"
+      "restore_inheritance_confirm": "La réactivation de l'héritage effacera toutes les permissions locales personnalisées sur ce tag et rendra le contrôle aux tags ancêtres. Êtes-vous sûr de vouloir restaurer l'héritage ?",
+      "description": "Description"
     },
     "expand_files": "Développer les fichiers",
     "collapse_files": "Réduire les fichiers",
@@ -358,7 +359,9 @@
     },
     "hidden_label": "Masquer cette étiquette (non affichée dans la barre latérale des documents)",
     "hidden_tooltip": "Étiquette masquée (exclue de la liste standard des documents)",
-    "effective_hidden_tooltip": "Masquée automatiquement via une étiquette parente masquée"
+    "effective_hidden_tooltip": "Masquée automatiquement via une étiquette parente masquée",
+    "description_tooltip": "Description : {{ description }}",
+    "description_placeholder": "Description de l'étiquette (facultatif, 200 car. max)"
   },
   "group": {
     "profile": {

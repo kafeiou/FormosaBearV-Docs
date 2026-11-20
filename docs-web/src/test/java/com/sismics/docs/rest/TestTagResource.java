@@ -863,4 +863,87 @@ public class TestTagResource extends BaseJerseyTest {
                 .get(JsonObject.class);
         Assert.assertEquals(3, afterToggle.getJsonArray("tags").size());
     }
+
+    /**
+     * Test tag description create, normalize, validation, document response, update and clear.
+     */
+    @Test
+    public void testTagDescription() {
+        clientUtil.createUser("tag_desc_user");
+        String userToken = clientUtil.login("tag_desc_user");
+
+        // Reject description longer than 200 characters
+        String tooLong = new String(new char[201]).replace('\0', 'a');
+        Response tooLongRes = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("name", "TooLongDesc")
+                        .param("color", "#3a87ad")
+                        .param("description", tooLong)));
+        Assert.assertEquals(Status.BAD_REQUEST, Status.fromStatusCode(tooLongRes.getStatus()));
+
+        // Create tag with description containing line breaks & surrounding spaces -> normalized single-line
+        JsonObject created = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("name", "DescTag")
+                        .param("color", "#3a87ad")
+                        .param("description", "  Line 1\r\nLine 2  ")), JsonObject.class);
+        String tagId = created.getString("id");
+
+        // GET /tag/{id} returns normalized description
+        JsonObject tagDetail = target().path("/tag/" + tagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("Line 1 Line 2", tagDetail.getString("description"));
+
+        // GET /tag/list returns description
+        JsonObject tagList = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("Line 1 Line 2", tagList.getJsonArray("tags").getJsonObject(0).getString("description"));
+
+        // Document tag payload also includes description for tooltip display
+        JsonObject docCreated = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Doc With Described Tag")
+                        .param("language", "eng")
+                        .param("tags", tagId)), JsonObject.class);
+        JsonObject docDetail = target().path("/document/" + docCreated.getString("id")).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("Line 1 Line 2", docDetail.getJsonArray("tags").getJsonObject(0).getString("description"));
+
+        // POST /tag/{id} omitting description preserves existing description
+        target().path("/tag/" + tagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form()
+                        .param("name", "DescTag")
+                        .param("color", "#123456")), JsonObject.class);
+        tagDetail = target().path("/tag/" + tagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("Line 1 Line 2", tagDetail.getString("description"));
+
+        // POST /tag/{id} with new description updates it
+        target().path("/tag/" + tagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form()
+                        .param("description", "Updated description")), JsonObject.class);
+        tagDetail = target().path("/tag/" + tagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("Updated description", tagDetail.getString("description"));
+
+        // POST /tag/{id} with empty description clears it
+        target().path("/tag/" + tagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form()
+                        .param("description", "   ")), JsonObject.class);
+        tagDetail = target().path("/tag/" + tagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertFalse(tagDetail.containsKey("description"));
+    }
 }

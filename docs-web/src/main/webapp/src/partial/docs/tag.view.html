@@ -17,6 +17,11 @@
     </div>
   </div>
 
+  <!-- Tag description -->
+  <div class="tag-view-description" ng-if="tag && tag.description">
+    <span class="fas fa-info-circle text-muted mr-5"></span>{{ tag.description }}
+  </div>
+
   <!-- Child tags quick navigation -->
   <div class="mb-10" ng-if="getChildrenTags(tag.id).length > 0">
     <span class="text-muted small">{{ 'tag.browse.subtags' | translate }}：</span>

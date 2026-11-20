@@ -17,6 +17,11 @@ public class TagDto {
      * Name.
      */
     private String name;
+
+    /**
+     * Description.
+     */
+    private String description;
     
     /**
      * Color.
@@ -78,6 +83,15 @@ public class TagDto {
 
     public TagDto setName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public TagDto setDescription(String description) {
+        this.description = description;
         return this;
     }
 

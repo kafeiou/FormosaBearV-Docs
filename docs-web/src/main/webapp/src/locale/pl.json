@@ -326,7 +326,8 @@
       "no_inherited_acls": "Brak uprawnień dostępu zdefiniowanych na etykietach nadrzędnych",
       "direct_acls_title": "Bezpośrednie uprawnienia dla tej etykiety",
       "restore_inheritance_title": "Potwierdź przywrócenie dziedziczenia uprawnień",
-      "restore_inheritance_confirm": "Ponowne włączenie dziedziczenia usunie wszystkie lokalne uprawnienia niestandardowe dla tej etykiety i przywróci kontrolę etykietom nadrzędnym. Czy na pewno chcesz przywrócić dziedziczenie?"
+      "restore_inheritance_confirm": "Ponowne włączenie dziedziczenia usunie wszystkie lokalne uprawnienia niestandardowe dla tej etykiety i przywróci kontrolę etykietom nadrzędnym. Czy na pewno chcesz przywrócić dziedziczenie?",
+      "description": "Opis"
     },
     "expand_files": "Rozwiń pliki",
     "collapse_files": "Zwiń pliki",
@@ -358,7 +359,9 @@
     },
     "hidden_label": "Ukryj ten tag (niewidoczny na zwykłym pasku tagów dokumentów)",
     "hidden_tooltip": "Ukryty tag (wykluczony ze zwykłej listy tagów dokumentów)",
-    "effective_hidden_tooltip": "Ukryty automatycznie przez ukryty tag nadrzędny"
+    "effective_hidden_tooltip": "Ukryty automatycznie przez ukryty tag nadrzędny",
+    "description_tooltip": "Opis: {{ description }}",
+    "description_placeholder": "Opis etykiety (opcjonalnie, maks. 200 znaków)"
   },
   "group": {
     "profile": {

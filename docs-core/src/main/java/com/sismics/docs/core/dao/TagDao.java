@@ -201,6 +201,7 @@ public class TagDao {
         }
         tagDb.setName(tag.getName());
         tagDb.setColor(tag.getColor());
+        tagDb.setDescription(tag.getDescription());
         tagDb.setParentId(tag.getParentId());
         tagDb.setOrder(tag.getOrder());
         tagDb.setInheritAcl(tag.isInheritAcl());
@@ -361,7 +362,7 @@ public class TagDao {
         Map<String, Object> parameterMap = new HashMap<>();
         List<String> criteriaList = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4, t.TAG_ORDER_N as c5, t.TAG_CREATEDATE_D as c6, t.TAG_INHERIT_ACL_B as c7, t.TAG_HIDDEN_B as c8, coalesce(t.TAG_ORDER_N, 999999999) as c9 ");
+        StringBuilder sb = new StringBuilder("select distinct t.TAG_ID_C as c0, t.TAG_NAME_C as c1, t.TAG_COLOR_C as c2, t.TAG_IDPARENT_C as c3, u.USE_USERNAME_C as c4, t.TAG_ORDER_N as c5, t.TAG_CREATEDATE_D as c6, t.TAG_INHERIT_ACL_B as c7, t.TAG_HIDDEN_B as c8, t.TAG_DESCRIPTION_C as c9, coalesce(t.TAG_ORDER_N, 999999999) as c10 ");
         sb.append(" from T_TAG t ");
         sb.append(" join T_USER u on t.TAG_IDUSER_C = u.USE_ID_C ");
 
@@ -422,6 +423,8 @@ public class TagDao {
             tagDto.setInheritAcl(o[i] == null ? true : (Boolean) o[i]);
             i++;
             tagDto.setHidden(o[i] != null && (Boolean) o[i]);
+            i++;
+            tagDto.setDescription((String) o[i]);
             boolean effHidden = tagDto.isHidden() || effectiveHiddenIds.contains(tagDto.getId());
             tagDto.setEffectiveHidden(effHidden);
             if (criteria.getHidden() != null && criteria.getHidden().booleanValue() != effHidden) {

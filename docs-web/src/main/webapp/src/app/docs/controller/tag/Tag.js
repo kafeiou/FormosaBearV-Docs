@@ -4,7 +4,7 @@
  * Tag controller.
  */
 angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, $location, Restangular, User, $uibModal) {
-  $scope.tag = { name: '', color: '#3a87ad', parent: '', hidden: false };
+  $scope.tag = { name: '', color: '#3a87ad', description: '', parent: '', hidden: false };
   $scope.expandedTags = {};
 
   /**
@@ -153,9 +153,12 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
     if (!tagData.parent) {
       delete tagData.parent;
     }
+    if (!tagData.description) {
+      delete tagData.description;
+    }
     Restangular.one('tag').put(tagData).then(function() {
       $scope.loadTags();
-      $scope.tag = { name: '', color: '#3a87ad', parent: '', hidden: false };
+      $scope.tag = { name: '', color: '#3a87ad', description: '', parent: '', hidden: false };
       $scope.parentSelector.open = false;
       $scope.parentSelector.search = '';
     });

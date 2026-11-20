@@ -6,18 +6,17 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
-## [Unreleased]
-
-### Added
-- **Portable Demo Auto-Reset Scripts (`scripts/templates/demo.bat` & `demo.sh`)**: Added `demo.bat [port] [hours]` and `demo.sh [port] [hours]` alongside `start.bat` / `start.sh` to automatically stop Jetty, delete `data/`, restore from `data.bak/`, and restart every 24 hours (starts normally with an English warning if `data.bak` is not yet present).
-
----
-
 ## [v3.01] - 2026-11-20
 
 > **Baseline**: `v2.09` (`v2` branch) ➜ `v3.01` (`master`)
 
 ### Added
+- **Tag Description (`T_TAG.TAG_DESCRIPTION_C`, DB v47)**:
+  - Added optional 200-character single-line `description` column to `T_TAG` (`dbupdate-047-0.sql`) with server-side line-break normalization, trim, and explicit clear support on `PUT /api/tag` and `POST /api/tag/{id}` (also exposed in `GET /api/tag/list`, `GET /api/tag/{id}`, and document tag payloads).
+  - Updated global `$rootScope.getTagTooltip(tag)` and `.tooltip-inner` (`white-space: pre-line; text-align: left`) so hovering over any tag across the app displays two lines: Creator + Description (omitting the second line when empty).
+  - Added single-line description inputs in Tag Management (`tag.admin.html`) and Tag Edit (`tag.edit.html` with `0 / 200` counter), displayed tag description below the header in Tag Browse (`tag.view.html`), updated all 16 locales, and added integration tests in `TestTagResource`.
+- **Portable Demo Auto-Reset Scripts (`scripts/templates/demo.bat` & `demo.sh`)**:
+  - Added `demo.bat [port] [hours]` and `demo.sh [port] [hours]` alongside `start.bat` / `start.sh` to automatically stop Jetty, delete `data/`, restore from `data.bak/`, and restart every 24 hours (starts normally with an English warning if `data.bak` is not yet present).
 - **Runtime Software Bill of Materials (SBOM, Admin-Only)**:
   - Added dedicated **Settings → Software Composition (SBOM)** (`#/settings/sbom`) page and admin-only REST endpoints (`GET /api/app/sbom` and `GET /api/app/sbom/export?format=cyclonedx|csv`).
   - Dynamically collects in-process runtime environment (application version, OS, Java/JVM, Servlet container/Jetty, database engine & JDBC driver, OCR engine config), installed plugins (`PluginDao`), deployed backend Java JARs (`WEB-INF/lib/*.jar`), and build-time frontend libraries (`dist/sbom-frontend.json` via Grunt `sbomFrontend` task) with zero external CLI subprocess calls.

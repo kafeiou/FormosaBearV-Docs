@@ -29,6 +29,12 @@ public class Tag implements Loggable {
      */
     @Column(name = "TAG_NAME_C", nullable = false, length = 36)
     private String name;
+
+    /**
+     * Tag description.
+     */
+    @Column(name = "TAG_DESCRIPTION_C", length = 200)
+    private String description;
     
     /**
      * User ID.
@@ -96,6 +102,14 @@ public class Tag implements Loggable {
 
     public String getName() {
         return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public void setName(String name) {

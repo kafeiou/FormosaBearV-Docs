@@ -13,6 +13,7 @@ angular.module('docs').controller('TagEdit', function($scope, $stateParams, Rest
   function loadTagDetails() {
     return Restangular.one('tag', $stateParams.id).get().then(function(data) {
       $scope.tag = data;
+      $scope.tag.description = data.description || '';
       originalInheritAcl = data.inherit_acl;
 
       // Replace the tag from the list with this reference
@@ -51,6 +52,10 @@ angular.module('docs').controller('TagEdit', function($scope, $stateParams, Rest
    * Update a tag.
    */
   $scope.edit = function() {
+    // Ensure cleared description is explicitly sent as empty string
+    if ($scope.tag.description === undefined || $scope.tag.description === null) {
+      $scope.tag.description = '';
+    }
     // Update the server
     Restangular.one('tag', $scope.tag.id).post('', $scope.tag).then(function () {
       $scope.loadTags();

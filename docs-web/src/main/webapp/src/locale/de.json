@@ -326,7 +326,8 @@
       "no_inherited_acls": "Keine Zugriffsberechtigungen auf übergeordneten Tags definiert",
       "direct_acls_title": "Direkte Berechtigungen für diesen Tag",
       "restore_inheritance_title": "Wiederherstellung der Berechtigungsvererbung bestätigen",
-      "restore_inheritance_confirm": "Durch das erneute Aktivieren der Vererbung werden alle lokalen benutzerdefinierten Berechtigungen dieses Tags gelöscht und die Kontrolle wieder an übergeordnete Tags zurückgegeben. Möchten Sie die Vererbung wirklich wiederherstellen?"
+      "restore_inheritance_confirm": "Durch das erneute Aktivieren der Vererbung werden alle lokalen benutzerdefinierten Berechtigungen dieses Tags gelöscht und die Kontrolle wieder an übergeordnete Tags zurückgegeben. Möchten Sie die Vererbung wirklich wiederherstellen?",
+      "description": "Beschreibung"
     },
     "expand_files": "Dateien aufklappen",
     "collapse_files": "Dateien zuklappen",
@@ -358,7 +359,9 @@
     },
     "hidden_label": "Dieses Schlagwort ausblenden (nicht in der regulären Dokument-Schlagwortleiste anzeigen)",
     "hidden_tooltip": "Ausgeblendetes Schlagwort (nicht in der regulären Dokumentliste)",
-    "effective_hidden_tooltip": "Durch ein ausgeblendetes übergeordnetes Schlagwort ebenfalls ausgeblendet"
+    "effective_hidden_tooltip": "Durch ein ausgeblendetes übergeordnetes Schlagwort ebenfalls ausgeblendet",
+    "description_tooltip": "Beschreibung: {{ description }}",
+    "description_placeholder": "Schlagwort-Beschreibung (optional, max. 200 Zeichen)"
   },
   "group": {
     "profile": {

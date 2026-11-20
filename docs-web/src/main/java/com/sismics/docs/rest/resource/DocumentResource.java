@@ -1215,6 +1215,9 @@ public class DocumentResource extends BaseResource {
             if (tagDto.getCreator() != null) {
                 b.add("creator", tagDto.getCreator());
             }
+            if (tagDto.getDescription() != null) {
+                b.add("description", tagDto.getDescription());
+            }
             if (tagDto.getParentId() != null) {
                 b.add("parent", tagDto.getParentId());
             }

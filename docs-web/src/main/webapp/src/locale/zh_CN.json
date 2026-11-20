@@ -326,7 +326,8 @@
       "no_inherited_acls": "上层标签尚无设定任何特定访问权限",
       "direct_acls_title": "本标签专属权限",
       "restore_inheritance_title": "确认恢复权限继承",
-      "restore_inheritance_confirm": "重新启用继承将会清除本层目前的所有自定义权限，改由上层标签完全接管。是否确定要恢复继承？"
+      "restore_inheritance_confirm": "重新启用继承将会清除本层目前的所有自定义权限，改由上层标签完全接管。是否确定要恢复继承？",
+      "description": "说明"
     },
     "expand_files": "展开文件",
     "collapse_files": "收起文件",
@@ -358,7 +359,9 @@
     },
     "hidden_label": "隐藏此标签（不显示于常规文档标签区）",
     "hidden_tooltip": "隐藏标签（不显示于常规文档标签区）",
-    "effective_hidden_tooltip": "受上级隐藏标签影响，当前已连带隐藏"
+    "effective_hidden_tooltip": "受上级隐藏标签影响，当前已连带隐藏",
+    "description_tooltip": "说明：{{ description }}",
+    "description_placeholder": "标签说明（选填，最多 200 字）"
   },
   "group": {
     "profile": {

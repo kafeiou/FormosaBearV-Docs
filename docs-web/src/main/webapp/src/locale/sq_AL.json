@@ -326,7 +326,8 @@
       "no_inherited_acls": "Asnjë leje qasjeje e përcaktuar në etiketat paraardhëse",
       "direct_acls_title": "Lejet e drejtpërdrejta për këtë etiketë",
       "restore_inheritance_title": "Konfirmo rivendosjen e trashëgimisë së lejeve",
-      "restore_inheritance_confirm": "Riaktivizimi i trashëgimisë do të pastrojë të gjitha lejet lokale të personalizuara në këtë etiketë dhe do t'ia kthejë kontrollin etiketave paraardhëse. Jeni të sigurt që dëshironi të rivendosni trashëgiminë?"
+      "restore_inheritance_confirm": "Riaktivizimi i trashëgimisë do të pastrojë të gjitha lejet lokale të personalizuara në këtë etiketë dhe do t'ia kthejë kontrollin etiketave paraardhëse. Jeni të sigurt që dëshironi të rivendosni trashëgiminë?",
+      "description": "Përshkrimi"
     },
     "expand_files": "Zgjero skedarët",
     "collapse_files": "Palos skedarët",
@@ -358,7 +359,9 @@
     },
     "hidden_label": "Fshihe këtë etiketë (nuk shfaqet te lista e zakonshme e etiketave të dokumenteve)",
     "hidden_tooltip": "Etiketë e fshehur (e përjashtuar nga lista e zakonshme e dokumenteve)",
-    "effective_hidden_tooltip": "Fshehur automatikisht nga një etiketë prindërore e fshehur"
+    "effective_hidden_tooltip": "Fshehur automatikisht nga një etiketë prindërore e fshehur",
+    "description_tooltip": "Përshkrimi: {{ description }}",
+    "description_placeholder": "Përshkrimi i etiketës (opsional, maks. 200 karaktere)"
   },
   "group": {
     "profile": {

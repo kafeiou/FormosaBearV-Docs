@@ -6,18 +6,17 @@
 
 ---
 
-## [未發布 (Unreleased)]
-
-### 新增功能 (Added)
-- **可攜版 Demo 定時重置腳本（`scripts/templates/demo.bat` 與 `demo.sh`）**：於 `start.bat` / `start.sh` 同目錄新增 `demo.bat [port] [hours]` 與 `demo.sh [port] [hours]`，支援每 24 小時自動優雅停機、刪除 `data`、從 `data.bak` 還原並重啟（若尚未建立 `data.bak`，則輸出英文提示並正常啟動不重置）。
-
----
-
 ## [v3.01] - 2026-11-20
 
 > **基準點**: `v2.09`（`v2` 分支）➜ `v3.01`（`master` 正式版）
 
 ### 新增功能 (Added)
+- **標籤說明（`T_TAG.TAG_DESCRIPTION_C`，DB v47）**：
+  - `T_TAG` 新增選填單行欄位 `TAG_DESCRIPTION_C VARCHAR(200)`（`dbupdate-047-0.sql`），於 `PUT /api/tag` 與 `POST /api/tag/{id}` 支援換行正規化、去除前後空白與空字串清空（`GET /api/tag/list`、`GET /api/tag/{id}` 與文件標籤欄位皆同步回傳）。
+  - 更新全域 `$rootScope.getTagTooltip(tag)` 與 `.tooltip-inner`（`white-space: pre-line; text-align: left`），滑鼠移至全站任一標籤時兩行靠左顯示「建立者」與「說明」（無說明時僅顯示建立者）。
+  - 於標籤管理新增區（`tag.admin.html`）與標籤編輯頁（`tag.edit.html`，含 `0 / 200` 字數提示）新增單行輸入框、於標籤瀏覽頁（`tag.view.html`）標題下方直接顯示說明，同步補齊 16 國語系與 `TestTagResource` 整合測試。
+- **可攜版 Demo 定時重置腳本（`scripts/templates/demo.bat` 與 `demo.sh`）**：
+  - 於 `start.bat` / `start.sh` 同目錄新增 `demo.bat [port] [hours]` 與 `demo.sh [port] [hours]`，支援每 24 小時自動優雅停機、刪除 `data`、從 `data.bak` 還原並重啟（若尚未建立 `data.bak`，則輸出英文提示並正常啟動不重置）。
 - **執行期軟體組成清單（SBOM，限管理員存取）**：
   - 新增獨立「**設定 → 軟體組成 (SBOM)**」（`#/settings/sbom`）頁籤與管理員專屬端點（`GET /api/app/sbom`、`GET /api/app/sbom/export?format=cyclonedx|csv`）。
   - 全程於行程內動態盤點（不呼叫外部 CLI 子行程）：執行環境與伺服器（系統版本、OS、Java/JVM、Servlet 容器 / Jetty、資料庫引擎與 JDBC Driver、OCR 引擎設定）、已安裝外掛（`PluginDao`）、實際載入的後端 Java 套件（`WEB-INF/lib/*.jar`）與建置期掃描的前端函式庫（`dist/sbom-frontend.json`）。

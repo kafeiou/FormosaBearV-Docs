@@ -75,6 +75,11 @@
             </div>
             <span class="text-danger small" ng-show="tagForm.name.$error.space && tagForm.$dirty">{{ 'validation.no_space' | translate }}</span>
           </div>
+          <div class="col-xs-12 mb-10" ng-class="{ 'has-error': !tagForm.description.$valid && tagForm.$dirty }">
+            <input type="text" name="description" class="form-control input-sm"
+                   ng-attr-placeholder="{{ 'tag.description_placeholder' | translate }}"
+                   ng-maxlength="200" maxlength="200" ng-model="tag.description">
+          </div>
           <div class="col-xs-12 mb-10">
             <div class="dropdown" uib-dropdown is-open="parentSelector.open" auto-close="outsideClick">
               <button type="button" class="btn btn-default btn-sm btn-block text-left clearfix" uib-dropdown-toggle style="text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">

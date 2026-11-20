@@ -326,7 +326,8 @@
       "no_inherited_acls": "Nenhuma permissão de acesso definida nas etiquetas antecessoras",
       "direct_acls_title": "Permissões diretas para esta etiqueta",
       "restore_inheritance_title": "Confirmar restauro da herança de permissões",
-      "restore_inheritance_confirm": "Reativar a herança irá limpar todas as permissões locais personalizadas nesta etiqueta e devolver o controlo às etiquetas antecessoras. Tem a certeza de que pretende restaurar a herança?"
+      "restore_inheritance_confirm": "Reativar a herança irá limpar todas as permissões locais personalizadas nesta etiqueta e devolver o controlo às etiquetas antecessoras. Tem a certeza de que pretende restaurar a herança?",
+      "description": "Descrição"
     },
     "expand_files": "Expandir ficheiros",
     "collapse_files": "Recolher ficheiros",
@@ -358,7 +359,9 @@
     },
     "hidden_label": "Ocultar esta etiqueta (não é apresentada na barra habitual de documentos)",
     "hidden_tooltip": "Etiqueta oculta (excluída da lista habitual de documentos)",
-    "effective_hidden_tooltip": "Ocultada automaticamente por uma etiqueta superior oculta"
+    "effective_hidden_tooltip": "Ocultada automaticamente por uma etiqueta superior oculta",
+    "description_tooltip": "Descrição: {{ description }}",
+    "description_placeholder": "Descrição da etiqueta (opcional, máx. 200 caracteres)"
   },
   "group": {
     "profile": {

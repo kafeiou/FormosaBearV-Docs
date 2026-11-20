@@ -326,7 +326,8 @@
       "no_inherited_acls": "No access permissions defined on ancestor tags",
       "direct_acls_title": "Direct Permissions for This Tag",
       "restore_inheritance_title": "Confirm Restoring Permission Inheritance",
-      "restore_inheritance_confirm": "Re-enabling inheritance will clear all local custom permissions on this tag and revert control to ancestor tags. Are you sure you want to restore inheritance?"
+      "restore_inheritance_confirm": "Re-enabling inheritance will clear all local custom permissions on this tag and revert control to ancestor tags. Are you sure you want to restore inheritance?",
+      "description": "Description"
     },
     "expand_files": "Expand files",
     "collapse_files": "Collapse files",
@@ -358,7 +359,9 @@
     },
     "hidden_label": "Hide this tag (not shown in regular document tag sidebar)",
     "hidden_tooltip": "Hidden tag (excluded from regular document tag list)",
-    "effective_hidden_tooltip": "Hidden via an ancestor hidden tag"
+    "effective_hidden_tooltip": "Hidden via an ancestor hidden tag",
+    "description_tooltip": "Description: {{ description }}",
+    "description_placeholder": "Tag description (optional, max 200 chars)"
   },
   "group": {
     "profile": {

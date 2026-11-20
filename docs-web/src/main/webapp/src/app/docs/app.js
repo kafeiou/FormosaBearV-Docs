@@ -908,11 +908,18 @@ angular.module('docs',
    * Global tag tooltip helper.
    */
   $rootScope.getTagTooltip = function(tag) {
-    if (!tag || !tag.creator) {
+    if (!tag) {
       return '';
     }
-    var creatorLabel = $rootScope.formatUserFull(tag.creator);
-    return $translate.instant('tag.created_by', { creator: creatorLabel });
+    var lines = [];
+    if (tag.creator) {
+      var creatorLabel = $rootScope.formatUserFull(tag.creator);
+      lines.push($translate.instant('tag.created_by', { creator: creatorLabel }));
+    }
+    if (tag.description && tag.description.trim()) {
+      lines.push($translate.instant('tag.description_tooltip', { description: tag.description.trim() }));
+    }
+    return lines.join('\n');
   };
 
   /**

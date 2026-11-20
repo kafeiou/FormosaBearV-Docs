@@ -326,7 +326,8 @@
       "no_inherited_acls": "Không có quyền truy cập nào được xác định trên các thẻ tổ tiên",
       "direct_acls_title": "Quyền trực tiếp cho thẻ này",
       "restore_inheritance_title": "Xác nhận khôi phục kế thừa quyền",
-      "restore_inheritance_confirm": "Việc bật lại tính năng kế thừa sẽ xóa tất cả các quyền tùy chỉnh cục bộ trên thẻ này và hoàn trả quyền kiểm soát cho các thẻ tổ tiên. Bạn có chắc chắn muốn khôi phục kế thừa?"
+      "restore_inheritance_confirm": "Việc bật lại tính năng kế thừa sẽ xóa tất cả các quyền tùy chỉnh cục bộ trên thẻ này và hoàn trả quyền kiểm soát cho các thẻ tổ tiên. Bạn có chắc chắn muốn khôi phục kế thừa?",
+      "description": "Mô tả"
     },
     "expand_files": "Mở rộng tập tin",
     "collapse_files": "Thu gọn tập tin",
@@ -358,7 +359,9 @@
     },
     "hidden_label": "Ẩn thẻ này (không hiển thị ở thanh thẻ tài liệu thông thường)",
     "hidden_tooltip": "Thẻ ẩn (không hiển thị trong danh sách thẻ tài liệu)",
-    "effective_hidden_tooltip": "Đang bị ẩn theo thẻ cha đang ẩn"
+    "effective_hidden_tooltip": "Đang bị ẩn theo thẻ cha đang ẩn",
+    "description_tooltip": "Mô tả: {{ description }}",
+    "description_placeholder": "Mô tả thẻ (tùy chọn, tối đa 200 ký tự)"
   },
   "group": {
     "profile": {
