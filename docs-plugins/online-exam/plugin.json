@@ -31,7 +31,8 @@
       "role": "MANAGEMENT",
       "name": "Online Exam Admin",
       "color": "#8b5cf6",
-      "hidden": true
+      "hidden": true,
+      "description": "Exam managers (teachers)"
     }
   ]
 }

@@ -101,7 +101,8 @@ my-plugin/
       "role": "MANAGEMENT",
       "name": "Online Exam Admin",
       "color": "#8b5cf6",
-      "hidden": true
+      "hidden": true,
+      "description": "Exam managers (teachers)"
     }
   ]
 }
@@ -118,7 +119,7 @@ my-plugin/
 | `nav_icon` | 否 | FontAwesome 圖示類別（例如 `fas fa-graduation-cap`）。 |
 | `default_locale` | 否 | 預設語系代碼（預設 `en`）。 |
 | `handler` | 否 | 對應 `PluginService` 註冊之 `PluginHandler` ID。 |
-| `protected_tags` | 否 | 安裝時自動建立並鎖定於 `T_PLUGIN_TAG` 的保護標籤清單。 |
+| `protected_tags` | 否 | 安裝時自動建立並鎖定於 `T_PLUGIN_TAG` 的保護標籤清單（支援 `role`、`name`、`color`、`hidden` 與選填單行 `description`，上限 200 字；升級時若管理員已自訂說明不會被覆蓋，且管理員仍可於 `#/tagadmin/{id}` 修改說明與顏色）。 |
 
 ---
 

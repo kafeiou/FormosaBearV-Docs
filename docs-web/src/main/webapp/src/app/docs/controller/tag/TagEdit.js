@@ -52,12 +52,17 @@ angular.module('docs').controller('TagEdit', function($scope, $stateParams, Rest
    * Update a tag.
    */
   $scope.edit = function() {
+    var payload = angular.copy($scope.tag);
     // Ensure cleared description is explicitly sent as empty string
-    if ($scope.tag.description === undefined || $scope.tag.description === null) {
-      $scope.tag.description = '';
+    if (payload.description === undefined || payload.description === null) {
+      payload.description = '';
+    }
+    if (payload.plugin_protected) {
+      delete payload.name;
+      delete payload.hidden;
     }
     // Update the server
-    Restangular.one('tag', $scope.tag.id).post('', $scope.tag).then(function () {
+    Restangular.one('tag', $scope.tag.id).post('', payload).then(function () {
       $scope.loadTags();
       loadTagDetails();
     }, function (e) {

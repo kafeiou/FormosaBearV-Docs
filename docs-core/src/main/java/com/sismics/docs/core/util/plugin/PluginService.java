@@ -85,6 +85,7 @@ public class PluginService {
                 Tag newTag = new Tag();
                 newTag.setName(spec.getName());
                 newTag.setColor(spec.getColor());
+                newTag.setDescription(spec.getDescription());
                 newTag.setUserId(installerUserId);
                 newTag.setInheritAcl(true);
                 newTag.setHidden(spec.isHidden());
@@ -106,9 +107,20 @@ public class PluginService {
             } else {
                 tagId = existingTag.getId();
                 Tag tagEntity = tagDao.getById(tagId);
-                if (tagEntity != null && tagEntity.isHidden() != spec.isHidden()) {
-                    tagEntity.setHidden(spec.isHidden());
-                    tagDao.update(tagEntity, installerUserId);
+                if (tagEntity != null) {
+                    boolean changed = false;
+                    if (tagEntity.isHidden() != spec.isHidden()) {
+                        tagEntity.setHidden(spec.isHidden());
+                        changed = true;
+                    }
+                    if (spec.getDescription() != null
+                            && (tagEntity.getDescription() == null || tagEntity.getDescription().trim().isEmpty())) {
+                        tagEntity.setDescription(spec.getDescription());
+                        changed = true;
+                    }
+                    if (changed) {
+                        tagDao.update(tagEntity, installerUserId);
+                    }
                 }
             }
             PluginTag pt = new PluginTag();

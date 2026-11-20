@@ -141,7 +141,8 @@ ThreadLocalContext.get().addAsyncEvent(event);
 ### 鐵律 5：自動建立標籤 (`Tag`) 時，名稱嚴禁包含「空白」或「冒號」；自動建立群組 (`Group`) 時，`roleId` 必須為 `null`！
 - **原因**：
   1. 主系統 `ValidationUtil.validateTagName(name)` 禁止標籤含空白或 `:`（為了讓搜尋語法 `tag:TagName` 正常運作）。請使用駝峰式英文名，例如 `OnlineExamMaterials`、`SecurityFundamentals`。（唯一例外是 `plugin.json` 的隱藏系統標籤 `protected_tags` 由 `PluginService` 直接寫入且設為 `hidden: true`）。
-  2. **資安防線（禁止權限提升）**：外掛透過 `GroupDao.create` 自動建立展示或功能群組時，`group.setRoleId(null)` 必須為 `null`，嚴禁綁定 `admin` 角色；且若同名群組或標籤已存在，**只可沿用其 ID，嚴禁覆蓋或竄改既有群組／標籤的 ACL**。
+  2. **保護標籤說明 (`protected_tags[].description`)**：可在 `plugin.json` 的 `protected_tags` 項目選擇性宣告單行預設 `description`（上限 200 字，換行會自動正規化為空白）。`PluginService.registerOrUpgrade()` 僅於首次建立或該標籤說明為空時補入，**絕不覆蓋管理員於 UI 自訂的說明**；且保護標籤僅鎖定更名 (`name`)、隱藏 (`hidden`) 與刪除 (`delete`)，管理員仍可於 `#/tagadmin/{id}` 編輯說明與顏色。
+  3. **資安防線（禁止權限提升）**：外掛透過 `GroupDao.create` 自動建立展示或功能群組時，`group.setRoleId(null)` 必須為 `null`，嚴禁綁定 `admin` 角色；且若同名群組或標籤已存在，**只可沿用其 ID，嚴禁覆蓋或竄改既有群組／標籤的 ACL**。
 
 ---
 

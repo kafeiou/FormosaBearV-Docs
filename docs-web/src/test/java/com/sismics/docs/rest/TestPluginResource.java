@@ -43,7 +43,7 @@ public class TestPluginResource extends BaseJerseyTest {
                     + "  \"nav_icon\": \"fas fa-puzzle-piece\",\n"
                     + "  \"protected_tags\": [\n"
                     + "    { \"name\": \"PluginRootTag\", \"color\": \"#3a87ad\", \"role\": \"PLUGIN_ROOT\" },\n"
-                    + "    { \"name\": \"PluginMgmtTag\", \"color\": \"#d9534f\", \"role\": \"MANAGEMENT\" }\n"
+                    + "    { \"name\": \"Plugin Mgmt Tag\", \"color\": \"#d9534f\", \"role\": \"MANAGEMENT\", \"hidden\": true, \"description\": \"Default plugin tag description\" }\n"
                     + "  ]\n"
                     + "}\n";
             zos.putNextEntry(new ZipEntry("plugin.json"));
@@ -88,6 +88,31 @@ public class TestPluginResource extends BaseJerseyTest {
         JsonArray protectedTags = installed.getJsonArray("protected_tags");
         Assert.assertEquals(2, protectedTags.size());
         String rootTagId = protectedTags.getJsonObject(0).getString("tag_id");
+        String mgmtTagId = protectedTags.getJsonObject(1).getString("tag_id");
+
+        // 2b. Protected tag default description is seeded, editable (even when name has spaces), and rename remains blocked
+        JsonObject mgmtTagBefore = target().path("/tag/" + mgmtTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("Default plugin tag description", mgmtTagBefore.getString("description"));
+
+        Response updateDescResp = target().path("/tag/" + mgmtTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new jakarta.ws.rs.core.Form()
+                        .param("name", "Plugin Mgmt Tag")
+                        .param("description", "Admin customized description")));
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), updateDescResp.getStatus());
+
+        JsonObject mgmtTagAfter = target().path("/tag/" + mgmtTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("Admin customized description", mgmtTagAfter.getString("description"));
+
+        Response renameBlocked = target().path("/tag/" + mgmtTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new jakarta.ws.rs.core.Form().param("name", "RenamedTag")));
+        Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), renameBlocked.getStatus());
+        Assert.assertEquals("ProtectedPluginTag", renameBlocked.readEntity(JsonObject.class).getString("type"));
 
         // 3. Disabled plugin cannot be accessed by normal user, and protected tag cannot be deleted even while disabled
         Response assetDenied = target().path("/plugin/sample-plug/assets/ui/index.html").request()
@@ -140,6 +165,12 @@ public class TestPluginResource extends BaseJerseyTest {
         JsonObject upgraded = upgResp.readEntity(JsonObject.class);
         Assert.assertEquals("1.1.0", upgraded.getString("version"));
         Assert.assertTrue(upgraded.getBoolean("enabled"));
+
+        // 6b. Upgrading plugin preserves admin-customized protected tag description
+        JsonObject mgmtTagPostUpgrade = target().path("/tag/" + mgmtTagId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals("Admin customized description", mgmtTagPostUpgrade.getString("description"));
 
         // 7. Uninstall unlocks protected tag so it can now be deleted manually
         Response uninst = target().path("/plugin/sample-plug").request()

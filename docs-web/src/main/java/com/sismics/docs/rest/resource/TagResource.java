@@ -373,9 +373,6 @@ public class TagResource extends BaseResource {
         // Validate input data
         name = ValidationUtil.validateLength(name, "name", 1, 36, true);
         ValidationUtil.validateHexColor(color, "color", true);
-        if (name != null) {
-            ValidationUtil.validateTagName(name);
-        }
         boolean hasDescriptionParam = description != null;
         if (hasDescriptionParam) {
             description = normalizeTagDescription(description);
@@ -415,7 +412,8 @@ public class TagResource extends BaseResource {
         if (pluginProtected && hidden != null && hidden != tag.isHidden()) {
             throw new ClientException("ProtectedPluginTag", "Cannot change visibility of a tag protected by an installed plugin");
         }
-        if (!StringUtils.isEmpty(name)) {
+        if (!StringUtils.isEmpty(name) && !name.equals(tag.getName())) {
+            ValidationUtil.validateTagName(name);
             tag.setName(name);
         }
         if (!StringUtils.isEmpty(color)) {

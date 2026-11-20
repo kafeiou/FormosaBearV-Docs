@@ -22,18 +22,25 @@ public class PluginManifest {
         private final String color;
         private final String role;
         private final boolean hidden;
+        private final String description;
 
         public ProtectedTagSpec(String name, String color, String role, boolean hidden) {
+            this(name, color, role, hidden, null);
+        }
+
+        public ProtectedTagSpec(String name, String color, String role, boolean hidden, String description) {
             this.name = name;
             this.color = color;
             this.role = role;
             this.hidden = hidden;
+            this.description = description;
         }
 
         public String getName() { return name; }
         public String getColor() { return color; }
         public String getRole() { return role; }
         public boolean isHidden() { return hidden; }
+        public String getDescription() { return description; }
     }
 
     private String id;
@@ -93,11 +100,20 @@ public class PluginManifest {
                 String tColor = trimToNull(t.getString("color", "#3a87ad"));
                 String tRole = trimToNull(t.getString("role", "PLUGIN_ROOT"));
                 boolean tHidden = t.getBoolean("hidden", false);
+                String tDescription = trimToNull(t.getString("description", null));
+                if (tDescription != null) {
+                    tDescription = tDescription.replaceAll("[\\r\\n]+", " ").trim();
+                    if (tDescription.isEmpty()) {
+                        tDescription = null;
+                    } else if (tDescription.length() > 200) {
+                        tDescription = tDescription.substring(0, 200);
+                    }
+                }
                 if (tName != null) {
                     if (tName.length() > 36) {
                         tName = tName.substring(0, 36);
                     }
-                    m.protectedTags.add(new ProtectedTagSpec(tName, tColor, tRole, tHidden));
+                    m.protectedTags.add(new ProtectedTagSpec(tName, tColor, tRole, tHidden, tDescription));
                 }
             }
         }
