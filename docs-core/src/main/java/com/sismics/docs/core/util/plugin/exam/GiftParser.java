@@ -9,8 +9,6 @@ import jakarta.json.JsonObjectBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Parser for Moodle GIFT format questions supporting Single Choice, Multiple Choice, and True/False.
@@ -21,9 +19,6 @@ public class GiftParser {
     public static final String TYPE_TRUE_FALSE = "TRUE_FALSE";
     public static final int MAX_GIFT_BYTES = 512 * 1024;
     public static final int MAX_QUESTIONS = 500;
-
-    private static final Pattern TITLE_PATTERN = Pattern.compile("^::(.*?)::\\s*(.*)$", Pattern.DOTALL);
-    private static final Pattern WEIGHT_PATTERN = Pattern.compile("^%(-?\\d+(?:\\.\\d+)?)%(.*)$", Pattern.DOTALL);
 
     public static class GiftChoice {
         private final String id;
@@ -137,8 +132,8 @@ public class GiftParser {
             cleaned.append(line).append('\n');
         }
 
-        // Split into question blocks by one or more blank lines
-        String[] blocks = cleaned.toString().trim().split("\\n\\s*\\n+");
+        // Split into question blocks by one or more blank lines (linear O(n), ReDoS-safe)
+        List<String> blocks = splitBlocksByBlankLines(cleaned.toString());
         List<GiftQuestion> questions = new ArrayList<>();
         int qIndex = 1;
         for (String rawBlock : blocks) {
@@ -155,10 +150,12 @@ public class GiftParser {
             }
 
             String title = "";
-            Matcher titleMatcher = TITLE_PATTERN.matcher(block);
-            if (titleMatcher.matches()) {
-                title = unescapeGift(titleMatcher.group(1).trim());
-                block = titleMatcher.group(2).trim();
+            if (block.startsWith("::")) {
+                int endTitleIdx = block.indexOf("::", 2);
+                if (endTitleIdx >= 2) {
+                    title = unescapeGift(block.substring(2, endTitleIdx).trim());
+                    block = block.substring(endTitleIdx + 2).trim();
+                }
             }
 
             int openBrace = findUnescapedChar(block, '{', 0);
@@ -196,6 +193,50 @@ public class GiftParser {
             throw new IllegalArgumentException("No valid GIFT questions found");
         }
         return questions;
+    }
+
+    private static List<String> splitBlocksByBlankLines(String text) {
+        List<String> blocks = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        String[] lines = text.split("\n", -1);
+        for (String line : lines) {
+            if (line.trim().isEmpty()) {
+                if (current.length() > 0) {
+                    blocks.add(current.toString());
+                    current.setLength(0);
+                }
+            } else {
+                if (current.length() > 0) {
+                    current.append('\n');
+                }
+                current.append(line);
+            }
+        }
+        if (current.length() > 0) {
+            blocks.add(current.toString());
+        }
+        return blocks;
+    }
+
+    private static Double parseLeadingWeight(String s) {
+        if (!s.startsWith("%")) {
+            return null;
+        }
+        int endIdx = s.indexOf('%', 1);
+        if (endIdx <= 1 || endIdx > 20) {
+            return null;
+        }
+        String numStr = s.substring(1, endIdx);
+        try {
+            return Double.parseDouble(numStr);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static String stripLeadingWeight(String s) {
+        int endIdx = s.indexOf('%', 1);
+        return endIdx > 1 ? s.substring(endIdx + 1).trim() : s;
     }
 
     public static JsonArray toJsonArray(List<GiftQuestion> questions, boolean includeAnswers) {
@@ -245,22 +286,21 @@ public class GiftParser {
 
             String choiceBody = stripFeedback(rawChoice).trim();
             double weight;
+            Double parsedWeight = parseLeadingWeight(choiceBody);
             if (marker == '=') {
                 equalCount++;
-                Matcher wm = WEIGHT_PATTERN.matcher(choiceBody);
-                if (wm.matches()) {
+                if (parsedWeight != null) {
                     hasExplicitWeight = true;
-                    weight = Double.parseDouble(wm.group(1));
-                    choiceBody = wm.group(2).trim();
+                    weight = parsedWeight;
+                    choiceBody = stripLeadingWeight(choiceBody);
                 } else {
                     weight = 100.0;
                 }
             } else {
-                Matcher wm = WEIGHT_PATTERN.matcher(choiceBody);
-                if (wm.matches()) {
+                if (parsedWeight != null) {
                     hasExplicitWeight = true;
-                    weight = Double.parseDouble(wm.group(1));
-                    choiceBody = wm.group(2).trim();
+                    weight = parsedWeight;
+                    choiceBody = stripLeadingWeight(choiceBody);
                 } else {
                     weight = 0.0;
                 }

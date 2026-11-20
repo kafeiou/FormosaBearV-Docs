@@ -283,22 +283,37 @@ public class BackupService {
      * @throws Exception If restore fails.
      */
     public void restoreBackup(InputStream zipInputStream) throws Exception {
-        Path tempDir = Files.createTempDirectory("teedy_restore_");
+        Path tempDir = Files.createTempDirectory("teedy_restore_").toAbsolutePath().normalize();
         try {
             // Step 1: Unpack ZIP archive with Zip Slip path traversal security check
             try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(zipInputStream), StandardCharsets.UTF_8)) {
                 ZipEntry entry;
                 byte[] buffer = new byte[8192];
                 while ((entry = zis.getNextEntry()) != null) {
-                    Path destPath = tempDir.resolve(entry.getName()).normalize();
+                    String entryName = entry.getName();
+                    if (entryName == null || entryName.isEmpty() || entryName.contains("\0")) {
+                        throw new SecurityException("Invalid zip entry name");
+                    }
+                    Path destPath = tempDir.resolve(entryName).toAbsolutePath().normalize();
                     if (!destPath.startsWith(tempDir)) {
-                        throw new SecurityException("Zip Slip path traversal detected: " + entry.getName());
+                        throw new SecurityException("Zip Slip path traversal detected: " + entryName);
+                    }
+                    if (destPath.equals(tempDir)) {
+                        if (entry.isDirectory()) {
+                            zis.closeEntry();
+                            continue;
+                        }
+                        throw new SecurityException("Zip Slip path traversal detected: " + entryName);
                     }
 
                     if (entry.isDirectory()) {
                         Files.createDirectories(destPath);
                     } else {
-                        Files.createDirectories(destPath.getParent());
+                        Path parent = destPath.getParent();
+                        if (parent == null || !parent.startsWith(tempDir)) {
+                            throw new SecurityException("Zip Slip path traversal detected: " + entryName);
+                        }
+                        Files.createDirectories(parent);
                         try (OutputStream fos = Files.newOutputStream(destPath)) {
                             int len;
                             while ((len = zis.read(buffer)) > 0) {

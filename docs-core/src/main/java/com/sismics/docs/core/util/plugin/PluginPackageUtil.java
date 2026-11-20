@@ -64,18 +64,26 @@ public class PluginPackageUtil {
             try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(tempZip), StandardCharsets.UTF_8)) {
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
+                    validateEntryName(entry.getName());
                     String cleanName = normalizeEntryName(entry.getName());
                     if (cleanName.isEmpty()) {
                         continue;
                     }
-                    Path dest = stagingDir.resolve(cleanName).normalize();
-                    if (!dest.startsWith(stagingDir)) {
+                    Path dest = stagingDir.resolve(cleanName).toAbsolutePath().normalize();
+                    if (!dest.startsWith(stagingDir) || dest.equals(stagingDir)) {
+                        if (dest.equals(stagingDir) && entry.isDirectory()) {
+                            continue;
+                        }
                         throw new IllegalArgumentException("Zip Slip detected: " + entry.getName());
                     }
                     if (entry.isDirectory()) {
                         Files.createDirectories(dest);
                     } else {
-                        Files.createDirectories(dest.getParent());
+                        Path parent = dest.getParent();
+                        if (parent == null || !parent.startsWith(stagingDir)) {
+                            throw new IllegalArgumentException("Zip Slip detected: " + entry.getName());
+                        }
+                        Files.createDirectories(parent);
                         Files.copy(zis, dest, StandardCopyOption.REPLACE_EXISTING);
                     }
                 }

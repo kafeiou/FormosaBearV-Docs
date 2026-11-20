@@ -41,7 +41,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -50,7 +49,6 @@ import java.util.regex.Pattern;
  */
 public final class SbomService {
     private static final Logger log = LoggerFactory.getLogger(SbomService.class);
-    private static final Pattern JAR_NAME_PATTERN = Pattern.compile("^(.+?)-([0-9][A-Za-z0-9._-]*?)\\.jar$");
 
     private SbomService() {
     }
@@ -402,16 +400,27 @@ public final class SbomService {
             }
         }
 
-        Matcher m = JAR_NAME_PATTERN.matcher(fileName);
-        if (m.matches()) {
-            if (name.isEmpty()) {
-                name = m.group(1);
+        if (fileName.endsWith(".jar")) {
+            String base = fileName.substring(0, fileName.length() - 4);
+            int dashVersionIdx = -1;
+            for (int i = 1; i < base.length() - 1; i++) {
+                if (base.charAt(i) == '-' && Character.isDigit(base.charAt(i + 1))) {
+                    dashVersionIdx = i;
+                    break;
+                }
             }
-            if (version.isEmpty()) {
-                version = m.group(2);
+            if (dashVersionIdx > 0) {
+                if (name.isEmpty()) {
+                    name = base.substring(0, dashVersionIdx);
+                }
+                if (version.isEmpty()) {
+                    version = base.substring(dashVersionIdx + 1);
+                }
+            } else if (name.isEmpty()) {
+                name = base;
             }
         } else if (name.isEmpty()) {
-            name = fileName.replace(".jar", "");
+            name = fileName;
         }
 
         // Clean OSGi Bundle-SymbolicName parameters like ";singleton:=true"
