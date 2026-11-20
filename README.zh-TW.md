@@ -1,5 +1,9 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
+Demo https://formosabearv.kafeiou.pw/    
+account : admin    
+password : superSecure  
+
 # FormosaBearV (3.01)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
