@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (3.01-SNAPSHOT)
+# FormosaBearV (3.01)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -22,6 +22,7 @@
 - **文件生命週期、垃圾桶與協作工作流**：支援檔案多版本控制與自訂版本標記、垃圾桶還原與永久清理、Dublin Core 與自訂中繼資料、審核簽核流程 (Review Workflow)、留言討論、操作稽核日誌、個人儲存配額管理（含無上限配額）與安全外部連結分享。
 - **自動化匯入與系統整合**：支援 EML 郵件匯入、IMAP 收件匣自動掃描、SMTP 郵件通知、RESTful Web API 與 Webhooks 事件推播。
 - **可擴充外掛平台**：支援 `.zip` 第三方外掛上傳安裝、內建外掛隨包自動植入、免重啟啟用/停用生命週期、沙箱化容器介面、隱藏與外掛保護標籤管控、16 國語系外掛標準規範及 Java `PluginHandler` SPI（內附 **線上考試系統** 示範外掛，詳見[外掛開發指南](docs-plugins/PLUGIN_GUIDE.zh-TW.md)與 [AI 外掛開發鐵律](docs-plugins/AGENTS.md)）。
+- **執行期軟體組成清單 (SBOM) 與系統監控**：提供限管理員存取的軟體組成清單（支援 CycloneDX 1.5 JSON 與 CSV 匯出）、跨頁即時索引重建進度與補跑 OCR 機制，以及伺服器日誌監控。
 - **多國語系介面**：支援 16 種國際語言完整在地化（英文、法文、德文、西班牙文、義大利文、葡萄牙文、巴西葡萄牙文、波蘭文、俄文、希臘文、阿爾巴尼亞文、塞爾維亞文、日文、越南文、繁體中文與簡體中文）。
 
 ## 從原始碼編譯與建置 (Building from Source)
@@ -48,10 +49,10 @@ mvn clean package -DskipTests
 ```
 *(或執行 `mvn clean install -DskipTests`)*
 
-本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-3.01-SNAPSHOT.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
+本建置會利用 `frontend-maven-plugin` 自動下載輕量 Node.js 執行階段至 `target/`，打包並壓縮前端資源至 `dist/`，並封裝出乾淨、可直接部署的 WAR 檔（`docs-web-3.01.war`，不含原始 `src/` 目錄）—— **主機上只需安裝 JDK 21 與 Maven 即可獨立完成**：
 
 ```text
-docs-web/target/docs-web-3.01-SNAPSHOT.war
+docs-web/target/docs-web-3.01.war
 ```
 
 ### 打包免安裝可攜綠色版（無需 Docker）

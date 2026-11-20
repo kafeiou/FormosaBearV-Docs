@@ -6,12 +6,23 @@
 
 ---
 
-## [3.01-SNAPSHOT] - 2026-11-18
+## [v3.01] - 2026-11-20
 
-> **基準點**: `v2.09` ➜ `3.01-SNAPSHOT` (`next-v3` 測試預覽版)
+> **基準點**: `v2.09`（`v2` 分支）➜ `v3.01`（`master` 正式版）
 
 ### 新增功能 (Added)
-- **頁尾動態顯示執行期 Jetty 與 Java 版本（`GET /api/app`）**：於 `/api/app` 動態偵測並回傳目前伺服器實際執行中的 `jetty_version`（由 `ServletContext.getServerInfo()` 擷取）與 `java_version`（由 `System.getProperty("java.version")` 擷取），並於 `index.html` 與 `share.html` 頁尾顯示 `Jetty <版本>` 與 `Java <版本>`。
+- **執行期軟體組成清單（SBOM，限管理員存取）**：
+  - 新增獨立「**設定 → 軟體組成 (SBOM)**」（`#/settings/sbom`）頁籤與管理員專屬端點（`GET /api/app/sbom`、`GET /api/app/sbom/export?format=cyclonedx|csv`）。
+  - 全程於行程內動態盤點（不呼叫外部 CLI 子行程）：執行環境與伺服器（系統版本、OS、Java/JVM、Servlet 容器 / Jetty、資料庫引擎與 JDBC Driver、OCR 引擎設定）、已安裝外掛（`PluginDao`）、實際載入的後端 Java 套件（`WEB-INF/lib/*.jar`）與建置期掃描的前端函式庫（`dist/sbom-frontend.json`）。
+  - 提供可展開／收合面板、關鍵字即時篩選、標準 **CycloneDX 1.5 JSON**（含 Maven `purl`）與 UTF-8 BOM **CSV** 匯出；同步自公開頁尾與 `GET /api/app` 移除 Jetty／Java 版本資訊以強化資安。
+- **群組描述（`T_GROUP.GRP_DESCRIPTION_C`，DB v46）**：
+  - `T_GROUP` 新增選填欄位 `GRP_DESCRIPTION_C VARCHAR(200)`（`dbupdate-046-0.sql`），新增與編輯群組（含內建 `administrators`、`tag_editor` 群組）皆支援設定描述。
+  - 於群組管理（列表、編輯表單、上層群組下拉）、使用者與群組頁、文件／標籤／簽核 ACL 選擇器與權限徽章（`<acl>` 含 tooltip）及線上考試外掛權限彈窗全面顯示（並為 `ExamTeachers` 與 `ExamStudents` 提供預設英文描述），搜尋維持只比對群組名稱。
+- **監控頁索引重建即時進度與補跑 OCR**：
+  - 新增執行緒安全的後端進度追蹤器 `ReindexProgress` 與 `GET /api/app/batch/reindex/status`，管理者切換分頁再回到「監控」依然可即時檢視進度條、目前處理項目與 OCR 失敗檔案原因明細。
+  - `POST /api/app/batch/reindex` 新增 `ocr_mode`（`NONE` / `MISSING` / `ALL`），可針對空白文字檔案批次補跑 OCR（自動略過 `.zip` 等不支援格式）。
+- **Dockerfile 自動抓取最新 Jetty 12 穩定版**：
+  - 將 `Dockerfile` 改為 `ARG JETTY_VERSION=latest`，建置時自動由 Maven Central 取得最新 Jetty 12 穩定版（並支援 `--build-arg JETTY_VERSION=...` 鎖定特定版本）。
 - **外掛平台底座 (`plugin-platform`、DB v44–45)**：
   - 新增 `T_PLUGIN`、`T_PLUGIN_TAG`、`T_PLUGIN_DATA` 資料表（`dbupdate-044-0.sql`）與 `T_TAG.TAG_HIDDEN_B` 隱藏標籤欄位（`dbupdate-045-0.sql`），全面相容 H2 2.3 與 PostgreSQL。
   - 支援 `.zip` 外掛上傳安裝（`POST /api/plugin/upload`）、`plugin.json` 解析（`id`、`version`、`entry`、`nav_label_i18n`、`default_locale`、`handler`、`protected_tags`）、Zip Slip 路徑遍歷防呆、免重啟啟用/停用/解除安裝、`PluginHandler.onEnabled(installerUserId)` 首次啟用資源建置掛鉤、頂部導覽列動態選單、`#/settings/plugins` 管理頁與 `#/plugin/:id` 沙箱 `iframe` 容器。
@@ -21,18 +32,19 @@
   - 雙層標籤防誤刪與防改名機制：外掛安裝期間（啟用或停用）禁止刪除、更名或變更固定保護標籤可見性（`ProtectedPluginTag`）；透過 `PluginHandler.findTagReferenceReason` 通用檢查，凡被外掛資料引用的標籤亦禁止刪除（`TagInUseByPlugin`）。
   - 建立**外掛多語系標準規範**（`locale/<lang>.json`、`nav_label_i18n` 與 `$rootScope.$on('$translateChangeSuccess')` 即時刷新外掛語系）及外掛靜態資源嚴格 CSP / `X-Content-Type-Options: nosniff` 安全標頭。
   - 新增含 Mermaid 架構與序列圖之 AI 外掛開發鐵律與指南：`docs-plugins/AGENTS.md`、`docs-plugins/PLUGIN_GUIDE.md`、`docs-plugins/PLUGIN_GUIDE.zh-TW.md`。
-- **線上考試示範外掛 (`online-exam` v1.3.0、`docs-plugins/dist/plugin-online-exam.zip`)**：
+- **線上考試示範外掛 (`online-exam` v1.3.1、`docs-plugins/dist/plugin-online-exam.zip`)**：
   - 實作 `ExamPluginHandler`、`GiftParser` 與 `ExamPdfExporter`（採用內建 `Noto Sans CJK TC` 字型）。
-  - **首次啟用自動建置展示環境 (`onEnabled`)**：首次啟用外掛時自動建立無特權群組（`ExamTeachers`、`ExamStudents`）、英文階層標籤（`OnlineExamMaterials` -> `SecurityFundamentals`）、內含**全部 16 國語系專屬檔名與內容之 PDF 講義**的教材文件 `Security Fundamentals Guide`（支援點擊「眼睛」檢視純文字與 Lucene 全文檢索），以及綁定該教材之 16 語系考卷 `SEC-001`（`Security Fundamentals Assessment`）。
-  - **考卷綁定多份參考文件（嚴格權限模式 Strict Mode）**：出題老師可於建立或管理考卷時搜尋並勾選多份自己具備 `READ` 權限的參考文件（`list_reference_documents`、`set_exam_reference_documents`）；考生於考卷列表與作答畫面頂部僅會看到自己具備 `PermType.READ` 權限的參考文件膠囊連結（點擊以新分頁開啟 `#/document/view/{id}`），無權限文件自動過濾不洩漏標題。
+  - **首次啟用自動建置展示環境 (`onEnabled`)**：首次啟用外掛時自動建立無特權群組（`ExamTeachers`、`ExamStudents` 含英文描述）、英文階層標籤（`OnlineExamMaterials` -> `SecurityFundamentals`）、內含**全部 16 國語系專屬檔名與內容之 PDF 講義**的教材文件 `Security Fundamentals Guide`（支援點擊「眼睛」檢視純文字與 Lucene 全文檢索），以及綁定該教材之 16 語系考卷 `SEC-001`（`Security Fundamentals Assessment`）。
+  - **分頁、排序與搜尋之多份參考文件綁定（嚴格權限模式）**：出題老師可透過分頁（單頁上限 100 筆）、名稱／建立日期排序（預設最新優先）與搜尋勾選具備 `READ` 權限的參考文件（自動排除系統 `plugins` 與隱藏標籤文件）；考生僅會看到具備 `PermType.READ` 權限的參考文件連結。
+  - **全三頁籤統一搜尋、篩選、排序與分頁**：「我的考卷」、「成績紀錄」與「出題與考卷管理」皆提供搜尋、狀態篩選、欄位排序與每頁筆數切換（`10 / 20 / 50 / 100`）；建立考卷表單預設收合，並將「解析預覽」統一更名為「語法檢查」（16 語系同步）。
   - **三層權限架構**：最高管理員（`ADMIN` 或具備 `Online Exam Admin` 標籤）> 各科出題老師（由最高管理員指派啟用中帳號/群組，如 `ExamTeachers`，跨科別嚴格隔離）> 應試學生（依考卷勾選之啟用中帳號/群組授權）。
   - **Moodle GIFT 匯入與 100 分均分批改**：支援單選（`=`/`~`）、多選（`~%...%`）、是非題（`{TRUE}`/`{FALSE}`），內建 512 KB / 500 題 DoS 防護、考卷代號/版號、停用/啟用切換、刪除考卷前已應試人數警告且刪除後保留歷史成績快照，以及後端批改不洩漏正解與漏答送出提醒。
-  - **16 國語系動態考卷與 PDF 匯出（`localizeExam` + `PDF_LABELS_I18N`）**：空白考卷 PDF、已作答考卷 PDF（含當時考試時間英文日期格式斜角半透明浮水印，無正解）及橫向成績總覽彙總表 PDF，皆支援依當前介面語系即時切換題目與 16 國語系表頭欄位。
+  - **互動可填寫空白考卷 PDF 與 16 語系 PDF 匯出**：空白考卷 PDF 採用標準 **AcroForm** 表單（可填寫姓名／日期文字欄、單選／是非圓鈕群組、多選核取方塊，並簡化表頭移除「空白考卷」字樣）；已作答考卷 PDF 維持唯讀與考試時間斜角半透明浮水印（無正解）；橫向成績總覽彙總表 PDF 支援 16 語系動態輸出。
   - **完整 16 國語系與專屬樣板手冊**：提供系統全部 16 國慣用語翻譯與完整架構拆解手冊（`docs-plugins/online-exam/README.md` / `README.zh-TW.md`）。
 
 ### 修復 (Fixed)
 - **可攜版打包腳本優化（`scripts/package-portable.ps1` 與 `package-portable.sh`）**：不再寫死 `jetty-home-12.1.14.zip`，改為自動以版本號排序選取 `tools/jetty/` 目錄下最新版本的 `jetty-home-*.zip`；若該目錄為空，則自動連線至 `https://jetty.org/download.html`（含 Maven Central 備援）抓取並下載最新版 Jetty 12。
-- **Maven 版本號與頁尾顯示修正 (`v3.01-SNAPSHOT`)**：將 `pom.xml`、`docs-core/pom.xml`、`docs-web-common/pom.xml` 與 `docs-web/pom.xml` 的 `<version>` 統一修正為 `3.01-SNAPSHOT`，使頁尾正確顯示 `v3.01-SNAPSHOT`。
+- **Maven 版本號與頁尾顯示修正 (`v3.01`)**：將 `pom.xml`、`docs-core/pom.xml`、`docs-web-common/pom.xml` 與 `docs-web/pom.xml` 的 `<version>` 統一更新為 `3.01`，使頁尾正確顯示 `v3.01`。
 - **16 國語系翻譯完整性修復**：修正 `zh_CN.json`（`download`、`rename`、`yes`、`tag.created_by`、`document.edit.allow_download_help`）與 `zh_TW.json`（`yes`、`group_used_*`、`base_dn`）殘留英文之項目，補齊全部 16 國語系的外掛管理與隱藏標籤翻譯，並將 `document.view.content.html` 檔案清單模式表頭（`Filename`、`Type`、`Size`、`Version`）改為多語系變數。
 - **頁尾巴西葡萄牙語 (`pt_BR`) 顯示修復**：於 `index.html` 語系選單補上 `<span ng-switch-when="pt_BR">Português (Brasil)</span>`，解決切換後只剩倒三角形、語言名稱消失的問題。
 

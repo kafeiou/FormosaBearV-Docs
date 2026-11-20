@@ -1,0 +1,168 @@
+<div class="clearfix" style="margin-bottom: 12px;">
+  <h2 class="pull-left" style="margin-top: 0;" translate="settings.sbom.title"></h2>
+  <div class="pull-right" style="margin-top: 4px;">
+    <button type="button" class="btn btn-default btn-sm" ng-click="loadSbom()" ng-disabled="loading">
+      <span class="fas fa-sync-alt" ng-class="{ 'fa-spin': loading }"></span>
+      {{ 'settings.sbom.refresh' | translate }}
+    </button>
+    <button type="button" class="btn btn-primary btn-sm" ng-click="exportSbom('cyclonedx')" ng-disabled="!sbom">
+      <span class="fas fa-download"></span>
+      {{ 'settings.sbom.export_cyclonedx' | translate }}
+    </button>
+    <button type="button" class="btn btn-default btn-sm" ng-click="exportSbom('csv')" ng-disabled="!sbom">
+      <span class="fas fa-file-csv"></span>
+      {{ 'settings.sbom.export_csv' | translate }}
+    </button>
+  </div>
+</div>
+<p class="text-muted">{{ 'settings.sbom.subtitle' | translate }}</p>
+
+<div ng-if="loading && !sbom" class="text-center" style="padding: 30px;">
+  <span class="fas fa-circle-notch fa-spin fa-2x"></span>
+</div>
+
+<div ng-if="sbom">
+  <!-- Runtime Environment Summary -->
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <strong><span class="fas fa-server"></span> {{ 'settings.sbom.environment_title' | translate }}</strong>
+      <span class="pull-right small text-muted" ng-if="sbom.generated_at">{{ sbom.generated_at | date: dateTimeFormat }}</span>
+    </div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-sm-6" style="margin-bottom: 8px;">
+          <strong>{{ 'settings.sbom.env_app' | translate }}:</strong>
+          <code>FormosaBearV-Docs {{ sbom.environment.app_version }}</code>
+        </div>
+        <div class="col-sm-6" style="margin-bottom: 8px;">
+          <strong>{{ 'settings.sbom.env_server' | translate }}:</strong>
+          <code>{{ sbom.environment.server_info }}</code>
+        </div>
+        <div class="col-sm-6" style="margin-bottom: 8px;">
+          <strong>{{ 'settings.sbom.env_java' | translate }}:</strong>
+          <code>{{ sbom.environment.java_version }}</code>
+          <span class="small text-muted">({{ sbom.environment.java_vendor }})</span>
+        </div>
+        <div class="col-sm-6" style="margin-bottom: 8px;">
+          <strong>{{ 'settings.sbom.env_os' | translate }}:</strong>
+          <code>{{ sbom.environment.os_name }} {{ sbom.environment.os_version }} ({{ sbom.environment.os_arch }})</code>
+        </div>
+        <div class="col-sm-6" style="margin-bottom: 8px;">
+          <strong>{{ 'settings.sbom.env_db' | translate }}:</strong>
+          <code>{{ sbom.environment.db_product }} {{ sbom.environment.db_version }}</code>
+          <div class="small text-muted">{{ sbom.environment.jdbc_driver }} {{ sbom.environment.jdbc_driver_version }}</div>
+        </div>
+        <div class="col-sm-6" style="margin-bottom: 8px;">
+          <strong>{{ 'settings.sbom.env_ocr' | translate }}:</strong>
+          <span class="label" ng-class="sbom.environment.ocr_enabled ? 'label-success' : 'label-default'">
+            {{ sbom.environment.ocr_enabled ? ('settings.sbom.status_enabled' | translate) : ('settings.sbom.status_disabled' | translate) }}
+          </span>
+          <code style="margin-left: 6px;">{{ sbom.environment.ocr_engine || 'tesseract' }}</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Component Search -->
+  <div class="input-group" style="margin-bottom: 14px;">
+    <span class="input-group-addon"><span class="fas fa-search"></span></span>
+    <input type="search" class="form-control" ng-model="searchQuery"
+           ng-attr-placeholder="{{ 'settings.sbom.search_placeholder' | translate }}">
+  </div>
+
+  <!-- Collapsible Section 1: Installed Plugins -->
+  <div class="panel panel-default" ng-init="filteredPlugins = []">
+    <div class="panel-heading pointer" ng-click="toggleSection('plugins')">
+      <span class="fas" ng-class="isSectionOpen('plugins', (sbom.plugins | filter: matchesQuery).length) ? 'fa-chevron-down' : 'fa-chevron-right'"></span>
+      <strong>{{ 'settings.sbom.section_plugins' | translate }}</strong>
+      <span class="badge">{{ (sbom.plugins | filter: matchesQuery).length }}</span>
+    </div>
+    <div class="table-responsive" ng-show="isSectionOpen('plugins', (sbom.plugins | filter: matchesQuery).length)">
+      <table class="table table-condensed table-hover" style="margin-bottom: 0;">
+        <thead>
+          <tr>
+            <th>{{ 'settings.sbom.col_group' | translate }}</th>
+            <th>{{ 'settings.sbom.col_name' | translate }}</th>
+            <th>{{ 'settings.sbom.col_version' | translate }}</th>
+            <th>{{ 'settings.sbom.col_status' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="item in sbom.plugins | filter: matchesQuery">
+            <td><code>{{ item.group }}</code></td>
+            <td>{{ item.name }}</td>
+            <td><code>{{ item.version }}</code></td>
+            <td>
+              <span class="label" ng-class="item.status === 'ENABLED' ? 'label-success' : 'label-default'">
+                {{ item.status === 'ENABLED' ? ('settings.sbom.status_enabled' | translate) : ('settings.sbom.status_disabled' | translate) }}
+              </span>
+            </td>
+          </tr>
+          <tr ng-if="(sbom.plugins | filter: matchesQuery).length === 0">
+            <td colspan="4" class="text-muted">{{ 'settings.sbom.empty' | translate }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Collapsible Section 2: Frontend Libraries -->
+  <div class="panel panel-default">
+    <div class="panel-heading pointer" ng-click="toggleSection('frontend')">
+      <span class="fas" ng-class="isSectionOpen('frontend', (sbom.frontend_libraries | filter: matchesQuery).length) ? 'fa-chevron-down' : 'fa-chevron-right'"></span>
+      <strong>{{ 'settings.sbom.section_frontend' | translate }}</strong>
+      <span class="badge">{{ (sbom.frontend_libraries | filter: matchesQuery).length }}</span>
+    </div>
+    <div class="table-responsive" ng-show="isSectionOpen('frontend', (sbom.frontend_libraries | filter: matchesQuery).length)">
+      <table class="table table-condensed table-hover" style="margin-bottom: 0;">
+        <thead>
+          <tr>
+            <th>{{ 'settings.sbom.col_group' | translate }}</th>
+            <th>{{ 'settings.sbom.col_name' | translate }}</th>
+            <th>{{ 'settings.sbom.col_version' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="item in sbom.frontend_libraries | filter: matchesQuery">
+            <td><code>{{ item.group }}</code></td>
+            <td>{{ item.name }}</td>
+            <td><code>{{ item.version }}</code></td>
+          </tr>
+          <tr ng-if="(sbom.frontend_libraries | filter: matchesQuery).length === 0">
+            <td colspan="3" class="text-muted">{{ 'settings.sbom.empty' | translate }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Collapsible Section 4: Backend Java Libraries -->
+  <div class="panel panel-default">
+    <div class="panel-heading pointer" ng-click="toggleSection('backend')">
+      <span class="fas" ng-class="isSectionOpen('backend', (sbom.backend_libraries | filter: matchesQuery).length) ? 'fa-chevron-down' : 'fa-chevron-right'"></span>
+      <strong>{{ 'settings.sbom.section_backend' | translate }}</strong>
+      <span class="badge">{{ (sbom.backend_libraries | filter: matchesQuery).length }}</span>
+    </div>
+    <div class="table-responsive" ng-show="isSectionOpen('backend', (sbom.backend_libraries | filter: matchesQuery).length)">
+      <table class="table table-condensed table-hover" style="margin-bottom: 0;">
+        <thead>
+          <tr>
+            <th>{{ 'settings.sbom.col_group' | translate }}</th>
+            <th>{{ 'settings.sbom.col_name' | translate }}</th>
+            <th>{{ 'settings.sbom.col_version' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="item in sbom.backend_libraries | filter: matchesQuery">
+            <td><code>{{ item.group || '-' }}</code></td>
+            <td>{{ item.name }}</td>
+            <td><code>{{ item.version }}</code></td>
+          </tr>
+          <tr ng-if="(sbom.backend_libraries | filter: matchesQuery).length === 0">
+            <td colspan="3" class="text-muted">{{ 'settings.sbom.empty' | translate }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

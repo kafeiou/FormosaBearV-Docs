@@ -81,6 +81,29 @@ public class TestAppResource extends BaseJerseyTest {
         Response unauthStatus = target().path("/app/batch/reindex/status").request().get();
         Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(unauthStatus.getStatus()));
 
+        // Verify runtime SBOM endpoint & exports (admin only)
+        Response unauthSbom = target().path("/app/sbom").request().get();
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(unauthSbom.getStatus()));
+
+        JsonObject sbom = target().path("/app/sbom").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertTrue(sbom.containsKey("environment"));
+        Assert.assertTrue(sbom.getJsonObject("environment").getString("java_version").length() > 0);
+        Assert.assertTrue(sbom.getJsonArray("backend_libraries").size() > 0);
+        Assert.assertFalse(sbom.containsKey("languages"));
+
+        String cdxJson = target().path("/app/sbom/export").queryParam("format", "cyclonedx").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(String.class);
+        Assert.assertTrue(cdxJson.contains("\"bomFormat\":\"CycloneDX\""));
+        Assert.assertTrue(cdxJson.contains("\"specVersion\":\"1.5\""));
+
+        String csv = target().path("/app/sbom/export").queryParam("format", "csv").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(String.class);
+        Assert.assertTrue(csv.contains("Category,Group,Name,Version,Status"));
+
         // Clean storage
         response = target().path("/app/batch/clean_storage").request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)

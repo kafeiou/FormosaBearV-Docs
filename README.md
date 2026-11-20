@@ -1,6 +1,6 @@
 [ English ](README.md) | [ 繁體中文 ](README.zh-TW.md)
 
-# FormosaBearV (3.01-SNAPSHOT)
+# FormosaBearV (3.01)
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
@@ -22,6 +22,7 @@
 - **Document Lifecycle, Trash & Collaboration**: File versioning with custom version labels, Trash / Recycle Bin recovery, Dublin Core and custom metadata, document review workflows, comments, audit logs, per-user storage quotas (including unlimited quota support), and URL sharing.
 - **Automated Import & Integration**: EML email import, automated IMAP inbox scanning, customizable SMTP notifications, RESTful Web API, and outgoing Webhooks.
 - **Extensible Plugin Platform**: Supports `.zip` third-party plugin upload, bundled plugin auto-seeding, zero-restart enable/disable lifecycle, sandboxed UI containers, hidden/protected tag governance, 16-language plugin i18n standard, and Java `PluginHandler` SPI (including the built-in **Online Exam** showcase plugin; see [Plugin Development Guide](docs-plugins/PLUGIN_GUIDE.md) and [AI Plugin Rules](docs-plugins/AGENTS.md)).
+- **Runtime SBOM & System Monitoring**: Admin-only Software Bill of Materials (SBOM) inventory with CycloneDX 1.5 JSON and CSV export, real-time index rebuild progress tracking with optional OCR reprocessing, and server log monitoring.
 - **Multilingual User Interface**: Comprehensive internationalization covering 16 languages (English, French, German, Spanish, Italian, Portuguese, Brazilian Portuguese, Polish, Russian, Greek, Albanian, Serbian, Japanese, Vietnamese, Traditional Chinese, and Simplified Chinese).
 
 ## Building and Running from Source
@@ -48,10 +49,10 @@ mvn clean package -DskipTests
 ```
 *(or `mvn clean install -DskipTests`)*
 
-This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-3.01-SNAPSHOT.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
+This build uses `frontend-maven-plugin` to automatically download a portable Node.js runtime into `target/`, bundle and minify the frontend assets into `dist/`, and generate the clean, deployable WAR archive (`docs-web-3.01.war`, without raw `src/` directories) — **requiring only JDK 21 and Maven on the host machine**:
 
 ```text
-docs-web/target/docs-web-3.01-SNAPSHOT.war
+docs-web/target/docs-web-3.01.war
 ```
 
 ### Build Standalone Portable Edition (No Docker Required)

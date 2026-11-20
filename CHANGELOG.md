@@ -6,12 +6,23 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
-## [3.01-SNAPSHOT] - 2026-11-18
+## [v3.01] - 2026-11-20
 
-> **Baseline**: `v2.09` ➜ `3.01-SNAPSHOT` (`next-v3` pre-release)
+> **Baseline**: `v2.09` (`v2` branch) ➜ `v3.01` (`master`)
 
 ### Added
-- **Dynamic Runtime Jetty & Java Versions in Footer (`GET /api/app`)**: Added live runtime `jetty_version` (detected via `ServletContext.getServerInfo()`) and `java_version` (`System.getProperty("java.version")`) to `/api/app` and displayed `Jetty <version>` and `Java <version>` in the footer of `index.html` and `share.html`.
+- **Runtime Software Bill of Materials (SBOM, Admin-Only)**:
+  - Added dedicated **Settings → Software Composition (SBOM)** (`#/settings/sbom`) page and admin-only REST endpoints (`GET /api/app/sbom` and `GET /api/app/sbom/export?format=cyclonedx|csv`).
+  - Dynamically collects in-process runtime environment (application version, OS, Java/JVM, Servlet container/Jetty, database engine & JDBC driver, OCR engine config), installed plugins (`PluginDao`), deployed backend Java JARs (`WEB-INF/lib/*.jar`), and build-time frontend libraries (`dist/sbom-frontend.json` via Grunt `sbomFrontend` task) with zero external CLI subprocess calls.
+  - Supports collapsible sections, live keyword search filtering, standard **CycloneDX 1.5 JSON** export (with Maven `purl`), and UTF-8 BOM **CSV** export; removed runtime Jetty/Java version disclosure from public footer and `GET /api/app`.
+- **Group Description (`T_GROUP.GRP_DESCRIPTION_C`, DB v46)**:
+  - Added optional 200-character `description` column to `T_GROUP` (`dbupdate-046-0.sql`) supported on group creation/editing (including built-in `administrators` and `tag_editor` groups).
+  - Displayed group descriptions across Group Management (list, edit form, parent dropdown), User/Group directory, Document/Tag/Workflow ACL pickers and badges (`<acl>` with tooltip), and the Online Exam plugin's teacher/ACL modals (with English defaults for `ExamTeachers` and `ExamStudents`), while keeping group search strictly name-based.
+- **Persistent Index Rebuild Progress & Optional OCR Reprocessing**:
+  - Added thread-safe server-side `ReindexProgress` tracker and `GET /api/app/batch/reindex/status` so administrators can monitor real-time rebuild progress, current item, and per-file OCR failure reasons even after navigating away and returning to **Settings → Monitoring**.
+  - Added `ocr_mode` (`NONE` / `MISSING` / `ALL`) to `POST /api/app/batch/reindex` to re-run OCR text extraction on files with missing content (automatically skipping unsupported formats such as `.zip`).
+- **Docker Build Auto-Latest Jetty 12 (`Dockerfile`)**:
+  - Replaced hardcoded `JETTY_VERSION=12.1.14` with `ARG JETTY_VERSION=latest` to automatically resolve the latest Jetty 12 stable release from Maven Central at build time (while supporting `--build-arg JETTY_VERSION=...` pinning).
 - **Plugin Platform Foundation (`plugin-platform`, DB v44–45)**:
   - Added `T_PLUGIN`, `T_PLUGIN_TAG`, and `T_PLUGIN_DATA` tables (`dbupdate-044-0.sql`) plus `T_TAG.TAG_HIDDEN_B` (`dbupdate-045-0.sql`) for H2 2.3 and PostgreSQL.
   - Added `.zip` plugin upload (`POST /api/plugin/upload`) with `plugin.json` manifest parsing (`id`, `version`, `entry`, `nav_label_i18n`, `default_locale`, `handler`, `protected_tags`), Zip Slip traversal defense, zero-restart enable/disable/uninstall lifecycle, `PluginHandler.onEnabled(installerUserId)` first-enable provisioning hook, dynamic navbar tabs, `#/settings/plugins` management page, and `#/plugin/:id` sandboxed iframe container.
@@ -21,18 +32,19 @@ This document details the notable changes, security enhancements, architecture i
   - Added two-layer tag deletion and rename protection: fixed plugin-protected tags (`ProtectedPluginTag`) cannot be deleted, renamed, or have visibility changed while the plugin is installed (enabled or disabled), and any tag referenced by plugin data (`PluginHandler.findTagReferenceReason`) is blocked from deletion (`TagInUseByPlugin`).
   - Added **Plugin i18n Standard** (`locale/<lang>.json` + `nav_label_i18n` + host `?lang=` live reload via `$rootScope.$on('$translateChangeSuccess')`) and strict CSP / `X-Content-Type-Options: nosniff` headers on plugin assets.
   - Added comprehensive AI-ready developer documentation with Mermaid architecture/sequence diagrams: `docs-plugins/AGENTS.md`, `docs-plugins/PLUGIN_GUIDE.md`, and `docs-plugins/PLUGIN_GUIDE.zh-TW.md`.
-- **Online Exam Showcase Plugin (`online-exam` v1.3.0, `docs-plugins/dist/plugin-online-exam.zip`)**:
+- **Online Exam Showcase Plugin (`online-exam` v1.3.1, `docs-plugins/dist/plugin-online-exam.zip`)**:
   - Implemented `ExamPluginHandler`, `GiftParser`, and `ExamPdfExporter` (using bundled `Noto Sans CJK TC` font).
-  - **Idempotent First-Enable Provisioning (`onEnabled`)**: Automatically provisions non-privileged groups (`ExamTeachers`, `ExamStudents`), English hierarchical tags (`OnlineExamMaterials` -> `SecurityFundamentals`), the `Security Fundamentals Guide` document containing **all 16 localized PDF textbooks** (with full plain-text extraction for the "eye" viewer and Lucene full-text indexing), and the 16-language `SEC-001` (`Security Fundamentals Assessment`) exam bound to that guide.
-  - **Multi-Document Reference Binding (Strict Mode)**: Teachers can bind multiple readable reference documents (`reference_document_ids`) when creating or managing exams (`list_reference_documents`, `set_exam_reference_documents`); examinees see clickable document chips (`#/document/view/{id}`) filtered strictly by their own `PermType.READ` permission (`AclDao.checkPermission`).
+  - **Idempotent First-Enable Provisioning (`onEnabled`)**: Automatically provisions non-privileged groups (`ExamTeachers`, `ExamStudents` with English descriptions), English hierarchical tags (`OnlineExamMaterials` -> `SecurityFundamentals`), the `Security Fundamentals Guide` document containing **all 16 localized PDF textbooks** (with full plain-text extraction for the "eye" viewer and Lucene full-text indexing), and the 16-language `SEC-001` (`Security Fundamentals Assessment`) exam bound to that guide.
+  - **Paginated & Sortable Reference Document Binding (Strict Mode)**: Teachers can search, sort by title or created date (newest first by default), and paginate (up to 100 per page) readable reference documents (`list_reference_documents`, `set_exam_reference_documents`, excluding system `plugins` and hidden-tag documents); examinees see clickable document chips (`#/document/view/{id}`) filtered strictly by their own `PermType.READ` permission (`AclDao.checkPermission`).
+  - **Unified Search, Filtering, Sorting & Pagination Across All 3 Tabs**: Added keyword search, status filters, sortable columns, selectable page sizes (`10 / 20 / 50 / 100`), collapsible Create Exam form, and renamed "Parse Preview" to "Syntax Check" across all 16 locales.
   - **Three-Tier RBAC**: Top Admin (`ADMIN` or `Online Exam Admin` tag) > Subject Teachers (active users/groups assigned in-plugin, e.g. `ExamTeachers`, isolated per teacher/group) > Examinees (active users/groups granted per-exam access).
   - **Moodle GIFT Import & Equal 100-Point Grading**: Supports Single Choice (`=`/`~`), Multiple Choice (`~%...%`), and True/False (`{TRUE}`/`{FALSE}`) with 512 KB / 500-question limits, exam code/version metadata, enable/disable toggle, delete confirmation preserving historical score snapshots, and backend-only grading that never leaks correct answers.
-  - **16-Language Dynamic Exam & PDF Exports (`localizeExam` + `PDF_LABELS_I18N`)**: Blank exam PDF, completed exam PDF (exam-time diagonal English-date watermark, no correct answers), and landscape score summary PDF dynamically localize both exam content and PDF header/table labels across all 16 host languages.
+  - **Interactive Fillable Blank Exam PDF & 16-Language PDF Exports**: Blank exam PDFs are standard **AcroForm** fillable documents (Name/Date text fields, radio button groups for single-choice/true-false, checkboxes for multiple-choice, with simplified header); completed exam PDFs remain read-only with exam-time diagonal watermarks and no correct answers; landscape score summary PDFs dynamically localize across all 16 languages.
   - **16-Language Support & Template Guide**: Complete idiomatic translations across all 16 host locales (including distinct `pt` vs `pt_BR` and `zh_TW` vs `zh_CN`), unanswered-question submission guard, and dedicated blueprint guides (`docs-plugins/online-exam/README.md` / `README.zh-TW.md`).
 
 ### Fixed
 - **Portable Packaging Script (`scripts/package-portable.ps1` & `package-portable.sh`)**: Automatically selects the highest-version `jetty-home-*.zip` in `tools/jetty/` using version sorting instead of hardcoding `12.1.14`, and automatically queries `https://jetty.org/download.html` (with Maven Central metadata fallback) to download the latest Jetty 12 release if `tools/jetty/` is empty.
-- **Maven Version & Footer Display (`v3.01-SNAPSHOT`)**: Restored `<version>3.01-SNAPSHOT</version>` across `pom.xml`, `docs-core/pom.xml`, `docs-web-common/pom.xml`, and `docs-web/pom.xml` so `${project.version}` filtering in `config.properties` displays `v3.01-SNAPSHOT` in the footer.
+- **Maven Version & Footer Display (`v3.01`)**: Unified `<version>3.01</version>` across `pom.xml`, `docs-core/pom.xml`, `docs-web-common/pom.xml`, and `docs-web/pom.xml` so `${project.version}` filtering displays `v3.01` in the footer.
 - **16-Language Localization Completeness**: Fixed untranslated English strings in `zh_CN.json` (`download`, `rename`, `yes`, `tag.created_by`, `document.edit.allow_download_help`), `zh_TW.json` (`yes`, `group_used_*`, `base_dn`), localized all plugin management and hidden-tag keys across all 16 locales, and localized the file list view table headers (`Filename`, `Type`, `Size`, `Version`) in `document.view.content.html`.
 - **Footer `pt_BR` Language Label**: Added the missing `<span ng-switch-when="pt_BR">Português (Brasil)</span>` case in `index.html` so switching to Brazilian Portuguese displays its label next to the dropdown caret.
 

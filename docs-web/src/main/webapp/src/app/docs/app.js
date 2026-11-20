@@ -173,6 +173,15 @@ angular.module('docs',
         }
       }
     })
+    .state('settings.sbom', {
+      url: '/sbom',
+      views: {
+        'settings': {
+          templateUrl: 'partial/docs/settings.sbom.html',
+          controller: 'SettingsSbom'
+        }
+      }
+    })
     .state('settings.config', {
       url: '/config',
       views: {

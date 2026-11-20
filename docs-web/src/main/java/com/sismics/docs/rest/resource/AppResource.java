@@ -131,31 +131,9 @@ public class AppResource extends BaseResource {
             globalQuota = Long.valueOf(globalQuotaStr);
         }
 
-        String javaVersion = System.getProperty("java.version", "");
-        String jettyVersion = "";
-        if (request != null && request.getServletContext() != null) {
-            String serverInfo = request.getServletContext().getServerInfo();
-            if (!Strings.isNullOrEmpty(serverInfo)) {
-                int slashIdx = serverInfo.indexOf('/');
-                jettyVersion = slashIdx >= 0 ? serverInfo.substring(slashIdx + 1).trim() : serverInfo.trim();
-            }
-        }
-        if (jettyVersion.isEmpty()) {
-            try {
-                Class<?> jettyClass = Class.forName("org.eclipse.jetty.util.Jetty");
-                Object ver = jettyClass.getField("VERSION").get(null);
-                if (ver != null) {
-                    jettyVersion = ver.toString();
-                }
-            } catch (Throwable ignored) {
-            }
-        }
-
         JsonObjectBuilder response = Json.createObjectBuilder()
                 .add("current_version", currentVersion)
                 .add("min_version", minVersion)
-                .add("jetty_version", jettyVersion)
-                .add("java_version", javaVersion)
                 .add("guest_login", guestLogin)
                 .add("ocr_enabled", ocrEnabled)
                 .add("ocr_engine", ocrConfig.getEngine())
@@ -1103,6 +1081,61 @@ public class AppResource extends BaseResource {
         checkBaseFunction(BaseFunction.ADMIN);
 
         return Response.ok().entity(com.sismics.docs.core.util.indexing.ReindexProgress.toJson()).build();
+    }
+
+    /**
+     * Returns the runtime Software Bill of Materials (SBOM).
+     *
+     * @api {get} /app/sbom Get runtime SBOM
+     * @apiName GetAppSbom
+     * @apiGroup App
+     * @apiPermission admin
+     *
+     * @return Response
+     */
+    @GET
+    @Path("sbom")
+    public Response sbom() {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        jakarta.servlet.ServletContext servletContext = request != null ? request.getServletContext() : null;
+        return Response.ok().entity(com.sismics.docs.rest.util.SbomService.buildSbomJson(servletContext)).build();
+    }
+
+    /**
+     * Exports the runtime SBOM as CycloneDX 1.5 JSON or CSV.
+     *
+     * @api {get} /app/sbom/export Export runtime SBOM
+     * @apiName GetAppSbomExport
+     * @apiGroup App
+     * @apiParam {String="cyclonedx","csv"} [format="cyclonedx"] Export format
+     * @apiPermission admin
+     *
+     * @param format Export format
+     * @return Response
+     */
+    @GET
+    @Path("sbom/export")
+    public Response exportSbom(@QueryParam("format") String format) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        jakarta.servlet.ServletContext servletContext = request != null ? request.getServletContext() : null;
+        if ("csv".equalsIgnoreCase(format)) {
+            String csv = com.sismics.docs.rest.util.SbomService.exportCsv(servletContext);
+            return Response.ok(csv, "text/csv; charset=UTF-8")
+                    .header("Content-Disposition", "attachment; filename=\"sbom.csv\"")
+                    .build();
+        }
+        String cdx = com.sismics.docs.rest.util.SbomService.exportCycloneDxJson(servletContext);
+        return Response.ok(cdx, "application/vnd.cyclonedx+json; charset=UTF-8")
+                .header("Content-Disposition", "attachment; filename=\"sbom-cyclonedx.json\"")
+                .build();
     }
 
     /**
