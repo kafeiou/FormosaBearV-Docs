@@ -16,6 +16,12 @@
   - Windows: 雙擊執行 stop.bat 或直接關閉啟動終端機視窗。
   - Linux / macOS: 在終端機執行 ./stop.sh 或按下 Ctrl+C。
 
+【Demo 定時重置模式（每 24 小時自動還原）】
+  1. 先使用 start.bat / ./start.sh 啟動系統並建立好展示資料，再以 stop.bat / ./stop.sh 停止。
+  2. 將「data」目錄複製一份命名為「data.bak」。
+  3. 改用 demo.bat [埠號] 或 ./demo.sh [埠號] 啟動（例如 demo.bat 8088 或 ./demo.sh 8088）。
+     系統將每 24 小時自動停機、刪除 data、從 data.bak 還原並重新啟動（亦可傳入第二參數指定小時數）。
+
 【預設管理者帳號】
   - 帳號：admin
   - 密碼：superSecure
@@ -45,6 +51,12 @@
 [Stopping the Server]
   - Windows: Double-click stop.bat or press Ctrl+C in the terminal.
   - Linux / macOS: Run ./stop.sh in terminal or press Ctrl+C.
+
+[Demo Auto-Reset Mode (Resets Every 24 Hours)]
+  1. Run start.bat / ./start.sh to prepare your demo data, then stop with stop.bat / ./stop.sh.
+  2. Copy the "data" directory to "data.bak".
+  3. Launch with demo.bat [port] or ./demo.sh [port] (e.g., demo.bat 8088 or ./demo.sh 8088).
+     The server will automatically stop, delete "data", restore from "data.bak", and restart every 24 hours.
 
 [Default Admin Credentials]
   - Username: admin

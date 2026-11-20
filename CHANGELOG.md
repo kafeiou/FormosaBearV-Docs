@@ -6,6 +6,13 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Portable Demo Auto-Reset Scripts (`scripts/templates/demo.bat` & `demo.sh`)**: Added `demo.bat [port] [hours]` and `demo.sh [port] [hours]` alongside `start.bat` / `start.sh` to automatically stop Jetty, delete `data/`, restore from `data.bak/`, and restart every 24 hours (starts normally with an English warning if `data.bak` is not yet present).
+
+---
+
 ## [v3.01] - 2026-11-20
 
 > **Baseline**: `v2.09` (`v2` branch) ➜ `v3.01` (`master`)

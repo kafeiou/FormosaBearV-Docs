@@ -98,7 +98,7 @@ mkdir -p "$BUNDLE_DIR/data"
 # Copy runtime scripts and README from templates
 if [ -d "$DIR/scripts/templates" ]; then
     cp "$DIR/scripts/templates/"* "$BUNDLE_DIR/"
-    chmod +x "$BUNDLE_DIR/start.sh" "$BUNDLE_DIR/stop.sh" 2>/dev/null || true
+    chmod +x "$BUNDLE_DIR/start.sh" "$BUNDLE_DIR/stop.sh" "$BUNDLE_DIR/demo.sh" 2>/dev/null || true
 fi
 
 # 5. Compress

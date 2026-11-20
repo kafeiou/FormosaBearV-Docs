@@ -6,6 +6,13 @@
 
 ---
 
+## [未發布 (Unreleased)]
+
+### 新增功能 (Added)
+- **可攜版 Demo 定時重置腳本（`scripts/templates/demo.bat` 與 `demo.sh`）**：於 `start.bat` / `start.sh` 同目錄新增 `demo.bat [port] [hours]` 與 `demo.sh [port] [hours]`，支援每 24 小時自動優雅停機、刪除 `data`、從 `data.bak` 還原並重啟（若尚未建立 `data.bak`，則輸出英文提示並正常啟動不重置）。
+
+---
+
 ## [v3.01] - 2026-11-20
 
 > **基準點**: `v2.09`（`v2` 分支）➜ `v3.01`（`master` 正式版）
