@@ -270,7 +270,11 @@ public class FileUtil {
         ConfigUtil.ensureFileEncryptLocked();
 
         // Save the file
-        Path path = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());
+        Path storageDir = DirectoryUtil.getStorageDirectory(file).toAbsolutePath().normalize();
+        Path path = storageDir.resolve(file.getName()).normalize();
+        if (!path.startsWith(storageDir) || path.equals(storageDir)) {
+            throw new IOException("Invalid file name");
+        }
         try (InputStream inputStream = EncryptionUtil.encryptInputStream( Files.newInputStream(unencryptedFile),user.getPrivateKey())) {
             Files.copy(inputStream, path);
         }
@@ -339,7 +343,11 @@ public class FileUtil {
         }
 
         String finalName = StringUtils.abbreviate(Strings.isNullOrEmpty(name) ? file.getName() : name, 200);
-        Path storageDir = DirectoryUtil.getStorageDirectory(file);
+        Path storageDir = DirectoryUtil.getStorageDirectory(file).toAbsolutePath().normalize();
+        Path newPath = storageDir.resolve(finalName).normalize();
+        if (!newPath.startsWith(storageDir) || newPath.equals(storageDir)) {
+            throw new IOException("Invalid file name");
+        }
         Files.createDirectories(storageDir);
 
         // Remove old physical file and its cached preview/thumbnail derivatives
@@ -348,7 +356,10 @@ public class FileUtil {
         if (!Strings.isNullOrEmpty(oldName)) {
             for (String suffix : suffixes) {
                 try {
-                    Files.deleteIfExists(storageDir.resolve(oldName + suffix));
+                    Path oldCandidate = storageDir.resolve(oldName + suffix).normalize();
+                    if (oldCandidate.startsWith(storageDir) && !oldCandidate.equals(storageDir)) {
+                        Files.deleteIfExists(oldCandidate);
+                    }
                 } catch (IOException ignored) {
                 }
             }
@@ -356,7 +367,10 @@ public class FileUtil {
         if (!Strings.isNullOrEmpty(finalName) && !finalName.equals(oldName)) {
             for (String suffix : suffixes) {
                 try {
-                    Files.deleteIfExists(storageDir.resolve(finalName + suffix));
+                    Path newCandidate = storageDir.resolve(finalName + suffix).normalize();
+                    if (newCandidate.startsWith(storageDir) && !newCandidate.equals(storageDir)) {
+                        Files.deleteIfExists(newCandidate);
+                    }
                 } catch (IOException ignored) {
                 }
             }
@@ -374,7 +388,6 @@ public class FileUtil {
         ConfigUtil.ensureFileEncryptLocked();
 
         // Save new physical file to storage directory
-        Path newPath = storageDir.resolve(finalName);
         try (InputStream inputStream = EncryptionUtil.encryptInputStream(Files.newInputStream(unencryptedFile), owner.getPrivateKey())) {
             Files.copy(inputStream, newPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         }
