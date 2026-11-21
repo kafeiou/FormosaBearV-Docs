@@ -525,7 +525,14 @@
       "ocr_test_success": "连接成功！检测到 {{ count }} 个模型。",
       "ocr_test_model_missing": "提示：模型“{{ model }}”未出现在返回列表中。",
       "ocr_test_failed": "连接失败",
-      "ocr_saved": "OCR 设置已保存"
+      "ocr_saved": "OCR 设置已保存",
+      "ocr_tesseract_test": "检查 Tesseract",
+      "ocr_tesseract_path_help": "留空将自动检测（系统 PATH 或 Windows 默认安装目录）。Windows 可粘贴文件夹路径或包含 tesseract.exe 的完整路径（自动去除双引号）。",
+      "ocr_tesseract_test_success": "Tesseract 检查成功",
+      "ocr_tesseract_test_failed": "Tesseract 检查失败",
+      "ocr_tesseract_version": "版本",
+      "ocr_tesseract_resolved_path": "可执行文件路径",
+      "ocr_tesseract_languages": "已安装语言包"
     },
     "menu_personal_settings": "个人设置",
     "menu_user_account": "用户帐号",
@@ -888,7 +895,8 @@
       "col_status": "状态",
       "status_enabled": "已启用",
       "status_disabled": "已停用",
-      "empty": "无符合条件的项目。"
+      "empty": "无符合条件的项目。",
+      "generated_at_label": "快照生成时间"
     }
   },
   "feedback": {

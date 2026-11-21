@@ -525,7 +525,14 @@
       "ocr_test_success": "Connected! Found {{ count }} model(s).",
       "ocr_test_model_missing": "Warning: model \"{{ model }}\" was not found in the returned list.",
       "ocr_test_failed": "Connection failed",
-      "ocr_saved": "OCR settings saved"
+      "ocr_saved": "OCR settings saved",
+      "ocr_tesseract_test": "Verifica Tesseract",
+      "ocr_tesseract_path_help": "Lascia vuoto per il rilevamento automatico. Su Windows puoi incollare la cartella o il percorso completo con tesseract.exe (le virgolette vengono rimosse automaticamente).",
+      "ocr_tesseract_test_success": "Tesseract è pronto",
+      "ocr_tesseract_test_failed": "Verifica Tesseract non riuscita",
+      "ocr_tesseract_version": "Versione",
+      "ocr_tesseract_resolved_path": "Percorso eseguibile",
+      "ocr_tesseract_languages": "Lingue installate"
     },
     "menu_personal_settings": "Impostazioni personali",
     "menu_user_account": "Profilo utente",
@@ -888,7 +895,8 @@
       "col_status": "Stato",
       "status_enabled": "Abilitato",
       "status_disabled": "Disabilitato",
-      "empty": "Nessun componente corrispondente."
+      "empty": "Nessun componente corrispondente.",
+      "generated_at_label": "Istantanea generata"
     }
   },
   "feedback": {

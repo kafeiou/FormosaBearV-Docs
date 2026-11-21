@@ -525,7 +525,14 @@
       "ocr_test_success": "連線成功！偵測到 {{ count }} 個模型。",
       "ocr_test_model_missing": "提醒：模型「{{ model }}」未出現在回傳清單中。",
       "ocr_test_failed": "連線失敗",
-      "ocr_saved": "OCR 設定已儲存"
+      "ocr_saved": "OCR 設定已儲存",
+      "ocr_tesseract_test": "檢查 Tesseract",
+      "ocr_tesseract_path_help": "留空會自動偵測（系統 PATH 或 Windows 預設安裝目錄）。Windows 可貼上資料夾路徑或含 tesseract.exe 的完整路徑（會自動去除前後雙引號）。",
+      "ocr_tesseract_test_success": "Tesseract 檢查成功",
+      "ocr_tesseract_test_failed": "Tesseract 檢查失敗",
+      "ocr_tesseract_version": "版本",
+      "ocr_tesseract_resolved_path": "執行檔路徑",
+      "ocr_tesseract_languages": "已安裝語言包"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "帳號",
@@ -888,7 +895,8 @@
       "col_status": "狀態",
       "status_enabled": "已啟用",
       "status_disabled": "已停用",
-      "empty": "無符合條件的項目。"
+      "empty": "無符合條件的項目。",
+      "generated_at_label": "快照產生時間"
     }
   },
   "feedback": {

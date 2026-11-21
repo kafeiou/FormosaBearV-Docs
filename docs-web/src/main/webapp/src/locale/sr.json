@@ -525,7 +525,14 @@
       "ocr_test_success": "Connected! Found {{ count }} model(s).",
       "ocr_test_model_missing": "Warning: model \"{{ model }}\" was not found in the returned list.",
       "ocr_test_failed": "Connection failed",
-      "ocr_saved": "OCR settings saved"
+      "ocr_saved": "OCR settings saved",
+      "ocr_tesseract_test": "Провери Tesseract",
+      "ocr_tesseract_path_help": "Оставите празно за аутоматско откривање. На Windows-у можете налепити фасциклу или пуну путању са tesseract.exe (наводници се аутоматски уклањају).",
+      "ocr_tesseract_test_success": "Tesseract је спреман",
+      "ocr_tesseract_test_failed": "Провера Tesseract-а није успела",
+      "ocr_tesseract_version": "Верзија",
+      "ocr_tesseract_resolved_path": "Путања извршне датотеке",
+      "ocr_tesseract_languages": "Инсталирани језици"
     },
     "menu_personal_settings": "Лична подешавања",
     "menu_user_account": "Кориснички налог",
@@ -888,7 +895,8 @@
       "col_status": "Статус",
       "status_enabled": "Омогућено",
       "status_disabled": "Онемогућено",
-      "empty": "Нема одговарајућих компоненти."
+      "empty": "Нема одговарајућих компоненти.",
+      "generated_at_label": "Снимак направљен"
     }
   },
   "feedback": {

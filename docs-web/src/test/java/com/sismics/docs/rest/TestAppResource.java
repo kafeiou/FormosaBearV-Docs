@@ -692,4 +692,86 @@ public class TestAppResource extends BaseJerseyTest {
         Assert.assertFalse(json.getBoolean("preview_watermark_enabled"));
         Assert.assertEquals("dd MMM yyyy", json.getString("preview_watermark_date_format"));
     }
+
+    /**
+     * Test Tesseract path normalization and availability check endpoint.
+     */
+    @Test
+    public void testTesseractCheckAndPathResolution() throws Exception {
+        String adminToken = adminToken();
+        clientUtil.createUser("ocr_check_normal_user");
+        String userToken = clientUtil.login("ocr_check_normal_user");
+
+        // 1. Directory path auto-appends executable and strips quotes
+        java.nio.file.Path tempDir = java.nio.file.Files.createTempDirectory("tess-dir-test");
+        try {
+            String resolvedFromQuotedDir = com.sismics.docs.core.util.ocr.TesseractOcrProvider
+                    .resolveTesseractCommand("\"" + tempDir.toAbsolutePath() + "\"");
+            Assert.assertTrue(resolvedFromQuotedDir.startsWith(tempDir.toAbsolutePath().toString()));
+            Assert.assertTrue(resolvedFromQuotedDir.endsWith("tesseract.exe") || resolvedFromQuotedDir.endsWith("tesseract"));
+        } finally {
+            java.nio.file.Files.deleteIfExists(tempDir);
+        }
+
+        // 2. Non-admin is forbidden
+        Response forbidden = target().path("/app/ocr/test-tesseract").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form().param("tesseract_path", "")));
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(forbidden.getStatus()));
+
+        // 3. Admin check on non-existent quoted path returns ok=false with cleaned resolved_path
+        JsonObject res = target().path("/app/ocr/test-tesseract").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("tesseract_path", "\"/nonexistent/path/tesseract.exe\"")), JsonObject.class);
+        Assert.assertFalse(res.getBoolean("ok"));
+        Assert.assertEquals("/nonexistent/path/tesseract.exe", res.getString("resolved_path"));
+        Assert.assertFalse(res.getString("error", "").isEmpty());
+        Assert.assertEquals(0, res.getJsonArray("languages").size());
+    }
+
+    /**
+     * Test SBOM persistent caching on first load and forced refresh.
+     */
+    @Test
+    public void testSbomCachingAndRefresh() throws Exception {
+        String adminToken = adminToken();
+        clientUtil.createUser("sbom_normal_user");
+        String userToken = clientUtil.login("sbom_normal_user");
+
+        // Non-admin is forbidden
+        Response forbidden = target().path("/app/sbom").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get();
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(forbidden.getStatus()));
+
+        // First call generates and caches snapshot
+        JsonObject first = target().path("/app/sbom").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        String ts1 = first.getString("generated_at");
+        Assert.assertFalse(ts1.isEmpty());
+
+        Thread.sleep(20);
+
+        // Second call without refresh returns exact same cached timestamp
+        JsonObject second = target().path("/app/sbom").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(ts1, second.getString("generated_at"));
+
+        Thread.sleep(20);
+
+        // Refresh=true forces re-scan with a newer timestamp and updates cache
+        JsonObject refreshed = target().path("/app/sbom").queryParam("refresh", true).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        String ts2 = refreshed.getString("generated_at");
+        Assert.assertNotEquals(ts1, ts2);
+
+        // Subsequent non-refresh call returns the updated cached timestamp
+        JsonObject third = target().path("/app/sbom").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(ts2, third.getString("generated_at"));
+    }
 }

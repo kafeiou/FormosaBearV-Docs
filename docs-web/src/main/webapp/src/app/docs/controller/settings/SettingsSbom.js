@@ -13,9 +13,10 @@ angular.module('docs').controller('SettingsSbom', function($scope, $window, Rest
     backend: false
   };
 
-  $scope.loadSbom = function() {
+  $scope.loadSbom = function(refresh) {
     $scope.loading = true;
-    Restangular.one('app/sbom').get().then(function(data) {
+    var params = refresh ? { refresh: true } : {};
+    Restangular.one('app/sbom').get(params).then(function(data) {
       $scope.sbom = data;
       $scope.loading = false;
     }, function() {
@@ -47,5 +48,5 @@ angular.module('docs').controller('SettingsSbom', function($scope, $window, Rest
     $window.location.href = '../api/app/sbom/export?format=' + encodeURIComponent(format);
   };
 
-  $scope.loadSbom();
+  $scope.loadSbom(false);
 });

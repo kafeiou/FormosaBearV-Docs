@@ -525,7 +525,14 @@
       "ocr_test_success": "Connected! Found {{ count }} model(s).",
       "ocr_test_model_missing": "Warning: model \"{{ model }}\" was not found in the returned list.",
       "ocr_test_failed": "Connection failed",
-      "ocr_saved": "OCR settings saved"
+      "ocr_saved": "OCR settings saved",
+      "ocr_tesseract_test": "Testo Tesseract",
+      "ocr_tesseract_path_help": "Lëreni bosh për zbulim automatik. Në Windows mund të ngjisni dosjen ose shtegun e plotë me tesseract.exe (thonjëzat hiqen automatikisht).",
+      "ocr_tesseract_test_success": "Tesseract është gati",
+      "ocr_tesseract_test_failed": "Kontrolli i Tesseract dështoi",
+      "ocr_tesseract_version": "Versioni",
+      "ocr_tesseract_resolved_path": "Shtegu i ekzekutueshëm",
+      "ocr_tesseract_languages": "Gjuhët e instaluara"
     },
     "menu_personal_settings": "Cilësimet personale",
     "menu_user_account": "Llogaria e përdoruesit",
@@ -888,7 +895,8 @@
       "col_status": "Statusi",
       "status_enabled": "Aktivizuar",
       "status_disabled": "Çaktivizuar",
-      "empty": "Nuk u gjetën komponentë."
+      "empty": "Nuk u gjetën komponentë.",
+      "generated_at_label": "Gjeneruar më"
     }
   },
   "feedback": {

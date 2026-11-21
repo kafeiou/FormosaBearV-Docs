@@ -152,8 +152,40 @@
   <div class="form-group" ng-if="ocrConfig.engine === 'tesseract' || ocrConfig.fallback_tesseract">
     <label class="col-sm-3 control-label" for="inputTesseractPath">{{ 'settings.config.ocr_tesseract_path' | translate }}</label>
     <div class="col-sm-9">
-      <input type="text" class="form-control" id="inputTesseractPath" ng-model="ocrConfig.tesseract_path"
-             ng-attr-placeholder="{{ 'settings.config.ocr_tesseract_path_placeholder' | translate }}" />
+      <div class="input-group">
+        <input type="text" class="form-control" id="inputTesseractPath" ng-model="ocrConfig.tesseract_path"
+               ng-attr-placeholder="{{ 'settings.config.ocr_tesseract_path_placeholder' | translate }}" />
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" ng-click="testTesseract()" ng-disabled="tesseractTesting">
+            <span class="fas fa-vial" ng-if="!tesseractTesting"></span>
+            <span class="fas fa-spinner fa-spin" ng-if="tesseractTesting"></span>
+            {{ 'settings.config.ocr_tesseract_test' | translate }}
+          </button>
+        </span>
+      </div>
+      <p class="help-block small">{{ 'settings.config.ocr_tesseract_path_help' | translate }}</p>
+      <div class="alert" ng-if="tesseractTestResult"
+           ng-class="{ 'alert-success': tesseractTestResult.ok, 'alert-danger': !tesseractTestResult.ok }"
+           style="margin-top: 8px; margin-bottom: 0;">
+        <div ng-if="tesseractTestResult.ok">
+          <strong><span class="fas fa-check-circle"></span> {{ 'settings.config.ocr_tesseract_test_success' | translate }}</strong>
+          <div class="small" style="margin-top: 4px;">
+            <div><strong>{{ 'settings.config.ocr_tesseract_version' | translate }}:</strong> <code>{{ tesseractTestResult.version }}</code></div>
+            <div><strong>{{ 'settings.config.ocr_tesseract_resolved_path' | translate }}:</strong> <code>{{ tesseractTestResult.resolved_path }}</code></div>
+            <div ng-if="tesseractTestResult.languages && tesseractTestResult.languages.length > 0">
+              <strong>{{ 'settings.config.ocr_tesseract_languages' | translate }} ({{ tesseractTestResult.languages.length }}):</strong>
+              <span>{{ tesseractTestResult.languages.join(', ') }}</span>
+            </div>
+          </div>
+        </div>
+        <div ng-if="!tesseractTestResult.ok">
+          <strong><span class="fas fa-times-circle"></span> {{ 'settings.config.ocr_tesseract_test_failed' | translate }}:</strong>
+          <span>{{ tesseractTestResult.error }}</span>
+          <div class="small" ng-if="tesseractTestResult.resolved_path" style="margin-top: 4px;">
+            <strong>{{ 'settings.config.ocr_tesseract_resolved_path' | translate }}:</strong> <code>{{ tesseractTestResult.resolved_path }}</code>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

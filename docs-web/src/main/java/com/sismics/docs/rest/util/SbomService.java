@@ -6,6 +6,7 @@ import com.sismics.docs.core.constant.Constants;
 import com.sismics.docs.core.dao.PluginDao;
 import com.sismics.docs.core.model.jpa.Plugin;
 import com.sismics.docs.core.util.ConfigUtil;
+import com.sismics.docs.core.util.DirectoryUtil;
 import com.sismics.util.context.ThreadLocalContext;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -22,7 +23,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.sql.DatabaseMetaData;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -49,6 +54,10 @@ import java.util.regex.Pattern;
  */
 public final class SbomService {
     private static final Logger log = LoggerFactory.getLogger(SbomService.class);
+    private static final String CACHE_FILENAME = "sbom-cache.json";
+    private static final Object CACHE_LOCK = new Object();
+    private static volatile JsonObject cachedSbom;
+    private static volatile Path cachedSbomPath;
 
     private SbomService() {
     }
@@ -71,6 +80,87 @@ public final class SbomService {
         }
     }
 
+    /**
+     * Returns the cached SBOM snapshot if available; automatically scans and persists it on first access,
+     * or re-scans and overwrites the saved snapshot when {@code refresh} is {@code true}.
+     */
+    public static JsonObject getSbomJson(ServletContext servletContext, boolean refresh) {
+        Path cacheFile = resolveCacheFile();
+        synchronized (CACHE_LOCK) {
+            if (!refresh) {
+                if (cachedSbom != null && (cacheFile == null || cacheFile.equals(cachedSbomPath))) {
+                    return cachedSbom;
+                }
+                JsonObject diskCache = readCacheFromDisk(cacheFile);
+                if (diskCache != null) {
+                    cachedSbom = diskCache;
+                    cachedSbomPath = cacheFile;
+                    return diskCache;
+                }
+            }
+
+            JsonObject fresh = buildSbomJson(servletContext);
+            writeCacheToDisk(cacheFile, fresh);
+            cachedSbom = fresh;
+            cachedSbomPath = cacheFile;
+            return fresh;
+        }
+    }
+
+    static void clearMemoryCache() {
+        synchronized (CACHE_LOCK) {
+            cachedSbom = null;
+            cachedSbomPath = null;
+        }
+    }
+
+    private static Path resolveCacheFile() {
+        try {
+            Path baseDir = DirectoryUtil.getBaseDataDirectory();
+            if (baseDir != null) {
+                return baseDir.resolve(CACHE_FILENAME);
+            }
+        } catch (Exception e) {
+            log.debug("Unable to resolve base data directory for SBOM cache", e);
+        }
+        return null;
+    }
+
+    private static JsonObject readCacheFromDisk(Path cacheFile) {
+        if (cacheFile == null || !Files.isRegularFile(cacheFile)) {
+            return null;
+        }
+        try {
+            String raw = Files.readString(cacheFile, StandardCharsets.UTF_8);
+            try (JsonReader reader = Json.createReader(new StringReader(raw))) {
+                JsonObject obj = reader.readObject();
+                if (obj.containsKey("generated_at") && obj.containsKey("environment")) {
+                    return obj;
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Unable to read SBOM cache from {}: {}", cacheFile, e.getMessage());
+        }
+        return null;
+    }
+
+    private static void writeCacheToDisk(Path cacheFile, JsonObject sbom) {
+        if (cacheFile == null || sbom == null) {
+            return;
+        }
+        try {
+            Path parent = cacheFile.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            Path tmp = cacheFile.resolveSibling(CACHE_FILENAME + ".tmp");
+            Files.writeString(tmp, sbom.toString(), StandardCharsets.UTF_8);
+            Files.move(tmp, cacheFile, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            log.debug("Unable to persist SBOM cache to {}: {}", cacheFile, e.getMessage());
+        }
+    }
+
     public static JsonObject buildSbomJson(ServletContext servletContext) {
         String generatedAt = Instant.now().toString();
         JsonObject env = collectRuntimeEnvironment(servletContext);
@@ -88,11 +178,12 @@ public final class SbomService {
     }
 
     public static String exportCycloneDxJson(ServletContext servletContext) {
-        String generatedAt = Instant.now().toString();
-        JsonObject env = collectRuntimeEnvironment(servletContext);
-        List<ComponentItem> plugins = collectPlugins();
-        List<ComponentItem> backendLibs = collectBackendLibraries(servletContext);
-        List<ComponentItem> frontendLibs = collectFrontendLibraries(servletContext);
+        JsonObject sbom = getSbomJson(servletContext, false);
+        String generatedAt = sbom.getString("generated_at", Instant.now().toString());
+        JsonObject env = sbom.getJsonObject("environment");
+        JsonArray plugins = sbom.getJsonArray("plugins");
+        JsonArray backendLibs = sbom.getJsonArray("backend_libraries");
+        JsonArray frontendLibs = sbom.getJsonArray("frontend_libraries");
 
         JsonArrayBuilder components = Json.createArrayBuilder();
 
@@ -104,14 +195,23 @@ public final class SbomService {
         if (!env.getString("db_product", "").isEmpty()) {
             addCdxComponent(components, "application", "database", env.getString("db_product"), env.getString("db_version", "unknown"), "");
         }
-        for (ComponentItem item : plugins) {
-            addCdxComponent(components, "application", item.group, item.name, item.version, item.purl);
+        if (plugins != null) {
+            for (int i = 0; i < plugins.size(); i++) {
+                JsonObject item = plugins.getJsonObject(i);
+                addCdxComponent(components, "application", item.getString("group", ""), item.getString("name", ""), item.getString("version", "unknown"), item.getString("purl", ""));
+            }
         }
-        for (ComponentItem item : backendLibs) {
-            addCdxComponent(components, "library", item.group, item.name, item.version, item.purl);
+        if (backendLibs != null) {
+            for (int i = 0; i < backendLibs.size(); i++) {
+                JsonObject item = backendLibs.getJsonObject(i);
+                addCdxComponent(components, "library", item.getString("group", ""), item.getString("name", ""), item.getString("version", "unknown"), item.getString("purl", ""));
+            }
         }
-        for (ComponentItem item : frontendLibs) {
-            addCdxComponent(components, "library", item.group, item.name, item.version, item.purl);
+        if (frontendLibs != null) {
+            for (int i = 0; i < frontendLibs.size(); i++) {
+                JsonObject item = frontendLibs.getJsonObject(i);
+                addCdxComponent(components, "library", item.getString("group", ""), item.getString("name", ""), item.getString("version", "unknown"), item.getString("purl", ""));
+            }
         }
 
         JsonObject cdx = Json.createObjectBuilder()
@@ -132,10 +232,11 @@ public final class SbomService {
     }
 
     public static String exportCsv(ServletContext servletContext) {
-        JsonObject env = collectRuntimeEnvironment(servletContext);
-        List<ComponentItem> plugins = collectPlugins();
-        List<ComponentItem> backendLibs = collectBackendLibraries(servletContext);
-        List<ComponentItem> frontendLibs = collectFrontendLibraries(servletContext);
+        JsonObject sbom = getSbomJson(servletContext, false);
+        JsonObject env = sbom.getJsonObject("environment");
+        JsonArray plugins = sbom.getJsonArray("plugins");
+        JsonArray backendLibs = sbom.getJsonArray("backend_libraries");
+        JsonArray frontendLibs = sbom.getJsonArray("frontend_libraries");
 
         StringBuilder sb = new StringBuilder("\uFEFF");
         sb.append("Category,Group,Name,Version,Status\n");
@@ -147,14 +248,23 @@ public final class SbomService {
         appendCsvRow(sb, "Environment", "database", env.getString("db_product", ""), env.getString("db_version", ""), env.getString("jdbc_driver", "") + " " + env.getString("jdbc_driver_version", ""));
         appendCsvRow(sb, "Environment", "ocr", env.getString("ocr_engine", ""), "", env.getBoolean("ocr_enabled", false) ? "ENABLED" : "DISABLED");
 
-        for (ComponentItem item : plugins) {
-            appendCsvRow(sb, "Plugin", item.group, item.name, item.version, item.status);
+        if (plugins != null) {
+            for (int i = 0; i < plugins.size(); i++) {
+                JsonObject item = plugins.getJsonObject(i);
+                appendCsvRow(sb, "Plugin", item.getString("group", ""), item.getString("name", ""), item.getString("version", ""), item.getString("status", ""));
+            }
         }
-        for (ComponentItem item : frontendLibs) {
-            appendCsvRow(sb, "Frontend", item.group, item.name, item.version, item.status);
+        if (frontendLibs != null) {
+            for (int i = 0; i < frontendLibs.size(); i++) {
+                JsonObject item = frontendLibs.getJsonObject(i);
+                appendCsvRow(sb, "Frontend", item.getString("group", ""), item.getString("name", ""), item.getString("version", ""), item.getString("status", ""));
+            }
         }
-        for (ComponentItem item : backendLibs) {
-            appendCsvRow(sb, "Backend", item.group, item.name, item.version, item.status);
+        if (backendLibs != null) {
+            for (int i = 0; i < backendLibs.size(); i++) {
+                JsonObject item = backendLibs.getJsonObject(i);
+                appendCsvRow(sb, "Backend", item.getString("group", ""), item.getString("name", ""), item.getString("version", ""), item.getString("status", ""));
+            }
         }
         return sb.toString();
     }
@@ -191,11 +301,15 @@ public final class SbomService {
     private static JsonArray toJsonArray(List<ComponentItem> items) {
         JsonArrayBuilder arr = Json.createArrayBuilder();
         for (ComponentItem item : items) {
-            arr.add(Json.createObjectBuilder()
+            JsonObjectBuilder b = Json.createObjectBuilder()
                     .add("group", item.group)
                     .add("name", item.name)
                     .add("version", item.version)
-                    .add("status", item.status));
+                    .add("status", item.status);
+            if (!Strings.isNullOrEmpty(item.purl)) {
+                b.add("purl", item.purl);
+            }
+            arr.add(b);
         }
         return arr.build();
     }

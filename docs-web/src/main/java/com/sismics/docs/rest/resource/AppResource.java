@@ -373,6 +373,34 @@ public class AppResource extends BaseResource {
     }
 
     /**
+     * Test local Tesseract CLI executable availability, version, and installed languages.
+     */
+    @POST
+    @Path("ocr/test-tesseract")
+    public Response testTesseract(@FormParam("tesseract_path") String tesseractPath) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        String pathToCheck = tesseractPath != null ? tesseractPath : ConfigUtil.getOcrConfig().getTesseractPath();
+        com.sismics.docs.core.util.ocr.TesseractOcrProvider.TesseractCheckResult result =
+                com.sismics.docs.core.util.ocr.TesseractOcrProvider.checkAvailability(pathToCheck);
+
+        JsonArrayBuilder langsArray = Json.createArrayBuilder();
+        for (String lang : result.getLanguages()) {
+            langsArray.add(lang);
+        }
+        JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("ok", result.isOk())
+                .add("resolved_path", result.getResolvedPath())
+                .add("version", result.getVersion())
+                .add("languages", langsArray)
+                .add("error", result.getError());
+        return Response.ok().entity(response.build()).build();
+    }
+
+    /**
      * Enable/disable permanent file deletion on disk.
      */
     @POST
@@ -1095,14 +1123,14 @@ public class AppResource extends BaseResource {
      */
     @GET
     @Path("sbom")
-    public Response sbom() {
+    public Response sbom(@QueryParam("refresh") boolean refresh) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
         checkBaseFunction(BaseFunction.ADMIN);
 
         jakarta.servlet.ServletContext servletContext = request != null ? request.getServletContext() : null;
-        return Response.ok().entity(com.sismics.docs.rest.util.SbomService.buildSbomJson(servletContext)).build();
+        return Response.ok().entity(com.sismics.docs.rest.util.SbomService.getSbomJson(servletContext, refresh)).build();
     }
 
     /**

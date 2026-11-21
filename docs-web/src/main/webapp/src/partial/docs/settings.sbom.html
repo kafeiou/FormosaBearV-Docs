@@ -1,7 +1,7 @@
 <div class="clearfix" style="margin-bottom: 12px;">
   <h2 class="pull-left" style="margin-top: 0;" translate="settings.sbom.title"></h2>
   <div class="pull-right" style="margin-top: 4px;">
-    <button type="button" class="btn btn-default btn-sm" ng-click="loadSbom()" ng-disabled="loading">
+    <button type="button" class="btn btn-default btn-sm" ng-click="loadSbom(true)" ng-disabled="loading">
       <span class="fas fa-sync-alt" ng-class="{ 'fa-spin': loading }"></span>
       {{ 'settings.sbom.refresh' | translate }}
     </button>
@@ -26,7 +26,10 @@
   <div class="panel panel-default">
     <div class="panel-heading">
       <strong><span class="fas fa-server"></span> {{ 'settings.sbom.environment_title' | translate }}</strong>
-      <span class="pull-right small text-muted" ng-if="sbom.generated_at">{{ sbom.generated_at | date: dateTimeFormat }}</span>
+      <span class="pull-right small text-muted" ng-if="sbom.generated_at">
+        <span class="far fa-clock"></span>
+        {{ 'settings.sbom.generated_at_label' | translate }}: {{ sbom.generated_at | date: dateTimeFormat }}
+      </span>
     </div>
     <div class="panel-body">
       <div class="row">

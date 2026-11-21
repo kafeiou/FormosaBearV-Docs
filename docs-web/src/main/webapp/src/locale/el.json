@@ -525,7 +525,14 @@
       "ocr_test_success": "Connected! Found {{ count }} model(s).",
       "ocr_test_model_missing": "Warning: model \"{{ model }}\" was not found in the returned list.",
       "ocr_test_failed": "Connection failed",
-      "ocr_saved": "OCR settings saved"
+      "ocr_saved": "OCR settings saved",
+      "ocr_tesseract_test": "Έλεγχος Tesseract",
+      "ocr_tesseract_path_help": "Αφήστε κενό για αυτόματη ανίχνευση. Στα Windows μπορείτε να επικολλήσετε τον φάκελο ή την πλήρη διαδρομή με το tesseract.exe (τα εισαγωγικά αφαιρούνται αυτόματα).",
+      "ocr_tesseract_test_success": "Το Tesseract είναι έτοιμο",
+      "ocr_tesseract_test_failed": "Ο έλεγχος του Tesseract απέτυχε",
+      "ocr_tesseract_version": "Έκδοση",
+      "ocr_tesseract_resolved_path": "Διαδρομή εκτελέσιμου",
+      "ocr_tesseract_languages": "Εγκατεστημένες γλώσσες"
     },
     "menu_personal_settings": "Προσωπικές ρυθμίσεις",
     "menu_user_account": "Λογαριασμός χρήστη",
@@ -888,7 +895,8 @@
       "col_status": "Κατάσταση",
       "status_enabled": "Ενεργό",
       "status_disabled": "Ανενεργό",
-      "empty": "Δεν βρέθηκαν στοιχεία."
+      "empty": "Δεν βρέθηκαν στοιχεία.",
+      "generated_at_label": "Δημιουργία στιγμιοτύπου"
     }
   },
   "feedback": {

@@ -17,8 +17,11 @@
   - 於標籤管理新增區（`tag.admin.html`）與標籤編輯頁（`tag.edit.html`，含 `0 / 200` 字數提示）新增單行輸入框、於標籤瀏覽頁（`tag.view.html`）標題下方直接顯示說明，同步補齊 16 國語系與 `TestTagResource` 整合測試。
 - **可攜版 Demo 定時重置腳本（`scripts/templates/demo.bat` 與 `demo.sh`）**：
   - 於 `start.bat` / `start.sh` 同目錄新增 `demo.bat [port] [hours]` 與 `demo.sh [port] [hours]`，支援每 24 小時自動優雅停機、刪除 `data`、從 `data.bak` 還原並重啟（若尚未建立 `data.bak`，則輸出英文提示並正常啟動不重置）。
+- **本地 Tesseract OCR 檢查按鈕與 Windows 路徑防呆**：
+  - 新增管理員端點 `POST /api/app/ocr/test-tesseract` 與「**設定 → 系統設定**」中的「**檢查 Tesseract**」按鈕，可即時驗證本機或自動偵測的 Tesseract 執行檔，回報版本、實際解析路徑與已安裝語言包清單。
+  - 強化 `TesseractOcrProvider.resolveTesseractCommand()`：自動去除前後雙引號（相容 Windows 檔案總管「複製為路徑」），貼上資料夾路徑時自動補上 `tesseract.exe` / `tesseract`。
 - **執行期軟體組成清單（SBOM，限管理員存取）**：
-  - 新增獨立「**設定 → 軟體組成 (SBOM)**」（`#/settings/sbom`）頁籤與管理員專屬端點（`GET /api/app/sbom`、`GET /api/app/sbom/export?format=cyclonedx|csv`）。
+  - 新增獨立「**設定 → 軟體組成 (SBOM)**」（`#/settings/sbom`）頁籤與管理員專屬端點（`GET /api/app/sbom[?refresh=true]`、`GET /api/app/sbom/export?format=cyclonedx|csv`），首次自動掃描並持久化存檔（`sbom-cache.json` 含快照產生時間），後續檢視與匯出皆直接讀取快取，僅於按下「重新整理」時才重新掃描。
   - 全程於行程內動態盤點（不呼叫外部 CLI 子行程）：執行環境與伺服器（系統版本、OS、Java/JVM、Servlet 容器 / Jetty、資料庫引擎與 JDBC Driver、OCR 引擎設定）、已安裝外掛（`PluginDao`）、實際載入的後端 Java 套件（`WEB-INF/lib/*.jar`）與建置期掃描的前端函式庫（`dist/sbom-frontend.json`）。
   - 提供可展開／收合面板、關鍵字即時篩選、標準 **CycloneDX 1.5 JSON**（含 Maven `purl`）與 UTF-8 BOM **CSV** 匯出；同步自公開頁尾與 `GET /api/app` 移除 Jetty／Java 版本資訊以強化資安。
 - **群組描述（`T_GROUP.GRP_DESCRIPTION_C`，DB v46）**：

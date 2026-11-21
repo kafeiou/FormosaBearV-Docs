@@ -94,6 +94,8 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
   $scope.ocrAvailableModels = [];
   $scope.ocrTestResult = null;
   $scope.ocrTesting = false;
+  $scope.tesseractTestResult = null;
+  $scope.tesseractTesting = false;
   $scope.ocrSaving = false;
   $scope.ocrSaveSuccess = false;
   $scope.ocrSaveError = null;
@@ -116,10 +118,32 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
 
   $scope.onOcrEngineChange = function () {
     $scope.ocrTestResult = null;
+    $scope.tesseractTestResult = null;
     $scope.ocrAvailableModels = [];
     if ($scope.ocrConfig.engine === 'ollama' && !$scope.ocrConfig.ai_base_url) {
       $scope.ocrConfig.ai_base_url = 'http://localhost:11434';
     }
+  };
+
+  $scope.testTesseract = function () {
+    if (!$scope.ocrConfig) return;
+    $scope.tesseractTesting = true;
+    $scope.tesseractTestResult = null;
+    Restangular.one('app/ocr').post('test-tesseract', {
+      tesseract_path: $scope.ocrConfig.tesseract_path || ''
+    }).then(function (res) {
+      $scope.tesseractTesting = false;
+      $scope.tesseractTestResult = res;
+    }, function (err) {
+      $scope.tesseractTesting = false;
+      $scope.tesseractTestResult = {
+        ok: false,
+        resolved_path: '',
+        version: '',
+        languages: [],
+        error: (err && err.data && err.data.message) || 'Connection error'
+      };
+    });
   };
 
   $scope.testOcrConnection = function () {

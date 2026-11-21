@@ -525,7 +525,14 @@
       "ocr_test_success": "Connected! Found {{ count }} model(s).",
       "ocr_test_model_missing": "Warning: model \"{{ model }}\" was not found in the returned list.",
       "ocr_test_failed": "Connection failed",
-      "ocr_saved": "OCR settings saved"
+      "ocr_saved": "OCR settings saved",
+      "ocr_tesseract_test": "Kiểm tra Tesseract",
+      "ocr_tesseract_path_help": "Để trống để tự động phát hiện. Trên Windows có thể dán đường dẫn thư mục hoặc đường dẫn đầy đủ kèm tesseract.exe (dấu ngoặc kép tự động được loại bỏ).",
+      "ocr_tesseract_test_success": "Tesseract đã sẵn sàng",
+      "ocr_tesseract_test_failed": "Kiểm tra Tesseract thất bại",
+      "ocr_tesseract_version": "Phiên bản",
+      "ocr_tesseract_resolved_path": "Đường dẫn tệp thực thi",
+      "ocr_tesseract_languages": "Ngôn ngữ đã cài"
     },
     "menu_personal_settings": "Cài đặt cá nhân",
     "menu_user_account": "Tài khoản người dùng",
@@ -888,7 +895,8 @@
       "col_status": "Trạng thái",
       "status_enabled": "Đang bật",
       "status_disabled": "Đã tắt",
-      "empty": "Không có thành phần phù hợp."
+      "empty": "Không có thành phần phù hợp.",
+      "generated_at_label": "Thời điểm tạo bản chụp"
     }
   },
   "feedback": {
