@@ -539,7 +539,10 @@
       "message_robots": "Controlla tramite /robots.txt e X-Robots-Tag se i motori di ricerca possono indicizzare il sito. /api/ e /share.html sono sempre esclusi.",
       "enable_robots": "Imposta come Pubblico",
       "disable_robots": "Imposta come Privato",
-      "view_robots_txt": "Visualizza robots.txt"
+      "view_robots_txt": "Visualizza robots.txt",
+      "ocr_tesseract_add_languages_title": "Come aggiungere altre lingue OCR",
+      "ocr_tesseract_add_languages_win": "Windows: Scarica i file .traineddata (es. ita.traineddata) nella cartella tessdata\\ di Tesseract e riprova il test.",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Installa pacchetti come 'apt install tesseract-ocr-ita' (l'immagine Docker ufficiale include già 28+ lingue)."
     },
     "menu_personal_settings": "Impostazioni personali",
     "menu_user_account": "Profilo utente",

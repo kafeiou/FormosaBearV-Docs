@@ -539,7 +539,10 @@
       "message_robots": "Управляет /robots.txt и заголовком X-Robots-Tag для поисковых роботов. Пути /api/ и /share.html всегда исключены из индексации.",
       "enable_robots": "Сделать публичным",
       "disable_robots": "Сделать приватным",
-      "view_robots_txt": "Открыть robots.txt"
+      "view_robots_txt": "Открыть robots.txt",
+      "ocr_tesseract_add_languages_title": "Как добавить языки OCR",
+      "ocr_tesseract_add_languages_win": "Windows: Скачайте файлы .traineddata (напр. rus.traineddata) в папку tessdata\\ каталога Tesseract и повторите проверку.",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Установите пакеты, например 'apt install tesseract-ocr-rus' (официальный Docker-образ уже содержит 28+ языков)."
     },
     "menu_personal_settings": "Персональные настройки",
     "menu_user_account": "Учетная запись пользователя",

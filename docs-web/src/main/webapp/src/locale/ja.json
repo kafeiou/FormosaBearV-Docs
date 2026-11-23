@@ -539,7 +539,10 @@
       "message_robots": "動的な /robots.txt と X-Robots-Tag ヘッダーで検索エンジンロボットにクロール可否を通知します。/api/ と共有リンクページ（/share.html）は常にインデックス対象外です。",
       "enable_robots": "公開に設定（インデックス許可）",
       "disable_robots": "非公開に設定（インデックス拒否）",
-      "view_robots_txt": "robots.txt を表示"
+      "view_robots_txt": "robots.txt を表示",
+      "ocr_tesseract_add_languages_title": "OCR 言語パックの追加方法",
+      "ocr_tesseract_add_languages_win": "Windows: 必要な .traineddata ファイル（例: jpn.traineddata）を Tesseract の tessdata\\ フォルダに配置し、再度テストを実行してください。",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: 'apt install tesseract-ocr-jpn' 等でインストールできます（公式 Docker イメージには 28 以上の言語が含まれています）。"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "アカウント",

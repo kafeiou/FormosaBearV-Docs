@@ -539,7 +539,10 @@
       "message_robots": "Управља датотеком /robots.txt и заглављем X-Robots-Tag за роботе претраживача. /api/ и /share.html су увек искључени.",
       "enable_robots": "Постави као Јавно",
       "disable_robots": "Постави као Приватно",
-      "view_robots_txt": "Прикажи robots.txt"
+      "view_robots_txt": "Прикажи robots.txt",
+      "ocr_tesseract_add_languages_title": "Како додати више OCR језика",
+      "ocr_tesseract_add_languages_win": "Windows: Преузмите .traineddata датотеке (нпр. srp.traineddata) у фасциклу tessdata\\ Tesseract-а и поновите проверу.",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Инсталирајте пакете као што је 'apt install tesseract-ocr-srp' (званична Docker слика већ садржи 28+ језика)."
     },
     "menu_personal_settings": "Лична подешавања",
     "menu_user_account": "Кориснички налог",

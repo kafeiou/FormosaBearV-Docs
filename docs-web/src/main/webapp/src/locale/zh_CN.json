@@ -539,7 +539,10 @@
       "message_robots": "通过动态 /robots.txt 与 X-Robots-Tag 响应头告知搜索引擎机器人是否允许收录本网站。无论是否公开，/api/ 与分享链接页（/share.html）始终禁止索引。",
       "enable_robots": "设为公开（允许搜索引擎收录）",
       "disable_robots": "设为不公开（禁止搜索引擎收录）",
-      "view_robots_txt": "查看 robots.txt"
+      "view_robots_txt": "查看 robots.txt",
+      "ocr_tesseract_add_languages_title": "如何添加更多 OCR 语言包",
+      "ocr_tesseract_add_languages_win": "Windows：下载所需语言文件（如简中 chi_sim.traineddata、繁中 chi_tra.traineddata）放入 Tesseract 安装目录下的 tessdata\\ 文件夹，无需重启再次点击“检查 Tesseract”即可生效。",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker：可通过包管理器安装（如 apt install tesseract-ocr-chi-sim；官方 Docker 镜像已内置 28+ 种语言包）。"
     },
     "menu_personal_settings": "个人设置",
     "menu_user_account": "用户帐号",

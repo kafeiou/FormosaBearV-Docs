@@ -539,7 +539,10 @@
       "message_robots": "Kontrollon përmes /robots.txt dhe X-Robots-Tag nëse robotët e kërkimit mund të indeksojnë faqen. /api/ dhe /share.html përjashtohen gjithmonë.",
       "enable_robots": "Vendos si Publik",
       "disable_robots": "Vendos si Privat",
-      "view_robots_txt": "Shiko robots.txt"
+      "view_robots_txt": "Shiko robots.txt",
+      "ocr_tesseract_add_languages_title": "Si të shtoni më shumë gjuhë OCR",
+      "ocr_tesseract_add_languages_win": "Windows: Shkarkoni skedarët .traineddata (p.sh. sqi.traineddata) në dosjen tessdata\\ të Tesseract dhe provoni përsëri.",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Instaloni paketa si 'apt install tesseract-ocr-sqi' (imazhi zyrtar Docker përfshin tashmë 28+ gjuhë)."
     },
     "menu_personal_settings": "Cilësimet personale",
     "menu_user_account": "Llogaria e përdoruesit",

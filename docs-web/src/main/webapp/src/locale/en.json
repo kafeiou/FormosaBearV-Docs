@@ -539,7 +539,10 @@
       "message_robots": "Control whether search engine crawlers may index this site via /robots.txt and X-Robots-Tag headers. Share links (/share.html) and /api/ are always excluded from indexing.",
       "enable_robots": "Set to Public (Allow indexing)",
       "disable_robots": "Set to Private (Disallow indexing)",
-      "view_robots_txt": "View robots.txt"
+      "view_robots_txt": "View robots.txt",
+      "ocr_tesseract_add_languages_title": "How to add more OCR languages",
+      "ocr_tesseract_add_languages_win": "Windows: Download .traineddata files (e.g. chi_tra.traineddata, chi_sim.traineddata) into the Tesseract tessdata\\ folder, then click Test again.",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Install packages such as 'apt install tesseract-ocr-chi-tra' (the official Docker image already bundles 28+ languages)."
     },
     "menu_personal_settings": "Personal settings",
     "menu_user_account": "User account",

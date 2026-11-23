@@ -539,7 +539,10 @@
       "message_robots": "Ελέγχει μέσω /robots.txt και X-Robots-Tag εάν οι μηχανές αναζήτησης μπορούν να ευρετηριάσουν τον ιστότοπο. Τα /api/ και /share.html εξαιρούνται πάντα.",
       "enable_robots": "Ορισμός ως Δημόσιο",
       "disable_robots": "Ορισμός ως Ιδιωτικό",
-      "view_robots_txt": "Προβολή robots.txt"
+      "view_robots_txt": "Προβολή robots.txt",
+      "ocr_tesseract_add_languages_title": "Πώς να προσθέσετε περισσότερες γλώσσες OCR",
+      "ocr_tesseract_add_languages_win": "Windows: Κατεβάστε αρχεία .traineddata (π.χ. ell.traineddata) στον φάκελο tessdata\\ του Tesseract και δοκιμάστε ξανά.",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Εγκαταστήστε πακέτα όπως 'apt install tesseract-ocr-ell' (η επίσημη εικόνα Docker περιλαμβάνει ήδη 28+ γλώσσες)."
     },
     "menu_personal_settings": "Προσωπικές ρυθμίσεις",
     "menu_user_account": "Λογαριασμός χρήστη",

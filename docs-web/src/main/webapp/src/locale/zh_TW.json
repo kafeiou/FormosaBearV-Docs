@@ -539,7 +539,10 @@
       "message_robots": "透過動態 /robots.txt 與 X-Robots-Tag 標頭告知搜尋引擎機器人是否允許收錄本網站。無論公開與否，/api/ 與個別分享連結頁（/share.html）一律禁止搜尋引擎索引。",
       "enable_robots": "設為公開（允許搜尋引擎收錄）",
       "disable_robots": "設為不公開（禁止搜尋引擎收錄）",
-      "view_robots_txt": "檢視 robots.txt"
+      "view_robots_txt": "檢視 robots.txt",
+      "ocr_tesseract_add_languages_title": "如何新增更多 OCR 語言包",
+      "ocr_tesseract_add_languages_win": "Windows：下載所需語言檔（例如繁中 chi_tra.traineddata、簡中 chi_sim.traineddata）放入 Tesseract 安裝目錄下的 tessdata\\ 資料夾，免重啟再按「檢查 Tesseract」即可生效。",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker：可透過套件管理器安裝（例如 apt install tesseract-ocr-chi-tra；官方 Docker 映像檔已內建 28+ 國語言包）。"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "帳號",

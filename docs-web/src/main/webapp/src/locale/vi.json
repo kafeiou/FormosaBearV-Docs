@@ -539,7 +539,10 @@
       "message_robots": "Kiểm soát việc bot tìm kiếm có được lập chỉ mục trang web qua /robots.txt và X-Robots-Tag hay không. /api/ và /share.html luôn bị chặn.",
       "enable_robots": "Đặt thành Công khai",
       "disable_robots": "Đặt thành Riêng tư",
-      "view_robots_txt": "Xem robots.txt"
+      "view_robots_txt": "Xem robots.txt",
+      "ocr_tesseract_add_languages_title": "Cách thêm ngôn ngữ OCR",
+      "ocr_tesseract_add_languages_win": "Windows: Tải tệp .traineddata (ví dụ vie.traineddata) vào thư mục tessdata\\ của Tesseract rồi nhấn Kiểm tra lại.",
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Cài gói như 'apt install tesseract-ocr-vie' (ảnh Docker chính thức đã tích hợp sẵn hơn 28 ngôn ngữ)."
     },
     "menu_personal_settings": "Cài đặt cá nhân",
     "menu_user_account": "Tài khoản người dùng",

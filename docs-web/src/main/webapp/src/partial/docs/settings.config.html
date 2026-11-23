@@ -195,6 +195,14 @@
               <strong>{{ 'settings.config.ocr_tesseract_languages' | translate }} ({{ tesseractTestResult.languages.length }}):</strong>
               <span>{{ tesseractTestResult.languages.join(', ') }}</span>
             </div>
+            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(0,0,0,0.08);">
+              <strong><span class="fas fa-info-circle"></span> {{ 'settings.config.ocr_tesseract_add_languages_title' | translate }}:</strong>
+              <div>
+                {{ 'settings.config.ocr_tesseract_add_languages_win' | translate }}
+                (<a href="https://github.com/tesseract-ocr/tessdata_fast" target="_blank" rel="noopener noreferrer">tessdata_fast</a>)
+              </div>
+              <div>{{ 'settings.config.ocr_tesseract_add_languages_linux' | translate }}</div>
+            </div>
           </div>
         </div>
         <div ng-if="!tesseractTestResult.ok">

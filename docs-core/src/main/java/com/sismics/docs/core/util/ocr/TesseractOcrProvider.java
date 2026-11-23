@@ -215,7 +215,10 @@ public class TesseractOcrProvider implements OcrProvider {
             throw new IllegalArgumentException("Invalid Tesseract path syntax");
         }
         if (!path.isAbsolute()) {
-            throw new IllegalArgumentException("Tesseract path must be empty, 'tesseract', or an absolute path to the tesseract executable");
+            String example = isWindows
+                    ? "C:\\Program Files\\Tesseract-OCR\\tesseract.exe (server OS: Windows)"
+                    : "/usr/bin/tesseract (server OS: Linux/macOS)";
+            throw new IllegalArgumentException("Tesseract path must be empty, 'tesseract', or an absolute path such as " + example);
         }
         Path normalized = path.toAbsolutePath().normalize();
         Path fileNamePath = normalized.getFileName();
