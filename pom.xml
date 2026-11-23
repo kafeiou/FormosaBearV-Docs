@@ -6,7 +6,7 @@
   <groupId>com.sismics.docs</groupId>
   <artifactId>docs-parent</artifactId>
   <packaging>pom</packaging>
-  <version>3.01</version>
+  <version>3.02-SNAPSHOT</version>
 
   <name>Docs Parent</name>
 
@@ -100,6 +100,33 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>${org.apache.maven.plugins.maven-antrun-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>stop-lingering-target-jetty</id>
+            <phase>pre-clean</phase>
+            <inherited>false</inherited>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <exec executable="powershell.exe" osfamily="windows" failonerror="false">
+                  <env key="MAVEN_TARGET_DIR" value="${project.build.directory}"/>
+                  <arg value="-NoProfile"/>
+                  <arg value="-ExecutionPolicy"/>
+                  <arg value="Bypass"/>
+                  <arg value="-Command"/>
+                  <arg value="$t = $env:MAVEN_TARGET_DIR; $procs = @(Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'java.exe' -and $_.CommandLine -and $_.CommandLine -like '*jetty-home*start.jar*' -and ($_.CommandLine -like ('*' + $t + '*') -or $_.CommandLine -like '*FormosaBearV-docs-*-portable*') }); if ($procs.Count -gt 0) { Write-Host ('[INFO] Stopping ' + $procs.Count + ' lingering Jetty process(es) locking target/...'); foreach ($p in $procs) { Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 2 }"/>
+                </exec>
+                <exec executable="sh" osfamily="unix" failonerror="false">
+                  <env key="MAVEN_TARGET_DIR" value="${project.build.directory}"/>
+                  <arg value="-c"/>
+                  <arg value="if command -v pgrep &gt;/dev/null 2&gt;&amp;1; then PIDS=$(pgrep -f &quot;jetty-home/start\.jar.*${MAVEN_TARGET_DIR}|${MAVEN_TARGET_DIR}.*jetty-home/start\.jar&quot; 2&gt;/dev/null || true); if [ -n &quot;$PIDS&quot; ]; then echo &quot;[INFO] Stopping lingering Jetty process(es) in target/: $PIDS&quot;; kill $PIDS 2&gt;/dev/null || true; sleep 2; STILL=$(pgrep -f &quot;jetty-home/start\.jar.*${MAVEN_TARGET_DIR}|${MAVEN_TARGET_DIR}.*jetty-home/start\.jar&quot; 2&gt;/dev/null || true); [ -n &quot;$STILL&quot; ] &amp;&amp; kill -9 $STILL 2&gt;/dev/null || true; fi; fi"/>
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>

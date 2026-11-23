@@ -13,6 +13,18 @@
     <listener-class>com.sismics.util.listener.IIOProviderContextListener</listener-class>
   </listener>
 
+  <!-- Dynamic /robots.txt and X-Robots-Tag header based on public/private indexing config -->
+  <filter>
+    <filter-name>robotsFilter</filter-name>
+    <filter-class>com.sismics.docs.rest.filter.RobotsFilter</filter-class>
+    <async-supported>true</async-supported>
+  </filter>
+
+  <filter-mapping>
+    <filter-name>robotsFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
   <!-- This filter handles CORS -->
   <filter>
     <filter-name>corsFilter</filter-name>

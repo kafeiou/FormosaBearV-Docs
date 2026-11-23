@@ -81,6 +81,15 @@ angular.module('docs').controller('SettingsConfig', function($scope, $rootScope,
     });
   };
 
+  // Enable/disable search engine indexing (robots.txt & X-Robots-Tag)
+  $scope.changeRobotsIndexing = function (enabled) {
+    Restangular.one('app').post('config_robots', {
+      enabled: enabled
+    }).then(function () {
+      $scope.app.robots_indexing_enabled = enabled;
+    });
+  };
+
   // Enable/disable OCR
   $scope.changeOcrEnabled = function (enabled) {
     Restangular.one('app').post('ocr', {

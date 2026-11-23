@@ -64,6 +64,11 @@ public enum ConfigType {
     GROUP_VIEW_ALL,
 
     /**
+     * Allow search engine crawlers to index the site via /robots.txt and X-Robots-Tag (default false: private).
+     */
+    ROBOTS_INDEXING_ENABLED,
+
+    /**
      * Document preview watermark settings.
      */
     PREVIEW_WATERMARK_ENABLED,

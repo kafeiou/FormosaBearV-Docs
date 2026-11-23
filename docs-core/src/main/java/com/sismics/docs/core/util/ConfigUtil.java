@@ -524,4 +524,41 @@ public class ConfigUtil {
                 ""
         );
     }
+
+    private static volatile Boolean cachedRobotsIndexingEnabled;
+
+    /**
+     * Returns whether search engine indexing (public visibility for crawlers) is enabled.
+     * Defaults to false (private / disallow search engines).
+     */
+    public static boolean isRobotsIndexingEnabled() {
+        if (hasActiveEntityManager()) {
+            try {
+                boolean enabled = readOptionalBoolConfig(new ConfigDao(), ConfigType.ROBOTS_INDEXING_ENABLED, false);
+                cachedRobotsIndexingEnabled = enabled;
+                return enabled;
+            } catch (Exception ignored) {
+            }
+        }
+        Boolean cached = cachedRobotsIndexingEnabled;
+        if (cached != null) {
+            return cached;
+        }
+        try {
+            final boolean[] holder = new boolean[]{ false };
+            com.sismics.docs.core.util.TransactionUtil.handle(() ->
+                    holder[0] = readOptionalBoolConfig(new ConfigDao(), ConfigType.ROBOTS_INDEXING_ENABLED, false));
+            cachedRobotsIndexingEnabled = holder[0];
+            return holder[0];
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    /**
+     * Updates the in-memory cache for search engine indexing visibility immediately after a config change.
+     */
+    public static void setCachedRobotsIndexingEnabled(boolean enabled) {
+        cachedRobotsIndexingEnabled = enabled;
+    }
 }

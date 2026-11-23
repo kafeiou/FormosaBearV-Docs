@@ -75,56 +75,69 @@ echo   Stop Command:   Run stop.bat and close this window
 echo ========================================================
 echo.
 
-if not exist "%BACKUP_DIR%" (
-    echo [WARNING] Baseline directory "data.bak" was not found!
-    echo           The server will start normally using "data", but automatic reset/restart
-    echo           will be skipped until you manually copy "data" to "data.bak".
-    echo.
-    if not exist "%DOCS_HOME%" mkdir "%DOCS_HOME%"
-    echo [%date% %time%] Starting FormosaBearV Demo Server on port %PORT%...
-    "%JAVA_CMD%" -Ddocs.home="%DOCS_HOME%" -Djetty.http.port=%PORT% -DSTOP.PORT=%STOP_PORT% -DSTOP.KEY=%STOP_KEY% -jar jetty-home\start.jar --module=ee10-deploy,http
-    exit /b %errorlevel%
-)
+set "SERVER_RUNNING=0"
 
 :demo_loop
-echo [%date% %time%] Stopping any running Jetty instance on stop port %STOP_PORT%...
-"%JAVA_CMD%" -DSTOP.PORT=%STOP_PORT% -DSTOP.KEY=%STOP_KEY% -jar jetty-home\start.jar --stop >nul 2>&1
-ping 127.0.0.1 -n 4 >nul 2>&1
-
 if not exist "%BACKUP_DIR%" (
     echo [WARNING] Baseline directory "data.bak" was not found!
     echo           Please manually copy "data" to "data.bak" to enable automatic reset/restart.
-    echo           Starting server normally without resetting "data"...
-    if not exist "%DOCS_HOME%" mkdir "%DOCS_HOME%"
-    "%JAVA_CMD%" -Ddocs.home="%DOCS_HOME%" -Djetty.http.port=%PORT% -DSTOP.PORT=%STOP_PORT% -DSTOP.KEY=%STOP_KEY% -jar jetty-home\start.jar --module=ee10-deploy,http
-    exit /b %errorlevel%
+    if "!SERVER_RUNNING!"=="0" (
+        echo           Starting server normally using "data" ^(will check again at the next interval^)...
+        if not exist "%DOCS_HOME%" mkdir "%DOCS_HOME%"
+        echo [%date% %time%] Starting FormosaBearV Demo Server on port %PORT%...
+        start /b "" "%JAVA_CMD%" -Ddocs.home="%DOCS_HOME%" -Djetty.http.port=%PORT% -DSTOP.PORT=%STOP_PORT% -DSTOP.KEY=%STOP_KEY% -jar jetty-home\start.jar --module=ee10-deploy,http
+        set "SERVER_RUNNING=1"
+    ) else (
+        echo           Keeping current server running without resetting "data" ^(will check again at the next interval^)...
+    )
+    echo [%date% %time%] Next check in %RESET_SECONDS% seconds...
+    timeout /t %RESET_SECONDS% /nobreak >nul
+    echo.
+    goto demo_loop
 )
+
+echo [%date% %time%] Stopping any running Jetty instance on stop port %STOP_PORT%...
+"%JAVA_CMD%" -DSTOP.PORT=%STOP_PORT% -DSTOP.KEY=%STOP_KEY% -jar jetty-home\start.jar --stop --stop-wait=30 >nul 2>&1
+
+echo [%date% %time%] Waiting for Jetty process to exit completely...
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$docsHome = $env:DOCS_HOME; $stopPort = $env:STOP_PORT; " ^
+  "function Get-DemoJetty { Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'java.exe' -and $_.CommandLine -and $_.CommandLine -like '*jetty-home*start.jar*' -and ($_.CommandLine -like ('*' + $docsHome + '*') -or $_.CommandLine -like ('*-DSTOP.PORT=' + $stopPort + '*')) } }; " ^
+  "$deadline = (Get-Date).AddSeconds(30); " ^
+  "while ((Get-Date) -lt $deadline) { if (-not (Get-DemoJetty)) { exit 0 }; Start-Sleep -Seconds 1 }; " ^
+  "$procs = @(Get-DemoJetty); " ^
+  "if ($procs.Count -gt 0) { Write-Host '[WARN] Jetty did not exit within 30s; forcing termination...'; foreach ($p in $procs) { Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 3 }"
+set "SERVER_RUNNING=0"
 
 echo [%date% %time%] Resetting "%DOCS_HOME%" from "%BACKUP_DIR%"...
 if exist "%DOCS_HOME%" (
-    rmdir /s /q "%DOCS_HOME%"
+    set "RM_TRIES=0"
+    :retry_rmdir
+    set /a "RM_TRIES+=1"
+    rmdir /s /q "%DOCS_HOME%" >nul 2>&1
     if exist "%DOCS_HOME%" (
-        echo [WARN] Waiting for file locks to release...
-        ping 127.0.0.1 -n 6 >nul 2>&1
-        rmdir /s /q "%DOCS_HOME%"
-    )
-    if exist "%DOCS_HOME%" (
-        echo [ERROR] Failed to remove "%DOCS_HOME%". Please check if another process is locking files.
-        pause
-        exit /b 1
+        if !RM_TRIES! lss 5 (
+            echo [WARN] Waiting for file locks to release ^(attempt !RM_TRIES!/5^)...
+            ping 127.0.0.1 -n 3 >nul 2>&1
+            goto retry_rmdir
+        )
+        echo [ERROR] Failed to remove "%DOCS_HOME%" after 5 attempts. Retrying reset cycle in 10 seconds...
+        ping 127.0.0.1 -n 11 >nul 2>&1
+        goto demo_loop
     )
 )
 
 xcopy /e /i /h /y /q "%BACKUP_DIR%\*" "%DOCS_HOME%\" >nul
 if errorlevel 1 (
-    echo [ERROR] Failed to copy "%BACKUP_DIR%" to "%DOCS_HOME%".
-    pause
-    exit /b 1
+    echo [ERROR] Failed to copy "%BACKUP_DIR%" to "%DOCS_HOME%". Retrying reset cycle in 10 seconds...
+    ping 127.0.0.1 -n 11 >nul 2>&1
+    goto demo_loop
 )
 echo [%date% %time%] Demo data restored successfully.
 
 echo [%date% %time%] Starting FormosaBearV Demo Server on port %PORT%...
 start /b "" "%JAVA_CMD%" -Ddocs.home="%DOCS_HOME%" -Djetty.http.port=%PORT% -DSTOP.PORT=%STOP_PORT% -DSTOP.KEY=%STOP_KEY% -jar jetty-home\start.jar --module=ee10-deploy,http
+set "SERVER_RUNNING=1"
 
 echo [%date% %time%] Server running. Next automatic reset in %RESET_SECONDS% seconds...
 timeout /t %RESET_SECONDS% /nobreak >nul

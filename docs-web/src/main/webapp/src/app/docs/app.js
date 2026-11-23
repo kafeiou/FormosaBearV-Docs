@@ -146,6 +146,15 @@ angular.module('docs',
         }
       }
     })
+    .state('settings.share', {
+      url: '/share',
+      views: {
+        'settings': {
+          templateUrl: 'partial/docs/settings.share.html',
+          controller: 'SettingsShare'
+        }
+      }
+    })
     .state('settings.monitoring', {
       url: '/monitoring',
       views: {

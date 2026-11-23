@@ -11,6 +11,25 @@
   <button ng-if="app.guest_login" class="btn btn-danger" ng-click="changeGuestLogin(false)">{{ 'settings.config.disable_guest_access' | translate }}</button>
 </div>
 
+<h2>
+  <span translate="settings.config.title_robots"></span>
+  <span class="label" ng-class="{ 'label-success': app.robots_indexing_enabled, 'label-default': !app.robots_indexing_enabled }">
+    {{ app.robots_indexing_enabled ? ('settings.config.robots_public' | translate) : ('settings.config.robots_private' | translate) }}
+  </span>
+</h2>
+<p translate="settings.config.message_robots"></p>
+<div ng-if="app">
+  <button ng-if="!app.robots_indexing_enabled" class="btn btn-primary" ng-click="changeRobotsIndexing(true)">
+    <span class="fas fa-globe"></span> {{ 'settings.config.enable_robots' | translate }}
+  </button>
+  <button ng-if="app.robots_indexing_enabled" class="btn btn-danger" ng-click="changeRobotsIndexing(false)">
+    <span class="fas fa-eye-slash"></span> {{ 'settings.config.disable_robots' | translate }}
+  </button>
+  <a class="btn btn-default" href="robots.txt" target="_blank" rel="noopener noreferrer" style="margin-left: 6px;">
+    <span class="fas fa-external-link-alt"></span> {{ 'settings.config.view_robots_txt' | translate }}
+  </a>
+</div>
+
 <h2 translate="settings.config.title_general"></h2>
 <form class="form-horizontal" name="generalForm" novalidate>
   <div class="form-group" ng-class="{ 'has-error': !generalForm.defaultLanguage.$valid && generalForm.$dirty }">

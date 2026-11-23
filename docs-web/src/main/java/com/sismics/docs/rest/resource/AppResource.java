@@ -146,6 +146,7 @@ public class AppResource extends BaseResource {
                 .add("file_encrypt_locked", ConfigUtil.isFileEncryptLocked())
                 .add("file_swap", ConfigUtil.isFileSwapEnabled())
                 .add("group_view_all", ConfigUtil.canGroupViewAll())
+                .add("robots_indexing_enabled", ConfigUtil.isRobotsIndexingEnabled())
                 .add("preview_watermark_enabled", ConfigUtil.isPreviewWatermarkEnabled())
                 .add("preview_watermark_date_format", ConfigUtil.getPreviewWatermarkDateFormat())
                 .add("storage_path", DirectoryUtil.getBaseDataDirectory().toAbsolutePath().toString())
@@ -397,6 +398,28 @@ public class AppResource extends BaseResource {
                 .add("version", result.getVersion())
                 .add("languages", langsArray)
                 .add("error", result.getError());
+        return Response.ok().entity(response.build()).build();
+    }
+
+    /**
+     * Enable/disable search engine indexing (public/private crawler visibility via /robots.txt and X-Robots-Tag).
+     */
+    @POST
+    @Path("config_robots")
+    public Response configRobots(@FormParam("enabled") Boolean enabled) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        boolean allowIndexing = Boolean.TRUE.equals(enabled);
+        ConfigDao configDao = new ConfigDao();
+        configDao.update(ConfigType.ROBOTS_INDEXING_ENABLED, Boolean.toString(allowIndexing));
+        ConfigUtil.setCachedRobotsIndexingEnabled(allowIndexing);
+
+        JsonObjectBuilder response = Json.createObjectBuilder()
+                .add("status", "ok")
+                .add("robots_indexing_enabled", allowIndexing);
         return Response.ok().entity(response.build()).build();
     }
 

@@ -35,6 +35,8 @@ public class TesseractOcrProvider implements OcrProvider {
     private static final Logger log = LoggerFactory.getLogger(TesseractOcrProvider.class);
 
     public static final String ID = "tesseract";
+    private static final String CMD_TESSERACT = "tesseract";
+    private static final String CMD_TESSERACT_EXE = "tesseract.exe";
 
     @Override
     public String getId() {
@@ -43,7 +45,14 @@ public class TesseractOcrProvider implements OcrProvider {
 
     @Override
     public String extractText(String language, BufferedImage image, ConfigUtil.OcrConfig config) throws Exception {
-        String tesseractCmd = resolveTesseractCommand(config != null ? config.getTesseractPath() : null);
+        String resolvedCmd = resolveTesseractCommand(config != null ? config.getTesseractPath() : null);
+        String tesseractCmd;
+        try {
+            tesseractCmd = validateTesseractCommand(resolvedCmd);
+        } catch (IllegalArgumentException e) {
+            log.warn("Rejected invalid Tesseract command '{}': {}", resolvedCmd, e.getMessage());
+            throw new IOException(e.getMessage(), e);
+        }
 
         // Upscale, grayscale and deskew the image (copy/work without destroying caller's source image if reused)
         BufferedImage resizedImage = Scalr.resize(image, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, 3500, Scalr.OP_ANTIALIAS, Scalr.OP_GRAYSCALE);
@@ -110,8 +119,14 @@ public class TesseractOcrProvider implements OcrProvider {
      */
     public static TesseractCheckResult checkAvailability(String configuredPath) {
         String resolvedCmd = resolveTesseractCommand(configuredPath);
+        String safeCmd;
         try {
-            ProcessBuilder versionPb = new ProcessBuilder(resolvedCmd, "--version");
+            safeCmd = validateTesseractCommand(resolvedCmd);
+        } catch (IllegalArgumentException e) {
+            return new TesseractCheckResult(false, resolvedCmd, "", Collections.emptyList(), e.getMessage());
+        }
+        try {
+            ProcessBuilder versionPb = new ProcessBuilder(safeCmd, "--version");
             versionPb.redirectErrorStream(true);
             Process versionProc = versionPb.start();
             String versionOutput;
@@ -120,18 +135,18 @@ public class TesseractOcrProvider implements OcrProvider {
             }
             if (!versionProc.waitFor(10, TimeUnit.SECONDS)) {
                 versionProc.destroyForcibly();
-                return new TesseractCheckResult(false, resolvedCmd, "", Collections.emptyList(),
+                return new TesseractCheckResult(false, safeCmd, "", Collections.emptyList(),
                         "Timed out while executing Tesseract (--version)");
             }
             if (versionProc.exitValue() != 0) {
-                return new TesseractCheckResult(false, resolvedCmd, "", Collections.emptyList(),
+                return new TesseractCheckResult(false, safeCmd, "", Collections.emptyList(),
                         "Tesseract exited with code " + versionProc.exitValue() + ": " + firstLine(versionOutput));
             }
             String version = firstLine(versionOutput);
 
             List<String> languages = new ArrayList<>();
             try {
-                ProcessBuilder langsPb = new ProcessBuilder(resolvedCmd, "--list-langs");
+                ProcessBuilder langsPb = new ProcessBuilder(safeCmd, "--list-langs");
                 langsPb.redirectErrorStream(true);
                 Process langsProc = langsPb.start();
                 List<String> lines = new ArrayList<>();
@@ -153,16 +168,68 @@ public class TesseractOcrProvider implements OcrProvider {
                     langsProc.destroyForcibly();
                 }
             } catch (Exception e) {
-                log.debug("Unable to list Tesseract languages for '{}': {}", resolvedCmd, e.getMessage());
+                log.debug("Unable to list Tesseract languages for '{}': {}", safeCmd, e.getMessage());
             }
 
-            return new TesseractCheckResult(true, resolvedCmd, version, languages, "");
+            return new TesseractCheckResult(true, safeCmd, version, languages, "");
         } catch (IOException e) {
-            return new TesseractCheckResult(false, resolvedCmd, "", Collections.emptyList(), e.getMessage());
+            return new TesseractCheckResult(false, safeCmd, "", Collections.emptyList(), e.getMessage());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return new TesseractCheckResult(false, resolvedCmd, "", Collections.emptyList(), "Interrupted");
+            return new TesseractCheckResult(false, safeCmd, "", Collections.emptyList(), "Interrupted");
         }
+    }
+
+    /**
+     * Validates and canonicalizes a resolved Tesseract command so only literal "tesseract" /
+     * "tesseract.exe" or an absolute normalized path to a regular file named exactly
+     * "tesseract" / "tesseract.exe" is permitted (CWE-78 / CWE-88 defense).
+     */
+    public static String validateTesseractCommand(String resolvedCmd) {
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
+        return validateTesseractCommand(resolvedCmd, isWindows);
+    }
+
+    static String validateTesseractCommand(String resolvedCmd, boolean isWindows) {
+        if (Strings.isNullOrEmpty(resolvedCmd)) {
+            return CMD_TESSERACT;
+        }
+        String candidate = resolvedCmd.trim();
+        for (int i = 0; i < candidate.length(); i++) {
+            char c = candidate.charAt(i);
+            if (c < 0x20 || c == 0x7F) {
+                throw new IllegalArgumentException("Invalid control characters in Tesseract path");
+            }
+        }
+        if (CMD_TESSERACT.equals(candidate) || (isWindows && CMD_TESSERACT.equalsIgnoreCase(candidate))) {
+            return CMD_TESSERACT;
+        }
+        if (CMD_TESSERACT_EXE.equals(candidate) || (isWindows && CMD_TESSERACT_EXE.equalsIgnoreCase(candidate))) {
+            return CMD_TESSERACT_EXE;
+        }
+
+        Path path;
+        try {
+            path = Paths.get(candidate);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid Tesseract path syntax");
+        }
+        if (!path.isAbsolute()) {
+            throw new IllegalArgumentException("Tesseract path must be empty, 'tesseract', or an absolute path to the tesseract executable");
+        }
+        Path normalized = path.toAbsolutePath().normalize();
+        Path fileNamePath = normalized.getFileName();
+        String fileName = fileNamePath != null ? fileNamePath.toString() : "";
+        boolean validFileName = CMD_TESSERACT.equals(fileName)
+                || CMD_TESSERACT_EXE.equals(fileName)
+                || (isWindows && (CMD_TESSERACT.equalsIgnoreCase(fileName) || CMD_TESSERACT_EXE.equalsIgnoreCase(fileName)));
+        if (!validFileName) {
+            throw new IllegalArgumentException("Executable filename must be 'tesseract' or 'tesseract.exe'");
+        }
+        if (!Files.isRegularFile(normalized)) {
+            throw new IllegalArgumentException("Tesseract executable not found: " + normalized);
+        }
+        return normalized.toString();
     }
 
     private static String firstLine(String text) {

@@ -9,6 +9,7 @@ import com.sismics.docs.core.dao.ShareDao;
 import com.sismics.docs.core.event.DocumentUpdatedAsyncEvent;
 import com.sismics.docs.core.model.jpa.Acl;
 import com.sismics.docs.core.model.jpa.Share;
+import com.sismics.docs.rest.constant.BaseFunction;
 import com.sismics.rest.exception.ClientException;
 import com.sismics.rest.exception.ForbiddenClientException;
 import com.sismics.rest.util.ValidationUtil;
@@ -16,6 +17,7 @@ import com.sismics.util.JsonUtil;
 import com.sismics.util.context.ThreadLocalContext;
 
 import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
@@ -29,6 +31,52 @@ import java.util.List;
  */
 @Path("/share")
 public class ShareResource extends BaseResource {
+    /**
+     * Lists active shared links.
+     * Regular users see shares on all documents they have WRITE permission on (including transferred documents).
+     * Administrators may pass {@code scope=all} to view all active shares across all users.
+     *
+     * @param scope "mine" (default) or "all" (admin-only)
+     * @return Response
+     */
+    @GET
+    @Path("list")
+    public Response list(@QueryParam("scope") String scope) {
+        if (!authenticate() || principal.isGuest()) {
+            throw new ForbiddenClientException();
+        }
+
+        boolean allScope = "all".equalsIgnoreCase(scope);
+        if (allScope) {
+            checkBaseFunction(BaseFunction.ADMIN);
+        }
+
+        ShareDao shareDao = new ShareDao();
+        AclDao aclDao = new AclDao();
+        List<String> targetIdList = allScope ? null : getTargetIdList(null);
+        List<ShareDao.ShareItem> items = shareDao.findAllActive();
+
+        JsonArrayBuilder sharesArray = Json.createArrayBuilder();
+        for (ShareDao.ShareItem item : items) {
+            if (!allScope && !aclDao.checkPermission(item.getDocumentId(), PermType.WRITE, targetIdList)) {
+                continue;
+            }
+            JsonObjectBuilder obj = Json.createObjectBuilder()
+                    .add("id", item.getId())
+                    .add("name", JsonUtil.nullable(item.getName()))
+                    .add("create_date", item.getCreateDate() != null ? item.getCreateDate().getTime() : 0L)
+                    .add("allow_export", item.isAllowExport())
+                    .add("document_id", item.getDocumentId())
+                    .add("document_title", JsonUtil.nullable(item.getDocumentTitle()))
+                    .add("owner", JsonUtil.nullable(item.getOwnerUsername()));
+            sharesArray.add(obj);
+        }
+
+        return Response.ok().entity(Json.createObjectBuilder()
+                .add("shares", sharesArray)
+                .build()).build();
+    }
+
     /**
      * Add a share to a document.
      *
@@ -124,7 +172,8 @@ public class ShareResource extends BaseResource {
         }
 
         Acl acl = aclList.get(0);
-        if (!aclDao.checkPermission(acl.getSourceId(), PermType.WRITE, getTargetIdList(null))) {
+        if (!hasBaseFunction(BaseFunction.ADMIN)
+                && !aclDao.checkPermission(acl.getSourceId(), PermType.WRITE, getTargetIdList(null))) {
             throw new ClientException("DocumentNotFound", MessageFormat.format("Document not found: {0}", acl.getSourceId()));
         }
 
@@ -179,7 +228,8 @@ public class ShareResource extends BaseResource {
         }
 
         Acl acl = aclList.get(0);
-        if (!aclDao.checkPermission(acl.getSourceId(), PermType.WRITE, getTargetIdList(null))) {
+        if (!hasBaseFunction(BaseFunction.ADMIN)
+                && !aclDao.checkPermission(acl.getSourceId(), PermType.WRITE, getTargetIdList(null))) {
             throw new ClientException("DocumentNotFound", MessageFormat.format("Document not found: {0}", acl.getSourceId()));
         }
 

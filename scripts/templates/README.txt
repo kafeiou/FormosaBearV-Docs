@@ -1,5 +1,5 @@
 ================================================================================
-  FormosaBearV (v2.03) 免安裝可攜綠色版 (Portable Edition) - 繁體中文
+  FormosaBearV 免安裝可攜綠色版 (Portable Edition) - 繁體中文
 ================================================================================
 
 【環境需求】
@@ -16,11 +16,14 @@
   - Windows: 雙擊執行 stop.bat 或直接關閉啟動終端機視窗。
   - Linux / macOS: 在終端機執行 ./stop.sh 或按下 Ctrl+C。
 
-【Demo 定時重置模式（每 24 小時自動還原）】
+【Demo 定時重置模式（預設每 24 小時自動還原）】
   1. 先使用 start.bat / ./start.sh 啟動系統並建立好展示資料，再以 stop.bat / ./stop.sh 停止。
-  2. 將「data」目錄複製一份命名為「data.bak」。
-  3. 改用 demo.bat [埠號] 或 ./demo.sh [埠號] 啟動（例如 demo.bat 8088 或 ./demo.sh 8088）。
-     系統將每 24 小時自動停機、刪除 data、從 data.bak 還原並重新啟動（亦可傳入第二參數指定小時數）。
+  2. 將「data」目錄複製一份命名為「data.bak」（若尚未建立 data.bak，仍可正常啟動但不會自動重置）。
+  3. 改用以下指令啟動（可省略參數，預設為埠號 8080、每 24 小時重置）：
+     * Windows: demo.bat [埠號] [重啟時數]（例如：demo.bat 8088 或 demo.bat 8088 12）
+     * Linux / macOS: ./demo.sh [埠號] [重啟時數]（例如：./demo.sh 8088 或 ./demo.sh 8088 12）
+     * 快速測試可先設定環境變數 RESET_SECONDS=30（以秒為單位覆蓋重啟週期）。
+     系統到達週期後會自動停機、刪除 data、從 data.bak 還原並重新啟動。
 
 【預設管理者帳號】
   - 帳號：admin
@@ -35,7 +38,7 @@
 
 
 ================================================================================
-  FormosaBearV (v2.03) Portable Edition - English
+  FormosaBearV Portable Edition - English
 ================================================================================
 
 [System Requirements]
@@ -52,11 +55,14 @@
   - Windows: Double-click stop.bat or press Ctrl+C in the terminal.
   - Linux / macOS: Run ./stop.sh in terminal or press Ctrl+C.
 
-[Demo Auto-Reset Mode (Resets Every 24 Hours)]
+[Demo Auto-Reset Mode (Default: Every 24 Hours)]
   1. Run start.bat / ./start.sh to prepare your demo data, then stop with stop.bat / ./stop.sh.
-  2. Copy the "data" directory to "data.bak".
-  3. Launch with demo.bat [port] or ./demo.sh [port] (e.g., demo.bat 8088 or ./demo.sh 8088).
-     The server will automatically stop, delete "data", restore from "data.bak", and restart every 24 hours.
+  2. Copy the "data" directory to "data.bak" (if "data.bak" does not exist, the server starts normally without auto-reset).
+  3. Launch with optional [port] and [hours] arguments (defaults: port 8080, 24 hours):
+     * Windows: demo.bat [port] [hours] (e.g., demo.bat 8088 or demo.bat 8088 12)
+     * Linux / macOS: ./demo.sh [port] [hours] (e.g., ./demo.sh 8088 or ./demo.sh 8088 12)
+     * For quick testing, set environment variable RESET_SECONDS=30 to override the interval in seconds.
+     At each interval, the server automatically stops, deletes "data", restores from "data.bak", and restarts.
 
 [Default Admin Credentials]
   - Username: admin
@@ -71,7 +77,7 @@
 
 
 ================================================================================
-  FormosaBearV (v2.03) 免安装便携绿色版 (Portable Edition) - 简体中文
+  FormosaBearV 免安装便携绿色版 (Portable Edition) - 简体中文
 ================================================================================
 
 【环境需求】
@@ -88,6 +94,15 @@
   - Windows: 双击运行 stop.bat 或直接关闭终端窗口。
   - Linux / macOS: 在终端运行 ./stop.sh 或按 Ctrl+C。
 
+【Demo 定时重置模式（默认每 24 小时自动还原）】
+  1. 先使用 start.bat / ./start.sh 启动系统并准备好演示数据，再用 stop.bat / ./stop.sh 停止。
+  2. 将“data”目录复制一份并命名为“data.bak”（若尚未创建 data.bak，仍可正常启动但不会自动重置）。
+  3. 使用以下指令启动（可省略参数，默认端口 8080、每 24 小时重置）：
+     * Windows: demo.bat [端口] [重启小时数]（例如：demo.bat 8088 或 demo.bat 8088 12）
+     * Linux / macOS: ./demo.sh [端口] [重启小时数]（例如：./demo.sh 8088 或 ./demo.sh 8088 12）
+     * 快速测试可先设置环境变量 RESET_SECONDS=30（以秒为单位覆盖重置周期）。
+     到达周期后系统会自动停机、删除 data、从 data.bak 还原并重新启动。
+
 【默认管理员账号】
   - 账号：admin
   - 密码：superSecure
@@ -101,7 +116,7 @@
 
 
 ================================================================================
-  FormosaBearV (v2.03) ポータブル版 (Portable Edition) - 日本語
+  FormosaBearV ポータブル版 (Portable Edition) - 日本語
 ================================================================================
 
 【動作環境】
@@ -118,6 +133,14 @@
   - Windows: stop.bat をダブルクリックするか、起動ウィンドウで Ctrl+C を押します。
   - Linux / macOS: ターミナルで ./stop.sh を実行するか、Ctrl+C を押します。
 
+【Demo 自動リセットモード（既定: 24 時間ごと）】
+  1. start.bat / ./start.sh でデモデータを作成後、stop.bat / ./stop.sh で停止します。
+  2. 「data」フォルダをコピーして「data.bak」を作成します（未作成の場合は通常起動のみで自動リセットしません）。
+  3. 以下のコマンドで起動します（既定: ポート 8080、24 時間間隔）：
+     * Windows: demo.bat [ポート] [時間]（例: demo.bat 8088 または demo.bat 8088 12）
+     * Linux / macOS: ./demo.sh [ポート] [時間]（例: ./demo.sh 8088 または ./demo.sh 8088 12）
+     * テスト用に環境変数 RESET_SECONDS=30 で秒単位の上書きも可能です。
+
 【初期管理者アカウント】
   - ユーザー名: admin
   - パスワード: superSecure
@@ -131,7 +154,7 @@
 
 
 ================================================================================
-  FormosaBearV (v2.03) Bản Di Động Không Cần Cài Đặt (Portable Edition) - Tiếng Việt
+  FormosaBearV Bản Di Động Không Cần Cài Đặt (Portable Edition) - Tiếng Việt
 ================================================================================
 
 [Yêu cầu hệ thống]
@@ -147,6 +170,14 @@
 [Dừng hệ thống]
   - Windows: Nhấp đúp vào stop.bat hoặc nhấn Ctrl+C trong cửa sổ lệnh.
   - Linux / macOS: Chạy lệnh ./stop.sh trong terminal hoặc nhấn Ctrl+C.
+
+[Chế độ Demo tự động đặt lại (Mặc định mỗi 24 giờ)]
+  1. Chạy start.bat / ./start.sh để tạo dữ liệu mẫu, sau đó dừng bằng stop.bat / ./stop.sh.
+  2. Sao chép thư mục "data" thành "data.bak" (nếu chưa có data.bak, hệ thống vẫn chạy bình thường nhưng không tự đặt lại).
+  3. Khởi động với tham số tùy chọn [cổng] và [số giờ] (mặc định: cổng 8080, 24 giờ):
+     * Windows: demo.bat [cổng] [số giờ] (ví dụ: demo.bat 8088 hoặc demo.bat 8088 12)
+     * Linux / macOS: ./demo.sh [cổng] [số giờ] (ví dụ: ./demo.sh 8088 hoặc ./demo.sh 8088 12)
+     * Để thử nghiệm nhanh, có thể đặt biến môi trường RESET_SECONDS=30.
 
 [Tài khoản quản trị mặc định]
   - Tên đăng nhập: admin

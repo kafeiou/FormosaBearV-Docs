@@ -6,6 +6,29 @@
 
 ---
 
+## [v3.02-SNAPSHOT]（未發布）
+
+### 新增功能 (Added)
+- **已分享連結總覽（`GET /api/share/list`、`#/settings/share`）**：
+  - 於「**設定 → 個人設定 → 已分享連結**」新增分享總覽頁，所有非訪客使用者皆可檢視、篩選、一鍵複製、開啟文件、即時切換允許下載／僅限預覽與撤銷所有自己具備 `WRITE` 權限文件上的有效分享連結（包含離職移轉接手的文件）。
+  - 管理員可於同頁切換「**我的分享／全部使用者的分享**」（`scope=all`），稽核並直接管理全站所有使用者的分享連結（`POST` / `DELETE /api/share/{id}` 同步開放 `ADMIN` 權限）。
+  - 補齊 16 國語系與 `TestShareResource` 整合測試（含離職移轉後接手人管理原分享連結驗證）。
+- **搜尋引擎收錄／網站公開性設定（`ROBOTS_INDEXING_ENABLED`、動態 `/robots.txt` 與 `X-Robots-Tag`）**：
+  - 新增 `RobotsFilter`（掛載於 `/*`）、`ConfigType.ROBOTS_INDEXING_ENABLED`（預設 `false`：不公開）、`POST /api/app/config_robots` 與「**設定 → 系統設定 → 搜尋引擎收錄（網站公開性）**」介面（含 16 國語系與檢視 `robots.txt` 按鈕）。
+  - 不公開模式回傳 `Disallow: /` 並對所有回應加上 `X-Robots-Tag: noindex, nofollow, noarchive`；公開模式回傳 `Allow: /` 並一律排除 `/api/` 與 `/share.html`（`share.html` 另加上 `<meta name="robots" content="noindex, nofollow, noarchive">` 雙重保護分享連結）。
+
+### 修復與安全性強化 (Fixed & Hardened)
+- **資安強化 — 本地 Tesseract 指令注入防禦（`CWE-78` / `CWE-88`，CodeQL #35）**：
+  - 於 `TesseractOcrProvider` 新增嚴格白名單驗證 `validateTesseractCommand()`，在 `checkAvailability()` 與 `extractText()` 呼叫 `ProcessBuilder` 前強制檢查：僅允許空值（自動偵測）、硬編碼字面常數 `"tesseract"` / `"tesseract.exe"`，或正規化絕對路徑且檔名嚴格為 `tesseract` / `tesseract.exe` 之一般檔案。
+- **可攜版 Demo 自動重啟防卡死與 Maven `clean` 檔案鎖清理**：
+  - 更新 `scripts/templates/demo.bat` 與 `demo.sh`：改用 Jetty `--stop --stop-wait=30`、輪詢確認 Jetty 程序完全結束（逾時自動強制終止）、重試刪除 `data` 後再還原 `data.bak`、移除無人值守 `pause`，並支援啟動後中途補建 `data.bak` 於下個週期自動生效。
+  - 更新 `scripts/templates/README.txt` 5 國語系說明（補齊 `[port] [hours]` 與 `RESET_SECONDS` 用法）。
+  - 於 `pom.xml`（`pre-clean` 階段）與 `package-portable.sh` 加入跨平台（Windows / Linux / macOS）殘留 Jetty 自動停止防呆，解決 `mvn clean` 因 `start.jar` 被鎖住而失敗的問題。
+- **GitHub Actions 抗 Maven Central HTTP 429 限流強化**：
+  - 於 `.github/workflows/dast.yml`、`build-deploy.yml` 與 `codeql.yml` 設定 Google Maven Central 鏡像、降低併發（`-Daether.connector.basic.threads=2`）與 3 次退避重試（第 3 次自動回退原版 Maven Central）。
+
+---
+
 ## [v3.01] - 2026-11-20
 
 > **基準點**: `v2.09`（`v2` 分支）➜ `v3.01`（`master` 正式版）

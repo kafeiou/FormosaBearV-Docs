@@ -6,6 +6,29 @@ This document details the notable changes, security enhancements, architecture i
 
 ---
 
+## [v3.02-SNAPSHOT] (Unreleased)
+
+### Added
+- **Shared Links Overview (`GET /api/share/list`, `#/settings/share`)**:
+  - Added **Settings → Personal Settings → Shared links** (`#/settings/share`) allowing every non-guest user to view, search, copy, toggle download/preview (`allow_export`), open, and revoke all active share links on documents they have `WRITE` permission on (including documents inherited via offboarding transfer).
+  - Administrators can switch between **My shares** and **All users' shares** (`scope=all`) to audit, toggle download permission, and revoke any user's share across the system (`POST` / `DELETE /api/share/{id}` now permit `ADMIN`).
+  - Added 16-language translations and integration tests in `TestShareResource` (including offboarding transfer verification).
+- **Search Engine Visibility Control (`ROBOTS_INDEXING_ENABLED`, `/robots.txt` & `X-Robots-Tag`)**:
+  - Added `RobotsFilter` (mapped to `/*`), `ConfigType.ROBOTS_INDEXING_ENABLED` (default `false`: Private), `POST /api/app/config_robots`, and **Settings → Configuration → Search engine visibility** UI (with 16 locales and `View robots.txt` link).
+  - Private mode serves `Disallow: /` and `X-Robots-Tag: noindex, nofollow, noarchive` on all responses; Public mode serves `Allow: /` while always excluding `/api/` and `/share.html` (plus `<meta name="robots" content="noindex, nofollow, noarchive">` in `share.html`).
+
+### Fixed & Hardened
+- **Security — Uncontrolled Command Line in Local Tesseract Check (`CWE-78` / `CWE-88`, CodeQL #35)**:
+  - Added strict `TesseractOcrProvider.validateTesseractCommand()` allowlist invoked before `ProcessBuilder` in both `checkAvailability()` and `extractText()`: only permits empty/auto-detect, hardcoded literal `"tesseract"` / `"tesseract.exe"`, or a normalized absolute path to an existing regular file named strictly `tesseract` / `tesseract.exe`.
+- **Portable Demo Auto-Reset & Maven Clean File-Lock Reliability**:
+  - Updated `scripts/templates/demo.bat` and `demo.sh` to use Jetty `--stop --stop-wait=30`, poll until the Jetty process exits completely (force-terminating on timeout), retry `data/` deletion before restoring `data.bak/`, remove blocking `pause` prompts, and automatically detect `data.bak` on the next interval even if created after startup.
+  - Updated `scripts/templates/README.txt` across all 5 languages with `[port] [hours]` and `RESET_SECONDS` documentation.
+  - Added cross-platform (Windows & Linux/macOS) lingering Jetty cleanup hooks to `pom.xml` (`pre-clean`) and `package-portable.sh` to prevent `Failed to delete ... start.jar` errors during `mvn clean`.
+- **GitHub Actions Maven Central HTTP 429 Resilience**:
+  - Configured Google Maven Central mirror (`https://maven-central.storage-download.googleapis.com/maven2`), `-Daether.connector.basic.threads=2`, and 3-attempt retry with automatic fallback to Maven Central in `.github/workflows/dast.yml`, `build-deploy.yml`, and `codeql.yml`.
+
+---
+
 ## [v3.01] - 2026-11-20
 
 > **Baseline**: `v2.09` (`v2` branch) ➜ `v3.01` (`master`)

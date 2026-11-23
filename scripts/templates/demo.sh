@@ -51,9 +51,9 @@ fi
 JETTY_PID=""
 
 stop_jetty() {
-    "$JAVA_CMD" -DSTOP.PORT="$STOP_PORT" -DSTOP.KEY="$STOP_KEY" -jar jetty-home/start.jar --stop >/dev/null 2>&1 || true
+    "$JAVA_CMD" -DSTOP.PORT="$STOP_PORT" -DSTOP.KEY="$STOP_KEY" -jar jetty-home/start.jar --stop --stop-wait=30 >/dev/null 2>&1 || true
     if [ -n "$JETTY_PID" ] && kill -0 "$JETTY_PID" 2>/dev/null; then
-        for _ in $(seq 1 15); do
+        for _ in $(seq 1 30); do
             if ! kill -0 "$JETTY_PID" 2>/dev/null; then
                 break
             fi
@@ -62,8 +62,18 @@ stop_jetty() {
         if kill -0 "$JETTY_PID" 2>/dev/null; then
             echo "[WARN] Jetty did not stop in time; sending SIGTERM..."
             kill "$JETTY_PID" 2>/dev/null || true
-            wait "$JETTY_PID" 2>/dev/null || true
+            for _ in $(seq 1 10); do
+                if ! kill -0 "$JETTY_PID" 2>/dev/null; then
+                    break
+                fi
+                sleep 1
+            done
         fi
+        if kill -0 "$JETTY_PID" 2>/dev/null; then
+            echo "[WARN] Jetty still alive after SIGTERM; sending SIGKILL..."
+            kill -9 "$JETTY_PID" 2>/dev/null || true
+        fi
+        wait "$JETTY_PID" 2>/dev/null || true
     fi
     JETTY_PID=""
 }
@@ -88,28 +98,37 @@ echo "  Stop Command:   Press Ctrl+C"
 echo "========================================================"
 echo ""
 
-if [ ! -d "$BACKUP_DIR" ]; then
-    echo "[WARNING] Baseline directory 'data.bak' was not found!"
-    echo "          The server will start normally using 'data', but automatic reset/restart"
-    echo "          will be skipped until you manually copy 'data' to 'data.bak'."
-    echo ""
-    mkdir -p "$DOCS_HOME"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting FormosaBearV Demo Server on port $PORT..."
-    exec "$JAVA_CMD" -Ddocs.home="$DOCS_HOME" -Djetty.http.port="$PORT" -DSTOP.PORT="$STOP_PORT" -DSTOP.KEY="$STOP_KEY" -jar jetty-home/start.jar --module=ee10-deploy,http
-fi
-
 while true; do
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stopping any running Jetty instance..."
-    stop_jetty
-    sleep 2
-
     if [ ! -d "$BACKUP_DIR" ]; then
         echo "[WARNING] Baseline directory 'data.bak' was not found!"
         echo "          Please manually copy 'data' to 'data.bak' to enable automatic reset/restart."
-        echo "          Starting server normally without resetting 'data'..."
-        mkdir -p "$DOCS_HOME"
-        exec "$JAVA_CMD" -Ddocs.home="$DOCS_HOME" -Djetty.http.port="$PORT" -DSTOP.PORT="$STOP_PORT" -DSTOP.KEY="$STOP_KEY" -jar jetty-home/start.jar --module=ee10-deploy,http
+        if [ -z "$JETTY_PID" ] || ! kill -0 "$JETTY_PID" 2>/dev/null; then
+            echo "          Starting server normally using 'data' (will check again at the next interval)..."
+            mkdir -p "$DOCS_HOME"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting FormosaBearV Demo Server on port $PORT..."
+            "$JAVA_CMD" -Ddocs.home="$DOCS_HOME" -Djetty.http.port="$PORT" -DSTOP.PORT="$STOP_PORT" -DSTOP.KEY="$STOP_KEY" -jar jetty-home/start.jar --module=ee10-deploy,http &
+            JETTY_PID=$!
+        else
+            echo "          Keeping current server running without resetting 'data' (will check again at the next interval)..."
+        fi
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Server running (PID $JETTY_PID). Next check in ${RESET_SECONDS}s..."
+        ELAPSED=0
+        while [ "$ELAPSED" -lt "$RESET_SECONDS" ]; do
+            if ! kill -0 "$JETTY_PID" 2>/dev/null; then
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARN] Jetty exited unexpectedly; restarting..."
+                JETTY_PID=""
+                break
+            fi
+            sleep 5
+            ELAPSED=$((ELAPSED + 5))
+        done
+        echo ""
+        continue
     fi
+
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Stopping any running Jetty instance..."
+    stop_jetty
+    sleep 2
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Resetting '$DOCS_HOME' from '$BACKUP_DIR'..."
     rm -rf "$DOCS_HOME"
@@ -125,6 +144,7 @@ while true; do
     while [ "$ELAPSED" -lt "$RESET_SECONDS" ]; do
         if ! kill -0 "$JETTY_PID" 2>/dev/null; then
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARN] Jetty exited unexpectedly; restarting..."
+            JETTY_PID=""
             break
         fi
         sleep 5

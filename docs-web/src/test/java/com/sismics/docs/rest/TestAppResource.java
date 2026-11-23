@@ -727,6 +727,15 @@ public class TestAppResource extends BaseJerseyTest {
         Assert.assertEquals("/nonexistent/path/tesseract.exe", res.getString("resolved_path"));
         Assert.assertFalse(res.getString("error", "").isEmpty());
         Assert.assertEquals(0, res.getJsonArray("languages").size());
+
+        // 4. Arbitrary executable commands (CWE-78 / CWE-88) must be rejected before ProcessBuilder
+        for (String badCmd : new String[]{ "cmd.exe", "/bin/sh", "C:\\Windows\\System32\\cmd.exe", "..\\tesseract.exe" }) {
+            JsonObject badRes = target().path("/app/ocr/test-tesseract").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                    .post(Entity.form(new Form().param("tesseract_path", badCmd)), JsonObject.class);
+            Assert.assertFalse("Expected rejection for " + badCmd, badRes.getBoolean("ok"));
+            Assert.assertFalse(badRes.getString("error", "").isEmpty());
+        }
     }
 
     /**
@@ -773,5 +782,44 @@ public class TestAppResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .get(JsonObject.class);
         Assert.assertEquals(ts2, third.getString("generated_at"));
+    }
+
+    /**
+     * Test search engine visibility (robots.txt & X-Robots-Tag) setting.
+     */
+    @Test
+    public void testRobotsIndexingConfig() {
+        String adminToken = adminToken();
+        clientUtil.createUser("robots_normal_user");
+        String userToken = clientUtil.login("robots_normal_user");
+
+        // 1. Defaults to private (false)
+        JsonObject app = target().path("/app").request().get(JsonObject.class);
+        Assert.assertFalse(app.getBoolean("robots_indexing_enabled"));
+        Assert.assertEquals("User-agent: *\nDisallow: /\n",
+                com.sismics.docs.rest.filter.RobotsFilter.buildRobotsTxt(false));
+
+        // 2. Non-admin is forbidden
+        Response forbidden = target().path("/app/config_robots").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form().param("enabled", "true")));
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(forbidden.getStatus()));
+
+        // 3. Admin switches to public (true)
+        JsonObject pubRes = target().path("/app/config_robots").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "true")), JsonObject.class);
+        Assert.assertTrue(pubRes.getBoolean("robots_indexing_enabled"));
+
+        app = target().path("/app").request().get(JsonObject.class);
+        Assert.assertTrue(app.getBoolean("robots_indexing_enabled"));
+        Assert.assertEquals("User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /share.html\n",
+                com.sismics.docs.rest.filter.RobotsFilter.buildRobotsTxt(true));
+
+        // 4. Admin switches back to private (false)
+        JsonObject privRes = target().path("/app/config_robots").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "false")), JsonObject.class);
+        Assert.assertFalse(privRes.getBoolean("robots_indexing_enabled"));
     }
 }

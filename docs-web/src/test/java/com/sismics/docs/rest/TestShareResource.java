@@ -242,4 +242,95 @@ public class TestShareResource extends BaseJerseyTest {
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .delete();
     }
+
+    /**
+     * Test GET /share/list (mine & admin all), offboarding transfer inheritance of share management,
+     * and admin management of any user's share.
+     */
+    @Test
+    public void testShareListAdminAndOffboardingTransfer() throws Exception {
+        String adminToken = adminToken();
+        clientUtil.createUser("share_alice");
+        clientUtil.createUser("share_bob");
+        String aliceToken = clientUtil.login("share_alice");
+        String bobToken = clientUtil.login("share_bob");
+
+        // Alice creates a document and shares it
+        String aliceDocId = clientUtil.createDocument(aliceToken);
+        JsonObject aliceShare = target().path("/share").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, aliceToken)
+                .put(Entity.form(new Form()
+                        .param("id", aliceDocId)
+                        .param("name", "Alice Public Link")), JsonObject.class);
+        String aliceShareId = aliceShare.getString("id");
+
+        // Alice sees her share in GET /share/list
+        JsonObject aliceList = target().path("/share/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, aliceToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, aliceList.getJsonArray("shares").size());
+        Assert.assertEquals(aliceShareId, aliceList.getJsonArray("shares").getJsonObject(0).getString("id"));
+        Assert.assertEquals("share_alice", aliceList.getJsonArray("shares").getJsonObject(0).getString("owner"));
+
+        // Bob does NOT see Alice's share yet and cannot request scope=all
+        JsonObject bobListBefore = target().path("/share/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, bobToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(0, bobListBefore.getJsonArray("shares").size());
+
+        Response bobAllForbidden = target().path("/share/list").queryParam("scope", "all").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, bobToken)
+                .get();
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(bobAllForbidden.getStatus()));
+
+        // Admin sees Alice's share via scope=all
+        JsonObject adminAll = target().path("/share/list").queryParam("scope", "all").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .get(JsonObject.class);
+        boolean foundForAdmin = false;
+        for (int i = 0; i < adminAll.getJsonArray("shares").size(); i++) {
+            if (aliceShareId.equals(adminAll.getJsonArray("shares").getJsonObject(i).getString("id"))) {
+                foundForAdmin = true;
+            }
+        }
+        Assert.assertTrue("Admin should see all users' shares", foundForAdmin);
+
+        // Offboarding transfer: Alice -> Bob
+        Response transferResp = target().path("/user/share_alice/transfer").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("target_username", "share_bob")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(transferResp.getStatus()));
+
+        // Bob now sees the transferred document's share and can manage it
+        JsonObject bobListAfter = target().path("/share/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, bobToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, bobListAfter.getJsonArray("shares").size());
+        Assert.assertEquals(aliceShareId, bobListAfter.getJsonArray("shares").getJsonObject(0).getString("id"));
+        Assert.assertEquals("share_bob", bobListAfter.getJsonArray("shares").getJsonObject(0).getString("owner"));
+
+        JsonObject bobToggle = target().path("/share/" + aliceShareId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, bobToken)
+                .post(Entity.form(new Form().param("allow_export", "true")), JsonObject.class);
+        Assert.assertTrue(bobToggle.getBoolean("allow_export"));
+
+        // Admin can also toggle and revoke any user's share directly
+        JsonObject adminToggle = target().path("/share/" + aliceShareId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("allow_export", "false")), JsonObject.class);
+        Assert.assertFalse(adminToggle.getBoolean("allow_export"));
+
+        JsonObject adminRevoke = target().path("/share/" + aliceShareId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete(JsonObject.class);
+        Assert.assertEquals("ok", adminRevoke.getString("status"));
+
+        // Cleanup users
+        target().path("/user/share_alice").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+        target().path("/user/share_bob").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .delete();
+    }
 }

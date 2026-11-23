@@ -57,6 +57,38 @@ else
     echo "[1/5] 使用最高版本基底 Jetty ZIP: $JETTY_ZIP"
 fi
 
+# 0. Stop any lingering Jetty process running inside target/ (prevents Windows file locks on mvn clean)
+stop_lingering_target_jetty() {
+    case "$(uname -s)" in
+        MINGW*|MSYS*|CYGWIN*)
+            if command -v powershell.exe >/dev/null 2>&1; then
+                TARGET_WIN=$(cygpath -w "$DIR/target" 2>/dev/null || echo "$DIR/target")
+                TARGET_WIN_ENV="$TARGET_WIN" powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \
+                    '$t = $env:TARGET_WIN_ENV; $procs = @(Get-CimInstance Win32_Process | Where-Object { $_.Name -eq '\''java.exe'\'' -and $_.CommandLine -and $_.CommandLine -like '\''*jetty-home*start.jar*'\'' -and ($_.CommandLine -like ('\''*'\'' + $t + '\''*'\'') -or $_.CommandLine -like '\''*FormosaBearV-docs-*-portable*'\'') }); if ($procs.Count -gt 0) { Write-Host ('\''[INFO] Stopping '\'' + $procs.Count + '\'' lingering Jetty process(es) locking target/...'\''); foreach ($p in $procs) { Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 2 }' || true
+            fi
+            ;;
+        *)
+            if command -v pgrep >/dev/null 2>&1; then
+                PIDS=$(pgrep -f "jetty-home/start\.jar.*${DIR}/target|${DIR}/target.*jetty-home/start\.jar" 2>/dev/null || true)
+                if [ -n "$PIDS" ]; then
+                    echo "[INFO] Stopping lingering Jetty process(es) in target/: $PIDS"
+                    kill $PIDS 2>/dev/null || true
+                    for _ in 1 2 3 4 5; do
+                        STILL=$(pgrep -f "jetty-home/start\.jar.*${DIR}/target|${DIR}/target.*jetty-home/start\.jar" 2>/dev/null || true)
+                        [ -z "$STILL" ] && break
+                        sleep 1
+                    done
+                    STILL=$(pgrep -f "jetty-home/start\.jar.*${DIR}/target|${DIR}/target.*jetty-home/start\.jar" 2>/dev/null || true)
+                    if [ -n "$STILL" ]; then
+                        kill -9 $STILL 2>/dev/null || true
+                    fi
+                fi
+            fi
+            ;;
+    esac
+}
+stop_lingering_target_jetty
+
 # 2. Check WAR
 if [ ! -f "$WAR_FILE" ]; then
     echo "[2/5] 找不到 $WAR_FILE，正在執行 Maven 編譯..."

@@ -25,8 +25,36 @@ jobs:
           distribution: "temurin"
           cache: "maven"
 
+      - name: Configure Maven Central mirror (avoid HTTP 429)
+        run: |
+          mkdir -p "$HOME/.m2"
+          cat <<'EOF' > "$HOME/.m2/settings.xml"
+          <settings>
+            <mirrors>
+              <mirror>
+                <id>google-maven-central</id>
+                <name>Google Maven Central Mirror</name>
+                <url>https://maven-central.storage-download.googleapis.com/maven2</url>
+                <mirrorOf>central</mirrorOf>
+              </mirror>
+            </mirrors>
+          </settings>
+          EOF
+
       - name: Build and install Maven modules
-        run: mvn --batch-mode install -DskipTests
+        run: |
+          for attempt in 1 2 3; do
+            if [ "$attempt" -eq 3 ]; then
+              echo "Attempt 3: falling back to default Maven Central..."
+              rm -f "$HOME/.m2/settings.xml"
+            fi
+            if mvn --batch-mode -Daether.connector.basic.threads=2 install -DskipTests; then
+              exit 0
+            fi
+            echo "Maven build failed on attempt $attempt; retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
+          exit 1
 
       - name: Start Jetty server in background
         run: |
