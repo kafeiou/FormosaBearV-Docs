@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "Kjo etiketë mbrohet nga një shtojcë e instaluar dhe nuk mund të fshihet derisa shtojca të çinstalohet."
+  },
+  "maintenance": {
+    "reindex_title": "Rindërtimi i indeksit të kërkimit në progres",
+    "reindex_message": "Sistemi po rindërton indeksin e kërkimit. Hyrja është pezulluar përkohësisht dhe do të rifillojë automatikisht.",
+    "reindex_admin_only": "Rindërtimi i indeksit në progres. Vetëm administratorët mund të hyjnë derisa të përfundojë.",
+    "reindex_login_blocked": "Hyrja është përkohësisht e padisponueshme gjatë rindërtimit të indeksit.",
+    "reindex_progress_count": "U përpunuan {{ processed }} / {{ total }} elemente",
+    "reindex_preparing": "Duke përgatitur rindërtimin e indeksit..."
   }
 }

@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "Dieses Tag ist durch ein installiertes Plugin geschützt und kann erst nach dessen Deinstallation gelöscht werden."
+  },
+  "maintenance": {
+    "reindex_title": "Suchindex wird neu aufgebaut",
+    "reindex_message": "Das System baut derzeit den Volltextsuchindex neu auf. Anmeldung und Zugriff sind vorübergehend pausiert und werden nach Abschluss automatisch fortgesetzt.",
+    "reindex_admin_only": "Suchindex wird neu aufgebaut. Bis zum Abschluss können sich nur Administratoren anmelden.",
+    "reindex_login_blocked": "Die Anmeldung ist während des Index-Neuaufbaus vorübergehend nicht möglich. Bitte versuchen Sie es gleich erneut.",
+    "reindex_progress_count": "{{ processed }} / {{ total }} Elemente verarbeitet",
+    "reindex_preparing": "Index-Neuaufbau wird vorbereitet..."
   }
 }

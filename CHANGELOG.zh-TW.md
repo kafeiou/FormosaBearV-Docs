@@ -9,6 +9,10 @@
 ## [v3.02-SNAPSHOT]（未發布）
 
 ### 新增功能 (Added)
+- **Apache Lucene 升級至 `10.6.0` 與索引重建維護鎖定**：
+  - 將 Apache Lucene 由 `8.7.0` 升級至 **`10.6.0`**（原生支援 JDK 21；依賴更名為 `lucene-analysis-common`、`RAMDirectory` 改用 `ByteBuffersDirectory`、`IndexSearcher.doc(...)` 改用 `storedFields().document(...)`，並於開機自動清理舊版 Lucene 8 索引前先安全關閉檔案控制代碼以避開 Windows 鎖檔）。
+  - 新增雙層索引重建維護鎖定機制：開機自動升級重建期間全面阻擋所有登入與既有連線（`503 ReindexingInProgress`），管理員手動重建期間僅阻擋一般使用者與訪客並放行管理員檢視監控進度。
+  - `GET /api/app` 回傳不含敏感檔名之公開重建進度（`running`、`startup_maintenance`、`percent`、`processed`、`total`），前端加入 16 國語系全域維護遮罩與登入頁進度條，每 3 秒自動輪詢並於完成後自動恢復正常。
 - **已分享連結總覽（`GET /api/share/list`、`#/settings/share`）**：
   - 於「**設定 → 個人設定 → 已分享連結**」新增分享總覽頁，所有非訪客使用者皆可檢視、篩選、一鍵複製、開啟文件、即時切換允許下載／僅限預覽與撤銷所有自己具備 `WRITE` 權限文件上的有效分享連結（包含離職移轉接手的文件）。
   - 管理員可於同頁切換「**我的分享／全部使用者的分享**」（`scope=all`），稽核並直接管理全站所有使用者的分享連結（`POST` / `DELETE /api/share/{id}` 同步開放 `ADMIN` 權限）。

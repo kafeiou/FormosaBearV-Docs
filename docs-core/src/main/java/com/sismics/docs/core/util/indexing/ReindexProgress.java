@@ -40,6 +40,7 @@ public final class ReindexProgress {
     private static final Object LOCK = new Object();
 
     private static boolean running = false;
+    private static boolean startupMaintenance = false;
     private static Phase phase = Phase.IDLE;
     private static RebuildIndexAsyncEvent.OcrMode ocrMode = RebuildIndexAsyncEvent.OcrMode.NONE;
     private static Long startedAt = null;
@@ -66,6 +67,12 @@ public final class ReindexProgress {
         }
     }
 
+    public static boolean isStartupMaintenance() {
+        synchronized (LOCK) {
+            return running && startupMaintenance;
+        }
+    }
+
     /**
      * Atomically marks a rebuild job as queued if none is currently running.
      *
@@ -73,11 +80,15 @@ public final class ReindexProgress {
      * @return true if transitioned to running, false if already running
      */
     public static boolean tryQueue(RebuildIndexAsyncEvent.OcrMode mode) {
+        return tryQueue(mode, false);
+    }
+
+    public static boolean tryQueue(RebuildIndexAsyncEvent.OcrMode mode, boolean isStartupMaintenance) {
         synchronized (LOCK) {
             if (running) {
                 return false;
             }
-            resetLocked(mode, Phase.QUEUED);
+            resetLocked(mode, Phase.QUEUED, isStartupMaintenance);
             return true;
         }
     }
@@ -86,18 +97,24 @@ public final class ReindexProgress {
      * Called by the listener when execution actually begins (covers internal triggers too).
      */
     public static void beginExecution(RebuildIndexAsyncEvent.OcrMode mode) {
+        beginExecution(mode, false);
+    }
+
+    public static void beginExecution(RebuildIndexAsyncEvent.OcrMode mode, boolean isStartupMaintenance) {
         synchronized (LOCK) {
             if (!running || phase != Phase.QUEUED) {
-                resetLocked(mode, Phase.CLEARING);
+                resetLocked(mode, Phase.CLEARING, isStartupMaintenance);
             } else {
                 phase = Phase.CLEARING;
                 ocrMode = mode == null ? RebuildIndexAsyncEvent.OcrMode.NONE : mode;
+                startupMaintenance = startupMaintenance || isStartupMaintenance;
             }
         }
     }
 
-    private static void resetLocked(RebuildIndexAsyncEvent.OcrMode mode, Phase initialPhase) {
+    private static void resetLocked(RebuildIndexAsyncEvent.OcrMode mode, Phase initialPhase, boolean isStartupMaintenance) {
         running = true;
+        startupMaintenance = isStartupMaintenance;
         phase = initialPhase;
         ocrMode = mode == null ? RebuildIndexAsyncEvent.OcrMode.NONE : mode;
         startedAt = System.currentTimeMillis();
@@ -193,6 +210,7 @@ public final class ReindexProgress {
     public static void complete() {
         synchronized (LOCK) {
             running = false;
+            startupMaintenance = false;
             phase = Phase.DONE;
             finishedAt = System.currentTimeMillis();
             currentItem = "";
@@ -202,9 +220,38 @@ public final class ReindexProgress {
     public static void fail(String message) {
         synchronized (LOCK) {
             running = false;
+            startupMaintenance = false;
             phase = Phase.ERROR;
             finishedAt = System.currentTimeMillis();
             errorMessage = message == null ? "Unknown error" : message;
+        }
+    }
+
+    /**
+     * Public-safe snapshot for GET /api/app (contains only running state, percentage, and item counts;
+     * never exposes document titles, file names, or internal error details).
+     */
+    public static JsonObject toPublicJson() {
+        synchronized (LOCK) {
+            long totalSteps = totalDocuments + totalFiles + (ocrMode != RebuildIndexAsyncEvent.OcrMode.NONE ? ocrTotal : 0);
+            long doneSteps = processedDocuments + processedFiles + (ocrMode != RebuildIndexAsyncEvent.OcrMode.NONE ? ocrProcessed : 0);
+            int percent;
+            if (phase == Phase.DONE) {
+                percent = 100;
+            } else if (phase == Phase.IDLE || phase == Phase.QUEUED) {
+                percent = 0;
+            } else if (totalSteps <= 0) {
+                percent = running ? 5 : 100;
+            } else {
+                percent = (int) Math.min(99, Math.round((doneSteps * 100.0) / totalSteps));
+            }
+            return Json.createObjectBuilder()
+                    .add("running", running)
+                    .add("startup_maintenance", running && startupMaintenance)
+                    .add("percent", percent)
+                    .add("processed", doneSteps)
+                    .add("total", totalSteps)
+                    .build();
         }
     }
 

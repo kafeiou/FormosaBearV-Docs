@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "Questo tag è protetto da un plugin installato e non può essere eliminato finché il plugin non viene disinstallato."
+  },
+  "maintenance": {
+    "reindex_title": "Ricostruzione indice di ricerca in corso",
+    "reindex_message": "Il sistema sta ricostruendo l'indice di ricerca. L'accesso è temporaneamente sospeso e riprenderà automaticamente al termine.",
+    "reindex_admin_only": "Ricostruzione dell'indice in corso. Solo gli amministratori possono accedere fino al completamento.",
+    "reindex_login_blocked": "L'accesso è temporaneamente non disponibile durante la ricostruzione dell'indice.",
+    "reindex_progress_count": "Elaborati {{ processed }} / {{ total }} elementi",
+    "reindex_preparing": "Preparazione della ricostruzione..."
   }
 }

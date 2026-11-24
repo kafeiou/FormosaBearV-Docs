@@ -36,9 +36,17 @@ angular.module('docs').controller('Login', function(Restangular, $scope, $rootSc
         $state.go('tag.default');
       }
     }, function(data) {
-      if (data.data.type === 'ValidationCodeRequired') {
+      if (data && data.data && data.data.type === 'ValidationCodeRequired') {
         // A TOTP validation code is required to login
         $scope.codeRequired = true;
+      } else if (data && data.data && data.data.type === 'ReindexingInProgress') {
+        if ($rootScope.app && data.data.reindexing) {
+          $rootScope.app.reindexing = data.data.reindexing;
+        }
+        var maintTitle = $translate.instant('maintenance.reindex_title');
+        var maintMsg = $translate.instant('maintenance.reindex_login_blocked');
+        var maintBtns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
+        $dialog.messageBox(maintTitle, maintMsg, maintBtns);
       } else {
         // Login truly failed
         var title = $translate.instant('login.login_failed_title');

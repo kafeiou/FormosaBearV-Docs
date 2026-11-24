@@ -66,11 +66,12 @@ public class RebuildIndexAsyncListener {
     @AllowConcurrentEvents
     public void on(final RebuildIndexAsyncEvent event) {
         RebuildIndexAsyncEvent.OcrMode ocrMode = event != null ? event.getOcrMode() : RebuildIndexAsyncEvent.OcrMode.NONE;
+        boolean startupMaintenance = event != null && event.isStartupMaintenance();
         if (log.isInfoEnabled()) {
             log.info("Rebuild index event: " + event);
         }
 
-        ReindexProgress.beginExecution(ocrMode);
+        ReindexProgress.beginExecution(ocrMode, startupMaintenance);
         try {
             // Read initial totals
             TransactionUtil.handle(() -> {

@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "このタグはインストール済みのプラグインによって保護されているため、プラグインをアンインストールするまで削除できません。"
+  },
+  "maintenance": {
+    "reindex_title": "検索インデックスを再構築中",
+    "reindex_message": "現在、全文検索インデックスを再構築しています。完了するまでログインと操作は一時停止され、完了後に自動で再開します。",
+    "reindex_admin_only": "インデックス再構築中です。完了するまで管理者のみログインできます。",
+    "reindex_login_blocked": "検索インデックスを再構築中のため一時的にログインできません。しばらくしてからお試しください。",
+    "reindex_progress_count": "{{ processed }} / {{ total }} 件処理済み",
+    "reindex_preparing": "インデックス再構築を準備中..."
   }
 }

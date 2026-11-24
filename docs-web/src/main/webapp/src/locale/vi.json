@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "Thẻ này được bảo vệ bởi một plugin đã cài đặt và không thể xóa cho đến khi gỡ cài đặt plugin đó."
+  },
+  "maintenance": {
+    "reindex_title": "Đang xây dựng lại chỉ mục tìm kiếm",
+    "reindex_message": "Hệ thống đang xây dựng lại chỉ mục tìm kiếm toàn văn. Đăng nhập và truy cập tạm dừng và sẽ tự động khôi phục khi hoàn tất.",
+    "reindex_admin_only": "Đang xây dựng lại chỉ mục. Chỉ quản trị viên có thể đăng nhập cho đến khi hoàn tất.",
+    "reindex_login_blocked": "Đăng nhập tạm thời không khả dụng trong khi hệ thống đang xây dựng lại chỉ mục.",
+    "reindex_progress_count": "Đã xử lý {{ processed }} / {{ total }} mục",
+    "reindex_preparing": "Đang chuẩn bị xây dựng lại chỉ mục..."
   }
 }

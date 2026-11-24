@@ -762,7 +762,64 @@ angular.module('docs',
 /**
  * Global download permission helper.
  */
-.run(function ($rootScope, Restangular, $translate) {
+.run(function ($rootScope, Restangular, $translate, $state, $timeout) {
+  /**
+   * Global search index rebuild maintenance monitor.
+   * - During startup auto-upgrade rebuild: blocks everyone (login + existing sessions) until complete.
+   * - During admin-triggered manual rebuild: blocks non-admin / guest sessions while keeping admins unblocked.
+   */
+  var reindexPollTimer = null;
+  $rootScope.isReindexingBlocked = function() {
+    var r = $rootScope.app && $rootScope.app.reindexing;
+    if (!r || !r.running) {
+      return false;
+    }
+    if (r.startup_maintenance) {
+      return true;
+    }
+    var isAdmin = $rootScope.userInfo && !$rootScope.userInfo.anonymous &&
+      $rootScope.userInfo.base_functions &&
+      $rootScope.userInfo.base_functions.indexOf('ADMIN') !== -1;
+    if (isAdmin) {
+      return false;
+    }
+    if ($state.current && $state.current.name === 'login') {
+      return false;
+    }
+    return true;
+  };
+
+  function pollAppReindexStatus() {
+    if (reindexPollTimer) {
+      return;
+    }
+    reindexPollTimer = $timeout(function() {
+      reindexPollTimer = null;
+      Restangular.one('app').get().then(function(data) {
+        $rootScope.app = data;
+        if (data && data.reindexing && data.reindexing.running) {
+          pollAppReindexStatus();
+        }
+      }, function() {
+        pollAppReindexStatus();
+      });
+    }, 3000);
+  }
+
+  $rootScope.$watch('app.reindexing.running', function(isRunning) {
+    if (isRunning) {
+      pollAppReindexStatus();
+    } else if (reindexPollTimer) {
+      $timeout.cancel(reindexPollTimer);
+      reindexPollTimer = null;
+    }
+  });
+
+  // Fetch initial /api/app status so Remember-me sessions immediately detect active maintenance
+  Restangular.one('app').get().then(function(data) {
+    $rootScope.app = data;
+  });
+
   $rootScope.canDownload = function(file, document) {
     if (!$rootScope.app || $rootScope.app.file_download !== false) {
       return true;

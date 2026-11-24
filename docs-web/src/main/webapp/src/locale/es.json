@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "Esta etiqueta está protegida por un complemento instalado y no puede eliminarse hasta desinstalarlo."
+  },
+  "maintenance": {
+    "reindex_title": "Reconstrucción del índice en curso",
+    "reindex_message": "El sistema está reconstruyendo el índice de búsqueda. El acceso está pausado temporalmente y se reanudará automáticamente al finalizar.",
+    "reindex_admin_only": "Reconstrucción del índice en curso. Solo los administradores pueden iniciar sesión hasta que finalice.",
+    "reindex_login_blocked": "El inicio de sesión no está disponible temporalmente mientras se reconstruye el índice.",
+    "reindex_progress_count": "Procesados {{ processed }} / {{ total }} elementos",
+    "reindex_preparing": "Preparando reconstrucción del índice..."
   }
 }

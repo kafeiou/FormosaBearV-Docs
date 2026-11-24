@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "Ce tag est protégé par une extension installée et ne peut pas être supprimé tant que l’extension n’est pas désinstallée."
+  },
+  "maintenance": {
+    "reindex_title": "Reconstruction de l'index en cours",
+    "reindex_message": "Le système reconstruit actuellement l'index de recherche. L'accès est temporairement suspendu et reprendra automatiquement une fois terminé.",
+    "reindex_admin_only": "Reconstruction de l'index en cours. Seuls les administrateurs peuvent se connecter.",
+    "reindex_login_blocked": "La connexion est temporairement indisponible pendant la reconstruction de l'index.",
+    "reindex_progress_count": "{{ processed }} / {{ total }} éléments traités",
+    "reindex_preparing": "Préparation de la reconstruction..."
   }
 }

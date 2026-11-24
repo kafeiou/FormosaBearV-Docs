@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "This tag is protected by an installed plugin and cannot be deleted until the plugin is uninstalled."
+  },
+  "maintenance": {
+    "reindex_title": "Search Index Rebuild in Progress",
+    "reindex_message": "The system is currently rebuilding its full-text search index. Login and access are temporarily paused and will resume automatically once finished.",
+    "reindex_admin_only": "Search index rebuild is in progress. Only administrators may sign in until complete.",
+    "reindex_login_blocked": "Login is temporarily unavailable while the search index is being rebuilt. Please try again shortly.",
+    "reindex_progress_count": "Processed {{ processed }} / {{ total }} items",
+    "reindex_preparing": "Preparing index rebuild..."
   }
 }

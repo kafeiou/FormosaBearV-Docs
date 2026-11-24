@@ -9,6 +9,10 @@ This document details the notable changes, security enhancements, architecture i
 ## [v3.02-SNAPSHOT] (Unreleased)
 
 ### Added
+- **Apache Lucene 10.6.0 Upgrade & Index Rebuild Maintenance Lock**:
+  - Upgraded Apache Lucene from `8.7.0` to **`10.6.0`** (JDK 21 native; migrated `lucene-analyzers-common` → `lucene-analysis-common`, `RAMDirectory` → `ByteBuffersDirectory`, `IndexSearcher.doc(...)` → `storedFields().document(...)`, and safely closed handles before wiping legacy Lucene 8 index directories on Windows/Linux).
+  - Added two-tier login & session maintenance locking during index rebuilds: startup auto-upgrade rebuilds block all logins/sessions (`503 ReindexingInProgress`) until complete, while admin-triggered manual rebuilds block non-admin/guest users and allow administrators to monitor progress.
+  - Exposed privacy-safe public rebuild progress (`running`, `startup_maintenance`, `percent`, `processed`, `total`) on `GET /api/app` (without leaking document titles or filenames) and added a 16-language full-screen maintenance overlay & login banner with automatic 3-second recovery polling.
 - **Shared Links Overview (`GET /api/share/list`, `#/settings/share`)**:
   - Added **Settings → Personal Settings → Shared links** (`#/settings/share`) allowing every non-guest user to view, search, copy, toggle download/preview (`allow_export`), open, and revoke all active share links on documents they have `WRITE` permission on (including documents inherited via offboarding transfer).
   - Administrators can switch between **My shares** and **All users' shares** (`scope=all`) to audit, toggle download permission, and revoke any user's share across the system (`POST` / `DELETE /api/share/{id}` now permit `ADMIN`).

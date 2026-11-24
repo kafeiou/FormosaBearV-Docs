@@ -336,6 +336,17 @@ public class UserResource extends BaseResource {
         @FormParam("password") String password,
         @FormParam("code") String validationCodeStr,
         @FormParam("remember") boolean longLasted) {
+        // Block all logins during startup automatic index rebuild maintenance
+        if (com.sismics.docs.core.util.indexing.ReindexProgress.isStartupMaintenance()) {
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity(Json.createObjectBuilder()
+                            .add("type", "ReindexingInProgress")
+                            .add("message", "Search index rebuild is currently in progress. Please try again shortly.")
+                            .add("reindexing", com.sismics.docs.core.util.indexing.ReindexProgress.toPublicJson())
+                            .build())
+                    .build();
+        }
+
         // Validate the input data
         username = StringUtils.strip(username);
         password = StringUtils.strip(password);
@@ -344,6 +355,15 @@ public class UserResource extends BaseResource {
         UserDao userDao = new UserDao();
         User user = null;
         if (Constants.GUEST_USER_ID.equals(username)) {
+            if (com.sismics.docs.core.util.indexing.ReindexProgress.isRunning()) {
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                        .entity(Json.createObjectBuilder()
+                                .add("type", "ReindexingInProgress")
+                                .add("message", "Search index rebuild is currently in progress. Please try again shortly.")
+                                .add("reindexing", com.sismics.docs.core.util.indexing.ReindexProgress.toPublicJson())
+                                .build())
+                        .build();
+            }
             if (ConfigUtil.getConfigBooleanValue(ConfigType.GUEST_LOGIN)) {
                 // Login as guest
                 user = userDao.getActiveByUsername(Constants.GUEST_USER_ID);
@@ -359,6 +379,21 @@ public class UserResource extends BaseResource {
         }
         if (user == null) {
             throw new ForbiddenClientException();
+        }
+
+        // During manual index rebuild, block non-admin users while allowing administrators to monitor progress
+        if (com.sismics.docs.core.util.indexing.ReindexProgress.isRunning()) {
+            Set<String> userFunctions = new com.sismics.docs.core.dao.RoleBaseFunctionDao()
+                    .findByRoleId(java.util.Collections.singleton(user.getRoleId()));
+            if (userFunctions == null || !userFunctions.contains(BaseFunction.ADMIN.name())) {
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                        .entity(Json.createObjectBuilder()
+                                .add("type", "ReindexingInProgress")
+                                .add("message", "Search index rebuild is currently in progress. Please try again shortly.")
+                                .add("reindexing", com.sismics.docs.core.util.indexing.ReindexProgress.toPublicJson())
+                                .build())
+                        .build();
+            }
         }
 
         // Two factor authentication

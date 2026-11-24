@@ -822,4 +822,52 @@ public class TestAppResource extends BaseJerseyTest {
                 .post(Entity.form(new Form().param("enabled", "false")), JsonObject.class);
         Assert.assertFalse(privRes.getBoolean("robots_indexing_enabled"));
     }
+
+    /**
+     * Test login blocking & public progress reporting during startup vs manual index rebuild.
+     */
+    @Test
+    public void testReindexMaintenanceLock() {
+        clientUtil.createUser("reindex_lock_user");
+        try {
+            // 1. Startup automatic rebuild blocks ALL logins (including admin)
+            Assert.assertTrue(com.sismics.docs.core.util.indexing.ReindexProgress.tryQueue(
+                    com.sismics.docs.core.event.RebuildIndexAsyncEvent.OcrMode.NONE, true));
+            com.sismics.docs.core.util.indexing.ReindexProgress.setTotals(10, 10);
+            com.sismics.docs.core.util.indexing.ReindexProgress.setPhase(
+                    com.sismics.docs.core.util.indexing.ReindexProgress.Phase.INDEXING_DOCUMENTS);
+            com.sismics.docs.core.util.indexing.ReindexProgress.addProcessedDocuments(5, "secret.pdf");
+
+            // /api/app exposes progress counts & percent without leaking document titles
+            JsonObject appJson = target().path("/app").request().get(JsonObject.class);
+            JsonObject reindexing = appJson.getJsonObject("reindexing");
+            Assert.assertTrue(reindexing.getBoolean("running"));
+            Assert.assertTrue(reindexing.getBoolean("startup_maintenance"));
+            Assert.assertEquals(5, reindexing.getInt("processed"));
+            Assert.assertEquals(20, reindexing.getInt("total"));
+            Assert.assertEquals(25, reindexing.getInt("percent"));
+            Assert.assertFalse(reindexing.containsKey("current_item"));
+
+            Response adminBlocked = target().path("/user/login").request()
+                    .post(Entity.form(new Form().param("username", "admin").param("password", "superSecure")));
+            Assert.assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), adminBlocked.getStatus());
+            Assert.assertEquals("ReindexingInProgress", adminBlocked.readEntity(JsonObject.class).getString("type"));
+
+            com.sismics.docs.core.util.indexing.ReindexProgress.complete();
+
+            // 2. Manual rebuild blocks non-admin users while allowing admin login
+            Assert.assertTrue(com.sismics.docs.core.util.indexing.ReindexProgress.tryQueue(
+                    com.sismics.docs.core.event.RebuildIndexAsyncEvent.OcrMode.NONE, false));
+
+            Response userBlocked = target().path("/user/login").request()
+                    .post(Entity.form(new Form().param("username", "reindex_lock_user").param("password", "12345678")));
+            Assert.assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), userBlocked.getStatus());
+
+            Response adminAllowed = target().path("/user/login").request()
+                    .post(Entity.form(new Form().param("username", "admin").param("password", "superSecure")));
+            Assert.assertEquals(Status.OK.getStatusCode(), adminAllowed.getStatus());
+        } finally {
+            com.sismics.docs.core.util.indexing.ReindexProgress.complete();
+        }
+    }
 }

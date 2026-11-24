@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "此標籤受已安裝的外掛保護鎖定，必須先解除安裝該外掛才可刪除。"
+  },
+  "maintenance": {
+    "reindex_title": "系統正在重建索引中",
+    "reindex_message": "系統目前正在重建全文檢索索引，暫時禁止登入與操作，完成後將自動恢復正常。",
+    "reindex_admin_only": "系統正在重建索引，完成前僅限管理員登入檢視進度。",
+    "reindex_login_blocked": "系統正在重建全文索引中，暫時無法登入，請稍候再試。",
+    "reindex_progress_count": "已處理 {{ processed }} / {{ total }} 筆",
+    "reindex_preparing": "正在準備重建索引..."
   }
 }

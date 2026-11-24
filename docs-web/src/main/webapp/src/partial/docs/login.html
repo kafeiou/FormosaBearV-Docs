@@ -37,6 +37,23 @@
         </div>
         <img src="img/title.png" class="img-responsive" />
 
+        <div class="alert alert-warning" ng-if="app.reindexing && app.reindexing.running && !app.reindexing.startup_maintenance" style="margin-top: 10px;">
+          <div>
+            <strong><span class="fas fa-cog fa-spin"></span> {{ 'maintenance.reindex_title' | translate }}</strong>
+          </div>
+          <p class="small" style="margin: 4px 0 8px;">{{ 'maintenance.reindex_admin_only' | translate }}</p>
+          <div class="progress" style="margin-bottom: 4px; height: 16px;">
+            <div class="progress-bar progress-bar-striped active progress-bar-warning"
+                 ng-style="{ width: (app.reindexing.percent || 5) + '%' }"
+                 style="min-width: 2.5em; line-height: 16px; font-size: 11px;">
+              {{ app.reindexing.percent || 0 }}%
+            </div>
+          </div>
+          <div class="small text-muted text-center" ng-if="app.reindexing.total > 0">
+            {{ 'maintenance.reindex_progress_count' | translate:{ processed: app.reindexing.processed, total: app.reindexing.total } }}
+          </div>
+        </div>
+
         <form>
           <div class="form-group">
             <label class="sr-only" for="inputUsername">{{ 'login.username' | translate }}</label>
@@ -82,7 +99,9 @@
 
           <p class="text-center" ng-if="app.guest_login">&nbsp;</p>
 
-          <button type="submit" class="btn btn-default btn-block" ng-if="app.guest_login" ng-click="loginAsGuest()">
+          <button type="submit" class="btn btn-default btn-block" ng-if="app.guest_login"
+                  ng-disabled="app.reindexing && app.reindexing.running"
+                  ng-click="loginAsGuest()">
             <span class="fas fa-user"></span> {{ 'login.login_as_guest' | translate }}
           </button>
         </form>

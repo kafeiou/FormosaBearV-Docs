@@ -1130,5 +1130,13 @@
   },
   "error": {
     "ProtectedPluginTag": "Ten tag jest chroniony przez zainstalowaną wtyczkę i nie można go usunąć przed jej odinstalowaniem."
+  },
+  "maintenance": {
+    "reindex_title": "Trwa przebudowa indeksu wyszukiwania",
+    "reindex_message": "System przebudowuje indeks wyszukiwania. Logowanie i dostęp są tymczasowo wstrzymane i zostaną wznowione automatycznie po zakończeniu.",
+    "reindex_admin_only": "Trwa przebudowa indeksu. Do czasu zakończenia logować mogą się tylko administratorzy.",
+    "reindex_login_blocked": "Logowanie jest tymczasowo niedostępne podczas przebudowy indeksu.",
+    "reindex_progress_count": "Przetworzono {{ processed }} / {{ total }} elementów",
+    "reindex_preparing": "Przygotowywanie przebudowy indeksu..."
   }
 }

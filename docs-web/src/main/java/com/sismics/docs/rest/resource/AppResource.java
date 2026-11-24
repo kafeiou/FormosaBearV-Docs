@@ -147,6 +147,7 @@ public class AppResource extends BaseResource {
                 .add("file_swap", ConfigUtil.isFileSwapEnabled())
                 .add("group_view_all", ConfigUtil.canGroupViewAll())
                 .add("robots_indexing_enabled", ConfigUtil.isRobotsIndexingEnabled())
+                .add("reindexing", com.sismics.docs.core.util.indexing.ReindexProgress.toPublicJson())
                 .add("preview_watermark_enabled", ConfigUtil.isPreviewWatermarkEnabled())
                 .add("preview_watermark_date_format", ConfigUtil.getPreviewWatermarkDateFormat())
                 .add("storage_path", DirectoryUtil.getBaseDataDirectory().toAbsolutePath().toString())

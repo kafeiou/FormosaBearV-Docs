@@ -204,6 +204,38 @@
     <div ui-view="page">
     </div>
 
+    <!-- Global Maintenance Overlay during Search Index Rebuild -->
+    <div ng-if="isReindexingBlocked()"
+         style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10000; background: rgba(20, 24, 31, 0.88); display: flex; align-items: center; justify-content: center; padding: 20px;">
+      <div class="panel panel-warning" style="max-width: 520px; width: 100%; box-shadow: 0 12px 32px rgba(0,0,0,0.45); margin-bottom: 0;">
+        <div class="panel-heading">
+          <h3 class="panel-title">
+            <span class="fas fa-cog fa-spin"></span>
+            {{ 'maintenance.reindex_title' | translate }}
+          </h3>
+        </div>
+        <div class="panel-body">
+          <p>{{ 'maintenance.reindex_message' | translate }}</p>
+          <div class="progress" style="margin-bottom: 8px;">
+            <div class="progress-bar progress-bar-striped active progress-bar-warning"
+                 role="progressbar"
+                 ng-style="{ width: (app.reindexing.percent || 5) + '%' }"
+                 style="min-width: 3em;">
+              {{ app.reindexing.percent || 0 }}%
+            </div>
+          </div>
+          <p class="text-muted small text-center" style="margin-bottom: 0;">
+            <span ng-if="app.reindexing.total > 0">
+              {{ 'maintenance.reindex_progress_count' | translate:{ processed: app.reindexing.processed, total: app.reindexing.total } }}
+            </span>
+            <span ng-if="!app.reindexing.total">
+              {{ 'maintenance.reindex_preparing' | translate }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
     <div class="row" ng-controller="Footer">
       <div class="col-md-12 footer text-center text-muted small">
         <div class="alert alert-danger" ng-show="app.global_storage_quota && app.global_storage_quota * 0.8 < app.global_storage_current"

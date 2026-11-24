@@ -46,10 +46,10 @@ import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.search.spell.LuceneDictionary;
 import org.apache.lucene.search.suggest.Lookup;
 import org.apache.lucene.search.suggest.analyzing.FuzzySuggester;
+import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.NIOFSDirectory;
 import org.apache.lucene.store.NoLockFactory;
-import org.apache.lucene.store.RAMDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,15 +107,24 @@ public class LuceneIndexingHandler implements IndexingHandler {
         } catch (Exception e) {
             // An error occurred initializing Lucene, the index is out of date or broken, delete everything
             log.info("Unable to initialize Lucene, cleaning up the index: " + e.getMessage());
-            Path luceneDirectory = DirectoryUtil.getLuceneDirectory();
-            Files.walk(luceneDirectory)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(java.io.File::delete);
+            shutDown();
+            indexWriter = null;
+            directoryReader = null;
+            directory = null;
 
-            // Re-initialize and schedule a full reindex
+            Path luceneDirectory = DirectoryUtil.getLuceneDirectory();
+            if (Files.exists(luceneDirectory)) {
+                Files.walk(luceneDirectory)
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(java.io.File::delete);
+            }
+            Files.createDirectories(luceneDirectory);
+
+            // Re-initialize and schedule a full reindex under startup maintenance lock
             initLucene();
-            RebuildIndexAsyncEvent rebuildIndexAsyncEvent = new RebuildIndexAsyncEvent();
+            ReindexProgress.tryQueue(RebuildIndexAsyncEvent.OcrMode.NONE, true);
+            RebuildIndexAsyncEvent rebuildIndexAsyncEvent = new RebuildIndexAsyncEvent(RebuildIndexAsyncEvent.OcrMode.NONE, true);
             AppContext.getInstance().getAsyncEventBus().post(rebuildIndexAsyncEvent);
         }
     }
@@ -127,7 +136,7 @@ public class LuceneIndexingHandler implements IndexingHandler {
 
         // RAM directory storage by default
         if (luceneStorage == null || luceneStorage.equals("RAM")) {
-            directory = new RAMDirectory();
+            directory = new ByteBuffersDirectory();
             log.info("Using RAM Lucene storage");
         } else if (luceneStorage.equals("FILE")) {
             Path luceneDirectory = DirectoryUtil.getLuceneDirectory();
@@ -478,7 +487,7 @@ public class LuceneIndexingHandler implements IndexingHandler {
 
         // Extract document IDs and highlights
         for (ScoreDoc doc : docs) {
-            org.apache.lucene.document.Document document = searcher.doc(doc.doc);
+            org.apache.lucene.document.Document document = searcher.storedFields().document(doc.doc);
             String type = document.get("doctype");
             String documentId = null;
             String highlight = null;
