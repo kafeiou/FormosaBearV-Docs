@@ -33,6 +33,8 @@
   - 移除文件管理左側清單中每筆文件下方的標籤徽章區塊（`document.html`），讓文件列表更簡潔易讀；右側文件詳細頁、上方資料夾導覽與進階搜尋的標籤篩選維持不變。
 
 ### 修復與安全性強化 (Fixed & Hardened)
+- **修正文件檔案數統計誤計入歷史版本問題（`TagDao.java`、`DocumentDao.java`）**：
+  - 於 `TagDao.findDirectDocumentsByTag()`、`TagDao.findUntaggedDocuments()` 與 `DocumentDao.getDocument()` 的 `file_count` 子查詢補上 `FIL_LATESTVERSION_B = true` 條件，避免非最新版的歷史檔案紀錄被重複計入，與文件列表統計完全一致。
 - **修復標籤管理未儲存即提前更動左樹問題（`TagEdit.js`）**：
   - 移除載入標籤詳情時覆蓋 `$scope.tags` 陣列參考的行為，確保在右側修改上層標籤、名稱、顏色或說明時，於點擊「儲存」前不再提前變動左側標籤樹。
 - **資安強化 — 本地 Tesseract 指令注入防禦（`CWE-78` / `CWE-88`，CodeQL #35）**：

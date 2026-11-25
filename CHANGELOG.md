@@ -33,6 +33,8 @@ This document details the notable changes, security enhancements, architecture i
   - Removed inline tag badges beneath each document row in the left-side document list (`document.html`) for a cleaner layout, while keeping tags visible in the right-side document view, top folder navigation, and advanced search filter.
 
 ### Fixed & Hardened
+- **Consistent Latest-Version File Count (`TagDao.java` & `DocumentDao.java`)**:
+  - Added `FIL_LATESTVERSION_B = true` filtering to the `file_count` subqueries in `TagDao.findDirectDocumentsByTag()`, `TagDao.findUntaggedDocuments()`, and `DocumentDao.getDocument()` so superseded historical file versions are no longer counted alongside current files.
 - **Tag Management Unsaved Edit Guard (`TagEdit.js`)**:
   - Removed shared object reference mutation on `$scope.tags` when loading tag details so changing a tag's parent, name, color, or description on the right panel no longer alters the left tag tree before clicking **Save**.
 - **Security — Uncontrolled Command Line in Local Tesseract Check (`CWE-78` / `CWE-88`, CodeQL #35)**:

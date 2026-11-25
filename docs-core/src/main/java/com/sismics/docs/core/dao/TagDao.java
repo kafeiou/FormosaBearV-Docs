@@ -848,7 +848,7 @@ public class TagDao {
 
         Query listQ = em.createNativeQuery(
                 "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, u.USE_USERNAME_C, "
-                        + "(select count(f.FIL_ID_C) from T_FILE f where f.FIL_DELETEDATE_D is null and f.FIL_IDDOC_C = d.DOC_ID_C) as fileCount, "
+                        + "(select count(f.FIL_ID_C) from T_FILE f where f.FIL_DELETEDATE_D is null and f.FIL_LATESTVERSION_B = true and f.FIL_IDDOC_C = d.DOC_ID_C) as fileCount, "
                         + "coalesce(dt.DOT_ORDER_N, 999999999) as ord "
                         + where
                         + " order by ord asc, d.DOC_CREATEDATE_D desc");
@@ -895,7 +895,7 @@ public class TagDao {
 
         Query listQ = em.createNativeQuery(
                 "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, u.USE_USERNAME_C, "
-                        + "(select count(f.FIL_ID_C) from T_FILE f where f.FIL_DELETEDATE_D is null and f.FIL_IDDOC_C = d.DOC_ID_C) as fileCount "
+                        + "(select count(f.FIL_ID_C) from T_FILE f where f.FIL_DELETEDATE_D is null and f.FIL_LATESTVERSION_B = true and f.FIL_IDDOC_C = d.DOC_ID_C) as fileCount "
                         + where + " order by d.DOC_CREATEDATE_D desc");
         if (checkAcl) {
             listQ.setParameter("targetIdList", targetIdList);
