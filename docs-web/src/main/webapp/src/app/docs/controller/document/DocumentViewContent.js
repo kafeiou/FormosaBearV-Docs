@@ -152,6 +152,28 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
   };
 
   /**
+   * Sync file list and parent document list / tag tree after file mutations.
+   */
+  var syncAfterFileChange = function (targetDocumentId, navigateToTarget) {
+    if ($state.includes('tagadmin.document')) {
+      $scope.$emit('tagAdminDocumentFilesUpdated', { documentId: targetDocumentId || $stateParams.id });
+      if (navigateToTarget && targetDocumentId && targetDocumentId !== $stateParams.id) {
+        $state.go('tagadmin.document.view.content', { id: targetDocumentId });
+        return;
+      }
+      $scope.loadFiles();
+    } else {
+      if ($scope.viewDocument && targetDocumentId) {
+        $scope.viewDocument(targetDocumentId);
+      }
+      if ($scope.loadDocuments) {
+        $scope.loadDocuments();
+      }
+      $scope.loadFiles();
+    }
+  };
+
+  /**
    * Delete a file.
    */
   $scope.deleteFile = function (file) {
@@ -169,9 +191,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
           $rootScope.userInfo.storage_current -= file.size;
 
           // Update local data
-          $scope.viewDocument(file.document_id);
-          $scope.loadDocuments();
-          $scope.loadFiles();
+          syncAfterFileChange(file.document_id, false);
         });
       }
     });
@@ -263,9 +283,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
 
       // New file uploaded, increase used quota
       $rootScope.userInfo.storage_current += data.size;
-      $scope.viewDocument(file.document_id);
-      $scope.loadDocuments();
-      $scope.loadFiles();
+      syncAfterFileChange(file.document_id || $stateParams.id, false);
 
     })
     .error(function (data) {
@@ -311,10 +329,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
         version_label: fileUpdated.version_label || ''
       }).then(function () {
         if( fileUpdated.new_document_id!=fileUpdated.document_id ){
-          $scope.viewDocument(fileUpdated.new_document_id);
-          $scope.loadDocuments();
-          $scope.loadFiles();
-//            $state.go('document.default');  
+          syncAfterFileChange(fileUpdated.new_document_id, true);
         }else {
           file.name = fileUpdated.name;
           file.version_label = fileUpdated.version_label || null;
@@ -353,6 +368,9 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
       }
     }).result.finally(function () {
       $scope.loadFiles();
+      if ($state.includes('tagadmin.document')) {
+        $scope.$emit('tagAdminDocumentFilesUpdated', { documentId: $stateParams.id });
+      }
     });
   };
 });

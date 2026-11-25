@@ -33,6 +33,8 @@ This document details the notable changes, security enhancements, architecture i
   - Removed inline tag badges beneath each document row in the left-side document list (`document.html`) for a cleaner layout, while keeping tags visible in the right-side document view, top folder navigation, and advanced search filter.
 
 ### Fixed & Hardened
+- **Tag Management Live Left-Tree Refresh on File Mutations (`DocumentViewContent.js` & `Tag.js`)**:
+  - Guarded `$scope.viewDocument()` / `$scope.loadDocuments()` calls in `DocumentViewContent.js` when uploading, deleting, moving, or updating file versions inside `#/tagadmin/document/:id`, and emitted `tagAdminDocumentFilesUpdated` so `Tag.js` immediately refreshes expanded tag and untagged document file counts `(N)` without collapsing the tree.
 - **Consistent Latest-Version File Count (`TagDao.java` & `DocumentDao.java`)**:
   - Added `FIL_LATESTVERSION_B = true` filtering to the `file_count` subqueries in `TagDao.findDirectDocumentsByTag()`, `TagDao.findUntaggedDocuments()`, and `DocumentDao.getDocument()` so superseded historical file versions are no longer counted alongside current files.
 - **Tag Management Unsaved Edit Guard (`TagEdit.js`)**:

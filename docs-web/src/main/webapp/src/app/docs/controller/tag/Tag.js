@@ -454,6 +454,12 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
     }
   });
 
+  $scope.$on('tagAdminDocumentFilesUpdated', function() {
+    if ($scope.showTreeDocuments) {
+      $scope.refreshExpandedTagDocuments();
+    }
+  });
+
   /**
    * Toggle expand/collapse for a single tag node.
    */
