@@ -269,12 +269,6 @@
               <span ng-if="docDateDisplayMode != 'relative' && docDateDisplayMode != 'date'">{{ document.create_date | date: 'yyyy-MM-dd HH:mm' }}</span>
             </div>
 
-            <div class="tags small">
-              <span class="label label-info" ng-repeat="tag in document.tags" ng-style="{ 'background': tag.color }" invert-text-color="{{ tag.color }}" uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true" add-space-between>
-                {{ tag.name }}
-              </span>
-            </div>
-
             <div ng-if="document.highlight" class="small well-sm" ng-bind-html="document.highlight"></div>
           </td>
         </tr>

@@ -28,6 +28,10 @@
   - 新增 `RobotsFilter`（掛載於 `/*`）、`ConfigType.ROBOTS_INDEXING_ENABLED`（預設 `false`：不公開）、`POST /api/app/config_robots` 與「**設定 → 系統設定 → 搜尋引擎收錄（網站公開性）**」介面（含 16 國語系與檢視 `robots.txt` 按鈕）。
   - 不公開模式回傳 `Disallow: /` 並對所有回應加上 `X-Robots-Tag: noindex, nofollow, noarchive`；公開模式回傳 `Allow: /` 並一律排除 `/api/` 與 `/share.html`（`share.html` 另加上 `<meta name="robots" content="noindex, nofollow, noarchive">` 雙重保護分享連結）。
 
+### 介面調整 (Changed)
+- **文件管理左側清單精簡顯示（`#/document`）**：
+  - 移除文件管理左側清單中每筆文件下方的標籤徽章區塊（`document.html`），讓文件列表更簡潔易讀；右側文件詳細頁、上方資料夾導覽與進階搜尋的標籤篩選維持不變。
+
 ### 修復與安全性強化 (Fixed & Hardened)
 - **修復標籤管理未儲存即提前更動左樹問題（`TagEdit.js`）**：
   - 移除載入標籤詳情時覆蓋 `$scope.tags` 陣列參考的行為，確保在右側修改上層標籤、名稱、顏色或說明時，於點擊「儲存」前不再提前變動左側標籤樹。

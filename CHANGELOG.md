@@ -28,6 +28,10 @@ This document details the notable changes, security enhancements, architecture i
   - Added `RobotsFilter` (mapped to `/*`), `ConfigType.ROBOTS_INDEXING_ENABLED` (default `false`: Private), `POST /api/app/config_robots`, and **Settings → Configuration → Search engine visibility** UI (with 16 locales and `View robots.txt` link).
   - Private mode serves `Disallow: /` and `X-Robots-Tag: noindex, nofollow, noarchive` on all responses; Public mode serves `Allow: /` while always excluding `/api/` and `/share.html` (plus `<meta name="robots" content="noindex, nofollow, noarchive">` in `share.html`).
 
+### Changed
+- **Cleaner Document Management List (`#/document`)**:
+  - Removed inline tag badges beneath each document row in the left-side document list (`document.html`) for a cleaner layout, while keeping tags visible in the right-side document view, top folder navigation, and advanced search filter.
+
 ### Fixed & Hardened
 - **Tag Management Unsaved Edit Guard (`TagEdit.js`)**:
   - Removed shared object reference mutation on `$scope.tags` when loading tag details so changing a tag's parent, name, color, or description on the right panel no longer alters the left tag tree before clicking **Save**.
