@@ -170,6 +170,9 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
           if ($state.includes('tagadmin.document')) {
             $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: data.id });
             $state.go('tagadmin.document.view.content', { id: data.id });
+          } else if ($state.includes('tag.document')) {
+            $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: data.id });
+            $state.go('tag.document.view.content', { tagId: $stateParams.tagId, id: data.id, focus: $stateParams.focus });
           } else {
             $state.go('document.view', { id: data.id });
           }
@@ -270,6 +273,8 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
   $scope.cancel = function() {
     if ($state.includes('tagadmin.document')) {
       $state.go('tagadmin.document.view.content', { id: $stateParams.id });
+    } else if ($state.includes('tag.document')) {
+      $state.go('tag.document.view.content', { tagId: $stateParams.tagId, id: $stateParams.id, focus: $stateParams.focus });
     } else if ($scope.isEdit()) {
       $state.go('document.view', { id: $stateParams.id });
     } else {

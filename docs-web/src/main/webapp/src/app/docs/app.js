@@ -73,6 +73,78 @@ angular.module('docs',
         }
       }
     })
+    .state('tag.document', {
+      url: '/:tagId/document/:id?focus',
+      abstract: true,
+      views: {
+        'tag': {
+          templateUrl: 'partial/docs/tag.browse.document.html'
+        }
+      }
+    })
+    .state('tag.document.view', {
+      url: '/view',
+      redirectTo: 'tag.document.view.content',
+      views: {
+        'docview': {
+          templateUrl: 'partial/docs/document.view.html',
+          controller: 'DocumentView'
+        }
+      }
+    })
+    .state('tag.document.view.content', {
+      url: '/content',
+      views: {
+        'tab': {
+          templateUrl: 'partial/docs/document.view.content.html',
+          controller: 'DocumentViewContent'
+        }
+      }
+    })
+    .state('tag.document.view.content.file', {
+      url: '/file/:fileId',
+      views: {
+        'file': {
+          controller: 'FileView'
+        }
+      }
+    })
+    .state('tag.document.view.workflow', {
+      url: '/workflow',
+      views: {
+        'tab': {
+          templateUrl: 'partial/docs/document.view.workflow.html',
+          controller: 'DocumentViewWorkflow'
+        }
+      }
+    })
+    .state('tag.document.view.permissions', {
+      url: '/permissions',
+      views: {
+        'tab': {
+          templateUrl: 'partial/docs/document.view.permissions.html',
+          controller: 'DocumentViewPermissions'
+        }
+      }
+    })
+    .state('tag.document.view.activity', {
+      url: '/activity',
+      views: {
+        'tab': {
+          templateUrl: 'partial/docs/document.view.activity.html',
+          controller: 'DocumentViewActivity'
+        }
+      }
+    })
+    .state('tag.document.edit', {
+      url: '/edit?files',
+      views: {
+        'docview': {
+          templateUrl: 'partial/docs/document.edit.html',
+          controller: 'DocumentEdit'
+        }
+      }
+    })
     .state('tagadmin', {
       url: '/tagadmin',
       abstract: true,

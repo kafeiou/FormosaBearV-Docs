@@ -20,7 +20,7 @@ angular.module('docs').controller('FileView', function($uibModal, $state, $state
     $timeout(function () {
       // After all router transitions are passed,
       // if we are still on the file route, go back to the document or tag view
-      if ($state.current.name === 'document.view.content.file' || $state.current.name === 'document.default.file' || $state.current.name === 'tag.view.file' || $state.current.name === 'tagadmin.document.view.content.file') {
+      if ($state.current.name === 'document.view.content.file' || $state.current.name === 'document.default.file' || $state.current.name === 'tag.view.file' || $state.current.name === 'tagadmin.document.view.content.file' || $state.current.name === 'tag.document.view.content.file') {
         $state.go('^', {id: $stateParams.id});
       }
     });

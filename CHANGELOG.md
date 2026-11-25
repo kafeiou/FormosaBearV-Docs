@@ -9,6 +9,9 @@ This document details the notable changes, security enhancements, architecture i
 ## [v3.02-SNAPSHOT] (Unreleased)
 
 ### Added
+- **Tag Browse In-Place Document View & Edit Tabs (`#/tag/:tagId/document/:id`)**:
+  - Added nested `tag.document` routes (`.view`, `.content`, `.content.file`, `.workflow`, `.permissions`, `.activity`, `.edit`) and a right-pane two-tab bar (**Document list** | **Document View & Files**) in Tag Browse (`tag.browse.document.html`, `tag.view.html`), defaulting to **Document View & Files** when clicking any document while keeping the left tag tree and `?focus` mode intact.
+  - Switching back to **Document list** remembers the last viewed document for the current tag for quick round-trip switching, and automatically clears when selecting a different tag; editing, saving, canceling, deleting, file preview modals, and file uploads/deletions all stay in-place within `#/tag`, with 16-language translations.
 - **Tag Management In-Place Document View/Edit, Book Icon Color & Creator Tooltip (`#/tagadmin`)**:
   - Added **Tag Management** and **Document View & Files** top tabs on `#/tagadmin/document/:id` via nested routes (`tagadmin.document.view.*` and `tagadmin.document.edit`), enabling full in-place document viewing, file preview modals, workflow/permissions/activity tabs, and editing without leaving `#/tagadmin` or collapsing the left tag tree; clicking another document in the left tree preserves the active mode (`getTagAdminDocHref`), and saving/deleting syncs updates back to the quick-tagging tab and left tree.
   - Changed Tag Management tree document icons to theme-aware book icons (`fas fa-book`, defaulting to `#8b5a2b` in Light mode and `#d4a373` in Dark mode) with customizable Light/Dark color pickers, live preview, and reset in **Settings → Account** (`#/settings/account`, stored in `localStorage`).
@@ -29,8 +32,8 @@ This document details the notable changes, security enhancements, architecture i
   - Private mode serves `Disallow: /` and `X-Robots-Tag: noindex, nofollow, noarchive` on all responses; Public mode serves `Allow: /` while always excluding `/api/` and `/share.html` (plus `<meta name="robots" content="noindex, nofollow, noarchive">` in `share.html`).
 
 ### Changed
-- **Cleaner Document Management List (`#/document`)**:
-  - Removed inline tag badges beneath each document row in the left-side document list (`document.html`) for a cleaner layout, while keeping tags visible in the right-side document view, top folder navigation, and advanced search filter.
+- **Cleaner Document Management & Tag Browse Lists (`#/document`, `#/tag`)**:
+  - Removed inline tag badges beneath each document row in Document Management's left list (`document.html`) and each document card in Tag Browse (`tag.view.html`) for a cleaner layout, while keeping tags visible in the document view, top folder navigation, and advanced search filter.
 
 ### Fixed & Hardened
 - **Tag Management Live Left-Tree Refresh on File Mutations (`DocumentViewContent.js` & `Tag.js`)**:

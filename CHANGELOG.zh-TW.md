@@ -9,6 +9,9 @@
 ## [v3.02-SNAPSHOT]（未發布）
 
 ### 新增功能 (Added)
+- **標籤區同畫面雙分頁文件檢視與編輯（`#/tag/:tagId/document/:id`）**：
+  - 於標籤瀏覽區新增 `tag.document` 巢狀子路由（`.view`、`.content`、`.content.file`、`.workflow`、`.permissions`、`.activity`、`.edit`）與右側頂部雙分頁（「**文件列表**」｜「**文件檢視與檔案**」），點選文件標題或「開啟」預設直接於右側檢視文件，全程保留左側標籤樹高亮與 `?focus` 聚焦模式。
+  - 切回「文件列表」時保留同標籤下最後檢視的文件分頁以便來回切換，切換至左側其他標籤時自動清除記憶；編輯、儲存、取消、刪除、檔案預覽彈窗及檔案上傳／刪除皆停留於 `#/tag` 內不跳離，並補齊 16 國語系翻譯。
 - **標籤管理同畫面文件檢視／編輯、書本圖示配色與建立者提示（`#/tagadmin`）**：
   - 於 `#/tagadmin/document/:id` 右側頂部新增「**標籤管理**」與「**文件檢視與檔案**」雙分頁及巢狀子路由（`tagadmin.document.view.*`、`tagadmin.document.edit`），可在不跳離標籤管理頁且不收合左側標籤樹的情況下直接檢視文件、開啟檔案預覽彈窗、操作簽核／權限／活動與編輯文件；點選左側其他文件時自動維持目前所處模式（`getTagAdminDocHref`），編輯儲存或刪除後同步刷新快速貼標頁籤與左側樹狀列表。
   - 左側標籤樹的文件改以書本圖示呈現（`fas fa-book`，淺色預設 `#8b5a2b`、深色預設 `#d4a373`），並於「**設定 → 個人帳號**」（`#/settings/account`）新增淺色／深色獨立調色盤、即時預覽與重設按鈕（儲存於 `localStorage`）。
@@ -29,8 +32,8 @@
   - 不公開模式回傳 `Disallow: /` 並對所有回應加上 `X-Robots-Tag: noindex, nofollow, noarchive`；公開模式回傳 `Allow: /` 並一律排除 `/api/` 與 `/share.html`（`share.html` 另加上 `<meta name="robots" content="noindex, nofollow, noarchive">` 雙重保護分享連結）。
 
 ### 介面調整 (Changed)
-- **文件管理左側清單精簡顯示（`#/document`）**：
-  - 移除文件管理左側清單中每筆文件下方的標籤徽章區塊（`document.html`），讓文件列表更簡潔易讀；右側文件詳細頁、上方資料夾導覽與進階搜尋的標籤篩選維持不變。
+- **文件管理與標籤區文件列表精簡顯示（`#/document`、`#/tag`）**：
+  - 移除文件管理左側清單（`document.html`）與標籤瀏覽區右側文件卡片（`tag.view.html`）中每筆文件下方的標籤徽章區塊，讓文件列表更簡潔易讀；文件詳細頁、資料夾導覽與進階搜尋的標籤篩選維持不變。
 
 ### 修復與安全性強化 (Fixed & Hardened)
 - **標籤管理區新增／刪除／移動檔案後即時刷新左樹檔案數（`DocumentViewContent.js`、`Tag.js`）**：

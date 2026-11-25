@@ -93,8 +93,52 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
    * Returns the currently selected tag ID from UI-Router state params.
    */
   $scope.getCurrentTagId = function() {
+    if ($state.includes('tag.document')) {
+      return ($state.params && $state.params.tagId) || ($rootScope.$stateParams && $rootScope.$stateParams.tagId) || $stateParams.tagId || null;
+    }
     return ($state.params && $state.params.id) || ($rootScope.$stateParams && $rootScope.$stateParams.id) || $stateParams.id || null;
   };
+
+  $scope.browseLastDoc = null;
+
+  $scope.setBrowseLastDoc = function(tagId, docId) {
+    if (tagId && docId) {
+      $scope.browseLastDoc = { tagId: tagId, docId: docId };
+    }
+  };
+
+  $scope.clearBrowseLastDoc = function() {
+    $scope.browseLastDoc = null;
+  };
+
+  $scope.getTagBrowseDocHref = function(tagId, docId) {
+    if (!tagId || !docId) {
+      return '#/tag';
+    }
+    var focusRootId = $scope.getFocusRootId();
+    var href = '#/tag/' + tagId + '/document/' + docId + '/view/content';
+    if (focusRootId) {
+      href += '?focus=' + encodeURIComponent(focusRootId);
+    }
+    return href;
+  };
+
+  var syncBrowseLastDocFromState = function() {
+    if ($state.includes('tag.document') && $state.params && $state.params.tagId && $state.params.id) {
+      $scope.browseLastDoc = { tagId: $state.params.tagId, docId: $state.params.id };
+    } else if ($state.includes('tag.view') && $scope.browseLastDoc) {
+      var currentTagId = ($state.params && $state.params.id) || null;
+      if (currentTagId && $scope.browseLastDoc.tagId !== currentTagId) {
+        $scope.browseLastDoc = null;
+      }
+    }
+  };
+  syncBrowseLastDocFromState();
+  $scope.$on('$stateChangeSuccess', syncBrowseLastDocFromState);
+  $scope.$on('tagBrowseDocumentDeleted', function() {
+    $scope.browseLastDoc = null;
+    $scope.loadTags();
+  });
 
   /**
    * Returns the active focus-mode root tag ID, or null when viewing all tags.

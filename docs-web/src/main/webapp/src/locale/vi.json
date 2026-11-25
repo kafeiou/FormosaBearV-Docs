@@ -286,6 +286,7 @@
     "container_tooltip": "Chỉ là thẻ chứa đường dẫn (không có quyền truy cập trực tiếp)",
     "browse": {
       "tree_title": "Phân loại thẻ",
+      "tab_doc_list": "Danh sách tài liệu",
       "welcome_title": "Duyệt tài liệu & tập tin theo thẻ",
       "welcome_message": "Vui lòng chọn một thẻ ở bên trái để liệt kê tất cả các tài liệu và tập tin liên quan.",
       "subtags": "Thẻ con",

@@ -286,6 +286,7 @@
     "container_tooltip": "Solo tag contenitore di percorso (nessun permesso di accesso diretto)",
     "browse": {
       "tree_title": "Categorie di tag",
+      "tab_doc_list": "Elenco documenti",
       "welcome_title": "Sfoglia documenti e file per tag",
       "welcome_message": "Seleziona un tag a sinistra per elencare tutti i documenti e i file associati.",
       "subtags": "Sotto-tag",

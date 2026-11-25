@@ -286,6 +286,7 @@
     "container_tooltip": "Vetëm etiketë mbajtëse e shtegut (pa leje të drejtpërdrejtë qasjeje)",
     "browse": {
       "tree_title": "Kategoritë e etiketave",
+      "tab_doc_list": "Lista e dokumenteve",
       "welcome_title": "Shfleto dokumentet dhe skedarët sipas etiketës",
       "welcome_message": "Ju lutemi zgjidhni një etiketë në të majtë për të listuar të gjitha dokumentet dhe skedarët e lidhur.",
       "subtags": "Nën-etiketat",

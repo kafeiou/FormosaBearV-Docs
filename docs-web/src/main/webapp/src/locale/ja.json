@@ -286,6 +286,7 @@
     "container_tooltip": "ナビゲーション用パスコンテナ（直接のアクセス権限なし）",
     "browse": {
       "tree_title": "タグ分類",
+      "tab_doc_list": "ドキュメント一覧",
       "welcome_title": "タグ別ドキュメント・ファイル一覧",
       "welcome_message": "左側のタグツリーからタグを選択すると、関連するドキュメントとファイルが表示されます。",
       "subtags": "子タグ",

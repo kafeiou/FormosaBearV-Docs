@@ -286,6 +286,7 @@
     "container_tooltip": "僅作為導航路徑容器（無直接存取權限）",
     "browse": {
       "tree_title": "標籤分類",
+      "tab_doc_list": "文件列表",
       "welcome_title": "依標籤瀏覽文件與檔案",
       "welcome_message": "請從左側點選標籤，以列出該標籤關聯的所有文件與檔案。",
       "subtags": "子標籤",

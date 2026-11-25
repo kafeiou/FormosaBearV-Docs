@@ -286,6 +286,7 @@
     "container_tooltip": "Apenas etiqueta contentora de caminho (sem permissão de acesso direto)",
     "browse": {
       "tree_title": "Categorias de Etiquetas",
+      "tab_doc_list": "Lista de documentos",
       "welcome_title": "Explorar Documentos e Ficheiros por Etiqueta",
       "welcome_message": "Selecione uma etiqueta à esquerda para listar todos os documentos e ficheiros associados.",
       "subtags": "Subetiquetas",

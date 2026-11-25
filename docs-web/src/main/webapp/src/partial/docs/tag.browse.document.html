@@ -1,0 +1,14 @@
+<ul class="nav nav-tabs" style="margin-bottom: 15px;">
+  <li>
+    <a ng-href="{{ getTagBrowseHref({ id: $stateParams.tagId }) }}">
+      <span class="fas fa-list"></span> {{ 'tag.browse.tab_doc_list' | translate }}
+    </a>
+  </li>
+  <li class="active">
+    <a ng-href="{{ getTagBrowseDocHref($stateParams.tagId, $stateParams.id) }}">
+      <span class="fas fa-book tag-tree-doc-icon"></span> {{ 'tag.admin_doc.tab_document' | translate }}
+    </a>
+  </li>
+</ul>
+
+<div ui-view="docview"></div>

@@ -286,6 +286,7 @@
     "container_tooltip": "Tylko etykieta kontenera ścieżki (brak bezpośrednich uprawnień dostępu)",
     "browse": {
       "tree_title": "Kategorie etykiet",
+      "tab_doc_list": "Lista dokumentów",
       "welcome_title": "Przeglądaj dokumenty i pliki według etykiet",
       "welcome_message": "Wybierz etykietę po lewej stronie, aby wyświetlić wszystkie powiązane dokumenty i pliki.",
       "subtags": "Podetykiety",

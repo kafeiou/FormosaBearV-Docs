@@ -286,6 +286,7 @@
     "container_tooltip": "Solo etiqueta contenedora de ruta (sin permiso de acceso directo)",
     "browse": {
       "tree_title": "Categorías de etiquetas",
+      "tab_doc_list": "Lista de documentos",
       "welcome_title": "Explorar documentos y archivos por etiqueta",
       "welcome_message": "Seleccione una etiqueta a la izquierda para listar todos los documentos y archivos asociados.",
       "subtags": "Subetiquetas",

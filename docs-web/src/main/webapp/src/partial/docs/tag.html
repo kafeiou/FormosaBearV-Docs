@@ -1,5 +1,5 @@
 <script type="text/ng-template" id="tag-browse-tree-item">
-  <div class="tag-tree-row" ng-class="{ 'tag-tree-active': $stateParams.id == tag.id }">
+  <div class="tag-tree-row" ng-class="{ 'tag-tree-active': getCurrentTagId() == tag.id }">
     <span class="tag-tree-toggle pointer"
           ng-if="hasChildren(tag.id)"
           ng-click="toggleTagExpand(tag.id, $event)">
@@ -11,7 +11,7 @@
     <span ng-if="tag.is_container" class="text-muted" uib-tooltip="{{ 'tag.container_tooltip' | translate }}" style="cursor: not-allowed; font-weight: normal;">
       {{ tag.name }}
     </span>
-    <a ng-if="!tag.is_container" ng-href="{{ getTagBrowseHref(tag) }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }"
+    <a ng-if="!tag.is_container" ng-href="{{ getTagBrowseHref(tag) }}" ng-click="onTagClick(tag)" ng-class="{ 'active': getCurrentTagId() == tag.id }"
        uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
       {{ tag.name }}
     </a>

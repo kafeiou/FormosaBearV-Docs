@@ -16,7 +16,7 @@
 <div ng-show="document">
   <div class="pull-right btn-group">
     <button class="btn btn-danger" ng-show="document.writable" ng-click="deleteDocument(document)"><span class="fas fa-trash"></span> {{ 'delete' | translate }}</button>
-    <a ng-href="{{ $state.includes('tagadmin.document') ? '#/tagadmin/document/' + document.id + '/edit' : '#/document/edit/' + document.id }}" ng-show="document.writable" class="btn btn-primary"><span class="fas fa-pencil-alt"></span> {{ 'edit' | translate }}</a>
+    <a ng-href="{{ $state.includes('tagadmin.document') ? '#/tagadmin/document/' + document.id + '/edit' : ($state.includes('tag.document') ? '#/tag/' + $stateParams.tagId + '/document/' + document.id + '/edit' + ($stateParams.focus ? '?focus=' + $stateParams.focus : '') : '#/document/edit/' + document.id) }}" ng-show="document.writable" class="btn btn-primary"><span class="fas fa-pencil-alt"></span> {{ 'edit' | translate }}</a>
   </div>
 
   <div class="pull-right dropdown" uib-dropdown ng-if="canDownload(null, document)">

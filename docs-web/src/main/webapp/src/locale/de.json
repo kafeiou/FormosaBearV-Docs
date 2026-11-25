@@ -286,6 +286,7 @@
     "container_tooltip": "Nur Pfad-Container-Tag (keine direkte Zugriffsberechtigung)",
     "browse": {
       "tree_title": "Tag-Kategorien",
+      "tab_doc_list": "Dokumentenliste",
       "welcome_title": "Dokumente & Dateien nach Tag durchsuchen",
       "welcome_message": "Bitte wählen Sie links einen Tag aus, um alle zugehörigen Dokumente und Dateien aufzulisten.",
       "subtags": "Unter-Tags",

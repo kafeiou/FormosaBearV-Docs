@@ -286,6 +286,7 @@
     "container_tooltip": "Path container tag only (no direct access permission)",
     "browse": {
       "tree_title": "Tag Categories",
+      "tab_doc_list": "Document list",
       "welcome_title": "Browse Documents & Files by Tag",
       "welcome_message": "Please select a tag on the left to list all associated documents and files.",
       "subtags": "Sub-tags",
