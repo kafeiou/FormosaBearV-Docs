@@ -374,7 +374,9 @@
       "selected_tags": "Thẻ đã chọn",
       "no_tags_selected": "Chưa chọn thẻ nào.",
       "assign_tags_title": "Chọn thẻ cho tài liệu này",
-      "saved": "Đã lưu thẻ"
+      "saved": "Đã lưu thẻ",
+      "tab_tags": "Quản lý thẻ",
+      "tab_document": "Tài liệu & Tệp"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "Xem robots.txt",
       "ocr_tesseract_add_languages_title": "Cách thêm ngôn ngữ OCR",
       "ocr_tesseract_add_languages_win": "Windows: Tải tệp .traineddata (ví dụ vie.traineddata) vào thư mục tessdata\\ của Tesseract rồi nhấn Kiểm tra lại.",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker: Cài gói như 'apt install tesseract-ocr-vie' (ảnh Docker chính thức đã tích hợp sẵn hơn 28 ngôn ngữ)."
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Cài gói như 'apt install tesseract-ocr-vie' (ảnh Docker chính thức đã tích hợp sẵn hơn 28 ngôn ngữ).",
+      "tag_tree_doc_color": "Màu biểu tượng tài liệu",
+      "tag_tree_doc_color_light": "Sáng",
+      "tag_tree_doc_color_dark": "Tối",
+      "tag_tree_doc_color_preview": "Tài liệu mẫu",
+      "tag_tree_doc_color_reset": "Đặt lại"
     },
     "menu_personal_settings": "Cài đặt cá nhân",
     "menu_user_account": "Tài khoản người dùng",

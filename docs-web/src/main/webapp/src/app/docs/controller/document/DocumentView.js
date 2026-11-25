@@ -71,8 +71,15 @@ angular.module('docs').controller('DocumentView', function ($scope, $rootScope, 
     $dialog.messageBox(title, msg, btns, function (result) {
       if (result === 'ok') {
         Restangular.one('document', document.id).remove().then(function () {
-          $scope.loadDocuments();
-          $state.go('document.default');
+          if ($scope.loadDocuments) {
+            $scope.loadDocuments();
+          }
+          if ($state.includes('tagadmin.document')) {
+            $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: document.id });
+            $state.go('tagadmin.default');
+          } else {
+            $state.go('document.default');
+          }
         });
       }
     });
@@ -184,7 +191,14 @@ angular.module('docs').controller('DocumentView', function ($scope, $rootScope, 
       if (data.readable) {
         $scope.document.route_step = data.route_step;
       } else {
-        $state.go('document.default');
+        if ($scope.loadDocuments) {
+          $scope.loadDocuments();
+        }
+        if ($state.includes('tagadmin.document')) {
+          $state.go('tagadmin.default');
+        } else {
+          $state.go('document.default');
+        }
       }
     });
   };

@@ -147,7 +147,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
   $scope.openFile = function (file, $event) {
     if ($($event.target).parents('.currently-dragging').length === 0) {
       $scope.openedFile = file;
-      $state.go('document.view.content.file', { id: $stateParams.id, fileId: file.id });
+      $state.go($state.includes('tagadmin.document') ? 'tagadmin.document.view.content.file' : 'document.view.content.file', { id: $stateParams.id, fileId: file.id });
     }
   };
 

@@ -228,7 +228,7 @@ angular.module('docs').controller('ModalFileVersions', function ($scope, $rootSc
   };
 
   $scope.openFile = function (verFile) {
-    $state.go('document.view.content.file', { id: $stateParams.id, fileId: verFile.id });
+    $state.go($state.includes('tagadmin.document') ? 'tagadmin.document.view.content.file' : 'document.view.content.file', { id: $stateParams.id, fileId: verFile.id });
   };
 
   $scope.close = function() {

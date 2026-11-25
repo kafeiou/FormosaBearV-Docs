@@ -888,11 +888,15 @@ public class TagResource extends BaseResource {
         JsonArrayBuilder docsArray = Json.createArrayBuilder();
         for (TagDao.TreeDocumentItem doc : page.getDocuments()) {
             boolean writable = !principal.isGuest() && aclDao.checkPermission(doc.getId(), PermType.WRITE, targetIdList);
-            docsArray.add(Json.createObjectBuilder()
+            JsonObjectBuilder docObj = Json.createObjectBuilder()
                     .add("id", doc.getId())
                     .add("title", JsonUtil.nullable(doc.getTitle()))
                     .add("create_date", doc.getCreateDate() != null ? doc.getCreateDate().getTime() : 0L)
-                    .add("writable", writable));
+                    .add("writable", writable);
+            if (doc.getCreator() != null) {
+                docObj.add("creator", doc.getCreator());
+            }
+            docsArray.add(docObj);
         }
         return Response.ok().entity(Json.createObjectBuilder()
                 .add("total", page.getTotal())

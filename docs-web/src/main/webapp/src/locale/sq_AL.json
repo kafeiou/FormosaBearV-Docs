@@ -374,7 +374,9 @@
       "selected_tags": "Etiketat e zgjedhura",
       "no_tags_selected": "Asnjë etiketë e zgjedhur.",
       "assign_tags_title": "Zgjidhni etiketat për këtë dokument",
-      "saved": "Etiketat u ruajtën"
+      "saved": "Etiketat u ruajtën",
+      "tab_tags": "Etiketat",
+      "tab_document": "Dokumenti dhe skedarët"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "Shiko robots.txt",
       "ocr_tesseract_add_languages_title": "Si të shtoni më shumë gjuhë OCR",
       "ocr_tesseract_add_languages_win": "Windows: Shkarkoni skedarët .traineddata (p.sh. sqi.traineddata) në dosjen tessdata\\ të Tesseract dhe provoni përsëri.",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker: Instaloni paketa si 'apt install tesseract-ocr-sqi' (imazhi zyrtar Docker përfshin tashmë 28+ gjuhë)."
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Instaloni paketa si 'apt install tesseract-ocr-sqi' (imazhi zyrtar Docker përfshin tashmë 28+ gjuhë).",
+      "tag_tree_doc_color": "Ikona e dokumentit (pema)",
+      "tag_tree_doc_color_light": "E çelët",
+      "tag_tree_doc_color_dark": "E errët",
+      "tag_tree_doc_color_preview": "Dokument shembull",
+      "tag_tree_doc_color_reset": "Rivendos"
     },
     "menu_personal_settings": "Cilësimet personale",
     "menu_user_account": "Llogaria e përdoruesit",

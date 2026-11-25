@@ -175,5 +175,11 @@ angular.module('docs').controller('TagAdminDocument', function($scope, $statePar
     }
   });
 
+  $scope.$on('tagAdminDocumentTagsUpdated', function(evt, data) {
+    if (evt.targetScope !== $scope && data && data.documentId === $stateParams.id) {
+      loadDocument();
+    }
+  });
+
   loadDocument();
 });

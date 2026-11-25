@@ -784,16 +784,19 @@ public class TagDao {
         private final String id;
         private final String title;
         private final Date createDate;
+        private final String creator;
 
-        public TreeDocumentItem(String id, String title, Date createDate) {
+        public TreeDocumentItem(String id, String title, Date createDate, String creator) {
             this.id = id;
             this.title = title;
             this.createDate = createDate;
+            this.creator = creator;
         }
 
         public String getId() { return id; }
         public String getTitle() { return title; }
         public Date getCreateDate() { return createDate; }
+        public String getCreator() { return creator; }
     }
 
     /**
@@ -824,6 +827,7 @@ public class TagDao {
 
         StringBuilder where = new StringBuilder(" from T_DOCUMENT_TAG dt ");
         where.append(" join T_DOCUMENT d on d.DOC_ID_C = dt.DOT_IDDOCUMENT_C and d.DOC_DELETEDATE_D is null ");
+        where.append(" left join T_USER u on u.USE_ID_C = d.DOC_IDUSER_C ");
         where.append(" where dt.DOT_IDTAG_C = :tagId and dt.DOT_DELETEDATE_D is null ");
         if (checkAcl && !tagReadable) {
             where.append(" and exists (select 1 from T_ACL a where a.ACL_SOURCEID_C = d.DOC_ID_C and a.ACL_TARGETID_C in (:targetIdList) and a.ACL_PERM_C = 'READ' and a.ACL_DELETEDATE_D is null) ");
@@ -840,7 +844,7 @@ public class TagDao {
         }
 
         Query listQ = em.createNativeQuery(
-                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, coalesce(dt.DOT_ORDER_N, 999999999) as ord "
+                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, u.USE_USERNAME_C, coalesce(dt.DOT_ORDER_N, 999999999) as ord "
                         + where
                         + " order by ord asc, d.DOC_CREATEDATE_D desc");
         listQ.setParameter("tagId", tagId);
@@ -853,7 +857,7 @@ public class TagDao {
         List<Object[]> rows = listQ.getResultList();
         List<TreeDocumentItem> docs = new ArrayList<>(rows.size());
         for (Object[] row : rows) {
-            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2]));
+            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2], (String) row[3]));
         }
         return new TreeDocumentPage(total, docs);
     }
@@ -867,6 +871,7 @@ public class TagDao {
         boolean checkAcl = targetIdList != null && !SecurityUtil.skipAclCheck(targetIdList);
 
         StringBuilder where = new StringBuilder(" from T_DOCUMENT d ");
+        where.append(" left join T_USER u on u.USE_ID_C = d.DOC_IDUSER_C ");
         where.append(" where d.DOC_DELETEDATE_D is null ");
         where.append(" and not exists (select 1 from T_DOCUMENT_TAG dt join T_TAG t on t.TAG_ID_C = dt.DOT_IDTAG_C and t.TAG_DELETEDATE_D is null where dt.DOT_IDDOCUMENT_C = d.DOC_ID_C and dt.DOT_DELETEDATE_D is null) ");
         if (checkAcl) {
@@ -883,7 +888,7 @@ public class TagDao {
         }
 
         Query listQ = em.createNativeQuery(
-                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D " + where + " order by d.DOC_CREATEDATE_D desc");
+                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, u.USE_USERNAME_C " + where + " order by d.DOC_CREATEDATE_D desc");
         if (checkAcl) {
             listQ.setParameter("targetIdList", targetIdList);
         }
@@ -893,7 +898,7 @@ public class TagDao {
         List<Object[]> rows = listQ.getResultList();
         List<TreeDocumentItem> docs = new ArrayList<>(rows.size());
         for (Object[] row : rows) {
-            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2]));
+            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2], (String) row[3]));
         }
         return new TreeDocumentPage(total, docs);
     }

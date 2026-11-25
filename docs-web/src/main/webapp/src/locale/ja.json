@@ -374,7 +374,9 @@
       "selected_tags": "選択中のタグ",
       "no_tags_selected": "タグが選択されていません。",
       "assign_tags_title": "このドキュメントのタグを選択",
-      "saved": "タグを保存しました"
+      "saved": "タグを保存しました",
+      "tab_tags": "タグ管理",
+      "tab_document": "ドキュメント表示・ファイル"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "robots.txt を表示",
       "ocr_tesseract_add_languages_title": "OCR 言語パックの追加方法",
       "ocr_tesseract_add_languages_win": "Windows: 必要な .traineddata ファイル（例: jpn.traineddata）を Tesseract の tessdata\\ フォルダに配置し、再度テストを実行してください。",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker: 'apt install tesseract-ocr-jpn' 等でインストールできます（公式 Docker イメージには 28 以上の言語が含まれています）。"
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: 'apt install tesseract-ocr-jpn' 等でインストールできます（公式 Docker イメージには 28 以上の言語が含まれています）。",
+      "tag_tree_doc_color": "タグツリー文書アイコン色",
+      "tag_tree_doc_color_light": "ライト",
+      "tag_tree_doc_color_dark": "ダーク",
+      "tag_tree_doc_color_preview": "サンプル文書",
+      "tag_tree_doc_color_reset": "リセット"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "アカウント",

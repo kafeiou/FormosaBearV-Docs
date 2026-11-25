@@ -49,10 +49,10 @@
     <li ng-repeat="doc in (showTreeDocuments && tagDocs[tag.id] ? tagDocs[tag.id].documents : [])">
       <div class="tag-tree-row" ng-class="{ 'tag-tree-active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }" style="display: flex; align-items: center;">
         <span class="tag-tree-toggle-placeholder" style="flex-shrink: 0;"></span>
-        <span class="far fa-file-alt text-muted" style="margin-right: 4px; flex-shrink: 0;"></span>
-        <a href="#/tagadmin/document/{{ doc.id }}"
+        <span class="fas fa-book tag-tree-doc-icon" style="margin-right: 5px; flex-shrink: 0;"></span>
+        <a ng-href="{{ getTagAdminDocHref(doc.id) }}"
            ng-class="{ 'active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }"
-           uib-tooltip="{{ doc.title }}" tooltip-append-to-body="true"
+           uib-tooltip="{{ getDocumentTooltip(doc) }}" tooltip-append-to-body="true"
            style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">
           {{ doc.title }}
         </a>
@@ -210,10 +210,10 @@
             <li ng-repeat="doc in untaggedDocs.documents">
               <div class="tag-tree-row" ng-class="{ 'tag-tree-active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }" style="overflow: hidden; text-overflow: ellipsis;">
                 <span class="tag-tree-toggle-placeholder"></span>
-                <span class="far fa-file-alt text-muted" style="margin-right: 4px;"></span>
-                <a href="#/tagadmin/document/{{ doc.id }}"
+                <span class="fas fa-book tag-tree-doc-icon" style="margin-right: 5px;"></span>
+                <a ng-href="{{ getTagAdminDocHref(doc.id) }}"
                    ng-class="{ 'active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }"
-                   uib-tooltip="{{ doc.title }}" tooltip-append-to-body="true">
+                   uib-tooltip="{{ getDocumentTooltip(doc) }}" tooltip-append-to-body="true">
                   {{ doc.title }}
                 </a>
               </div>

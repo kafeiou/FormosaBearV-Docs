@@ -16,7 +16,7 @@
 <div ng-show="document">
   <div class="pull-right btn-group">
     <button class="btn btn-danger" ng-show="document.writable" ng-click="deleteDocument(document)"><span class="fas fa-trash"></span> {{ 'delete' | translate }}</button>
-    <a href="#/document/edit/{{ document.id }}" ng-show="document.writable" class="btn btn-primary"><span class="fas fa-pencil-alt"></span> {{ 'edit' | translate }}</a>
+    <a ng-href="{{ $state.includes('tagadmin.document') ? '#/tagadmin/document/' + document.id + '/edit' : '#/document/edit/' + document.id }}" ng-show="document.writable" class="btn btn-primary"><span class="fas fa-pencil-alt"></span> {{ 'edit' | translate }}</a>
   </div>
 
   <div class="pull-right dropdown" uib-dropdown ng-if="canDownload(null, document)">
@@ -71,23 +71,23 @@
   <div class="row">
     <div class="col-md-9">
       <ul class="nav nav-tabs">
-        <li ng-class="{ active: $state.current.name == 'document.view.content' }">
-          <a href="#/document/view/{{ document.id }}/content">
+        <li ui-sref-active="active">
+          <a ui-sref=".content">
             <span class="fas fa-file"></span> {{ 'document.view.content' | translate }}
           </a>
         </li>
-        <li ng-class="{ active: $state.current.name == 'document.view.workflow' }">
-          <a href="#/document/view/{{ document.id }}/workflow">
+        <li ui-sref-active="active">
+          <a ui-sref=".workflow">
             <span class="fas fa-random"></span> {{ 'document.view.workflow' | translate }}
           </a>
         </li>
-        <li ng-class="{ active: $state.current.name == 'document.view.permissions' }">
-          <a href="#/document/view/{{ document.id }}/permissions">
+        <li ui-sref-active="active">
+          <a ui-sref=".permissions">
             <span class="fas fa-user"></span> {{ 'document.view.permissions' | translate }}
           </a>
         </li>
-        <li ng-class="{ active: $state.current.name == 'document.view.activity' }">
-          <a href="#/document/view/{{ document.id }}/activity">
+        <li ui-sref-active="active">
+          <a ui-sref=".activity">
             <span class="fas fa-tasks"></span> {{ 'document.view.activity' | translate }}
           </a>
         </li>

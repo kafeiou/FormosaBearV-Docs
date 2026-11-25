@@ -290,6 +290,16 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
   };
 
   /**
+   * Build tag-admin document link preserving active mode (Tags vs Document View).
+   */
+  $scope.getTagAdminDocHref = function(docId) {
+    if ($state.includes('tagadmin.document.view') || $state.includes('tagadmin.document.edit')) {
+      return '#/tagadmin/document/' + docId + '/view/content';
+    }
+    return '#/tagadmin/document/' + docId;
+  };
+
+  /**
    * Toggle display of documents inside the tag admin tree.
    */
   $scope.toggleShowTreeDocuments = function() {

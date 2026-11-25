@@ -374,7 +374,9 @@
       "selected_tags": "Selected tags",
       "no_tags_selected": "No tags selected.",
       "assign_tags_title": "Select tags for this document",
-      "saved": "Tags saved"
+      "saved": "Tags saved",
+      "tab_tags": "Tags",
+      "tab_document": "Document & Files"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "View robots.txt",
       "ocr_tesseract_add_languages_title": "How to add more OCR languages",
       "ocr_tesseract_add_languages_win": "Windows: Download .traineddata files (e.g. chi_tra.traineddata, chi_sim.traineddata) into the Tesseract tessdata\\ folder, then click Test again.",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker: Install packages such as 'apt install tesseract-ocr-chi-tra' (the official Docker image already bundles 28+ languages)."
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Install packages such as 'apt install tesseract-ocr-chi-tra' (the official Docker image already bundles 28+ languages).",
+      "tag_tree_doc_color": "Tag tree document icon",
+      "tag_tree_doc_color_light": "Light",
+      "tag_tree_doc_color_dark": "Dark",
+      "tag_tree_doc_color_preview": "Sample document",
+      "tag_tree_doc_color_reset": "Reset"
     },
     "menu_personal_settings": "Personal settings",
     "menu_user_account": "User account",

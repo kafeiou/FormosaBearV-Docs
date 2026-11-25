@@ -374,7 +374,9 @@
       "selected_tags": "已勾選標籤",
       "no_tags_selected": "尚未勾選任何標籤。",
       "assign_tags_title": "勾選此文件的標籤",
-      "saved": "標籤已儲存"
+      "saved": "標籤已儲存",
+      "tab_tags": "標籤管理",
+      "tab_document": "文件檢視與檔案"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "檢視 robots.txt",
       "ocr_tesseract_add_languages_title": "如何新增更多 OCR 語言包",
       "ocr_tesseract_add_languages_win": "Windows：下載所需語言檔（例如繁中 chi_tra.traineddata、簡中 chi_sim.traineddata）放入 Tesseract 安裝目錄下的 tessdata\\ 資料夾，免重啟再按「檢查 Tesseract」即可生效。",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker：可透過套件管理器安裝（例如 apt install tesseract-ocr-chi-tra；官方 Docker 映像檔已內建 28+ 國語言包）。"
+      "ocr_tesseract_add_languages_linux": "Linux / Docker：可透過套件管理器安裝（例如 apt install tesseract-ocr-chi-tra；官方 Docker 映像檔已內建 28+ 國語言包）。",
+      "tag_tree_doc_color": "標籤樹文件圖示顏色",
+      "tag_tree_doc_color_light": "淺色",
+      "tag_tree_doc_color_dark": "深色",
+      "tag_tree_doc_color_preview": "範例文件",
+      "tag_tree_doc_color_reset": "重設預設值"
     },
     "menu_personal_settings": "個人設定",
     "menu_user_account": "帳號",

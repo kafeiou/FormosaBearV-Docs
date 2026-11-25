@@ -100,6 +100,69 @@ angular.module('docs',
         }
       }
     })
+    .state('tagadmin.document.view', {
+      url: '/view',
+      redirectTo: 'tagadmin.document.view.content',
+      views: {
+        'docview': {
+          templateUrl: 'partial/docs/document.view.html',
+          controller: 'DocumentView'
+        }
+      }
+    })
+    .state('tagadmin.document.view.content', {
+      url: '/content',
+      views: {
+        'tab': {
+          templateUrl: 'partial/docs/document.view.content.html',
+          controller: 'DocumentViewContent'
+        }
+      }
+    })
+    .state('tagadmin.document.view.content.file', {
+      url: '/file/:fileId',
+      views: {
+        'file': {
+          controller: 'FileView'
+        }
+      }
+    })
+    .state('tagadmin.document.view.workflow', {
+      url: '/workflow',
+      views: {
+        'tab': {
+          templateUrl: 'partial/docs/document.view.workflow.html',
+          controller: 'DocumentViewWorkflow'
+        }
+      }
+    })
+    .state('tagadmin.document.view.permissions', {
+      url: '/permissions',
+      views: {
+        'tab': {
+          templateUrl: 'partial/docs/document.view.permissions.html',
+          controller: 'DocumentViewPermissions'
+        }
+      }
+    })
+    .state('tagadmin.document.view.activity', {
+      url: '/activity',
+      views: {
+        'tab': {
+          templateUrl: 'partial/docs/document.view.activity.html',
+          controller: 'DocumentViewActivity'
+        }
+      }
+    })
+    .state('tagadmin.document.edit', {
+      url: '/edit?files',
+      views: {
+        'docview': {
+          templateUrl: 'partial/docs/document.edit.html',
+          controller: 'DocumentEdit'
+        }
+      }
+    })
     .state('tagadmin.edit', {
       url: '/:id',
       views: {
@@ -708,6 +771,38 @@ angular.module('docs',
   applyDocDateDisplayMode(localStorage.formosaDocDateDisplayMode || 'datetime');
   $rootScope.setDocDateDisplayMode = function(mode) {
     applyDocDateDisplayMode(mode);
+  };
+
+  // Initialize tag-admin tree document icon colors (light & dark schemes)
+  var DEFAULT_TAG_TREE_DOC_COLOR_LIGHT = '#8b5a2b';
+  var DEFAULT_TAG_TREE_DOC_COLOR_DARK = '#d4a373';
+  var isValidHexColor = function(val) {
+    return typeof val === 'string' && /^#[0-9a-fA-F]{6}$/.test(val.trim());
+  };
+  var applyTagTreeDocColors = function(lightColor, darkColor) {
+    var safeLight = isValidHexColor(lightColor) ? lightColor.trim() : DEFAULT_TAG_TREE_DOC_COLOR_LIGHT;
+    var safeDark = isValidHexColor(darkColor) ? darkColor.trim() : DEFAULT_TAG_TREE_DOC_COLOR_DARK;
+    $rootScope.tagTreeDocColorLight = safeLight;
+    $rootScope.tagTreeDocColorDark = safeDark;
+    document.documentElement.style.setProperty('--tag-tree-doc-color-light', safeLight);
+    document.documentElement.style.setProperty('--tag-tree-doc-color-dark', safeDark);
+    try {
+      localStorage.formosaTagTreeDocColorLight = safeLight;
+      localStorage.formosaTagTreeDocColorDark = safeDark;
+    } catch (e) {}
+  };
+  applyTagTreeDocColors(
+    localStorage.formosaTagTreeDocColorLight || DEFAULT_TAG_TREE_DOC_COLOR_LIGHT,
+    localStorage.formosaTagTreeDocColorDark || DEFAULT_TAG_TREE_DOC_COLOR_DARK
+  );
+  $rootScope.setTagTreeDocColorLight = function(color) {
+    applyTagTreeDocColors(color, $rootScope.tagTreeDocColorDark);
+  };
+  $rootScope.setTagTreeDocColorDark = function(color) {
+    applyTagTreeDocColors($rootScope.tagTreeDocColorLight, color);
+  };
+  $rootScope.resetTagTreeDocColors = function() {
+    applyTagTreeDocColors(DEFAULT_TAG_TREE_DOC_COLOR_LIGHT, DEFAULT_TAG_TREE_DOC_COLOR_DARK);
   };
 
   // Languages

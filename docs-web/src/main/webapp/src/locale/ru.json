@@ -374,7 +374,9 @@
       "selected_tags": "Выбранные теги",
       "no_tags_selected": "Теги не выбраны.",
       "assign_tags_title": "Выберите теги для документа",
-      "saved": "Теги сохранены"
+      "saved": "Теги сохранены",
+      "tab_tags": "Теги",
+      "tab_document": "Документ и файлы"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "Открыть robots.txt",
       "ocr_tesseract_add_languages_title": "Как добавить языки OCR",
       "ocr_tesseract_add_languages_win": "Windows: Скачайте файлы .traineddata (напр. rus.traineddata) в папку tessdata\\ каталога Tesseract и повторите проверку.",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker: Установите пакеты, например 'apt install tesseract-ocr-rus' (официальный Docker-образ уже содержит 28+ языков)."
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Установите пакеты, например 'apt install tesseract-ocr-rus' (официальный Docker-образ уже содержит 28+ языков).",
+      "tag_tree_doc_color": "Значок документа в дереве",
+      "tag_tree_doc_color_light": "Светлая",
+      "tag_tree_doc_color_dark": "Тёмная",
+      "tag_tree_doc_color_preview": "Пример документа",
+      "tag_tree_doc_color_reset": "Сбросить"
     },
     "menu_personal_settings": "Персональные настройки",
     "menu_user_account": "Учетная запись пользователя",

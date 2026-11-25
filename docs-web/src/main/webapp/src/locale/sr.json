@@ -374,7 +374,9 @@
       "selected_tags": "Изабране ознаке",
       "no_tags_selected": "Ниједна ознака није изабрана.",
       "assign_tags_title": "Изаберите ознаке за овај документ",
-      "saved": "Ознаке сачуване"
+      "saved": "Ознаке сачуване",
+      "tab_tags": "Ознаке",
+      "tab_document": "Документ и датотеке"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "Прикажи robots.txt",
       "ocr_tesseract_add_languages_title": "Како додати више OCR језика",
       "ocr_tesseract_add_languages_win": "Windows: Преузмите .traineddata датотеке (нпр. srp.traineddata) у фасциклу tessdata\\ Tesseract-а и поновите проверу.",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker: Инсталирајте пакете као што је 'apt install tesseract-ocr-srp' (званична Docker слика већ садржи 28+ језика)."
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Инсталирајте пакете као што је 'apt install tesseract-ocr-srp' (званична Docker слика већ садржи 28+ језика).",
+      "tag_tree_doc_color": "Икона документа (стабло)",
+      "tag_tree_doc_color_light": "Светла",
+      "tag_tree_doc_color_dark": "Тамна",
+      "tag_tree_doc_color_preview": "Пример документа",
+      "tag_tree_doc_color_reset": "Ресетуј"
     },
     "menu_personal_settings": "Лична подешавања",
     "menu_user_account": "Кориснички налог",

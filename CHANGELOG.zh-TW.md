@@ -9,6 +9,10 @@
 ## [v3.02-SNAPSHOT]（未發布）
 
 ### 新增功能 (Added)
+- **標籤管理同畫面文件檢視／編輯、書本圖示配色與建立者提示（`#/tagadmin`）**：
+  - 於 `#/tagadmin/document/:id` 右側頂部新增「**標籤管理**」與「**文件檢視與檔案**」雙分頁及巢狀子路由（`tagadmin.document.view.*`、`tagadmin.document.edit`），可在不跳離標籤管理頁且不收合左側標籤樹的情況下直接檢視文件、開啟檔案預覽彈窗、操作簽核／權限／活動與編輯文件；點選左側其他文件時自動維持目前所處模式（`getTagAdminDocHref`），編輯儲存或刪除後同步刷新快速貼標頁籤與左側樹狀列表。
+  - 左側標籤樹的文件改以書本圖示呈現（`fas fa-book`，淺色預設 `#8b5a2b`、深色預設 `#d4a373`），並於「**設定 → 個人帳號**」（`#/settings/account`）新增淺色／深色獨立調色盤、即時預覽與重設按鈕（儲存於 `localStorage`）。
+  - `GET /api/tag/{id}/documents` 與 `GET /api/tag/untagged/documents` 新增回傳 `creator` 欄位（同步補齊 `TestTagResource` 整合測試），滑鼠移至標籤樹內文件時顯示建立者提示，並完成全部 16 國語系翻譯。
 - **標籤管理樹狀文件檢視、快速勾選貼標與樹內排序（`#/tagadmin`）**：
   - 左側標籤樹新增「**顯示／隱藏文件**」開關（預設開啟）、展開標籤時延遲載入直接關聯文件（`GET /api/tag/{id}/documents`，每批 20 筆＋載入更多）、`GET /api/tag/list` 回傳 `direct_document_count`、樹內文件 `▲ / ▼` 上下排序（與 `POST /api/tag/{id}/document/reorder` 及標籤瀏覽頁完全同步），並於樹狀最下方新增「**未貼標籤的文件**」虛擬資料夾（`GET /api/tag/untagged/documents`）。
   - 點選左樹任一文件即於右側開啟「**快速管理文件標籤**」面板（`#/tagadmin/document/:id`），提供已勾選標籤徽章與可搜尋之階層標籤勾選樹（自動排除系統隱藏標籤）；按下儲存呼叫新增的專屬端點 `POST /api/document/{id}/tags`（僅更新標籤並自動保留既有系統隱藏標籤，儲存後同步刷新左樹），補齊 16 國語系與 `TestTagResource` 整合測試。

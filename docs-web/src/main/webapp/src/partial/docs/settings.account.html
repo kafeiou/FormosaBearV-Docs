@@ -69,6 +69,30 @@
       </div>
     </div>
   </div>
+  <div class="form-group" style="margin-bottom: 0; margin-top: 10px;">
+    <label class="col-sm-2 control-label">{{ 'settings.config.tag_tree_doc_color' | translate }}</label>
+    <div class="col-sm-10" style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 4px;">
+      <label style="margin: 0; font-weight: normal; display: inline-flex; align-items: center; gap: 6px;">
+        <span class="fas fa-sun text-muted"></span> {{ 'settings.config.tag_tree_doc_color_light' | translate }}:
+        <input type="color" ng-model="tagTreeDocColorLight" ng-change="setTagTreeDocColorLight(tagTreeDocColorLight)"
+               style="width: 34px; height: 26px; padding: 1px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer;" />
+        <code class="small">{{ tagTreeDocColorLight }}</code>
+      </label>
+      <label style="margin: 0; font-weight: normal; display: inline-flex; align-items: center; gap: 6px;">
+        <span class="fas fa-moon text-muted"></span> {{ 'settings.config.tag_tree_doc_color_dark' | translate }}:
+        <input type="color" ng-model="tagTreeDocColorDark" ng-change="setTagTreeDocColorDark(tagTreeDocColorDark)"
+               style="width: 34px; height: 26px; padding: 1px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer;" />
+        <code class="small">{{ tagTreeDocColorDark }}</code>
+      </label>
+      <span style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border: 1px dashed #ccc; border-radius: 4px;">
+        <span class="fas fa-book tag-tree-doc-icon"></span>
+        <span class="small">{{ 'settings.config.tag_tree_doc_color_preview' | translate }}</span>
+      </span>
+      <button type="button" class="btn btn-default btn-xs" ng-click="resetTagTreeDocColors()">
+        <span class="fas fa-undo"></span> {{ 'settings.config.tag_tree_doc_color_reset' | translate }}
+      </button>
+    </div>
+  </div>
 </div>
 <div class="alert alert-info" ng-if="userInfo.auth_source == 'LDAP'">
   <h4 style="margin-top: 0;"><span class="fas fa-id-card"></span> {{ 'settings.account.ldap_title' | translate }}</h4>

@@ -374,7 +374,9 @@
       "selected_tags": "Επιλεγμένες ετικέτες",
       "no_tags_selected": "Δεν επιλέχθηκαν ετικέτες.",
       "assign_tags_title": "Επιλέξτε ετικέτες για αυτό το έγγραφο",
-      "saved": "Οι ετικέτες αποθηκεύτηκαν"
+      "saved": "Οι ετικέτες αποθηκεύτηκαν",
+      "tab_tags": "Ετικέτες",
+      "tab_document": "Έγγραφο & αρχεία"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "Προβολή robots.txt",
       "ocr_tesseract_add_languages_title": "Πώς να προσθέσετε περισσότερες γλώσσες OCR",
       "ocr_tesseract_add_languages_win": "Windows: Κατεβάστε αρχεία .traineddata (π.χ. ell.traineddata) στον φάκελο tessdata\\ του Tesseract και δοκιμάστε ξανά.",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker: Εγκαταστήστε πακέτα όπως 'apt install tesseract-ocr-ell' (η επίσημη εικόνα Docker περιλαμβάνει ήδη 28+ γλώσσες)."
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Εγκαταστήστε πακέτα όπως 'apt install tesseract-ocr-ell' (η επίσημη εικόνα Docker περιλαμβάνει ήδη 28+ γλώσσες).",
+      "tag_tree_doc_color": "Εικονίδιο εγγράφου (δέντρο)",
+      "tag_tree_doc_color_light": "Ανοιχτό",
+      "tag_tree_doc_color_dark": "Σκούρο",
+      "tag_tree_doc_color_preview": "Δείγμα εγγράφου",
+      "tag_tree_doc_color_reset": "Επαναφορά"
     },
     "menu_personal_settings": "Προσωπικές ρυθμίσεις",
     "menu_user_account": "Λογαριασμός χρήστη",

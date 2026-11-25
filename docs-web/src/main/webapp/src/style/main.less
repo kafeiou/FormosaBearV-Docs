@@ -1471,3 +1471,12 @@ h4, .h4 {
   font-size: 0.95em;
   word-break: break-word;
 }
+
+// Tag-admin tree document book icon (customizable per light/dark scheme)
+.tag-tree-doc-icon {
+  color: var(--tag-tree-doc-color-light, #8b5a2b);
+}
+
+body.dark-mode .tag-tree-doc-icon {
+  color: var(--tag-tree-doc-color-dark, #d4a373);
+}

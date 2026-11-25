@@ -374,7 +374,9 @@
       "selected_tags": "Étiquettes sélectionnées",
       "no_tags_selected": "Aucune étiquette sélectionnée.",
       "assign_tags_title": "Sélectionner les étiquettes de ce document",
-      "saved": "Étiquettes enregistrées"
+      "saved": "Étiquettes enregistrées",
+      "tab_tags": "Étiquettes",
+      "tab_document": "Document et fichiers"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "Voir robots.txt",
       "ocr_tesseract_add_languages_title": "Comment ajouter des langues OCR",
       "ocr_tesseract_add_languages_win": "Windows : Téléchargez les fichiers .traineddata (ex. fra.traineddata) dans le dossier tessdata\\ de Tesseract puis retestez.",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker : Installez des paquets comme 'apt install tesseract-ocr-fra' (l'image Docker officielle inclut déjà 28+ langues)."
+      "ocr_tesseract_add_languages_linux": "Linux / Docker : Installez des paquets comme 'apt install tesseract-ocr-fra' (l'image Docker officielle inclut déjà 28+ langues).",
+      "tag_tree_doc_color": "Icône de document (arbre)",
+      "tag_tree_doc_color_light": "Clair",
+      "tag_tree_doc_color_dark": "Sombre",
+      "tag_tree_doc_color_preview": "Document exemple",
+      "tag_tree_doc_color_reset": "Réinitialiser"
     },
     "menu_personal_settings": "Paramètres personnels",
     "menu_user_account": "Compte utilisateur",

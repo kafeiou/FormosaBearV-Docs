@@ -374,7 +374,9 @@
       "selected_tags": "Ausgewählte Tags",
       "no_tags_selected": "Keine Tags ausgewählt.",
       "assign_tags_title": "Tags für dieses Dokument auswählen",
-      "saved": "Tags gespeichert"
+      "saved": "Tags gespeichert",
+      "tab_tags": "Tags",
+      "tab_document": "Dokument & Dateien"
     }
   },
   "group": {
@@ -556,7 +558,12 @@
       "view_robots_txt": "robots.txt anzeigen",
       "ocr_tesseract_add_languages_title": "Weitere OCR-Sprachen hinzufügen",
       "ocr_tesseract_add_languages_win": "Windows: Laden Sie .traineddata-Dateien (z. B. deu.traineddata) in den Ordner tessdata\\ von Tesseract und testen Sie erneut.",
-      "ocr_tesseract_add_languages_linux": "Linux / Docker: Installieren Sie Pakete wie 'apt install tesseract-ocr-deu' (das offizielle Docker-Image enthält bereits 28+ Sprachen)."
+      "ocr_tesseract_add_languages_linux": "Linux / Docker: Installieren Sie Pakete wie 'apt install tesseract-ocr-deu' (das offizielle Docker-Image enthält bereits 28+ Sprachen).",
+      "tag_tree_doc_color": "Tag-Baum Dokumentsymbol",
+      "tag_tree_doc_color_light": "Hell",
+      "tag_tree_doc_color_dark": "Dunkel",
+      "tag_tree_doc_color_preview": "Beispieldokument",
+      "tag_tree_doc_color_reset": "Zurücksetzen"
     },
     "menu_personal_settings": "Persönliche Einstellungen",
     "menu_user_account": "Benutzerkonto",

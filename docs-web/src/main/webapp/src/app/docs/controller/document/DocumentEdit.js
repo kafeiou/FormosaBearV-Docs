@@ -164,8 +164,15 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
       var navigateNext = function() {
         attachOrphanFiles(data).then(function() {
           // Open the edited/created document
-          $scope.pageDocuments();
-          $state.go('document.view', { id: data.id });
+          if ($scope.pageDocuments) {
+            $scope.pageDocuments();
+          }
+          if ($state.includes('tagadmin.document')) {
+            $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: data.id });
+            $state.go('tagadmin.document.view.content', { id: data.id });
+          } else {
+            $state.go('document.view', { id: data.id });
+          }
         });
       };
       
@@ -261,7 +268,9 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
    * Cancel edition.
    */
   $scope.cancel = function() {
-    if ($scope.isEdit()) {
+    if ($state.includes('tagadmin.document')) {
+      $state.go('tagadmin.document.view.content', { id: $stateParams.id });
+    } else if ($scope.isEdit()) {
       $state.go('document.view', { id: $stateParams.id });
     } else {
       $state.go('document.default');

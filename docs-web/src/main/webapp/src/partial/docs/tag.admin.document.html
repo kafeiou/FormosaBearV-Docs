@@ -23,23 +23,33 @@
   </ul>
 </script>
 
-<div ng-if="loadingDoc" class="text-center" style="padding: 40px;">
-  <span class="fas fa-circle-notch fa-spin fa-2x text-muted"></span>
-</div>
-
-<div ng-if="!loadingDoc && doc">
-  <div class="pull-right">
-    <a class="btn btn-default btn-sm" ng-href="#/document/view/{{ doc.id }}">
-      <span class="fas fa-external-link-alt"></span> {{ 'tag.admin_doc.open_document' | translate }}
+<ul class="nav nav-tabs" style="margin-bottom: 15px;">
+  <li ng-class="{ active: $state.current.name === 'tagadmin.document' }">
+    <a ng-href="#/tagadmin/document/{{ $stateParams.id }}">
+      <span class="fas fa-tags"></span> {{ 'tag.admin_doc.tab_tags' | translate }}
     </a>
+  </li>
+  <li ng-class="{ active: $state.includes('tagadmin.document.view') || $state.includes('tagadmin.document.edit') }">
+    <a ng-href="#/tagadmin/document/{{ $stateParams.id }}/view/content">
+      <span class="fas fa-book tag-tree-doc-icon"></span> {{ 'tag.admin_doc.tab_document' | translate }}
+    </a>
+  </li>
+</ul>
+
+<div ui-view="docview"></div>
+
+<div ng-if="$state.current.name === 'tagadmin.document'">
+  <div ng-if="loadingDoc" class="text-center" style="padding: 40px;">
+    <span class="fas fa-circle-notch fa-spin fa-2x text-muted"></span>
   </div>
 
-  <div class="page-header" style="margin-top: 0;">
-    <h1 style="font-size: 1.6em; margin-top: 0;">
-      <span class="far fa-file-alt text-muted"></span>
-      {{ doc.title }}
-    </h1>
-  </div>
+  <div ng-if="!loadingDoc && doc">
+    <div class="page-header" style="margin-top: 0;">
+      <h1 style="font-size: 1.6em; margin-top: 0;">
+        <span class="fas fa-book tag-tree-doc-icon"></span>
+        {{ doc.title }}
+      </h1>
+    </div>
 
   <div class="alert alert-warning" ng-if="!doc.writable">
     <span class="fas fa-lock"></span> {{ 'tag.admin_doc.read_only_warning' | translate }}
@@ -113,5 +123,6 @@
       </span>
       <span class="text-danger" ng-if="saveError" style="margin-left: 10px;">{{ saveError }}</span>
     </div>
+  </div>
   </div>
 </div>
