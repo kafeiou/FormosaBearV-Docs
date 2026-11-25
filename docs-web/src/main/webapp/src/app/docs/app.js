@@ -91,6 +91,15 @@ angular.module('docs',
         }
       }
     })
+    .state('tagadmin.document', {
+      url: '/document/:id',
+      views: {
+        'tag': {
+          templateUrl: 'partial/docs/tag.admin.document.html',
+          controller: 'TagAdminDocument'
+        }
+      }
+    })
     .state('tagadmin.edit', {
       url: '/:id',
       views: {

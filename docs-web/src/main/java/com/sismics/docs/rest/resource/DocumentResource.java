@@ -1225,4 +1225,65 @@ public class DocumentResource extends BaseResource {
         }
         return tags;
     }
+
+    /**
+     * Updates only the tag list of a document without modifying any other document fields.
+     * By default preserves any existing system hidden tags on the document.
+     */
+    @POST
+    @Path("{id: [a-z0-9\\-]+}/tags")
+    public Response updateTags(
+            @PathParam("id") String id,
+            @FormParam("tags") List<String> tagList,
+            @FormParam("preserve_hidden") @jakarta.ws.rs.DefaultValue("true") boolean preserveHidden) {
+        if (!authenticate() || principal.isGuest()) {
+            throw new ForbiddenClientException();
+        }
+
+        List<String> targetIdList = getTargetIdList(null);
+        AclDao aclDao = new AclDao();
+        if (!aclDao.checkPermission(id, PermType.WRITE, targetIdList)) {
+            throw new NotFoundException();
+        }
+
+        TagDao tagDao = new TagDao();
+        Set<String> tagIdSet = new HashSet<>();
+        if (tagList != null) {
+            for (String tagId : tagList) {
+                if (StringUtils.isEmpty(tagId)) {
+                    continue;
+                }
+                if (!aclDao.checkPermission(tagId, PermType.READ, targetIdList)) {
+                    throw new ClientException("TagNotFound", MessageFormat.format("Tag not found: {0}", tagId));
+                }
+                tagIdSet.add(tagId);
+            }
+        }
+
+        if (preserveHidden) {
+            Set<String> effectiveHiddenIds = tagDao.getEffectiveHiddenTagIds();
+            List<TagDto> existingTags = tagDao.findByCriteria(new TagCriteria().setDocumentId(id), null);
+            for (TagDto existing : existingTags) {
+                if (effectiveHiddenIds.contains(existing.getId())) {
+                    tagIdSet.add(existing.getId());
+                }
+            }
+        }
+
+        tagDao.updateTagList(id, tagIdSet);
+
+        DocumentUpdatedAsyncEvent event = new DocumentUpdatedAsyncEvent();
+        event.setUserId(principal.getId());
+        event.setDocumentId(id);
+        ThreadLocalContext.get().addAsyncEvent(event);
+
+        List<TagDto> updatedTags = tagDao.findByCriteria(new TagCriteria()
+                .setTargetIdList(targetIdList)
+                .setDocumentId(id), null);
+        return Response.ok().entity(Json.createObjectBuilder()
+                .add("status", "ok")
+                .add("id", id)
+                .add("tags", createTagsArrayBuilder(updatedTags))
+                .build()).build();
+    }
 }

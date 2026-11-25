@@ -361,7 +361,21 @@
     "hidden_tooltip": "Сакривена ознака (искључена из уобичајене листе докумената)",
     "effective_hidden_tooltip": "Аутоматски сакривена преко сакривене надређене ознаке",
     "description_tooltip": "Опис: {{ description }}",
-    "description_placeholder": "Опис ознаке (опционо, макс. 200 знакова)"
+    "description_placeholder": "Опис ознаке (опционо, макс. 200 знакова)",
+    "admin_doc": {
+      "show_docs": "Прикажи документе",
+      "hide_docs": "Сакриј документе",
+      "direct_doc_count": "{{ count }} директних докумената",
+      "untagged_folder": "Документи без ознака",
+      "no_untagged": "Нема докумената без ознака",
+      "load_more": "Учитај још",
+      "open_document": "Отвори документ",
+      "read_only_warning": "Имате само дозволу за читање овог документа.",
+      "selected_tags": "Изабране ознаке",
+      "no_tags_selected": "Ниједна ознака није изабрана.",
+      "assign_tags_title": "Изаберите ознаке за овај документ",
+      "saved": "Ознаке сачуване"
+    }
   },
   "group": {
     "profile": {

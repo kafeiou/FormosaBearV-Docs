@@ -6,6 +6,11 @@
 angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, $location, Restangular, User, $uibModal) {
   $scope.tag = { name: '', color: '#3a87ad', description: '', parent: '', hidden: false };
   $scope.expandedTags = {};
+  $scope.showTreeDocuments = true;
+  $scope.tagDocs = {};
+  $scope.untaggedExpanded = false;
+  $scope.untaggedDocs = { loading: false, loaded: false, total: null, documents: [] };
+  var TREE_DOCS_PAGE_SIZE = 20;
 
   /**
    * Open tag report export modal.
@@ -285,6 +290,161 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
   };
 
   /**
+   * Toggle display of documents inside the tag admin tree.
+   */
+  $scope.toggleShowTreeDocuments = function() {
+    $scope.showTreeDocuments = !$scope.showTreeDocuments;
+    if ($scope.showTreeDocuments && $state.includes('tagadmin')) {
+      $scope.refreshExpandedTagDocuments();
+    }
+  };
+
+  /**
+   * Returns true if the tag node can be expanded (has child tags or direct documents in tag admin).
+   */
+  $scope.hasExpandableContent = function(tag) {
+    if (!tag) return false;
+    return $scope.hasChildren(tag.id) || ($scope.showTreeDocuments && tag.direct_document_count > 0);
+  };
+
+  /**
+   * Lazy-load direct documents for a specific tag node.
+   */
+  $scope.loadTagDocuments = function(tagId, append) {
+    if (!tagId) return;
+    var bucket = $scope.tagDocs[tagId];
+    if (!bucket) {
+      bucket = { loading: false, loaded: false, total: 0, documents: [] };
+      $scope.tagDocs[tagId] = bucket;
+    }
+    if (bucket.loading) return;
+    var offset = append ? bucket.documents.length : 0;
+    bucket.loading = true;
+    Restangular.one('tag', tagId).one('documents').get({
+      offset: offset,
+      limit: TREE_DOCS_PAGE_SIZE
+    }).then(function(data) {
+      var incoming = (data && data.documents) || [];
+      bucket.total = (data && data.total !== undefined) ? data.total : incoming.length;
+      bucket.documents = append ? bucket.documents.concat(incoming) : incoming;
+      bucket.loaded = true;
+      bucket.loading = false;
+    }, function() {
+      bucket.loading = false;
+    });
+  };
+
+  /**
+   * Lazy-load untagged documents for the virtual "Untagged documents" folder.
+   */
+  $scope.loadUntaggedDocuments = function(append) {
+    if ($scope.untaggedDocs.loading) return;
+    var offset = append ? $scope.untaggedDocs.documents.length : 0;
+    $scope.untaggedDocs.loading = true;
+    Restangular.one('tag/untagged/documents').get({
+      offset: offset,
+      limit: TREE_DOCS_PAGE_SIZE
+    }).then(function(data) {
+      var incoming = (data && data.documents) || [];
+      $scope.untaggedDocs.total = (data && data.total !== undefined) ? data.total : incoming.length;
+      $scope.untaggedDocs.documents = append ? $scope.untaggedDocs.documents.concat(incoming) : incoming;
+      $scope.untaggedDocs.loaded = true;
+      $scope.untaggedDocs.loading = false;
+    }, function() {
+      $scope.untaggedDocs.loading = false;
+    });
+  };
+
+  $scope.toggleUntaggedExpand = function($event) {
+    if ($event) {
+      $event.stopPropagation();
+      $event.preventDefault();
+    }
+    $scope.untaggedExpanded = !$scope.untaggedExpanded;
+    if ($scope.untaggedExpanded && !$scope.untaggedDocs.loaded) {
+      $scope.loadUntaggedDocuments(false);
+    }
+  };
+
+  $scope.refreshExpandedTagDocuments = function() {
+    _.each($scope.tags || [], function(t) {
+      if ($scope.expandedTags[t.id]) {
+        $scope.loadTagDocuments(t.id, false);
+      }
+    });
+    if ($scope.untaggedExpanded) {
+      $scope.loadUntaggedDocuments(false);
+    }
+  };
+
+  /**
+   * Move a document up within a tag's direct document list in the tag admin tree.
+   */
+  $scope.moveTreeDocUp = function(tagId, index, $event) {
+    if ($event) {
+      $event.stopPropagation();
+      $event.preventDefault();
+    }
+    var bucket = $scope.tagDocs[tagId];
+    if (!bucket || bucket.savingOrder || index <= 0 || index >= bucket.documents.length) {
+      return;
+    }
+    var temp = bucket.documents[index - 1];
+    bucket.documents[index - 1] = bucket.documents[index];
+    bucket.documents[index] = temp;
+    $scope.saveTreeDocOrder(tagId);
+  };
+
+  /**
+   * Move a document down within a tag's direct document list in the tag admin tree.
+   */
+  $scope.moveTreeDocDown = function(tagId, index, $event) {
+    if ($event) {
+      $event.stopPropagation();
+      $event.preventDefault();
+    }
+    var bucket = $scope.tagDocs[tagId];
+    if (!bucket || bucket.savingOrder || index < 0 || index >= bucket.documents.length - 1) {
+      return;
+    }
+    var temp = bucket.documents[index + 1];
+    bucket.documents[index + 1] = bucket.documents[index];
+    bucket.documents[index] = temp;
+    $scope.saveTreeDocOrder(tagId);
+  };
+
+  /**
+   * Persist reordered direct documents for a tag via POST /api/tag/{id}/document/reorder.
+   */
+  $scope.saveTreeDocOrder = function(tagId) {
+    var bucket = $scope.tagDocs[tagId];
+    if (!bucket || !bucket.documents || !bucket.documents.length) {
+      return;
+    }
+    bucket.savingOrder = true;
+    var docIds = _.pluck(bucket.documents, 'id');
+    Restangular.one('tag', tagId)
+      .all('document/reorder')
+      .post({
+        document_ids_csv: docIds.join(','),
+        offset: 0
+      })
+      .then(function() {
+        bucket.savingOrder = false;
+      }, function() {
+        bucket.savingOrder = false;
+        $scope.loadTagDocuments(tagId, false);
+      });
+  };
+
+  $scope.$on('tagAdminDocumentTagsUpdated', function() {
+    $scope.loadTags();
+    if ($scope.showTreeDocuments) {
+      $scope.refreshExpandedTagDocuments();
+    }
+  });
+
+  /**
    * Toggle expand/collapse for a single tag node.
    */
   $scope.toggleTagExpand = function(tagId, $event) {
@@ -293,14 +453,26 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
       $event.preventDefault();
     }
     $scope.expandedTags[tagId] = !$scope.expandedTags[tagId];
+    if ($scope.expandedTags[tagId] && $state.includes('tagadmin') && $scope.showTreeDocuments) {
+      var bucket = $scope.tagDocs[tagId];
+      if (!bucket || !bucket.loaded) {
+        $scope.loadTagDocuments(tagId, false);
+      }
+    }
   };
 
   /**
    * When clicking a tag name in the tree, auto-expand its children if it has any.
    */
   $scope.onTagClick = function(tag) {
-    if (tag && $scope.hasChildren(tag.id)) {
+    if (tag && ($scope.hasChildren(tag.id) || ($state.includes('tagadmin') && $scope.showTreeDocuments && tag.direct_document_count > 0))) {
       $scope.expandedTags[tag.id] = true;
+      if ($state.includes('tagadmin') && $scope.showTreeDocuments) {
+        var bucket = $scope.tagDocs[tag.id];
+        if (!bucket || !bucket.loaded) {
+          $scope.loadTagDocuments(tag.id, false);
+        }
+      }
     }
   };
 
@@ -309,7 +481,7 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
    */
   $scope.hasAnyNestedTags = function() {
     return _.some($scope.tags, function(tag) {
-      return !!tag.parent;
+      return !!tag.parent || ($state.includes('tagadmin') && $scope.showTreeDocuments && tag.direct_document_count > 0);
     });
   };
 
@@ -318,10 +490,13 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
    */
   $scope.expandAllTags = function() {
     _.each($scope.tags, function(tag) {
-      if ($scope.hasChildren(tag.id)) {
+      if ($scope.hasChildren(tag.id) || ($state.includes('tagadmin') && $scope.showTreeDocuments && tag.direct_document_count > 0)) {
         $scope.expandedTags[tag.id] = true;
       }
     });
+    if ($state.includes('tagadmin') && $scope.showTreeDocuments) {
+      $scope.refreshExpandedTagDocuments();
+    }
   };
 
   /**
@@ -329,6 +504,7 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
    */
   $scope.collapseAllTags = function() {
     $scope.expandedTags = {};
+    $scope.untaggedExpanded = false;
   };
 
   // Parent tag tree selector state

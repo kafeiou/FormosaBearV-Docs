@@ -361,7 +361,21 @@
     "hidden_tooltip": "Скрытый тег (исключён из обычного списка тегов документов)",
     "effective_hidden_tooltip": "Скрыт автоматически из-за скрытого родительского тега",
     "description_tooltip": "Описание: {{ description }}",
-    "description_placeholder": "Описание тега (необязательно, макс. 200 символов)"
+    "description_placeholder": "Описание тега (необязательно, макс. 200 символов)",
+    "admin_doc": {
+      "show_docs": "Показать документы",
+      "hide_docs": "Скрыть документы",
+      "direct_doc_count": "{{ count }} прямых документов",
+      "untagged_folder": "Документы без тегов",
+      "no_untagged": "Нет документов без тегов",
+      "load_more": "Загрузить ещё",
+      "open_document": "Открыть документ",
+      "read_only_warning": "У вас есть права только на чтение этого документа.",
+      "selected_tags": "Выбранные теги",
+      "no_tags_selected": "Теги не выбраны.",
+      "assign_tags_title": "Выберите теги для документа",
+      "saved": "Теги сохранены"
+    }
   },
   "group": {
     "profile": {

@@ -361,7 +361,21 @@
     "hidden_tooltip": "Étiquette masquée (exclue de la liste standard des documents)",
     "effective_hidden_tooltip": "Masquée automatiquement via une étiquette parente masquée",
     "description_tooltip": "Description : {{ description }}",
-    "description_placeholder": "Description de l'étiquette (facultatif, 200 car. max)"
+    "description_placeholder": "Description de l'étiquette (facultatif, 200 car. max)",
+    "admin_doc": {
+      "show_docs": "Afficher les documents",
+      "hide_docs": "Masquer les documents",
+      "direct_doc_count": "{{ count }} document(s) direct(s)",
+      "untagged_folder": "Documents sans étiquette",
+      "no_untagged": "Aucun document sans étiquette",
+      "load_more": "Charger plus",
+      "open_document": "Ouvrir le document",
+      "read_only_warning": "Vous avez uniquement un accès en lecture à ce document.",
+      "selected_tags": "Étiquettes sélectionnées",
+      "no_tags_selected": "Aucune étiquette sélectionnée.",
+      "assign_tags_title": "Sélectionner les étiquettes de ce document",
+      "saved": "Étiquettes enregistrées"
+    }
   },
   "group": {
     "profile": {

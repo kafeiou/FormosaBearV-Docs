@@ -361,7 +361,21 @@
     "hidden_tooltip": "非表示タグ（通常の文書タグ一覧から除外）",
     "effective_hidden_tooltip": "親タグが非表示のため連動して非表示",
     "description_tooltip": "説明：{{ description }}",
-    "description_placeholder": "タグの説明（任意、最大200文字）"
+    "description_placeholder": "タグの説明（任意、最大200文字）",
+    "admin_doc": {
+      "show_docs": "ドキュメント表示",
+      "hide_docs": "ドキュメント非表示",
+      "direct_doc_count": "{{ count }} 件の直接関連ドキュメント",
+      "untagged_folder": "タグ未設定のドキュメント",
+      "no_untagged": "タグ未設定のドキュメントはありません",
+      "load_more": "さらに読み込む",
+      "open_document": "ドキュメントを開く",
+      "read_only_warning": "このドキュメントは読み取り専用のためタグを変更できません。",
+      "selected_tags": "選択中のタグ",
+      "no_tags_selected": "タグが選択されていません。",
+      "assign_tags_title": "このドキュメントのタグを選択",
+      "saved": "タグを保存しました"
+    }
   },
   "group": {
     "profile": {

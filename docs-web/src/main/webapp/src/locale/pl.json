@@ -361,7 +361,21 @@
     "hidden_tooltip": "Ukryty tag (wykluczony ze zwykłej listy tagów dokumentów)",
     "effective_hidden_tooltip": "Ukryty automatycznie przez ukryty tag nadrzędny",
     "description_tooltip": "Opis: {{ description }}",
-    "description_placeholder": "Opis etykiety (opcjonalnie, maks. 200 znaków)"
+    "description_placeholder": "Opis etykiety (opcjonalnie, maks. 200 znaków)",
+    "admin_doc": {
+      "show_docs": "Pokaż dokumenty",
+      "hide_docs": "Ukryj dokumenty",
+      "direct_doc_count": "{{ count }} bezpośredni(ch) dokument(ów)",
+      "untagged_folder": "Dokumenty bez etykiet",
+      "no_untagged": "Brak dokumentów bez etykiet",
+      "load_more": "Załaduj więcej",
+      "open_document": "Otwórz dokument",
+      "read_only_warning": "Masz tylko uprawnienia do odczytu tego dokumentu.",
+      "selected_tags": "Wybrane etykiety",
+      "no_tags_selected": "Nie wybrano żadnych etykiet.",
+      "assign_tags_title": "Wybierz etykiety dla tego dokumentu",
+      "saved": "Etykiety zapisane"
+    }
   },
   "group": {
     "profile": {

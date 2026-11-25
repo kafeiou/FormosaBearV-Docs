@@ -15,13 +15,6 @@ angular.module('docs').controller('TagEdit', function($scope, $stateParams, Rest
       $scope.tag = data;
       $scope.tag.description = data.description || '';
       originalInheritAcl = data.inherit_acl;
-
-      // Replace the tag from the list with this reference
-      _.each($scope.tags, function(tag, i) {
-        if (tag.id === $scope.tag.id) {
-          $scope.tags[i] = $scope.tag;
-        }
-      });
     });
   }
 

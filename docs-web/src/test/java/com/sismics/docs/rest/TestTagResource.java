@@ -946,4 +946,96 @@ public class TestTagResource extends BaseJerseyTest {
                 .get(JsonObject.class);
         Assert.assertFalse(tagDetail.containsKey("description"));
     }
+
+    /**
+     * Test direct tag document listing, untagged document listing, and POST /document/{id}/tags
+     * (including preserving hidden tags).
+     */
+    @Test
+    public void testTagTreeDocumentsAndQuickTagging() {
+        clientUtil.createUser("tag_tree_doc_user");
+        String userToken = clientUtil.login("tag_tree_doc_user");
+
+        // Create parent tag, child tag, and hidden tag
+        String parentTagId = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form().param("name", "ParentFolder").param("color", "#3a87ad")), JsonObject.class)
+                .getString("id");
+        String childTagId = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form().param("name", "ChildFolder").param("color", "#28a745").param("parent", parentTagId)), JsonObject.class)
+                .getString("id");
+        String hiddenTagId = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form().param("name", "SysHiddenTag").param("color", "#6c757d").param("hidden", "true")), JsonObject.class)
+                .getString("id");
+
+        // Create 1 untagged doc and 1 doc directly in ChildFolder + SysHiddenTag
+        String untaggedDocId = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form().param("title", "Untagged Doc").param("language", "eng")), JsonObject.class)
+                .getString("id");
+        String childDocId = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Child Doc")
+                        .param("language", "eng")
+                        .param("tags", childTagId)
+                        .param("tags", hiddenTagId)), JsonObject.class)
+                .getString("id");
+
+        // GET /tag/list includes direct_document_count (0 on parent, 1 on child)
+        JsonObject tagList = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        for (int i = 0; i < tagList.getJsonArray("tags").size(); i++) {
+            JsonObject t = tagList.getJsonArray("tags").getJsonObject(i);
+            if (parentTagId.equals(t.getString("id"))) {
+                Assert.assertEquals(0, t.getInt("direct_document_count"));
+            } else if (childTagId.equals(t.getString("id"))) {
+                Assert.assertEquals(1, t.getInt("direct_document_count"));
+            }
+        }
+
+        // Direct docs under parent = 0, under child = 1, untagged = 1
+        JsonObject parentDocs = target().path("/tag/" + parentTagId + "/documents").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(0, parentDocs.getInt("total"));
+
+        JsonObject childDocs = target().path("/tag/" + childTagId + "/documents").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, childDocs.getInt("total"));
+        Assert.assertEquals(childDocId, childDocs.getJsonArray("documents").getJsonObject(0).getString("id"));
+        Assert.assertTrue(childDocs.getJsonArray("documents").getJsonObject(0).getBoolean("writable"));
+
+        JsonObject untaggedDocs = target().path("/tag/untagged/documents").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(1, untaggedDocs.getInt("total"));
+        Assert.assertEquals(untaggedDocId, untaggedDocs.getJsonArray("documents").getJsonObject(0).getString("id"));
+
+        // Quick-tag childDoc to move from childTag -> parentTag (omitting hiddenTagId): preserve_hidden keeps hiddenTagId!
+        JsonObject updated = target().path("/document/" + childDocId + "/tags").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form().param("tags", parentTagId)), JsonObject.class);
+        Assert.assertEquals("ok", updated.getString("status"));
+        java.util.Set<String> resultingIds = new java.util.HashSet<>();
+        for (int i = 0; i < updated.getJsonArray("tags").size(); i++) {
+            resultingIds.add(updated.getJsonArray("tags").getJsonObject(i).getString("id"));
+        }
+        Assert.assertTrue(resultingIds.contains(parentTagId));
+        Assert.assertTrue("Hidden tag must be preserved", resultingIds.contains(hiddenTagId));
+        Assert.assertFalse(resultingIds.contains(childTagId));
+
+        // Quick-tag untaggedDoc into parentTag -> untagged count drops to 0
+        target().path("/document/" + untaggedDocId + "/tags").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form().param("tags", parentTagId)), JsonObject.class);
+        JsonObject untaggedAfter = target().path("/tag/untagged/documents").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get(JsonObject.class);
+        Assert.assertEquals(0, untaggedAfter.getInt("total"));
+    }
 }

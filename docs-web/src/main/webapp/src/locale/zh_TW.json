@@ -361,7 +361,21 @@
     "hidden_tooltip": "隱藏標籤（不顯示於一般文件標籤區）",
     "effective_hidden_tooltip": "受上層隱藏標籤影響，目前已連帶隱藏",
     "description_tooltip": "說明：{{ description }}",
-    "description_placeholder": "標籤說明（選填，最多 200 字）"
+    "description_placeholder": "標籤說明（選填，最多 200 字）",
+    "admin_doc": {
+      "show_docs": "顯示文件",
+      "hide_docs": "隱藏文件",
+      "direct_doc_count": "{{ count }} 份直接關聯文件",
+      "untagged_folder": "未貼標籤的文件",
+      "no_untagged": "目前沒有未貼標籤的文件",
+      "load_more": "載入更多",
+      "open_document": "開啟文件",
+      "read_only_warning": "您對此文件僅有唯讀權限，無法修改其標籤。",
+      "selected_tags": "已勾選標籤",
+      "no_tags_selected": "尚未勾選任何標籤。",
+      "assign_tags_title": "勾選此文件的標籤",
+      "saved": "標籤已儲存"
+    }
   },
   "group": {
     "profile": {

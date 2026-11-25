@@ -1,0 +1,117 @@
+<script type="text/ng-template" id="tag-admin-doc-checkbox-node">
+  <div class="tag-picker-row" style="padding: 4px 6px; border-radius: 4px; display: flex; align-items: center;">
+    <span class="pointer mr-5" ng-if="hasVisibleChildren(node.id)" ng-click="togglePickerExpand(node.id, $event)"
+          style="width: 16px; display: inline-block; text-align: center; color: #666;">
+      <span class="fas" ng-class="{ 'fa-caret-down': isPickerExpanded(node.id), 'fa-caret-right': !isPickerExpanded(node.id) }"></span>
+    </span>
+    <span class="mr-5" ng-if="!hasVisibleChildren(node.id)" style="width: 16px; display: inline-block;"></span>
+    <label style="margin: 0; font-weight: normal; cursor: pointer; display: flex; align-items: center; flex: 1;"
+           ng-class="{ 'text-muted': node.is_container || !doc.writable }">
+      <input type="checkbox"
+             ng-if="!node.is_container"
+             ng-model="selectedTagIds[node.id]"
+             ng-disabled="!doc.writable"
+             style="margin: 0 8px 0 0;" />
+      <span class="fas fa-tag mr-5" ng-style="{ 'color': node.color }"></span>
+      <span uib-tooltip="{{ getTagTooltip(node) }}" tooltip-append-to-body="true">{{ node.name }}</span>
+      <span class="text-muted small ml-10" ng-if="node.description" style="margin-left: 8px;">— {{ node.description }}</span>
+    </label>
+  </div>
+  <ul class="list-unstyled" ng-if="hasVisibleChildren(node.id) && isPickerExpanded(node.id)"
+      style="padding-left: 22px; margin-bottom: 0; border-left: 1px dashed #e0e0e0; margin-left: 8px;">
+    <li ng-repeat="node in getVisibleChildrenTags(node.id) | filter: pickerNodeMatches" ng-include="'tag-admin-doc-checkbox-node'"></li>
+  </ul>
+</script>
+
+<div ng-if="loadingDoc" class="text-center" style="padding: 40px;">
+  <span class="fas fa-circle-notch fa-spin fa-2x text-muted"></span>
+</div>
+
+<div ng-if="!loadingDoc && doc">
+  <div class="pull-right">
+    <a class="btn btn-default btn-sm" ng-href="#/document/view/{{ doc.id }}">
+      <span class="fas fa-external-link-alt"></span> {{ 'tag.admin_doc.open_document' | translate }}
+    </a>
+  </div>
+
+  <div class="page-header" style="margin-top: 0;">
+    <h1 style="font-size: 1.6em; margin-top: 0;">
+      <span class="far fa-file-alt text-muted"></span>
+      {{ doc.title }}
+    </h1>
+  </div>
+
+  <div class="alert alert-warning" ng-if="!doc.writable">
+    <span class="fas fa-lock"></span> {{ 'tag.admin_doc.read_only_warning' | translate }}
+  </div>
+
+  <!-- Currently selected tags summary -->
+  <div class="well well-sm">
+    <div style="margin-bottom: 6px;">
+      <strong>{{ 'tag.admin_doc.selected_tags' | translate }} ({{ getSelectedTagObjects().length }}):</strong>
+    </div>
+    <div ng-if="getSelectedTagObjects().length === 0" class="text-muted small">
+      {{ 'tag.admin_doc.no_tags_selected' | translate }}
+    </div>
+    <div ng-if="getSelectedTagObjects().length > 0">
+      <span ng-repeat="t in getSelectedTagObjects()"
+            class="label"
+            ng-style="{ 'background-color': t.color }"
+            invert-text-color="{{ t.color }}"
+            uib-tooltip="{{ getTagTooltip(t) }}"
+            tooltip-append-to-body="true"
+            style="display: inline-block; margin: 0 6px 6px 0; padding: 5px 8px; font-size: 90%;">
+        <span class="fas fa-tag"></span> {{ t.name }}
+        <a href ng-if="doc.writable" ng-click="removeSelectedTag(t.id)"
+           style="color: inherit; margin-left: 5px; text-decoration: none; opacity: 0.85;"
+           title="{{ 'delete' | translate }}">&times;</a>
+      </span>
+    </div>
+  </div>
+
+  <!-- Hierarchical Checkbox Tag Picker -->
+  <div class="panel panel-default">
+    <div class="panel-heading clearfix">
+      <strong class="pull-left" style="line-height: 28px;">
+        <span class="fas fa-tags"></span> {{ 'tag.admin_doc.assign_tags_title' | translate }}
+      </strong>
+      <div class="btn-group btn-group-xs pull-right" style="margin-top: 3px;">
+        <button type="button" class="btn btn-default" ng-click="expandAllPickerTags()">
+          <span class="fas fa-plus-square"></span> {{ 'tag.expand_all' | translate }}
+        </button>
+        <button type="button" class="btn btn-default" ng-click="collapseAllPickerTags()">
+          <span class="fas fa-minus-square"></span> {{ 'tag.collapse_all' | translate }}
+        </button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="input-group input-group-sm" style="margin-bottom: 12px;">
+        <span class="input-group-addon"><span class="fas fa-search"></span></span>
+        <input type="text" class="form-control" ng-model="tagFilter"
+               ng-attr-placeholder="{{ 'tag.tree_filter_placeholder' | translate }}" />
+        <span class="input-group-btn" ng-if="tagFilter">
+          <button type="button" class="btn btn-default" ng-click="tagFilter = ''">
+            <span class="fas fa-times"></span>
+          </button>
+        </span>
+      </div>
+
+      <div style="max-height: 420px; overflow-y: auto;">
+        <ul class="list-unstyled" style="margin-bottom: 0;">
+          <li ng-repeat="node in getVisibleChildrenTags() | filter: pickerNodeMatches" ng-include="'tag-admin-doc-checkbox-node'"></li>
+        </ul>
+      </div>
+    </div>
+    <div class="panel-footer clearfix" ng-if="doc.writable">
+      <button type="button" class="btn btn-primary" ng-click="saveDocumentTags()" ng-disabled="saving || !isDirty()">
+        <span class="fas fa-save" ng-if="!saving"></span>
+        <span class="fas fa-spinner fa-spin" ng-if="saving"></span>
+        {{ 'save' | translate }}
+      </button>
+      <span class="text-success" ng-if="saveSuccess" style="margin-left: 10px;">
+        <span class="fas fa-check"></span> {{ 'tag.admin_doc.saved' | translate }}
+      </span>
+      <span class="text-danger" ng-if="saveError" style="margin-left: 10px;">{{ saveError }}</span>
+    </div>
+  </div>
+</div>

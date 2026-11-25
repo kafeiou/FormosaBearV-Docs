@@ -361,7 +361,21 @@
     "hidden_tooltip": "Ausgeblendetes Schlagwort (nicht in der regulären Dokumentliste)",
     "effective_hidden_tooltip": "Durch ein ausgeblendetes übergeordnetes Schlagwort ebenfalls ausgeblendet",
     "description_tooltip": "Beschreibung: {{ description }}",
-    "description_placeholder": "Schlagwort-Beschreibung (optional, max. 200 Zeichen)"
+    "description_placeholder": "Schlagwort-Beschreibung (optional, max. 200 Zeichen)",
+    "admin_doc": {
+      "show_docs": "Dokumente anzeigen",
+      "hide_docs": "Dokumente ausblenden",
+      "direct_doc_count": "{{ count }} direkte Dokument(e)",
+      "untagged_folder": "Ungetaggte Dokumente",
+      "no_untagged": "Keine ungetaggten Dokumente",
+      "load_more": "Mehr laden",
+      "open_document": "Dokument öffnen",
+      "read_only_warning": "Sie haben nur Leserechte für dieses Dokument und können die Tags nicht ändern.",
+      "selected_tags": "Ausgewählte Tags",
+      "no_tags_selected": "Keine Tags ausgewählt.",
+      "assign_tags_title": "Tags für dieses Dokument auswählen",
+      "saved": "Tags gespeichert"
+    }
   },
   "group": {
     "profile": {

@@ -361,7 +361,21 @@
     "hidden_tooltip": "Thẻ ẩn (không hiển thị trong danh sách thẻ tài liệu)",
     "effective_hidden_tooltip": "Đang bị ẩn theo thẻ cha đang ẩn",
     "description_tooltip": "Mô tả: {{ description }}",
-    "description_placeholder": "Mô tả thẻ (tùy chọn, tối đa 200 ký tự)"
+    "description_placeholder": "Mô tả thẻ (tùy chọn, tối đa 200 ký tự)",
+    "admin_doc": {
+      "show_docs": "Hiện tài liệu",
+      "hide_docs": "Ẩn tài liệu",
+      "direct_doc_count": "{{ count }} tài liệu trực tiếp",
+      "untagged_folder": "Tài liệu chưa gắn thẻ",
+      "no_untagged": "Không có tài liệu chưa gắn thẻ",
+      "load_more": "Tải thêm",
+      "open_document": "Mở tài liệu",
+      "read_only_warning": "Bạn chỉ có quyền đọc đối với tài liệu này.",
+      "selected_tags": "Thẻ đã chọn",
+      "no_tags_selected": "Chưa chọn thẻ nào.",
+      "assign_tags_title": "Chọn thẻ cho tài liệu này",
+      "saved": "Đã lưu thẻ"
+    }
   },
   "group": {
     "profile": {

@@ -9,6 +9,9 @@
 ## [v3.02-SNAPSHOT]（未發布）
 
 ### 新增功能 (Added)
+- **標籤管理樹狀文件檢視、快速勾選貼標與樹內排序（`#/tagadmin`）**：
+  - 左側標籤樹新增「**顯示／隱藏文件**」開關（預設開啟）、展開標籤時延遲載入直接關聯文件（`GET /api/tag/{id}/documents`，每批 20 筆＋載入更多）、`GET /api/tag/list` 回傳 `direct_document_count`、樹內文件 `▲ / ▼` 上下排序（與 `POST /api/tag/{id}/document/reorder` 及標籤瀏覽頁完全同步），並於樹狀最下方新增「**未貼標籤的文件**」虛擬資料夾（`GET /api/tag/untagged/documents`）。
+  - 點選左樹任一文件即於右側開啟「**快速管理文件標籤**」面板（`#/tagadmin/document/:id`），提供已勾選標籤徽章與可搜尋之階層標籤勾選樹（自動排除系統隱藏標籤）；按下儲存呼叫新增的專屬端點 `POST /api/document/{id}/tags`（僅更新標籤並自動保留既有系統隱藏標籤，儲存後同步刷新左樹），補齊 16 國語系與 `TestTagResource` 整合測試。
 - **Apache Lucene 升級至 `10.6.0` 與索引重建維護鎖定**：
   - 將 Apache Lucene 由 `8.7.0` 升級至 **`10.6.0`**（原生支援 JDK 21；依賴更名為 `lucene-analysis-common`、`RAMDirectory` 改用 `ByteBuffersDirectory`、`IndexSearcher.doc(...)` 改用 `storedFields().document(...)`，並於開機自動清理舊版 Lucene 8 索引前先安全關閉檔案控制代碼以避開 Windows 鎖檔）。
   - 新增雙層索引重建維護鎖定機制：開機自動升級重建期間全面阻擋所有登入與既有連線（`503 ReindexingInProgress`），管理員手動重建期間僅阻擋一般使用者與訪客並放行管理員檢視監控進度。
@@ -22,6 +25,8 @@
   - 不公開模式回傳 `Disallow: /` 並對所有回應加上 `X-Robots-Tag: noindex, nofollow, noarchive`；公開模式回傳 `Allow: /` 並一律排除 `/api/` 與 `/share.html`（`share.html` 另加上 `<meta name="robots" content="noindex, nofollow, noarchive">` 雙重保護分享連結）。
 
 ### 修復與安全性強化 (Fixed & Hardened)
+- **修復標籤管理未儲存即提前更動左樹問題（`TagEdit.js`）**：
+  - 移除載入標籤詳情時覆蓋 `$scope.tags` 陣列參考的行為，確保在右側修改上層標籤、名稱、顏色或說明時，於點擊「儲存」前不再提前變動左側標籤樹。
 - **資安強化 — 本地 Tesseract 指令注入防禦（`CWE-78` / `CWE-88`，CodeQL #35）**：
   - 於 `TesseractOcrProvider` 新增嚴格白名單驗證 `validateTesseractCommand()`，在 `checkAvailability()` 與 `extractText()` 呼叫 `ProcessBuilder` 前強制檢查：僅允許空值（自動偵測）、硬編碼字面常數 `"tesseract"` / `"tesseract.exe"`，或正規化絕對路徑且檔名嚴格為 `tesseract` / `tesseract.exe` 之一般檔案。
 - **可攜版 Demo 自動重啟防卡死與 Maven `clean` 檔案鎖清理**：

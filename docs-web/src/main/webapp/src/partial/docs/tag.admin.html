@@ -1,16 +1,16 @@
 <script type="text/ng-template" id="tag-admin-tree-item">
-  <div class="tag-tree-row" ng-class="{ 'tag-tree-active': $stateParams.id == tag.id }">
+  <div class="tag-tree-row" ng-class="{ 'tag-tree-active': !$state.includes('tagadmin.document') && $stateParams.id == tag.id }">
     <span class="tag-tree-toggle pointer"
-          ng-if="hasChildren(tag.id)"
+          ng-if="hasExpandableContent(tag)"
           ng-click="toggleTagExpand(tag.id, $event)">
       <span class="fas" ng-class="{ 'fa-caret-down': isTagExpanded(tag.id), 'fa-caret-right': !isTagExpanded(tag.id) }"></span>
     </span>
-    <span class="tag-tree-toggle-placeholder" ng-if="!hasChildren(tag.id)"></span>
+    <span class="tag-tree-toggle-placeholder" ng-if="!hasExpandableContent(tag)"></span>
     <span class="fas fa-tag" ng-style="{ 'color': tag.color }"></span>
     <span class="fas fa-eye-slash text-muted" ng-if="tag.hidden" uib-tooltip="{{ 'tag.hidden_tooltip' | translate }}" style="margin-left: 3px; font-size: 11px;"></span>
     <span class="fas fa-eye-slash text-muted" ng-if="!tag.hidden && tag.effective_hidden" uib-tooltip="{{ 'tag.effective_hidden_tooltip' | translate }}" style="margin-left: 3px; font-size: 11px; opacity: 0.55;"></span>
     <span class="fas fa-lock text-warning" ng-if="tag.inherit_acl === false" uib-tooltip="{{ 'tag.broken_inheritance' | translate }}" style="margin-left: 3px; font-size: 11px;"></span>
-    <a href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $stateParams.id == tag.id }"
+    <a href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': !$state.includes('tagadmin.document') && $stateParams.id == tag.id }"
        uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
       {{ tag.name }}
     </a>
@@ -35,9 +35,51 @@
         <span class="far fa-folder"></span> {{ getChildrenTags(tag.id).length }}
       </span>
     </span>
+    <span class="text-muted small" ng-if="showTreeDocuments && tag.direct_document_count > 0" style="margin-left: 6px;">
+      <span uib-tooltip="{{ 'tag.admin_doc.direct_doc_count' | translate: { count: tag.direct_document_count } }}">
+        <span class="far fa-file-alt"></span> {{ tag.direct_document_count }}
+      </span>
+    </span>
   </div>
-  <ul class="list-unstyled tag-tree-children" ng-if="hasChildren(tag.id) && isTagExpanded(tag.id)">
+  <ul class="list-unstyled tag-tree-children" ng-if="hasExpandableContent(tag) && isTagExpanded(tag.id)">
     <li ng-repeat="tag in getChildrenTags(tag.id)" ng-include="'tag-admin-tree-item'"></li>
+    <li ng-if="showTreeDocuments && tagDocs[tag.id] && tagDocs[tag.id].loading && tagDocs[tag.id].documents.length === 0" class="text-muted small" style="padding: 3px 6px;">
+      <span class="fas fa-circle-notch fa-spin"></span>
+    </li>
+    <li ng-repeat="doc in (showTreeDocuments && tagDocs[tag.id] ? tagDocs[tag.id].documents : [])">
+      <div class="tag-tree-row" ng-class="{ 'tag-tree-active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }" style="display: flex; align-items: center;">
+        <span class="tag-tree-toggle-placeholder" style="flex-shrink: 0;"></span>
+        <span class="far fa-file-alt text-muted" style="margin-right: 4px; flex-shrink: 0;"></span>
+        <a href="#/tagadmin/document/{{ doc.id }}"
+           ng-class="{ 'active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }"
+           uib-tooltip="{{ doc.title }}" tooltip-append-to-body="true"
+           style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">
+          {{ doc.title }}
+        </a>
+        <span class="tag-order-actions ml-10" ng-if="canManageTags && tagDocs[tag.id].documents.length > 1" style="flex-shrink: 0;">
+          <button type="button" class="btn btn-xs btn-link p-0 text-muted"
+                  ng-disabled="$first || tagDocs[tag.id].savingOrder"
+                  ng-click="moveTreeDocUp(tag.id, $index, $event)"
+                  uib-tooltip="{{ 'tag.move_up' | translate }}"
+                  style="padding: 0 3px; font-size: 11px;">
+            <span class="fas fa-chevron-up"></span>
+          </button>
+          <button type="button" class="btn btn-xs btn-link p-0 text-muted"
+                  ng-disabled="$last || tagDocs[tag.id].savingOrder"
+                  ng-click="moveTreeDocDown(tag.id, $index, $event)"
+                  uib-tooltip="{{ 'tag.move_down' | translate }}"
+                  style="padding: 0 3px; font-size: 11px;">
+            <span class="fas fa-chevron-down"></span>
+          </button>
+        </span>
+      </div>
+    </li>
+    <li ng-if="showTreeDocuments && tagDocs[tag.id] && tagDocs[tag.id].documents.length < tagDocs[tag.id].total" style="padding: 2px 6px;">
+      <span class="tag-tree-toggle-placeholder"></span>
+      <button type="button" class="btn btn-xs btn-link p-0" ng-click="loadTagDocuments(tag.id, true)" ng-disabled="tagDocs[tag.id].loading">
+        <span class="fas fa-ellipsis-h"></span> {{ 'tag.admin_doc.load_more' | translate }} ({{ tagDocs[tag.id].documents.length }}/{{ tagDocs[tag.id].total }})
+      </button>
+    </li>
   </ul>
 </script>
 
@@ -122,6 +164,13 @@
       </form>
 
       <div class="clearfix mb-10" ng-if="tags.length > 0">
+        <div class="btn-group btn-group-xs pull-left">
+          <button type="button" class="btn" ng-class="showTreeDocuments ? 'btn-info' : 'btn-default'"
+                  ng-click="toggleShowTreeDocuments()"
+                  uib-tooltip="{{ (showTreeDocuments ? 'tag.admin_doc.hide_docs' : 'tag.admin_doc.show_docs') | translate }}">
+            <span class="far fa-file-alt"></span> {{ (showTreeDocuments ? 'tag.admin_doc.hide_docs' : 'tag.admin_doc.show_docs') | translate }}
+          </button>
+        </div>
         <div class="btn-group btn-group-xs pull-right">
           <button type="button" class="btn btn-primary" ng-click="openTagExportModal()" uib-tooltip="{{ 'tag.export.button' | translate }}">
             <span class="fas fa-file-export"></span> {{ 'tag.export.button' | translate }}
@@ -137,6 +186,46 @@
 
       <ul class="tag-tree">
         <li ng-repeat="tag in getChildrenTags()" ng-include="'tag-admin-tree-item'"></li>
+        <!-- Virtual folder for untagged documents -->
+        <li ng-if="showTreeDocuments" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e5e5;">
+          <div class="tag-tree-row">
+            <span class="tag-tree-toggle pointer" ng-click="toggleUntaggedExpand($event)">
+              <span class="fas" ng-class="{ 'fa-caret-down': untaggedExpanded, 'fa-caret-right': !untaggedExpanded }"></span>
+            </span>
+            <span class="far fa-folder-open text-muted" style="margin-right: 4px;"></span>
+            <a href ng-click="toggleUntaggedExpand($event)" class="text-muted">
+              {{ 'tag.admin_doc.untagged_folder' | translate }}
+            </a>
+            <span class="text-muted small" ng-if="untaggedDocs.total !== null" style="margin-left: 6px;">
+              ({{ untaggedDocs.total }})
+            </span>
+          </div>
+          <ul class="list-unstyled tag-tree-children" ng-if="untaggedExpanded">
+            <li ng-if="untaggedDocs.loading && untaggedDocs.documents.length === 0" class="text-muted small" style="padding: 3px 6px;">
+              <span class="fas fa-circle-notch fa-spin"></span>
+            </li>
+            <li ng-if="!untaggedDocs.loading && untaggedDocs.loaded && untaggedDocs.documents.length === 0" class="text-muted small" style="padding: 3px 6px;">
+              <span class="tag-tree-toggle-placeholder"></span><em>{{ 'tag.admin_doc.no_untagged' | translate }}</em>
+            </li>
+            <li ng-repeat="doc in untaggedDocs.documents">
+              <div class="tag-tree-row" ng-class="{ 'tag-tree-active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }" style="overflow: hidden; text-overflow: ellipsis;">
+                <span class="tag-tree-toggle-placeholder"></span>
+                <span class="far fa-file-alt text-muted" style="margin-right: 4px;"></span>
+                <a href="#/tagadmin/document/{{ doc.id }}"
+                   ng-class="{ 'active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }"
+                   uib-tooltip="{{ doc.title }}" tooltip-append-to-body="true">
+                  {{ doc.title }}
+                </a>
+              </div>
+            </li>
+            <li ng-if="untaggedDocs.documents.length < untaggedDocs.total" style="padding: 2px 6px;">
+              <span class="tag-tree-toggle-placeholder"></span>
+              <button type="button" class="btn btn-xs btn-link p-0" ng-click="loadUntaggedDocuments(true)" ng-disabled="untaggedDocs.loading">
+                <span class="fas fa-ellipsis-h"></span> {{ 'tag.admin_doc.load_more' | translate }} ({{ untaggedDocs.documents.length }}/{{ untaggedDocs.total }})
+              </button>
+            </li>
+          </ul>
+        </li>
       </ul>
 
       <div class="well-3d-background">

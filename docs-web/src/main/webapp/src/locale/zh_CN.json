@@ -361,7 +361,21 @@
     "hidden_tooltip": "隐藏标签（不显示于常规文档标签区）",
     "effective_hidden_tooltip": "受上级隐藏标签影响，当前已连带隐藏",
     "description_tooltip": "说明：{{ description }}",
-    "description_placeholder": "标签说明（选填，最多 200 字）"
+    "description_placeholder": "标签说明（选填，最多 200 字）",
+    "admin_doc": {
+      "show_docs": "显示文档",
+      "hide_docs": "隐藏文档",
+      "direct_doc_count": "{{ count }} 份直接关联文档",
+      "untagged_folder": "未贴标签的文档",
+      "no_untagged": "目前没有未贴标签的文档",
+      "load_more": "加载更多",
+      "open_document": "打开文档",
+      "read_only_warning": "您对此文档仅有只读权限，无法修改其标签。",
+      "selected_tags": "已勾选标签",
+      "no_tags_selected": "尚未勾选任何标签。",
+      "assign_tags_title": "勾选此文档的标签",
+      "saved": "标签已保存"
+    }
   },
   "group": {
     "profile": {

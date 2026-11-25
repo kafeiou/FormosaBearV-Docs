@@ -361,7 +361,21 @@
     "hidden_tooltip": "Etiketë e fshehur (e përjashtuar nga lista e zakonshme e dokumenteve)",
     "effective_hidden_tooltip": "Fshehur automatikisht nga një etiketë prindërore e fshehur",
     "description_tooltip": "Përshkrimi: {{ description }}",
-    "description_placeholder": "Përshkrimi i etiketës (opsional, maks. 200 karaktere)"
+    "description_placeholder": "Përshkrimi i etiketës (opsional, maks. 200 karaktere)",
+    "admin_doc": {
+      "show_docs": "Shfaq dokumentet",
+      "hide_docs": "Fshih dokumentet",
+      "direct_doc_count": "{{ count }} dokument(e) të drejtpërdrejta",
+      "untagged_folder": "Dokumente pa etiketa",
+      "no_untagged": "Nuk ka dokumente pa etiketa",
+      "load_more": "Ngarko më shumë",
+      "open_document": "Hap dokumentin",
+      "read_only_warning": "Keni vetëm leje leximi për këtë dokument.",
+      "selected_tags": "Etiketat e zgjedhura",
+      "no_tags_selected": "Asnjë etiketë e zgjedhur.",
+      "assign_tags_title": "Zgjidhni etiketat për këtë dokument",
+      "saved": "Etiketat u ruajtën"
+    }
   },
   "group": {
     "profile": {

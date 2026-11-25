@@ -776,4 +776,125 @@ public class TagDao {
             finalOrder.get(i).setOrder(i);
         }
     }
+
+    /**
+     * Lightweight summary of a document for tag-tree expansion.
+     */
+    public static final class TreeDocumentItem {
+        private final String id;
+        private final String title;
+        private final Date createDate;
+
+        public TreeDocumentItem(String id, String title, Date createDate) {
+            this.id = id;
+            this.title = title;
+            this.createDate = createDate;
+        }
+
+        public String getId() { return id; }
+        public String getTitle() { return title; }
+        public Date getCreateDate() { return createDate; }
+    }
+
+    /**
+     * Paginated result for direct documents under a tag or untagged documents.
+     */
+    public static final class TreeDocumentPage {
+        private final long total;
+        private final List<TreeDocumentItem> documents;
+
+        public TreeDocumentPage(long total, List<TreeDocumentItem> documents) {
+            this.total = total;
+            this.documents = documents;
+        }
+
+        public long getTotal() { return total; }
+        public List<TreeDocumentItem> getDocuments() { return documents; }
+    }
+
+    /**
+     * Returns paginated readable documents directly tagged with the given tagId (not via descendant tags).
+     */
+    @SuppressWarnings("unchecked")
+    public TreeDocumentPage findDirectDocumentsByTag(String tagId, List<String> targetIdList, int offset, int limit) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        boolean checkAcl = targetIdList != null && !SecurityUtil.skipAclCheck(targetIdList);
+        Set<String> readableTagIds = checkAcl ? getReadableTagIds(targetIdList) : Collections.emptySet();
+        boolean tagReadable = !checkAcl || readableTagIds.contains(tagId);
+
+        StringBuilder where = new StringBuilder(" from T_DOCUMENT_TAG dt ");
+        where.append(" join T_DOCUMENT d on d.DOC_ID_C = dt.DOT_IDDOCUMENT_C and d.DOC_DELETEDATE_D is null ");
+        where.append(" where dt.DOT_IDTAG_C = :tagId and dt.DOT_DELETEDATE_D is null ");
+        if (checkAcl && !tagReadable) {
+            where.append(" and exists (select 1 from T_ACL a where a.ACL_SOURCEID_C = d.DOC_ID_C and a.ACL_TARGETID_C in (:targetIdList) and a.ACL_PERM_C = 'READ' and a.ACL_DELETEDATE_D is null) ");
+        }
+
+        Query countQ = em.createNativeQuery("select count(distinct d.DOC_ID_C) " + where);
+        countQ.setParameter("tagId", tagId);
+        if (checkAcl && !tagReadable) {
+            countQ.setParameter("targetIdList", targetIdList);
+        }
+        long total = ((Number) countQ.getSingleResult()).longValue();
+        if (total == 0) {
+            return new TreeDocumentPage(0, Collections.emptyList());
+        }
+
+        Query listQ = em.createNativeQuery(
+                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, coalesce(dt.DOT_ORDER_N, 999999999) as ord "
+                        + where
+                        + " order by ord asc, d.DOC_CREATEDATE_D desc");
+        listQ.setParameter("tagId", tagId);
+        if (checkAcl && !tagReadable) {
+            listQ.setParameter("targetIdList", targetIdList);
+        }
+        listQ.setFirstResult(Math.max(0, offset));
+        listQ.setMaxResults(Math.max(1, Math.min(100, limit)));
+
+        List<Object[]> rows = listQ.getResultList();
+        List<TreeDocumentItem> docs = new ArrayList<>(rows.size());
+        for (Object[] row : rows) {
+            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2]));
+        }
+        return new TreeDocumentPage(total, docs);
+    }
+
+    /**
+     * Returns paginated readable documents that have no active tags attached.
+     */
+    @SuppressWarnings("unchecked")
+    public TreeDocumentPage findUntaggedDocuments(List<String> targetIdList, int offset, int limit) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        boolean checkAcl = targetIdList != null && !SecurityUtil.skipAclCheck(targetIdList);
+
+        StringBuilder where = new StringBuilder(" from T_DOCUMENT d ");
+        where.append(" where d.DOC_DELETEDATE_D is null ");
+        where.append(" and not exists (select 1 from T_DOCUMENT_TAG dt join T_TAG t on t.TAG_ID_C = dt.DOT_IDTAG_C and t.TAG_DELETEDATE_D is null where dt.DOT_IDDOCUMENT_C = d.DOC_ID_C and dt.DOT_DELETEDATE_D is null) ");
+        if (checkAcl) {
+            where.append(" and exists (select 1 from T_ACL a where a.ACL_SOURCEID_C = d.DOC_ID_C and a.ACL_TARGETID_C in (:targetIdList) and a.ACL_PERM_C = 'READ' and a.ACL_DELETEDATE_D is null) ");
+        }
+
+        Query countQ = em.createNativeQuery("select count(distinct d.DOC_ID_C) " + where);
+        if (checkAcl) {
+            countQ.setParameter("targetIdList", targetIdList);
+        }
+        long total = ((Number) countQ.getSingleResult()).longValue();
+        if (total == 0) {
+            return new TreeDocumentPage(0, Collections.emptyList());
+        }
+
+        Query listQ = em.createNativeQuery(
+                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D " + where + " order by d.DOC_CREATEDATE_D desc");
+        if (checkAcl) {
+            listQ.setParameter("targetIdList", targetIdList);
+        }
+        listQ.setFirstResult(Math.max(0, offset));
+        listQ.setMaxResults(Math.max(1, Math.min(100, limit)));
+
+        List<Object[]> rows = listQ.getResultList();
+        List<TreeDocumentItem> docs = new ArrayList<>(rows.size());
+        for (Object[] row : rows) {
+            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2]));
+        }
+        return new TreeDocumentPage(total, docs);
+    }
 }

@@ -102,11 +102,13 @@ public class TagResource extends BaseResource {
                 }
             }
 
+            Set<String> ownDirectDocs = directDocsByTag.get(tagDto.getId());
             JsonObjectBuilder item = Json.createObjectBuilder()
                     .add("id", tagDto.getId())
                     .add("name", tagDto.getName())
                     .add("color", tagDto.getColor())
                     .add("document_count", tagDto.isContainer() ? 0 : totalDocs.size())
+                    .add("direct_document_count", tagDto.isContainer() ? 0 : (ownDirectDocs == null ? 0 : ownDirectDocs.size()))
                     .add("inherit_acl", tagDto.isInheritAcl())
                     .add("hidden", tagDto.isHidden())
                     .add("effective_hidden", tagDto.isEffectiveHidden())
@@ -837,6 +839,65 @@ public class TagResource extends BaseResource {
                 .header("Content-Type", contentType)
                 .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
                 .build();
+    }
+
+    /**
+     * Lists readable documents directly attached to a specific tag (for tag-tree lazy expansion).
+     */
+    @GET
+    @Path("{id: [a-z0-9\\-]+}/documents")
+    public Response listDirectDocuments(
+            @PathParam("id") String id,
+            @QueryParam("offset") @DefaultValue("0") int offset,
+            @QueryParam("limit") @DefaultValue("20") int limit) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+
+        List<String> targetIdList = getTargetIdList(null);
+        AclDao aclDao = new AclDao();
+        if (!aclDao.checkPermission(id, PermType.READ, targetIdList)) {
+            throw new NotFoundException();
+        }
+
+        TagDao tagDao = new TagDao();
+        TagDao.TreeDocumentPage page = tagDao.findDirectDocumentsByTag(id, targetIdList, offset, limit);
+        return buildTreeDocumentPageResponse(page, aclDao, targetIdList);
+    }
+
+    /**
+     * Lists readable documents that have no active tags attached.
+     */
+    @GET
+    @Path("untagged/documents")
+    public Response listUntaggedDocuments(
+            @QueryParam("offset") @DefaultValue("0") int offset,
+            @QueryParam("limit") @DefaultValue("20") int limit) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+
+        List<String> targetIdList = getTargetIdList(null);
+        AclDao aclDao = new AclDao();
+        TagDao tagDao = new TagDao();
+        TagDao.TreeDocumentPage page = tagDao.findUntaggedDocuments(targetIdList, offset, limit);
+        return buildTreeDocumentPageResponse(page, aclDao, targetIdList);
+    }
+
+    private Response buildTreeDocumentPageResponse(TagDao.TreeDocumentPage page, AclDao aclDao, List<String> targetIdList) {
+        JsonArrayBuilder docsArray = Json.createArrayBuilder();
+        for (TagDao.TreeDocumentItem doc : page.getDocuments()) {
+            boolean writable = !principal.isGuest() && aclDao.checkPermission(doc.getId(), PermType.WRITE, targetIdList);
+            docsArray.add(Json.createObjectBuilder()
+                    .add("id", doc.getId())
+                    .add("title", JsonUtil.nullable(doc.getTitle()))
+                    .add("create_date", doc.getCreateDate() != null ? doc.getCreateDate().getTime() : 0L)
+                    .add("writable", writable));
+        }
+        return Response.ok().entity(Json.createObjectBuilder()
+                .add("total", page.getTotal())
+                .add("documents", docsArray)
+                .build()).build();
     }
 
     /**

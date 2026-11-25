@@ -361,7 +361,21 @@
     "hidden_tooltip": "Hidden tag (excluded from regular document tag list)",
     "effective_hidden_tooltip": "Hidden via an ancestor hidden tag",
     "description_tooltip": "Description: {{ description }}",
-    "description_placeholder": "Tag description (optional, max 200 chars)"
+    "description_placeholder": "Tag description (optional, max 200 chars)",
+    "admin_doc": {
+      "show_docs": "Show documents",
+      "hide_docs": "Hide documents",
+      "direct_doc_count": "{{ count }} direct document(s)",
+      "untagged_folder": "Untagged documents",
+      "no_untagged": "No untagged documents",
+      "load_more": "Load more",
+      "open_document": "Open document",
+      "read_only_warning": "You only have read permission for this document and cannot modify its tags.",
+      "selected_tags": "Selected tags",
+      "no_tags_selected": "No tags selected.",
+      "assign_tags_title": "Select tags for this document",
+      "saved": "Tags saved"
+    }
   },
   "group": {
     "profile": {

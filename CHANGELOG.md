@@ -9,6 +9,9 @@ This document details the notable changes, security enhancements, architecture i
 ## [v3.02-SNAPSHOT] (Unreleased)
 
 ### Added
+- **Tag Management Document Tree, Quick Tagging & Reordering (`#/tagadmin`)**:
+  - Enhanced Tag Administration's left tree with a **Show/Hide documents** toggle (enabled by default), lazy-loaded direct documents per tag (`GET /api/tag/{id}/documents`, 20 per page with Load more), direct document count badges (`direct_document_count` in `GET /api/tag/list`), in-tree `▲ / ▼` document reordering (synced with `POST /api/tag/{id}/document/reorder`), and a virtual **Untagged documents** folder (`GET /api/tag/untagged/documents`).
+  - Clicking any document in the tree opens a right-side **Quick Tagging** panel (`#/tagadmin/document/:id`) featuring selected tag chips and a searchable hierarchical checkbox tree (excluding hidden system tags); saving invokes the new dedicated `POST /api/document/{id}/tags` endpoint (preserving existing hidden tags and refreshing expanded tree nodes), with 16-language translations and integration tests in `TestTagResource`.
 - **Apache Lucene 10.6.0 Upgrade & Index Rebuild Maintenance Lock**:
   - Upgraded Apache Lucene from `8.7.0` to **`10.6.0`** (JDK 21 native; migrated `lucene-analyzers-common` → `lucene-analysis-common`, `RAMDirectory` → `ByteBuffersDirectory`, `IndexSearcher.doc(...)` → `storedFields().document(...)`, and safely closed handles before wiping legacy Lucene 8 index directories on Windows/Linux).
   - Added two-tier login & session maintenance locking during index rebuilds: startup auto-upgrade rebuilds block all logins/sessions (`503 ReindexingInProgress`) until complete, while admin-triggered manual rebuilds block non-admin/guest users and allow administrators to monitor progress.
@@ -22,6 +25,8 @@ This document details the notable changes, security enhancements, architecture i
   - Private mode serves `Disallow: /` and `X-Robots-Tag: noindex, nofollow, noarchive` on all responses; Public mode serves `Allow: /` while always excluding `/api/` and `/share.html` (plus `<meta name="robots" content="noindex, nofollow, noarchive">` in `share.html`).
 
 ### Fixed & Hardened
+- **Tag Management Unsaved Edit Guard (`TagEdit.js`)**:
+  - Removed shared object reference mutation on `$scope.tags` when loading tag details so changing a tag's parent, name, color, or description on the right panel no longer alters the left tag tree before clicking **Save**.
 - **Security — Uncontrolled Command Line in Local Tesseract Check (`CWE-78` / `CWE-88`, CodeQL #35)**:
   - Added strict `TesseractOcrProvider.validateTesseractCommand()` allowlist invoked before `ProcessBuilder` in both `checkAvailability()` and `extractText()`: only permits empty/auto-detect, hardcoded literal `"tesseract"` / `"tesseract.exe"`, or a normalized absolute path to an existing regular file named strictly `tesseract` / `tesseract.exe`.
 - **Portable Demo Auto-Reset & Maven Clean File-Lock Reliability**:

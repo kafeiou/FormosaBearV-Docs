@@ -361,7 +361,21 @@
     "hidden_tooltip": "Tag nascosto (escluso dalla lista standard dei documenti)",
     "effective_hidden_tooltip": "Nascosto automaticamente tramite un tag superiore nascosto",
     "description_tooltip": "Descrizione: {{ description }}",
-    "description_placeholder": "Descrizione dell'etichetta (opzionale, max 200 caratteri)"
+    "description_placeholder": "Descrizione dell'etichetta (opzionale, max 200 caratteri)",
+    "admin_doc": {
+      "show_docs": "Mostra documenti",
+      "hide_docs": "Nascondi documenti",
+      "direct_doc_count": "{{ count }} documento/i diretto/i",
+      "untagged_folder": "Documenti senza etichetta",
+      "no_untagged": "Nessun documento senza etichetta",
+      "load_more": "Carica altri",
+      "open_document": "Apri documento",
+      "read_only_warning": "Hai solo il permesso di lettura per questo documento.",
+      "selected_tags": "Etichette selezionate",
+      "no_tags_selected": "Nessuna etichetta selezionata.",
+      "assign_tags_title": "Seleziona le etichette per questo documento",
+      "saved": "Etichette salvate"
+    }
   },
   "group": {
     "profile": {
