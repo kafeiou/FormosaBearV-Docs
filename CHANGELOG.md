@@ -36,6 +36,9 @@ This document details the notable changes, security enhancements, architecture i
   - Removed inline tag badges beneath each document row in Document Management's left list (`document.html`) and each document card in Tag Browse (`tag.view.html`) for a cleaner layout, while keeping tags visible in the document view, top folder navigation, and advanced search filter.
 
 ### Fixed & Hardened
+- **Critical — Prevent Original File Deletion During OCR Reindex in Unencrypted Mode (`RebuildIndexAsyncListener.java`)**:
+  - Fixed a critical data-loss bug where running index rebuild with OCR reprocessing (`ocr_mode = MISSING` or `ALL`) on an unencrypted storage instance (`file_encrypt = false`) deleted the original stored file in the `finally` block because `EncryptionUtil.decryptFile()` returns the original `storedFile` path when encryption is disabled.
+  - Added dual guards matching `PdfUtil.java`: only invoke `EncryptionUtil.decryptFile()` when `ConfigUtil.isFileEncrypt()` is `true`, and require both `fileEncrypted` and normalized absolute path inequality (`!unencryptedFile.equals(storedFile)`) before deleting any temporary file.
 - **Tag Management Live Left-Tree Refresh on File Mutations (`DocumentViewContent.js` & `Tag.js`)**:
   - Guarded `$scope.viewDocument()` / `$scope.loadDocuments()` calls in `DocumentViewContent.js` when uploading, deleting, moving, or updating file versions inside `#/tagadmin/document/:id`, and emitted `tagAdminDocumentFilesUpdated` so `Tag.js` immediately refreshes expanded tag and untagged document file counts `(N)` without collapsing the tree.
 - **Consistent Latest-Version File Count (`TagDao.java` & `DocumentDao.java`)**:

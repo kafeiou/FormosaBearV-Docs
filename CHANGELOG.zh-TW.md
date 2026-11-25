@@ -36,6 +36,9 @@
   - 移除文件管理左側清單（`document.html`）與標籤瀏覽區右側文件卡片（`tag.view.html`）中每筆文件下方的標籤徽章區塊，讓文件列表更簡潔易讀；文件詳細頁、資料夾導覽與進階搜尋的標籤篩選維持不變。
 
 ### 修復與安全性強化 (Fixed & Hardened)
+- **重大修復 — 未加密模式下執行「重建索引＋補跑 OCR」誤刪原始檔案（`RebuildIndexAsyncListener.java`）**：
+  - 修正當系統設定為未加密儲存模式（`file_encrypt = false`）時，執行「重建索引並補跑 OCR（`MISSING` / `ALL`）」因 `EncryptionUtil.decryptFile()` 直接回傳原始檔案路徑，導致 `finally` 區塊誤刪磁碟原始檔案的嚴重問題。
+  - 比照 `PdfUtil.java` 加入雙重保護：僅於 `ConfigUtil.isFileEncrypt()` 為 `true` 時才產生暫存解密檔，且刪除前強制檢查加密模式與正規化絕對路徑不等於原始檔案路徑。
 - **標籤管理區新增／刪除／移動檔案後即時刷新左樹檔案數（`DocumentViewContent.js`、`Tag.js`）**：
   - 修正於 `#/tagadmin/document/:id` 內上傳、刪除、移動檔案或變更版本時誤呼叫文件管理專屬 `$scope.viewDocument()` / `$scope.loadDocuments()` 的問題，改發送 `tagAdminDocumentFilesUpdated` 事件由 `Tag.js` 即時重刷左側已展開標籤與未貼標籤資料夾的檔案數 `(N)`（且不收合樹狀結構）。
 - **修正文件檔案數統計誤計入歷史版本問題（`TagDao.java`、`DocumentDao.java`）**：

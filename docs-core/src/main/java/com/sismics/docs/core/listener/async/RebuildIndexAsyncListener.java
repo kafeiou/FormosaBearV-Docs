@@ -203,14 +203,18 @@ public class RebuildIndexAsyncListener {
                 continue;
             }
 
+            Path storedFile = null;
             Path unencryptedFile = null;
+            boolean fileEncrypted = ConfigUtil.isFileEncrypt();
             try {
-                Path storedFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());
+                storedFile = DirectoryUtil.getStorageDirectory(file).resolve(file.getName());
                 if (!Files.exists(storedFile)) {
                     ReindexProgress.addOcrFailure(candidate.fileId, displayName, "Stored file not found on disk");
                     continue;
                 }
-                unencryptedFile = EncryptionUtil.decryptFile(storedFile, user.getPrivateKey());
+                unencryptedFile = fileEncrypted
+                        ? EncryptionUtil.decryptFile(storedFile, user.getPrivateKey())
+                        : storedFile;
                 String content = formatHandler.extractContent(languageRef.get(), unencryptedFile);
 
                 final String extractedContent = content;
@@ -228,7 +232,8 @@ public class RebuildIndexAsyncListener {
                 String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
                 ReindexProgress.addOcrFailure(candidate.fileId, displayName, msg);
             } finally {
-                if (unencryptedFile != null) {
+                if (fileEncrypted && unencryptedFile != null
+                        && (storedFile == null || !unencryptedFile.toAbsolutePath().normalize().equals(storedFile.toAbsolutePath().normalize()))) {
                     try {
                         Files.deleteIfExists(unencryptedFile);
                     } catch (Exception ignored) {
