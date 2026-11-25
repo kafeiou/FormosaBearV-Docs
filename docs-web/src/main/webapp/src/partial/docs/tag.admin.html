@@ -54,7 +54,7 @@
            ng-class="{ 'active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }"
            uib-tooltip="{{ getDocumentTooltip(doc) }}" tooltip-append-to-body="true"
            style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">
-          {{ doc.title }}
+          {{ doc.title }} ({{ doc.file_count || 0 }})
         </a>
         <span class="tag-order-actions ml-10" ng-if="canManageTags && tagDocs[tag.id].documents.length > 1" style="flex-shrink: 0;">
           <button type="button" class="btn btn-xs btn-link p-0 text-muted"
@@ -214,7 +214,7 @@
                 <a ng-href="{{ getTagAdminDocHref(doc.id) }}"
                    ng-class="{ 'active': $state.includes('tagadmin.document') && $stateParams.id == doc.id }"
                    uib-tooltip="{{ getDocumentTooltip(doc) }}" tooltip-append-to-body="true">
-                  {{ doc.title }}
+                  {{ doc.title }} ({{ doc.file_count || 0 }})
                 </a>
               </div>
             </li>

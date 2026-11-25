@@ -1009,6 +1009,7 @@ public class TestTagResource extends BaseJerseyTest {
         Assert.assertEquals(1, childDocs.getInt("total"));
         Assert.assertEquals(childDocId, childDocs.getJsonArray("documents").getJsonObject(0).getString("id"));
         Assert.assertEquals("tag_tree_doc_user", childDocs.getJsonArray("documents").getJsonObject(0).getString("creator"));
+        Assert.assertEquals(0, childDocs.getJsonArray("documents").getJsonObject(0).getInt("file_count"));
         Assert.assertTrue(childDocs.getJsonArray("documents").getJsonObject(0).getBoolean("writable"));
 
         JsonObject untaggedDocs = target().path("/tag/untagged/documents").request()
@@ -1017,6 +1018,7 @@ public class TestTagResource extends BaseJerseyTest {
         Assert.assertEquals(1, untaggedDocs.getInt("total"));
         Assert.assertEquals(untaggedDocId, untaggedDocs.getJsonArray("documents").getJsonObject(0).getString("id"));
         Assert.assertEquals("tag_tree_doc_user", untaggedDocs.getJsonArray("documents").getJsonObject(0).getString("creator"));
+        Assert.assertEquals(0, untaggedDocs.getJsonArray("documents").getJsonObject(0).getInt("file_count"));
 
         // Quick-tag childDoc to move from childTag -> parentTag (omitting hiddenTagId): preserve_hidden keeps hiddenTagId!
         JsonObject updated = target().path("/document/" + childDocId + "/tags").request()

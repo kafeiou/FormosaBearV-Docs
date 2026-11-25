@@ -892,6 +892,7 @@ public class TagResource extends BaseResource {
                     .add("id", doc.getId())
                     .add("title", JsonUtil.nullable(doc.getTitle()))
                     .add("create_date", doc.getCreateDate() != null ? doc.getCreateDate().getTime() : 0L)
+                    .add("file_count", doc.getFileCount())
                     .add("writable", writable);
             if (doc.getCreator() != null) {
                 docObj.add("creator", doc.getCreator());

@@ -785,18 +785,21 @@ public class TagDao {
         private final String title;
         private final Date createDate;
         private final String creator;
+        private final int fileCount;
 
-        public TreeDocumentItem(String id, String title, Date createDate, String creator) {
+        public TreeDocumentItem(String id, String title, Date createDate, String creator, int fileCount) {
             this.id = id;
             this.title = title;
             this.createDate = createDate;
             this.creator = creator;
+            this.fileCount = fileCount;
         }
 
         public String getId() { return id; }
         public String getTitle() { return title; }
         public Date getCreateDate() { return createDate; }
         public String getCreator() { return creator; }
+        public int getFileCount() { return fileCount; }
     }
 
     /**
@@ -844,7 +847,9 @@ public class TagDao {
         }
 
         Query listQ = em.createNativeQuery(
-                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, u.USE_USERNAME_C, coalesce(dt.DOT_ORDER_N, 999999999) as ord "
+                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, u.USE_USERNAME_C, "
+                        + "(select count(f.FIL_ID_C) from T_FILE f where f.FIL_DELETEDATE_D is null and f.FIL_IDDOC_C = d.DOC_ID_C) as fileCount, "
+                        + "coalesce(dt.DOT_ORDER_N, 999999999) as ord "
                         + where
                         + " order by ord asc, d.DOC_CREATEDATE_D desc");
         listQ.setParameter("tagId", tagId);
@@ -857,7 +862,8 @@ public class TagDao {
         List<Object[]> rows = listQ.getResultList();
         List<TreeDocumentItem> docs = new ArrayList<>(rows.size());
         for (Object[] row : rows) {
-            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2], (String) row[3]));
+            int fileCount = row[4] != null ? ((Number) row[4]).intValue() : 0;
+            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2], (String) row[3], fileCount));
         }
         return new TreeDocumentPage(total, docs);
     }
@@ -888,7 +894,9 @@ public class TagDao {
         }
 
         Query listQ = em.createNativeQuery(
-                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, u.USE_USERNAME_C " + where + " order by d.DOC_CREATEDATE_D desc");
+                "select d.DOC_ID_C, d.DOC_TITLE_C, d.DOC_CREATEDATE_D, u.USE_USERNAME_C, "
+                        + "(select count(f.FIL_ID_C) from T_FILE f where f.FIL_DELETEDATE_D is null and f.FIL_IDDOC_C = d.DOC_ID_C) as fileCount "
+                        + where + " order by d.DOC_CREATEDATE_D desc");
         if (checkAcl) {
             listQ.setParameter("targetIdList", targetIdList);
         }
@@ -898,7 +906,8 @@ public class TagDao {
         List<Object[]> rows = listQ.getResultList();
         List<TreeDocumentItem> docs = new ArrayList<>(rows.size());
         for (Object[] row : rows) {
-            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2], (String) row[3]));
+            int fileCount = row[4] != null ? ((Number) row[4]).intValue() : 0;
+            docs.add(new TreeDocumentItem((String) row[0], (String) row[1], (Date) row[2], (String) row[3], fileCount));
         }
         return new TreeDocumentPage(total, docs);
     }
