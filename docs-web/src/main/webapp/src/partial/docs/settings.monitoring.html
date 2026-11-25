@@ -91,6 +91,160 @@
   </div>
 </div>
 
+<h2 translate="settings.monitoring.integrity_title"></h2>
+<p>{{ 'settings.monitoring.integrity_info' | translate }}</p>
+<div class="mt-10" style="margin-bottom: 12px;">
+  <button type="button" class="btn btn-primary" ng-click="scanIntegrity()" ng-disabled="integrityScanning || integrityCleaning">
+    <span class="fas" ng-class="integrityScanning ? 'fa-circle-notch fa-spin' : 'fa-search'"></span>
+    {{ 'settings.monitoring.integrity_scan_btn' | translate }}
+  </button>
+  <button type="button" class="btn btn-danger" style="margin-left: 8px;"
+          ng-if="integrityResult && getTotalIntegrityIssues() > 0"
+          ng-click="cleanSelectedIntegrity()"
+          ng-disabled="integrityCleaning || integrityScanning || getSelectedIntegrityCount() === 0">
+    <span class="fas" ng-class="integrityCleaning ? 'fa-circle-notch fa-spin' : 'fa-broom'"></span>
+    {{ 'settings.monitoring.integrity_clean_btn' | translate: { count: getSelectedIntegrityCount() } }}
+  </button>
+</div>
+
+<div class="alert alert-success" ng-if="integrityCleanMessage">
+  <span class="fas fa-check-circle"></span> {{ integrityCleanMessage }}
+</div>
+
+<div class="alert alert-danger" ng-if="integrityError">
+  <span class="fas fa-exclamation-circle"></span> {{ integrityError }}
+</div>
+
+<div class="alert alert-success" ng-if="integrityResult && !integrityScanning && getTotalIntegrityIssues() === 0">
+  <span class="fas fa-check-circle"></span>
+  {{ 'settings.monitoring.integrity_all_clean' | translate: { total: integrityResult.total_db_files } }}
+</div>
+
+<!-- 1. Orphaned Historical Versions -->
+<div class="panel panel-warning" ng-if="integrityResult && integrityResult.orphaned_versions.length > 0" style="margin-top: 12px;">
+  <div class="panel-heading clearfix">
+    <strong>
+      <span class="fas fa-history"></span>
+      {{ 'settings.monitoring.integrity_orphaned_versions' | translate: { count: integrityResult.orphaned_versions.length } }}
+    </strong>
+    <div class="pull-right">
+      <button type="button" class="btn btn-xs btn-default" ng-click="toggleAllCategory('orphaned_versions', true)">{{ 'settings.monitoring.integrity_select_all' | translate }}</button>
+      <button type="button" class="btn btn-xs btn-default" ng-click="toggleAllCategory('orphaned_versions', false)">{{ 'settings.monitoring.integrity_select_none' | translate }}</button>
+    </div>
+  </div>
+  <div class="panel-body" style="padding: 8px 12px;">
+    <p class="text-muted small" style="margin-bottom: 6px;">{{ 'settings.monitoring.integrity_orphaned_versions_desc' | translate }}</p>
+    <table class="table table-condensed table-striped" style="margin-bottom: 0;">
+      <thead>
+        <tr>
+          <th style="width: 30px;"></th>
+          <th>{{ 'settings.monitoring.integrity_col_file' | translate }}</th>
+          <th>{{ 'settings.monitoring.integrity_col_document' | translate }}</th>
+          <th>{{ 'settings.monitoring.integrity_col_version' | translate }}</th>
+          <th>{{ 'settings.monitoring.integrity_col_disk' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="item in integrityResult.orphaned_versions">
+          <td><input type="checkbox" ng-model="integritySelectedFiles[item.file_id]" /></td>
+          <td><code>{{ item.file_name || item.file_id }}</code></td>
+          <td>
+            <a ng-if="item.document_id" ng-href="#/document/view/{{ item.document_id }}" target="_blank">{{ item.document_title || item.document_id }}</a>
+            <span ng-if="!item.document_id" class="text-muted">-</span>
+          </td>
+          <td>v{{ (item.version || 0) + 1 }}<span ng-if="item.version_label"> ({{ item.version_label }})</span></td>
+          <td>
+            <span class="label" ng-class="item.disk_exists ? 'label-default' : 'label-danger'">
+              {{ (item.disk_exists ? 'settings.monitoring.integrity_disk_present' : 'settings.monitoring.integrity_disk_missing') | translate }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 2. Orphaned Disk Files -->
+<div class="panel panel-info" ng-if="integrityResult && integrityResult.orphaned_disk_files.length > 0" style="margin-top: 12px;">
+  <div class="panel-heading clearfix">
+    <strong>
+      <span class="fas fa-hdd"></span>
+      {{ 'settings.monitoring.integrity_orphaned_disk' | translate: { count: integrityResult.orphaned_disk_files.length } }}
+      ({{ integrityResult.orphaned_disk_bytes | filesize }})
+    </strong>
+    <div class="pull-right">
+      <button type="button" class="btn btn-xs btn-default" ng-click="toggleAllCategory('orphaned_disk_files', true)">{{ 'settings.monitoring.integrity_select_all' | translate }}</button>
+      <button type="button" class="btn btn-xs btn-default" ng-click="toggleAllCategory('orphaned_disk_files', false)">{{ 'settings.monitoring.integrity_select_none' | translate }}</button>
+    </div>
+  </div>
+  <div class="panel-body" style="padding: 8px 12px;">
+    <p class="text-muted small" style="margin-bottom: 6px;">{{ 'settings.monitoring.integrity_orphaned_disk_desc' | translate }}</p>
+    <table class="table table-condensed table-striped" style="margin-bottom: 0;">
+      <thead>
+        <tr>
+          <th style="width: 30px;"></th>
+          <th>{{ 'settings.monitoring.integrity_col_path' | translate }}</th>
+          <th style="width: 110px;">{{ 'settings.monitoring.integrity_col_size' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="item in integrityResult.orphaned_disk_files">
+          <td><input type="checkbox" ng-model="integritySelectedDisk[item.relative_path]" /></td>
+          <td style="word-break: break-all;"><code>storage/{{ item.relative_path }}</code></td>
+          <td>{{ item.size | filesize }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 3. Missing Physical Files (DB exists, Disk missing) -->
+<div class="panel panel-danger" ng-if="integrityResult && integrityResult.missing_files.length > 0" style="margin-top: 12px;">
+  <div class="panel-heading clearfix">
+    <strong>
+      <span class="fas fa-exclamation-triangle"></span>
+      {{ 'settings.monitoring.integrity_missing_files' | translate: { count: integrityResult.missing_files.length } }}
+    </strong>
+    <div class="pull-right">
+      <button type="button" class="btn btn-xs btn-default" ng-click="toggleAllCategory('missing_files', true)">{{ 'settings.monitoring.integrity_select_all' | translate }}</button>
+      <button type="button" class="btn btn-xs btn-default" ng-click="toggleAllCategory('missing_files', false)">{{ 'settings.monitoring.integrity_select_none' | translate }}</button>
+    </div>
+  </div>
+  <div class="panel-body" style="padding: 8px 12px;">
+    <div class="alert alert-warning" style="padding: 8px 12px; margin-bottom: 8px;">
+      <span class="fas fa-shield-alt"></span>
+      {{ 'settings.monitoring.integrity_missing_files_warning' | translate }}
+    </div>
+    <table class="table table-condensed table-striped" style="margin-bottom: 0;">
+      <thead>
+        <tr>
+          <th style="width: 30px;"></th>
+          <th>{{ 'settings.monitoring.integrity_col_file' | translate }}</th>
+          <th>{{ 'settings.monitoring.integrity_col_document' | translate }}</th>
+          <th>{{ 'settings.monitoring.integrity_col_version' | translate }}</th>
+          <th>{{ 'settings.monitoring.integrity_col_path' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="item in integrityResult.missing_files">
+          <td><input type="checkbox" ng-model="integritySelectedFiles[item.file_id]" /></td>
+          <td><code>{{ item.file_name || item.file_id }}</code></td>
+          <td>
+            <a ng-if="item.document_id" ng-href="#/document/view/{{ item.document_id }}" target="_blank">{{ item.document_title || item.document_id }}</a>
+            <span ng-if="!item.document_id" class="text-muted">-</span>
+          </td>
+          <td>
+            <span class="label" ng-class="item.latest_version ? 'label-danger' : 'label-default'">
+              {{ (item.latest_version ? 'settings.monitoring.integrity_latest_badge' : 'settings.monitoring.integrity_old_badge') | translate }}
+            </span>
+          </td>
+          <td style="word-break: break-all;"><code class="small">{{ item.expected_path }}</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 <h2 translate="settings.monitoring.server_logs"></h2>
 <table class="table table-hover table-logs">
   <thead>

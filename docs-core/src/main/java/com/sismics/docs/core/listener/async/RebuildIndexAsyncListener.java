@@ -152,7 +152,9 @@ public class RebuildIndexAsyncListener {
             do {
                 batch = fileDao.findAll(offset, 100);
                 for (File f : batch) {
-                    candidates.add(new OcrCandidate(f));
+                    if (f.isLatestVersion()) {
+                        candidates.add(new OcrCandidate(f));
+                    }
                 }
                 offset += 100;
             } while (!batch.isEmpty());

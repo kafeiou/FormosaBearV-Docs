@@ -1191,6 +1191,101 @@ public class AppResource extends BaseResource {
     }
 
     /**
+     * Scans for DB/storage integrity mismatches (orphaned historical versions, missing physical files,
+     * and orphaned disk files under storage/). Read-only, ADMIN only.
+     */
+    @GET
+    @Path("integrity/scan")
+    public Response integrityScan() {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        com.sismics.docs.core.service.StorageIntegrityService service = new com.sismics.docs.core.service.StorageIntegrityService();
+        com.sismics.docs.core.service.StorageIntegrityService.ScanResult scan = service.scan();
+
+        JsonArrayBuilder orphanedVersionsArr = Json.createArrayBuilder();
+        for (com.sismics.docs.core.service.StorageIntegrityService.DbFileIssue item : scan.orphanedVersions) {
+            orphanedVersionsArr.add(buildDbFileIssueJson(item));
+        }
+
+        JsonArrayBuilder missingFilesArr = Json.createArrayBuilder();
+        for (com.sismics.docs.core.service.StorageIntegrityService.DbFileIssue item : scan.missingFiles) {
+            missingFilesArr.add(buildDbFileIssueJson(item));
+        }
+
+        JsonArrayBuilder orphanedDiskArr = Json.createArrayBuilder();
+        for (com.sismics.docs.core.service.StorageIntegrityService.DiskOrphanIssue item : scan.orphanedDiskFiles) {
+            orphanedDiskArr.add(Json.createObjectBuilder()
+                    .add("relative_path", item.relativePath)
+                    .add("size", item.size)
+                    .add("last_modified", item.lastModified));
+        }
+
+        return Response.ok().entity(Json.createObjectBuilder()
+                .add("scanned_at", scan.scannedAt)
+                .add("total_db_files", scan.totalDbFiles)
+                .add("orphaned_versions", orphanedVersionsArr)
+                .add("missing_files", missingFilesArr)
+                .add("orphaned_disk_files", orphanedDiskArr)
+                .add("orphaned_disk_bytes", scan.orphanedDiskBytes)
+                .build()).build();
+    }
+
+    /**
+     * Permanently cleans explicitly selected mismatched DB file records and/or orphaned disk files.
+     * ADMIN only.
+     */
+    @POST
+    @Path("integrity/clean")
+    public Response integrityClean(
+            @FormParam("file_ids") List<String> fileIds,
+            @FormParam("disk_paths") List<String> diskPaths) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+        checkBaseFunction(BaseFunction.ADMIN);
+
+        com.sismics.docs.core.service.StorageIntegrityService service = new com.sismics.docs.core.service.StorageIntegrityService();
+        com.sismics.docs.core.service.StorageIntegrityService.CleanResult result = service.clean(fileIds, diskPaths, principal.getId());
+
+        return Response.ok().entity(Json.createObjectBuilder()
+                .add("status", "ok")
+                .add("cleaned_db_files", result.cleanedDbFiles)
+                .add("cleaned_disk_files", result.cleanedDiskFiles)
+                .add("reclaimed_bytes", result.reclaimedBytes)
+                .add("skipped", result.skipped)
+                .build()).build();
+    }
+
+    private JsonObjectBuilder buildDbFileIssueJson(com.sismics.docs.core.service.StorageIntegrityService.DbFileIssue item) {
+        JsonObjectBuilder obj = Json.createObjectBuilder()
+                .add("file_id", item.fileId)
+                .add("file_name", JsonUtil.nullable(item.fileName))
+                .add("user_id", JsonUtil.nullable(item.userId))
+                .add("username", JsonUtil.nullable(item.username))
+                .add("latest_version", item.latestVersion)
+                .add("size", item.size)
+                .add("create_date", item.createDate)
+                .add("disk_exists", item.diskExists)
+                .add("expected_path", JsonUtil.nullable(item.expectedPath));
+        if (item.documentId != null) {
+            obj.add("document_id", item.documentId);
+        }
+        if (item.documentTitle != null) {
+            obj.add("document_title", item.documentTitle);
+        }
+        if (item.version != null) {
+            obj.add("version", item.version);
+        }
+        if (item.versionLabel != null) {
+            obj.add("version_label", item.versionLabel);
+        }
+        return obj;
+    }
+
+    /**
      * Clean storage.
      *
      * @api {post} /app/batch/clean_storage Clean the file and DB storage

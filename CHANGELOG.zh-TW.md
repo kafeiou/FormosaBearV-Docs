@@ -9,6 +9,9 @@
 ## [v3.02-SNAPSHOT]（未發布）
 
 ### 新增功能 (Added)
+- **資料一致性檢查與選擇性清理（`GET /api/app/integrity/scan`、`POST /api/app/integrity/clean`、`#/settings/monitoring`）**：
+  - 於「**設定 → 監控**」新增限管理員使用的兩階段「**先掃描預覽 → 勾選確認 → 徹底清理**」工具（`StorageIntegrityService`、`AppResource`、`settings.monitoring.html`、`SettingsMonitoring.js`），可偵測三類不匹配項目：**孤兒歷史版本**（`latest_version = false` 且已無有效最新版）、**缺實體檔的資料庫紀錄**（最新版預設不勾選並顯示警示）、以及 **`storage/` 磁碟孤兒殘留檔**。
+  - 選擇性清理會徹底移除勾選的資料庫異常紀錄（軟刪除、移出 Lucene 索引、刪除殘留衍生檔與校正配額，不進垃圾桶）並具路徑遍歷防呆（CWE-22）清理磁碟孤兒檔；同步更新 `RebuildIndexAsyncListener.reprocessOcr()` 跳過非最新版歷史紀錄，並補齊 16 國語系與 `TestAppResource` 整合測試。
 - **標籤區同畫面雙分頁文件檢視與編輯（`#/tag/:tagId/document/:id`）**：
   - 於標籤瀏覽區新增 `tag.document` 巢狀子路由（`.view`、`.content`、`.content.file`、`.workflow`、`.permissions`、`.activity`、`.edit`）與右側頂部雙分頁（「**文件列表**」｜「**文件檢視與檔案**」），點選文件標題或「開啟」預設直接於右側檢視文件，全程保留左側標籤樹高亮與 `?focus` 聚焦模式。
   - 切回「文件列表」時保留同標籤下最後檢視的文件分頁以便來回切換，切換至左側其他標籤時自動清除記憶；編輯、儲存、取消、刪除、檔案預覽彈窗及檔案上傳／刪除皆停留於 `#/tag` 內不跳離，並補齊 16 國語系翻譯。
@@ -32,6 +35,8 @@
   - 不公開模式回傳 `Disallow: /` 並對所有回應加上 `X-Robots-Tag: noindex, nofollow, noarchive`；公開模式回傳 `Allow: /` 並一律排除 `/api/` 與 `/share.html`（`share.html` 另加上 `<meta name="robots" content="noindex, nofollow, noarchive">` 雙重保護分享連結）。
 
 ### 介面調整 (Changed)
+- **搜尋命中關鍵字深淺色紅字粗體高亮（`document.html`、`main.less`）**：
+  - 將文件列表全文搜尋命中摘要（`document.highlight`）中的關鍵字改為淺色模式深紅粗體（`#c62828`）、深色模式亮珊瑚紅粗體（`#ff6b6b`），提升辨識度與深淺主題對比度。
 - **文件管理與標籤區文件列表精簡顯示（`#/document`、`#/tag`）**：
   - 移除文件管理左側清單（`document.html`）與標籤瀏覽區右側文件卡片（`tag.view.html`）中每筆文件下方的標籤徽章區塊，讓文件列表更簡潔易讀；文件詳細頁、資料夾導覽與進階搜尋的標籤篩選維持不變。
 

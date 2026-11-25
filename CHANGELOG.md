@@ -9,6 +9,9 @@ This document details the notable changes, security enhancements, architecture i
 ## [v3.02-SNAPSHOT] (Unreleased)
 
 ### Added
+- **Storage & Database Integrity Scan & Selective Cleanup (`GET /api/app/integrity/scan`, `POST /api/app/integrity/clean`, `#/settings/monitoring`)**:
+  - Added an admin-only two-step **Scan → Review & Select → Confirm Clean** tool in **Settings → Monitoring** (`StorageIntegrityService`, `AppResource`, `settings.monitoring.html`, `SettingsMonitoring.js`) detecting three mismatch categories: **orphaned historical versions** (`latest_version = false` with no active latest version), **DB file records missing physical files on disk** (with latest versions unchecked by default + warning banner), and **orphaned disk files** under `storage/`.
+  - Selective cleanup permanently removes chosen mismatched DB records (soft-delete, Lucene index removal, derivative cleanup, user quota adjustment without cluttering Trash) and path-traversal-guarded (`CWE-22`) orphaned disk files; also updated `RebuildIndexAsyncListener.reprocessOcr()` to skip non-latest historical versions, with 16-language translations and integration tests in `TestAppResource`.
 - **Tag Browse In-Place Document View & Edit Tabs (`#/tag/:tagId/document/:id`)**:
   - Added nested `tag.document` routes (`.view`, `.content`, `.content.file`, `.workflow`, `.permissions`, `.activity`, `.edit`) and a right-pane two-tab bar (**Document list** | **Document View & Files**) in Tag Browse (`tag.browse.document.html`, `tag.view.html`), defaulting to **Document View & Files** when clicking any document while keeping the left tag tree and `?focus` mode intact.
   - Switching back to **Document list** remembers the last viewed document for the current tag for quick round-trip switching, and automatically clears when selecting a different tag; editing, saving, canceling, deleting, file preview modals, and file uploads/deletions all stay in-place within `#/tag`, with 16-language translations.
@@ -32,6 +35,8 @@ This document details the notable changes, security enhancements, architecture i
   - Private mode serves `Disallow: /` and `X-Robots-Tag: noindex, nofollow, noarchive` on all responses; Public mode serves `Allow: /` while always excluding `/api/` and `/share.html` (plus `<meta name="robots" content="noindex, nofollow, noarchive">` in `share.html`).
 
 ### Changed
+- **Theme-Aware Search Keyword Highlight (`document.html`, `main.less`)**:
+  - Styled matched full-text search keywords in the document list (`document.highlight`) as bold deep red (`#c62828`) in Light mode and bold coral red (`#ff6b6b`) in Dark mode for higher visual clarity.
 - **Cleaner Document Management & Tag Browse Lists (`#/document`, `#/tag`)**:
   - Removed inline tag badges beneath each document row in Document Management's left list (`document.html`) and each document card in Tag Browse (`tag.view.html`) for a cleaner layout, while keeping tags visible in the document view, top folder navigation, and advanced search filter.
 

@@ -870,4 +870,67 @@ public class TestAppResource extends BaseJerseyTest {
             com.sismics.docs.core.util.indexing.ReindexProgress.complete();
         }
     }
+
+    /**
+     * Test storage/DB integrity scan and selective cleanup endpoints (ADMIN only, traversal-safe).
+     */
+    @Test
+    public void testStorageIntegrityScanAndClean() throws Exception {
+        String adminToken = adminToken();
+        clientUtil.createUser("integrity_normal_user");
+        String userToken = clientUtil.login("integrity_normal_user");
+
+        // 1. Non-admin is forbidden
+        Response forbiddenScan = target().path("/app/integrity/scan").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .get();
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(forbiddenScan.getStatus()));
+
+        Response forbiddenClean = target().path("/app/integrity/clean").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                .post(Entity.form(new Form()));
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(forbiddenClean.getStatus()));
+
+        // 2. Create an orphaned file on disk under storage/
+        java.nio.file.Path storageRoot = com.sismics.docs.core.util.DirectoryUtil.getBaseDataDirectory().resolve("storage");
+        java.nio.file.Path orphanDir = storageRoot.resolve("orphan_test_dir");
+        java.nio.file.Files.createDirectories(orphanDir);
+        java.nio.file.Path orphanFile = orphanDir.resolve("stray_file.bin");
+        java.nio.file.Files.write(orphanFile, "orphan-payload".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        try {
+            // 3. Scan detects the orphaned disk file
+            JsonObject scan = target().path("/app/integrity/scan").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                    .get(JsonObject.class);
+            boolean foundOrphan = false;
+            for (int i = 0; i < scan.getJsonArray("orphaned_disk_files").size(); i++) {
+                JsonObject item = scan.getJsonArray("orphaned_disk_files").getJsonObject(i);
+                if ("orphan_test_dir/stray_file.bin".equals(item.getString("relative_path"))) {
+                    foundOrphan = true;
+                    Assert.assertEquals(14, item.getInt("size"));
+                }
+            }
+            Assert.assertTrue("Expected orphaned disk file to be detected", foundOrphan);
+
+            // 4. Path traversal attempt is safely skipped
+            JsonObject badClean = target().path("/app/integrity/clean").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                    .post(Entity.form(new Form().param("disk_paths", "../outside.txt")), JsonObject.class);
+            Assert.assertEquals(0, badClean.getInt("cleaned_disk_files"));
+            Assert.assertEquals(1, badClean.getInt("skipped"));
+
+            // 5. Cleaning the selected orphan deletes it and cleans empty parent dir
+            JsonObject clean = target().path("/app/integrity/clean").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                    .post(Entity.form(new Form().param("disk_paths", "orphan_test_dir/stray_file.bin")), JsonObject.class);
+            Assert.assertEquals("ok", clean.getString("status"));
+            Assert.assertEquals(1, clean.getInt("cleaned_disk_files"));
+            Assert.assertEquals(14, clean.getInt("reclaimed_bytes"));
+            Assert.assertFalse(java.nio.file.Files.exists(orphanFile));
+        } finally {
+            java.nio.file.Files.deleteIfExists(orphanFile);
+            java.nio.file.Files.deleteIfExists(orphanDir);
+        }
+    }
 }

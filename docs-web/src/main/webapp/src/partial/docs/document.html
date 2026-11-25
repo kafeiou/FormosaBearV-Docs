@@ -269,7 +269,7 @@
               <span ng-if="docDateDisplayMode != 'relative' && docDateDisplayMode != 'date'">{{ document.create_date | date: 'yyyy-MM-dd HH:mm' }}</span>
             </div>
 
-            <div ng-if="document.highlight" class="small well-sm" ng-bind-html="document.highlight"></div>
+            <div ng-if="document.highlight" class="small well-sm document-highlight" ng-bind-html="document.highlight"></div>
           </td>
         </tr>
         </tbody>
