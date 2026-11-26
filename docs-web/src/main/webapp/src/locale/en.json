@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "Toggle navigation",
-    "nav_documents": "Document Management",
+    "nav_documents": "Document Search",
     "nav_tags": "Tags",
-    "nav_tag_management": "Tag Management",
+    "nav_tag_management": "Tags & Documents",
     "nav_users_groups": "Users & Groups",
     "error_info": "{{ count }} new error{{ count > 1 ? 's' : '' }}",
     "logged_as": "Logged in as {{ username }}",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "New tag",
+    "add_tag": "Add a tag",
     "root_tag_option": "No parent (Root tag)",
     "search": "Search",
     "expand_all": "Expand all",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "Files",
-      "description": "You can add files after creating a document or before using this Quick upload area."
+      "description": "You can add files after creating a document."
     },
     "step4": {
       "title": "Search",

@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "Attiva/Disattiva navigazione",
-    "nav_documents": "Documenti",
+    "nav_documents": "Ricerca documenti",
     "nav_tags": "Tags",
-    "nav_tag_management": "Gestione tag",
+    "nav_tag_management": "Tag e documenti",
     "nav_users_groups": "Utenti & Gruppi",
     "error_info": "{{ count }} nuov{{ count > 1 ? 'i' : 'o' }} error{{ count > 1 ? 'i' : 'e' }}",
     "logged_as": "Effettuato l'accesso come {{ username }}",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "Nuovo tag",
+    "add_tag": "Aggiungi tag",
     "root_tag_option": "Nessun genitore (Tag radice)",
     "search": "Cerca",
     "expand_all": "Espandi tutto",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "File",
-      "description": "Puoi aggiungere dei file dopo aver creato un documento oppure prima utilizzando questa zona di caricamento veloce."
+      "description": "Puoi aggiungere file dopo aver creato un documento."
     },
     "step4": {
       "title": "Ricerca",

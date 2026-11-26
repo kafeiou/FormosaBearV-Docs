@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "切换导航",
-    "nav_documents": "文档管理",
+    "nav_documents": "文档搜索",
     "nav_tags": "标签",
-    "nav_tag_management": "标签管理",
+    "nav_tag_management": "标签文档管理",
     "nav_users_groups": "用户 & 群组",
     "error_info": "{{ count }} 新错误",
     "logged_as": "以 {{ username }}登录",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "新标签",
+    "add_tag": "新增标签",
     "root_tag_option": "无上级标签（作为根标签）",
     "search": "搜索",
     "expand_all": "全部展开",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "文档",
-      "description": "您可以在创建文档后或之前使用快速上传区域添加文件。"
+      "description": "您可以在新增文档之后添加文件。"
     },
     "step4": {
       "title": "检索",

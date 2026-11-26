@@ -10,7 +10,11 @@
     <span class="fas fa-eye-slash text-muted" ng-if="tag.hidden" uib-tooltip="{{ 'tag.hidden_tooltip' | translate }}" style="margin-left: 3px; font-size: 11px;"></span>
     <span class="fas fa-eye-slash text-muted" ng-if="!tag.hidden && tag.effective_hidden" uib-tooltip="{{ 'tag.effective_hidden_tooltip' | translate }}" style="margin-left: 3px; font-size: 11px; opacity: 0.55;"></span>
     <span class="fas fa-lock text-warning" ng-if="tag.inherit_acl === false" uib-tooltip="{{ 'tag.broken_inheritance' | translate }}" style="margin-left: 3px; font-size: 11px;"></span>
-    <a href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': !$state.includes('tagadmin.document') && $stateParams.id == tag.id }"
+    <a ng-if="canManageTags" href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $state.current.name === 'tagadmin.edit' && $stateParams.id == tag.id }"
+       uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
+      {{ tag.name }}
+    </a>
+    <a ng-if="!canManageTags" href ng-click="toggleTagExpand(tag.id, $event)"
        uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
       {{ tag.name }}
     </a>
@@ -105,7 +109,29 @@
 <div class="row">
   <div class="col-md-4">
     <div class="well well-3d">
-      <form ng-if="showAddTag" class="mb-19" name="tagForm" novalidate style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0;">
+      <!-- Primary action buttons: Add tag (left) + Add document (right), equal size & unified primary color -->
+      <div class="mb-10" ng-if="userInfo && userInfo.username != 'guest'" style="display: flex; gap: 8px;">
+        <button type="button" class="btn btn-primary" style="flex: 1;"
+                ng-if="showAddTag"
+                ng-class="{ active: addTagFormOpen }"
+                ng-click="toggleAddTagForm()">
+          <span class="fas" ng-class="addTagFormOpen ? 'fa-times' : 'fa-plus'"></span>
+          {{ 'tag.add_tag' | translate }}
+        </button>
+        <div class="btn-group" style="flex: 1; display: flex;" uib-dropdown id="tagadmin-document-add-btn">
+          <a ng-href="{{ getTagAdminAddDocHref() }}" class="btn btn-primary" style="flex: 1;">
+            <span class="fas fa-plus"></span> {{ 'document.add_document' | translate }}
+          </a>
+          <button type="button" class="btn btn-primary" uib-dropdown-toggle style="flex: 0 0 auto;">
+            <span class="caret"></span>
+          </button>
+          <ul uib-dropdown-menu class="dropdown-menu-right">
+            <li><a href ngf-select="importEml($file)">{{ 'document.import_eml' | translate }}</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <form ng-if="showAddTag && addTagFormOpen" class="mb-19" name="tagForm" novalidate style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0;">
         <div class="row">
           <div class="col-xs-12 mb-10">
             <div class="input-group" ng-class="{ 'has-error': (!tagForm.color.$valid || !tagForm.name.$valid) && tagForm.$dirty }">
@@ -165,21 +191,20 @@
 
       <div class="clearfix mb-10" ng-if="tags.length > 0">
         <div class="btn-group btn-group-xs pull-left">
-          <button type="button" class="btn" ng-class="showTreeDocuments ? 'btn-info' : 'btn-default'"
+          <button type="button" class="btn btn-default" ng-class="{ active: showTreeDocuments }"
                   ng-click="toggleShowTreeDocuments()"
                   uib-tooltip="{{ (showTreeDocuments ? 'tag.admin_doc.hide_docs' : 'tag.admin_doc.show_docs') | translate }}">
-            <span class="far fa-file-alt"></span> {{ (showTreeDocuments ? 'tag.admin_doc.hide_docs' : 'tag.admin_doc.show_docs') | translate }}
+            <span class="fas text-info" ng-class="showTreeDocuments ? 'fa-eye-slash' : 'fa-eye'"></span> {{ (showTreeDocuments ? 'tag.admin_doc.hide_docs' : 'tag.admin_doc.show_docs') | translate }}
           </button>
         </div>
         <div class="btn-group btn-group-xs pull-right">
-          <button type="button" class="btn btn-primary" ng-click="openTagExportModal()" uib-tooltip="{{ 'tag.export.button' | translate }}">
-            <span class="fas fa-file-export"></span> {{ 'tag.export.button' | translate }}
+          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="toggleExpandAllTags()"
+                  uib-tooltip="{{ (areAllTagsExpanded() ? 'tag.collapse_all' : 'tag.expand_all') | translate }}">
+            <span class="fas" ng-class="areAllTagsExpanded() ? 'fa-minus-square' : 'fa-plus-square'"></span>
+            {{ (areAllTagsExpanded() ? 'tag.collapse_all' : 'tag.expand_all') | translate }}
           </button>
-          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="expandAllTags()" uib-tooltip="{{ 'tag.expand_all' | translate }}">
-            <span class="fas fa-plus-square"></span> {{ 'tag.expand_all' | translate }}
-          </button>
-          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="collapseAllTags()" uib-tooltip="{{ 'tag.collapse_all' | translate }}">
-            <span class="fas fa-minus-square"></span> {{ 'tag.collapse_all' | translate }}
+          <button type="button" class="btn btn-default" ng-click="openTagExportModal()" uib-tooltip="{{ 'tag.export.button' | translate }}">
+            <span class="fas fa-file-export text-success"></span> {{ 'tag.export.button' | translate }}
           </button>
         </div>
       </div>

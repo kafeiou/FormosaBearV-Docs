@@ -39,7 +39,8 @@ angular.module('docs').directive('selectTag', function($templateCache) {
     scope: {
       tags: '=',
       ref: '@',
-      ngDisabled: '='
+      ngDisabled: '=',
+      writableOnly: '='
     },
     controller: function($scope, $rootScope, Restangular) {
       $scope.getTagTooltip = $rootScope.getTagTooltip;
@@ -47,6 +48,7 @@ angular.module('docs').directive('selectTag', function($templateCache) {
       $scope.expandedTags = {};
       $scope.rootTags = [];
       $scope.allTags = [];
+      $scope.tagWritableMap = {};
 
       /**
        * Build hierarchical tag tree and full path labels for search/typeahead.
@@ -107,9 +109,29 @@ angular.module('docs').directive('selectTag', function($templateCache) {
 
       // Retrieve tags
       Restangular.one('tag/list').get().then(function(data) {
-        $scope.allTags = data.tags || [];
+        var rawTags = data.tags || [];
+        $scope.tagWritableMap = {};
+        _.each(rawTags, function(t) {
+          $scope.tagWritableMap[t.id] = t.writable !== false;
+        });
+        $scope.allTags = $scope.writableOnly
+          ? _.filter(rawTags, function(t) { return t.writable !== false && !t.is_container; })
+          : rawTags;
         buildTagHierarchy($scope.allTags);
       });
+
+      $scope.isTagWritable = function(tag) {
+        if (!$scope.writableOnly || !tag) {
+          return true;
+        }
+        if (tag.writable !== undefined) {
+          return !!tag.writable;
+        }
+        if ($scope.tagWritableMap[tag.id] !== undefined) {
+          return !!$scope.tagWritableMap[tag.id];
+        }
+        return false;
+      };
 
       /**
        * Toggle tag tree panel visibility.
@@ -256,6 +278,9 @@ angular.module('docs').directive('selectTag', function($templateCache) {
        * Remove a tag.
        */
       $scope.deleteTag = function(deleteTag) {
+        if ($scope.writableOnly && !$scope.isTagWritable(deleteTag)) {
+          return;
+        }
         $scope.tags = _.reject($scope.tags, function(tag) {
           return tag.id === deleteTag.id;
         });

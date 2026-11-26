@@ -149,11 +149,11 @@
           <li ui-sref-active="{ active: 'tag.**' }" id="navigation-tag">
             <a href="#/tag"><span class="fas fa-tags"></span> {{ 'index.nav_tags' | translate }}</a>
           </li>
-          <li ui-sref-active="{ active: 'tagadmin.**' }" ng-show="canManageTags">
+          <li ui-sref-active="{ active: 'tagadmin.**' }" ng-show="userInfo.username != 'guest'">
             <a href="#/tagadmin"><span class="fas fa-sliders-h"></span> {{ 'index.nav_tag_management' | translate }}</a>
           </li>
           <li ui-sref-active="{ active: 'document.**' }">
-            <a href="#/document"><span class="fas fa-book"></span> {{ 'index.nav_documents' | translate }}</a>
+            <a href="#/document"><span class="fas fa-search"></span> {{ 'index.nav_documents' | translate }}</a>
           </li>
           <li ui-sref-active="{ active: 'trash.**' }" ng-show="userInfo.username != 'guest'">
             <a href="#/trash"><span class="fas fa-trash"></span> {{ 'index.nav_trash' | translate }}</a>

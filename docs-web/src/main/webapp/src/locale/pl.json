@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "Przełącz nawigację",
-    "nav_documents": "Dokumenty",
+    "nav_documents": "Wyszukiwanie dokumentów",
     "nav_tags": "Etykiety",
-    "nav_tag_management": "Zarządzanie etykietami",
+    "nav_tag_management": "Tagi i dokumenty",
     "nav_users_groups": "Użytkownicy i Grupy",
     "error_info": "{{ count }} nowe błędy",
     "logged_as": "Zalogowany jako {{ username }}",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "Nowa etykieta",
+    "add_tag": "Dodaj tag",
     "root_tag_option": "Brak nadrzędnej (Etykieta główna)",
     "search": "Znajdź",
     "expand_all": "Rozwiń wszystko",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "Pliki",
-      "description": "Możesz dodawać pliki po utworzeniu dokumentu lub przed skorzystaniem z tego obszaru szybkiego przesyłania."
+      "description": "Możesz dodać pliki po utworzeniu dokumentu."
     },
     "step4": {
       "title": "Wyszukiwanie",

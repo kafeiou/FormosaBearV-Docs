@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "Alternar navegação",
-    "nav_documents": "Documentos",
+    "nav_documents": "Pesquisa de documentos",
     "nav_tags": "Etiquetas",
-    "nav_tag_management": "Gestão de Etiquetas",
+    "nav_tag_management": "Etiquetas e documentos",
     "nav_users_groups": "Usuários e Grupos",
     "error_info": "{{ count }} novo erro{{ count > 1 ? 's' : '' }}",
     "logged_as": "Sessão iniciada como {{ username }}",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "Nova etiqueta",
+    "add_tag": "Adicionar etiqueta",
     "root_tag_option": "Sem superior (Etiqueta raiz)",
     "search": "Pesquisar",
     "expand_all": "Expandir tudo",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "Arquivos",
-      "description": "Pode adicionar arquivos depois de criar um documento ou antes utilizando esta área de upload rápido."
+      "description": "Você pode adicionar arquivos depois de criar um documento."
     },
     "step4": {
       "title": "Pesquisa",

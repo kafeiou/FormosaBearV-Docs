@@ -1042,4 +1042,108 @@ public class TestTagResource extends BaseJerseyTest {
                 .get(JsonObject.class);
         Assert.assertEquals(0, untaggedAfter.getInt("total"));
     }
+
+    /**
+     * Test that a user with only READ permission on a tag cannot attach it to a document
+     * or remove it from a document, while retaining the ability to edit other document fields.
+     */
+    @Test
+    public void testReadOnlyTagCannotBeAttachedOrRemoved() {
+        clientUtil.createUser("dcc_owner");
+        clientUtil.createUser("dcc_reader");
+        String ownerToken = clientUtil.login("dcc_owner");
+        String readerToken = clientUtil.login("dcc_reader");
+
+        // Owner creates tag "DCC" and grants dcc_reader READ-only ACL
+        String dccTagId = target().path("/tag").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                .put(Entity.form(new Form().param("name", "DCC").param("color", "#3a87ad")), JsonObject.class)
+                .getString("id");
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                .put(Entity.form(new Form()
+                        .param("source", dccTagId)
+                        .param("perm", "READ")
+                        .param("target", "dcc_reader")
+                        .param("type", "USER")), JsonObject.class);
+
+        // 1. Reader sees DCC in /tag/list with writable=false
+        JsonObject readerTags = target().path("/tag/list").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .get(JsonObject.class);
+        boolean foundDcc = false;
+        for (int i = 0; i < readerTags.getJsonArray("tags").size(); i++) {
+            JsonObject t = readerTags.getJsonArray("tags").getJsonObject(i);
+            if (dccTagId.equals(t.getString("id"))) {
+                foundDcc = true;
+                Assert.assertFalse("READ-only tag must report writable=false", t.getBoolean("writable"));
+            }
+        }
+        Assert.assertTrue(foundDcc);
+
+        // 2. Reader creating a new document with read-only DCC tag is rejected with 403
+        Response createWithRoTag = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Unauthorized DCC Doc")
+                        .param("language", "eng")
+                        .param("tags", dccTagId)));
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(createWithRoTag.getStatus()));
+
+        // 3. Reader creates an untagged document, then tries to attach DCC via POST /document/{id}/tags -> 403
+        String readerDocId = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Reader Own Doc")
+                        .param("language", "eng")), JsonObject.class)
+                .getString("id");
+        Response attachRoTag = target().path("/document/" + readerDocId + "/tags").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .post(Entity.form(new Form().param("tags", dccTagId)));
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(attachRoTag.getStatus()));
+
+        // 4. Owner creates a DCC-tagged doc and grants reader WRITE on the doc itself (still READ-only on DCC)
+        String controlledDocId = target().path("/document").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                .put(Entity.form(new Form()
+                        .param("title", "Controlled Doc")
+                        .param("language", "eng")
+                        .param("tags", dccTagId)), JsonObject.class)
+                .getString("id");
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                .put(Entity.form(new Form()
+                        .param("source", controlledDocId)
+                        .param("perm", "WRITE")
+                        .param("target", "dcc_reader")
+                        .param("type", "USER")), JsonObject.class);
+
+        // Reader trying to remove DCC from controlledDoc -> 403
+        Response removeRoTag = target().path("/document/" + controlledDocId + "/tags").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .post(Entity.form(new Form()));
+        Assert.assertEquals(Status.FORBIDDEN, Status.fromStatusCode(removeRoTag.getStatus()));
+
+        // Reader keeping DCC intact while updating title -> 200 OK
+        Response keepRoTag = target().path("/document/" + controlledDocId).request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .post(Entity.form(new Form()
+                        .param("title", "Controlled Doc Updated")
+                        .param("language", "eng")
+                        .param("tags", dccTagId)));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(keepRoTag.getStatus()));
+
+        // 5. Once granted WRITE on DCC, reader can attach and remove DCC freely
+        target().path("/acl").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                .put(Entity.form(new Form()
+                        .param("source", dccTagId)
+                        .param("perm", "WRITE")
+                        .param("target", "dcc_reader")
+                        .param("type", "USER")), JsonObject.class);
+        Response attachAllowed = target().path("/document/" + readerDocId + "/tags").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                .post(Entity.form(new Form().param("tags", dccTagId)));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(attachAllowed.getStatus()));
+    }
 }

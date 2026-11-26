@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "Bật/tắt thanh điều hướng",
-    "nav_documents": "Quản lý tài liệu",
+    "nav_documents": "Tìm kiếm tài liệu",
     "nav_tags": "Thẻ",
-    "nav_tag_management": "Quản lý thẻ",
+    "nav_tag_management": "Quản lý thẻ & tài liệu",
     "nav_users_groups": "Người dùng & Nhóm",
     "error_info": "{{ count }} lỗi mới",
     "logged_as": "Đăng nhập với tên {{ username }}",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "Thẻ mới",
+    "add_tag": "Thêm thẻ",
     "root_tag_option": "Không có thẻ cha (Thẻ gốc)",
     "search": "Tìm kiếm",
     "expand_all": "Mở rộng tất cả",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "Tập tin",
-      "description": "Bạn có thể thêm tập tin sau khi tạo tài liệu hoặc tải lên nhanh chóng bằng khu vực này."
+      "description": "Bạn có thể thêm tệp sau khi tạo tài liệu."
     },
     "step4": {
       "title": "Tìm kiếm",

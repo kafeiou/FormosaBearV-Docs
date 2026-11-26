@@ -210,8 +210,10 @@ public class TestPluginResource extends BaseJerseyTest {
         Assert.assertTrue(appAfter.getBoolean("file_encrypt"));
         Assert.assertTrue(appAfter.getBoolean("file_encrypt_locked"));
 
-        // 1. Admin sees the non-hidden "plugins" tag
-        JsonObject adminTags = target().path("/tag/list").request()
+        // 1. Admin sees the hidden "plugins" tag via include_hidden=true (and it stays hidden from regular /tag/list)
+        JsonObject adminTags = target().path("/tag/list")
+                .queryParam("include_hidden", "true")
+                .request()
                 .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
                 .get(JsonObject.class);
         String pluginsTagId = null;
@@ -219,7 +221,7 @@ public class TestPluginResource extends BaseJerseyTest {
             JsonObject t = adminTags.getJsonArray("tags").getJsonObject(i);
             if ("plugins".equals(t.getString("name"))) {
                 pluginsTagId = t.getString("id");
-                Assert.assertFalse(t.getBoolean("hidden"));
+                Assert.assertTrue(t.getBoolean("hidden"));
             }
         }
         Assert.assertNotNull("Expected 'plugins' tag for admin", pluginsTagId);

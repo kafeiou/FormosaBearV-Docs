@@ -35,12 +35,19 @@
   - 不公開模式回傳 `Disallow: /` 並對所有回應加上 `X-Robots-Tag: noindex, nofollow, noarchive`；公開模式回傳 `Allow: /` 並一律排除 `/api/` 與 `/share.html`（`share.html` 另加上 `<meta name="robots" content="noindex, nofollow, noarchive">` 雙重保護分享連結）。
 
 ### 介面調整 (Changed)
+- **「文件搜尋（`#/document`）」與「標籤文件管理（`#/tagadmin`）」工作區重新定位**：
+  - 將 `#/document` 更名為「**文件搜尋**」（放大鏡圖示 `fa-search`），移除新增文件按鈕、重複的資料夾導覽／匯出工具列與易生誤會的「檔案快速上傳（`#quick-upload-zone`）」區塊，並同步調整 16 國語系的 `onboarding.step3.description` 導覽文案。
+  - 將 `#/tagadmin` 更名為「**標籤文件管理**」並開放所有非訪客使用者進入：左側頂部改為等寬等高並排的「**＋ 新增標籤**」（可收合，僅標籤管理者可見）與「**＋ 新增文件**」（同畫面 `#/tagadmin/document-add`、含匯入 EML、自動預選目前可寫入標籤，建立完成後自動展開左樹對應標籤或「未貼標籤的文件」並平滑捲動聚焦，右側直接進入「文件檢視與檔案」）；合併「全部展開／全部收合」為單一切換按鈕（同步套用於 `tag.html` 與 `tag.admin.html`）、統一第二排按鈕配色，並讓無標籤管理權限的一般使用者點選文件時智慧預設開啟「文件檢視與檔案」。
+  - 系統內建 `plugins` 標籤預設改為隱藏（`PluginSeedService` `hidden = true`，同步更新 `TestPluginResource`），管理員可直接於「標籤文件管理」展開檢視並下載外掛 `.zip`。
 - **搜尋命中關鍵字深淺色紅字粗體高亮（`document.html`、`main.less`）**：
   - 將文件列表全文搜尋命中摘要（`document.highlight`）中的關鍵字改為淺色模式深紅粗體（`#c62828`）、深色模式亮珊瑚紅粗體（`#ff6b6b`），提升辨識度與深淺主題對比度。
 - **文件管理與標籤區文件列表精簡顯示（`#/document`、`#/tag`）**：
   - 移除文件管理左側清單（`document.html`）與標籤瀏覽區右側文件卡片（`tag.view.html`）中每筆文件下方的標籤徽章區塊，讓文件列表更簡潔易讀；文件詳細頁、資料夾導覽與進階搜尋的標籤篩選維持不變。
 
 ### 修復與安全性強化 (Fixed & Hardened)
+- **權限強化 — 貼附與移除標籤強制檢查 `WRITE` 權限（`DocumentResource`、`TagResource`、`SelectTag`、`TagAdminDocument`）**：
+  - `GET /api/tag/list` 新增回傳各標籤之 `writable` 欄位（支援上層 ACL 繼承判斷）；於 `PUT /api/document`、`POST /api/document/{id}` 與 `POST /api/document/{id}/tags` 強制驗證：新增貼附或移除任何可見標籤皆須具備該標籤之 **`PermType.WRITE`** 權限（僅具 `READ` 唯讀權限者回傳 `403 Forbidden`，未更動的唯讀標籤與隱藏標籤則自動保留）。
+  - 新增／編輯文件表單的 `select-tag`（`writable-only="true"`）僅列出可寫入標籤並鎖定既有唯讀標籤徽章（不影響文件搜尋的進階篩選）；「標籤文件管理」快速貼標樹保留階層顯示但鎖定唯讀標籤勾選框並顯示鎖頭，同步補齊 `TestTagResource` 整合測試。
 - **重大修復 — 未加密模式下執行「重建索引＋補跑 OCR」誤刪原始檔案（`RebuildIndexAsyncListener.java`）**：
   - 修正當系統設定為未加密儲存模式（`file_encrypt = false`）時，執行「重建索引並補跑 OCR（`MISSING` / `ALL`）」因 `EncryptionUtil.decryptFile()` 直接回傳原始檔案路徑，導致 `finally` 區塊誤刪磁碟原始檔案的嚴重問題。
   - 比照 `PdfUtil.java` 加入雙重保護：僅於 `ConfigUtil.isFileEncrypt()` 為 `true` 時才產生暫存解密檔，且刪除前強制檢查加密模式與正規化絕對路徑不等於原始檔案路徑。

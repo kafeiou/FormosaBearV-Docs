@@ -91,8 +91,19 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
       $scope.document.metadata = data.metadata;
     });
 
-    if ($scope.navigatedTag) {
+    if ($scope.navigatedTag && $scope.navigatedTag.writable !== false) {
       $scope.document.tags.push($scope.navigatedTag);
+    } else if ($stateParams.tagId) {
+      var matchedTag = _.findWhere($scope.tags || [], { id: $stateParams.tagId });
+      if (matchedTag && !matchedTag.is_container && matchedTag.writable !== false) {
+        $scope.document.tags.push(matchedTag);
+      } else if (!matchedTag) {
+        Restangular.one('tag', $stateParams.tagId).get().then(function(tagData) {
+          if (tagData && !tagData.is_container && tagData.writable !== false && !_.findWhere($scope.document.tags, { id: tagData.id })) {
+            $scope.document.tags.push(tagData);
+          }
+        });
+      }
     }
 
     $scope.newFiles = [];
@@ -167,8 +178,12 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
           if ($scope.pageDocuments) {
             $scope.pageDocuments();
           }
-          if ($state.includes('tagadmin.document')) {
-            $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: data.id });
+          if ($state.includes('tagadmin')) {
+            $scope.$emit('tagAdminDocumentTagsUpdated', {
+              documentId: data.id,
+              tagIds: document.tags || [],
+              isNew: !$scope.isEdit()
+            });
             $state.go('tagadmin.document.view.content', { id: data.id });
           } else if ($state.includes('tag.document')) {
             $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: data.id });
@@ -273,6 +288,12 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
   $scope.cancel = function() {
     if ($state.includes('tagadmin.document')) {
       $state.go('tagadmin.document.view.content', { id: $stateParams.id });
+    } else if ($state.current.name === 'tagadmin.documentAdd') {
+      if ($stateParams.tagId && $rootScope.canManageTags) {
+        $state.go('tagadmin.edit', { id: $stateParams.tagId });
+      } else {
+        $state.go('tagadmin.default');
+      }
     } else if ($state.includes('tag.document')) {
       $state.go('tag.document.view.content', { tagId: $stateParams.tagId, id: $stateParams.id, focus: $stateParams.focus });
     } else if ($scope.isEdit()) {

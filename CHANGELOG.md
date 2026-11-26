@@ -35,12 +35,19 @@ This document details the notable changes, security enhancements, architecture i
   - Private mode serves `Disallow: /` and `X-Robots-Tag: noindex, nofollow, noarchive` on all responses; Public mode serves `Allow: /` while always excluding `/api/` and `/share.html` (plus `<meta name="robots" content="noindex, nofollow, noarchive">` in `share.html`).
 
 ### Changed
+- **Document Search (`#/document`) & Tags & Documents (`#/tagadmin`) Workspace Redesign**:
+  - Renamed `#/document` to **Document Search** (`fa-search`) and streamlined it into a focused search workspace by removing the Add Document button, redundant folder navigation/tag export controls, and the orphan-file Quick Upload zone (`#quick-upload-zone`), updating `onboarding.step3.description` across all 16 locales.
+  - Renamed `#/tagadmin` to **Tags & Documents** and opened it to all non-guest users: added equal-sized **Add a tag** (collapsible, tag managers only) and **Add a document** (in-place `#/tagadmin/document-add` with EML import, pre-selecting the current writable tag, auto-expanding & scrolling to the new document in the left tree, and focusing **Document View & Files** on the right), merged Expand/Collapse All into a single toggle button (`tag.html` & `tag.admin.html`), unified secondary toolbar colors, and defaulted non-tag-manager users directly into **Document View & Files** when clicking documents.
+  - Changed the bundled `plugins` tag created by `PluginSeedService` to `hidden = true` by default (`TestPluginResource` updated), since administrators can now directly view and download bundled plugin `.zip` files inside **Tags & Documents**.
 - **Theme-Aware Search Keyword Highlight (`document.html`, `main.less`)**:
   - Styled matched full-text search keywords in the document list (`document.highlight`) as bold deep red (`#c62828`) in Light mode and bold coral red (`#ff6b6b`) in Dark mode for higher visual clarity.
 - **Cleaner Document Management & Tag Browse Lists (`#/document`, `#/tag`)**:
   - Removed inline tag badges beneath each document row in Document Management's left list (`document.html`) and each document card in Tag Browse (`tag.view.html`) for a cleaner layout, while keeping tags visible in the document view, top folder navigation, and advanced search filter.
 
 ### Fixed & Hardened
+- **Security — Enforce `WRITE` Permission on Tag Attachment & Removal (`DocumentResource`, `TagResource`, `SelectTag`, `TagAdminDocument`)**:
+  - Exposed inheritance-aware `writable` on `GET /api/tag/list` and enforced `PermType.WRITE` when attaching or removing any visible tag via `PUT /api/document`, `POST /api/document/{id}`, and `POST /api/document/{id}/tags` (returning `403 Forbidden` for `READ`-only tags while preserving unchanged read-only and hidden tags).
+  - Updated `select-tag` (`writable-only="true"` in `document.edit.html`) to filter out read-only tags from add/edit pickers and lock existing read-only chips with a lock icon (keeping advanced search unrestricted), locked read-only checkboxes in `TagAdminDocument`, and added integration tests in `TestTagResource`.
 - **Critical — Prevent Original File Deletion During OCR Reindex in Unencrypted Mode (`RebuildIndexAsyncListener.java`)**:
   - Fixed a critical data-loss bug where running index rebuild with OCR reprocessing (`ocr_mode = MISSING` or `ALL`) on an unencrypted storage instance (`file_encrypt = false`) deleted the original stored file in the `finally` block because `EncryptionUtil.decryptFile()` returns the original `storedFile` path when encryption is disabled.
   - Added dual guards matching `PdfUtil.java`: only invoke `EncryptionUtil.decryptFile()` when `ConfigUtil.isFileEncrypt()` is `true`, and require both `fileEncrypted` and normalized absolute path inequality (`!unencryptedFile.equals(storedFile)`) before deleting any temporary file.

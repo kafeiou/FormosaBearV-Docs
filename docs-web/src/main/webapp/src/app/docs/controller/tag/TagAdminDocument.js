@@ -117,12 +117,19 @@ angular.module('docs').controller('TagAdminDocument', function($scope, $statePar
     if (!$scope.doc || !$scope.doc.writable) {
       return;
     }
+    var tag = _.findWhere($scope.tags || [], { id: tagId });
+    if (tag && tag.writable === false) {
+      return;
+    }
     delete $scope.selectedTagIds[tagId];
   };
 
   $scope.isDirty = function() {
     var selectable = $scope.getSelectableTags();
     for (var i = 0; i < selectable.length; i++) {
+      if (selectable[i].writable === false) {
+        continue;
+      }
       var id = selectable[i].id;
       if (!!$scope.selectedTagIds[id] !== !!$scope.initialTagIds[id]) {
         return true;
@@ -141,7 +148,11 @@ angular.module('docs').controller('TagAdminDocument', function($scope, $statePar
 
     var tagsToSave = [];
     _.each($scope.getSelectableTags(), function(t) {
-      if ($scope.selectedTagIds[t.id]) {
+      if (t.writable === false) {
+        if ($scope.initialTagIds[t.id]) {
+          tagsToSave.push(t.id);
+        }
+      } else if ($scope.selectedTagIds[t.id]) {
         tagsToSave.push(t.id);
       }
     });

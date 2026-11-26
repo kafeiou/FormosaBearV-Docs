@@ -74,7 +74,7 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="inputTags">{{ 'document.tags' | translate }}</label>
         <div class="col-sm-10">
-          <select-tag tags="document.tags" ref="inputTags" ng-disabled="fileIsUploading"></select-tag>
+          <select-tag tags="document.tags" ref="inputTags" ng-disabled="fileIsUploading" writable-only="true"></select-tag>
         </div>
       </div>
 

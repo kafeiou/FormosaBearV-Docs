@@ -4,8 +4,9 @@
       <span class="label label-info" ng-style="{ 'background': tag.color }" invert-text-color="{{ tag.color }}"
             uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true"
             style="font-size: 90%; padding: 4px 8px; display: inline-block;">
+        <span class="fas fa-lock" ng-if="writableOnly && !isTagWritable(tag)" style="margin-right: 4px; opacity: 0.85;"></span>
         {{ tag.name }}
-        <span class="fas fa-times" style="cursor: pointer; margin-left: 4px;" ng-click="deleteTag(tag)" ng-show="!ngDisabled"></span>
+        <span class="fas fa-times" style="cursor: pointer; margin-left: 4px;" ng-click="deleteTag(tag)" ng-show="!ngDisabled && (!writableOnly || isTagWritable(tag))"></span>
       </span>
     </li>
   </ul>

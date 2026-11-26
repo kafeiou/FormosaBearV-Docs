@@ -5,14 +5,16 @@
       <span class="fas" ng-class="{ 'fa-caret-down': isPickerExpanded(node.id), 'fa-caret-right': !isPickerExpanded(node.id) }"></span>
     </span>
     <span class="mr-5" ng-if="!hasVisibleChildren(node.id)" style="width: 16px; display: inline-block;"></span>
-    <label style="margin: 0; font-weight: normal; cursor: pointer; display: flex; align-items: center; flex: 1;"
-           ng-class="{ 'text-muted': node.is_container || !doc.writable }">
+    <label style="margin: 0; font-weight: normal; display: flex; align-items: center; flex: 1;"
+           ng-style="{ 'cursor': (!node.is_container && doc.writable && node.writable !== false) ? 'pointer' : 'not-allowed' }"
+           ng-class="{ 'text-muted': node.is_container || !doc.writable || node.writable === false }">
       <input type="checkbox"
              ng-if="!node.is_container"
              ng-model="selectedTagIds[node.id]"
-             ng-disabled="!doc.writable"
+             ng-disabled="!doc.writable || node.writable === false"
              style="margin: 0 8px 0 0;" />
       <span class="fas fa-tag mr-5" ng-style="{ 'color': node.color }"></span>
+      <span class="fas fa-lock text-muted mr-5" ng-if="!node.is_container && node.writable === false" style="font-size: 11px;"></span>
       <span uib-tooltip="{{ getTagTooltip(node) }}" tooltip-append-to-body="true">{{ node.name }}</span>
       <span class="text-muted small ml-10" ng-if="node.description" style="margin-left: 8px;">— {{ node.description }}</span>
     </label>
@@ -71,8 +73,9 @@
             uib-tooltip="{{ getTagTooltip(t) }}"
             tooltip-append-to-body="true"
             style="display: inline-block; margin: 0 6px 6px 0; padding: 5px 8px; font-size: 90%;">
+        <span class="fas fa-lock" ng-if="t.writable === false" style="margin-right: 4px; opacity: 0.85;"></span>
         <span class="fas fa-tag"></span> {{ t.name }}
-        <a href ng-if="doc.writable" ng-click="removeSelectedTag(t.id)"
+        <a href ng-if="doc.writable && t.writable !== false" ng-click="removeSelectedTag(t.id)"
            style="color: inherit; margin-left: 5px; text-decoration: none; opacity: 0.85;"
            title="{{ 'delete' | translate }}">&times;</a>
       </span>

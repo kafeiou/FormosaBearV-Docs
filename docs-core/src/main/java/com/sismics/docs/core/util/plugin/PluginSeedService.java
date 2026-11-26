@@ -181,7 +181,7 @@ public final class PluginSeedService {
         tag.setColor(PLUGINS_TAG_COLOR);
         tag.setUserId(adminId);
         tag.setCreateDate(new Date());
-        tag.setHidden(false);
+        tag.setHidden(true);
         String tagId = new TagDao().create(tag, adminId);
         grantAdminReadWriteAcl(tagId, adminId);
         return tagId;

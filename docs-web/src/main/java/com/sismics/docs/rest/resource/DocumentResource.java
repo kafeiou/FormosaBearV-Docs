@@ -1153,21 +1153,57 @@ public class DocumentResource extends BaseResource {
      */
     private void updateTagList(String documentId, List<String> tagList) {
         if (tagList != null) {
-            TagDao tagDao = new TagDao();
-            Set<String> tagSet = new HashSet<>();
-            Set<String> tagIdSet = new HashSet<>();
-            List<TagDto> tagDtoList = tagDao.findByCriteria(new TagCriteria().setTargetIdList(getTargetIdList(null)), null);
-            for (TagDto tagDto : tagDtoList) {
-                tagIdSet.add(tagDto.getId());
-            }
+            applyTagListWithWriteCheck(documentId, tagList, true);
+        }
+    }
+
+    /**
+     * Updates tags on a document while enforcing PermType.WRITE for any newly attached or removed
+     * visible tag. Existing hidden or non-readable tags are preserved automatically.
+     */
+    private void applyTagListWithWriteCheck(String documentId, List<String> tagList, boolean preserveHidden) {
+        TagDao tagDao = new TagDao();
+        AclDao aclDao = new AclDao();
+        List<String> targetIdList = getTargetIdList(null);
+
+        List<TagDto> existingTags = tagDao.findByCriteria(new TagCriteria().setDocumentId(documentId), null);
+        Set<String> existingTagIds = new HashSet<>();
+        for (TagDto existing : existingTags) {
+            existingTagIds.add(existing.getId());
+        }
+
+        Set<String> finalTagIds = new HashSet<>();
+        if (tagList != null) {
             for (String tagId : tagList) {
-                if (!tagIdSet.contains(tagId)) {
+                if (StringUtils.isEmpty(tagId)) {
+                    continue;
+                }
+                if (!aclDao.checkPermission(tagId, PermType.READ, targetIdList)) {
                     throw new ClientException("TagNotFound", MessageFormat.format("Tag not found: {0}", tagId));
                 }
-                tagSet.add(tagId);
+                if (!existingTagIds.contains(tagId) && !aclDao.checkPermission(tagId, PermType.WRITE, targetIdList)) {
+                    throw new ForbiddenClientException();
+                }
+                finalTagIds.add(tagId);
             }
-            tagDao.updateTagList(documentId, tagSet);
         }
+
+        Set<String> effectiveHiddenIds = preserveHidden ? tagDao.getEffectiveHiddenTagIds() : Collections.emptySet();
+        for (String existingId : existingTagIds) {
+            if (!finalTagIds.contains(existingId)) {
+                if (preserveHidden && effectiveHiddenIds.contains(existingId)) {
+                    finalTagIds.add(existingId);
+                } else if (!aclDao.checkPermission(existingId, PermType.READ, targetIdList)) {
+                    // User cannot see this tag; preserve it rather than silently removing it
+                    finalTagIds.add(existingId);
+                } else if (!aclDao.checkPermission(existingId, PermType.WRITE, targetIdList)) {
+                    // User has READ-only access to this tag and attempted to remove it
+                    throw new ForbiddenClientException();
+                }
+            }
+        }
+
+        tagDao.updateTagList(documentId, finalTagIds);
     }
 
     /**
@@ -1247,30 +1283,7 @@ public class DocumentResource extends BaseResource {
         }
 
         TagDao tagDao = new TagDao();
-        Set<String> tagIdSet = new HashSet<>();
-        if (tagList != null) {
-            for (String tagId : tagList) {
-                if (StringUtils.isEmpty(tagId)) {
-                    continue;
-                }
-                if (!aclDao.checkPermission(tagId, PermType.READ, targetIdList)) {
-                    throw new ClientException("TagNotFound", MessageFormat.format("Tag not found: {0}", tagId));
-                }
-                tagIdSet.add(tagId);
-            }
-        }
-
-        if (preserveHidden) {
-            Set<String> effectiveHiddenIds = tagDao.getEffectiveHiddenTagIds();
-            List<TagDto> existingTags = tagDao.findByCriteria(new TagCriteria().setDocumentId(id), null);
-            for (TagDto existing : existingTags) {
-                if (effectiveHiddenIds.contains(existing.getId())) {
-                    tagIdSet.add(existing.getId());
-                }
-            }
-        }
-
-        tagDao.updateTagList(id, tagIdSet);
+        applyTagListWithWriteCheck(id, tagList, preserveHidden);
 
         DocumentUpdatedAsyncEvent event = new DocumentUpdatedAsyncEvent();
         event.setUserId(principal.getId());

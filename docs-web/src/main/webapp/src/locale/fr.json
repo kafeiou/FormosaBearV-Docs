@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "Afficher/cacher la navigation",
-    "nav_documents": "Documents",
+    "nav_documents": "Recherche de documents",
     "nav_tags": "Tags",
-    "nav_tag_management": "Gestion des tags",
+    "nav_tag_management": "Étiquettes et documents",
     "nav_users_groups": "Utilisateurs & Groupes",
     "error_info": "{{ count }} nouvelle{{ count > 1 ? 's' : '' }} erreur{{ count > 1 ? 's' : '' }}",
     "logged_as": "Connecté en tant que {{ username }}",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "Nouveau tag",
+    "add_tag": "Ajouter une étiquette",
     "root_tag_option": "Aucun parent (Tag racine)",
     "search": "Rechercher",
     "expand_all": "Tout développer",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "Fichiers",
-      "description": "Vous pouvez ajouter des fichiers après la création d'un document ou avant en utilisant cette zone d'envoi rapide."
+      "description": "Vous pouvez ajouter des fichiers après avoir créé un document."
     },
     "step4": {
       "title": "Rechercher",

@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "Navigation ein-/ausblenden",
-    "nav_documents": "Dokumente",
+    "nav_documents": "Dokumentensuche",
     "nav_tags": "Tags",
-    "nav_tag_management": "Tag-Verwaltung",
+    "nav_tag_management": "Tags & Dokumente",
     "nav_users_groups": "Benutzer & Gruppen",
     "error_info": "{{ count }} {{ count > 1 ? 'neue' : 'neuer' }} Fehler",
     "logged_as": "Eingeloggt als {{ username }}",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "Neuer Tag",
+    "add_tag": "Tag hinzufügen",
     "root_tag_option": "Kein übergeordneter Tag (Stamm-Tag)",
     "search": "Suche",
     "expand_all": "Alle aufklappen",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "Dateien",
-      "description": "Sie können Dateien hinzufügen, nachdem Sie ein Dokument erstellt haben oder vorher, indem Sie diesen Schnell-Hochlade-Bereich verwenden."
+      "description": "Sie können Dateien nach dem Erstellen eines Dokuments hinzufügen."
     },
     "step4": {
       "title": "Suche",

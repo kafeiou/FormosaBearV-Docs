@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "ナビゲーションの表示切替",
-    "nav_documents": "ドキュメント管理",
+    "nav_documents": "ドキュメント検索",
     "nav_tags": "タグ",
-    "nav_tag_management": "タグ管理",
+    "nav_tag_management": "タグ・ドキュメント管理",
     "nav_users_groups": "ユーザーとグループ",
     "error_info": "{{ count }} 件の新しいエラー",
     "logged_as": "ログイン中: {{ username }}",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "新規タグ",
+    "add_tag": "タグを追加",
     "root_tag_option": "親タグなし（ルートタグ）",
     "search": "検索",
     "expand_all": "すべて展開",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "ファイル",
-      "description": "ドキュメントの作成後、またはこのクイックアップロード欄を使って簡単にファイルをアップロードできます。"
+      "description": "ドキュメントを作成した後にファイルを追加できます。"
     },
     "step4": {
       "title": "検索",

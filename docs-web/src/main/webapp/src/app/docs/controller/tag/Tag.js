@@ -3,7 +3,7 @@
 /**
  * Tag controller.
  */
-angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, $location, Restangular, User, $uibModal) {
+angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $stateParams, $location, $timeout, Restangular, User, $uibModal) {
   $scope.tag = { name: '', color: '#3a87ad', description: '', parent: '', hidden: false };
   $scope.expandedTags = {};
   $scope.showTreeDocuments = true;
@@ -43,10 +43,47 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
       }
     }
     $rootScope.canManageTags = canManage;
-    if ($state.includes('tagadmin') && !canManage) {
-      $state.go('tag.default');
+    if ($state.includes('tagadmin')) {
+      if (data.anonymous || data.username === 'guest') {
+        $state.go('tag.default');
+      } else if ($state.current.name === 'tagadmin.edit' && !canManage) {
+        $state.go('tagadmin.default');
+      }
     }
   });
+
+  $scope.addTagFormOpen = false;
+  $scope.toggleAddTagForm = function() {
+    $scope.addTagFormOpen = !$scope.addTagFormOpen;
+  };
+
+  $scope.getTagAdminAddDocHref = function() {
+    if ($state.current.name === 'tagadmin.edit' && $stateParams.id) {
+      return '#/tagadmin/document-add?tagId=' + encodeURIComponent($stateParams.id);
+    }
+    return '#/tagadmin/document-add';
+  };
+
+  $scope.importEml = function(file) {
+    if (!file) {
+      return;
+    }
+    $uibModal.open({
+      templateUrl: 'partial/docs/import.html',
+      controller: 'ModalImport',
+      resolve: {
+        file: function() {
+          return file;
+        }
+      }
+    }).result.then(function(data) {
+      if (!data) {
+        return;
+      }
+      $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: data.id, tagIds: [], isNew: true });
+      $state.go('tagadmin.document.view.content', { id: data.id });
+    });
+  };
 
   /**
    * Expand all ancestor tags of the specified tag ID so it is visible in the tree.
@@ -337,7 +374,7 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
    * Build tag-admin document link preserving active mode (Tags vs Document View).
    */
   $scope.getTagAdminDocHref = function(docId) {
-    if ($state.includes('tagadmin.document.view') || $state.includes('tagadmin.document.edit')) {
+    if (!$rootScope.canManageTags || $state.includes('tagadmin.document.view') || $state.includes('tagadmin.document.edit')) {
       return '#/tagadmin/document/' + docId + '/view/content';
     }
     return '#/tagadmin/document/' + docId;
@@ -491,9 +528,32 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
       });
   };
 
-  $scope.$on('tagAdminDocumentTagsUpdated', function() {
+  var scrollActiveTreeDocIntoView = function() {
+    $timeout(function() {
+      var el = document.querySelector('.tag-tree .tag-tree-row.tag-tree-active');
+      if (el && el.scrollIntoView) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 350);
+  };
+
+  $scope.$on('tagAdminDocumentTagsUpdated', function(evt, payload) {
     $scope.loadTags();
-    if ($scope.showTreeDocuments) {
+    if (payload && payload.isNew) {
+      $scope.showTreeDocuments = true;
+      var tagIds = payload.tagIds || [];
+      if (tagIds.length === 0) {
+        $scope.untaggedExpanded = true;
+        $scope.loadUntaggedDocuments(false);
+      } else {
+        _.each(tagIds, function(tid) {
+          $scope.expandAncestors(tid);
+          $scope.expandedTags[tid] = true;
+          $scope.loadTagDocuments(tid, false);
+        });
+      }
+      scrollActiveTreeDocIntoView();
+    } else if ($scope.showTreeDocuments) {
       $scope.refreshExpandedTagDocuments();
     }
   });
@@ -565,6 +625,26 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
   $scope.collapseAllTags = function() {
     $scope.expandedTags = {};
     $scope.untaggedExpanded = false;
+  };
+
+  $scope.areAllTagsExpanded = function() {
+    var expandable = _.filter($scope.tags || [], function(tag) {
+      return $scope.hasChildren(tag.id) || ($state.includes('tagadmin') && $scope.showTreeDocuments && tag.direct_document_count > 0);
+    });
+    if (expandable.length === 0) {
+      return false;
+    }
+    return _.every(expandable, function(tag) {
+      return !!$scope.expandedTags[tag.id];
+    });
+  };
+
+  $scope.toggleExpandAllTags = function() {
+    if ($scope.areAllTagsExpanded()) {
+      $scope.collapseAllTags();
+    } else {
+      $scope.expandAllTags();
+    }
   };
 
   // Parent tag tree selector state

@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "Ndrysho navigimin",
-    "nav_documents": "Dokumentet",
+    "nav_documents": "Kërkimi i dokumenteve",
     "nav_tags": "Etiketa",
-    "nav_tag_management": "Menaxhimi i etiketave",
+    "nav_tag_management": "Etiketat dhe dokumentet",
     "nav_users_groups": "Përdoruesit",
     "error_info": "{{ count }} gabim i ri{{ count > 1 ? 's' : '' }}",
     "logged_as": "I identifikuar si {{ username }}",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "Etiketë e re",
+    "add_tag": "Shto etiketë",
     "root_tag_option": "Pa prind (Etiketë rrënjë)",
     "search": "Kërko",
     "expand_all": "Zgjero të gjitha",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "Skedarët",
-      "description": "Mund të shtoni skedarë pas krijimit të një dokumenti ose përpara se të përdorni këtë zonë të ngarkimit të shpejtë."
+      "description": "Mund të shtoni skedarë pasi të krijoni një dokument."
     },
     "step4": {
       "title": "Kërko",

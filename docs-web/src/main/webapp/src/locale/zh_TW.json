@@ -30,9 +30,9 @@
   },
   "index": {
     "toggle_navigation": "切換顯示方式",
-    "nav_documents": "文件管理",
+    "nav_documents": "文件搜尋",
     "nav_tags": "標籤",
-    "nav_tag_management": "標籤管理",
+    "nav_tag_management": "標籤文件管理",
     "nav_users_groups": "帳號 & 群組",
     "error_info": "{{ count }} 新錯誤",
     "logged_as": "以 {{ username }}登入",
@@ -276,6 +276,7 @@
   },
   "tag": {
     "new_tag": "新增",
+    "add_tag": "新增標籤",
     "root_tag_option": "無上層標籤（作為根標籤）",
     "search": "搜尋",
     "expand_all": "全部展開",
@@ -1100,7 +1101,7 @@
     },
     "step3": {
       "title": "檔案",
-      "description": "您可以在新增文件之後加入檔案，或使用快速上傳區域上傳檔案。"
+      "description": "您可以在新增文件之後加入檔案。"
     },
     "step4": {
       "title": "搜尋",

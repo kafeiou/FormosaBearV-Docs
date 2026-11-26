@@ -80,6 +80,7 @@ public class TagResource extends BaseResource {
         }
 
         // Build the response
+        AclDao aclDao = new AclDao();
         JsonArrayBuilder items = Json.createArrayBuilder();
         for (TagDto tagDto : tagDtoList) {
             Set<String> totalDocs = Sets.newHashSet();
@@ -103,6 +104,8 @@ public class TagResource extends BaseResource {
             }
 
             Set<String> ownDirectDocs = directDocsByTag.get(tagDto.getId());
+            boolean writable = !tagDto.isContainer() && !principal.isGuest()
+                    && aclDao.checkPermission(tagDto.getId(), PermType.WRITE, targetIdList);
             JsonObjectBuilder item = Json.createObjectBuilder()
                     .add("id", tagDto.getId())
                     .add("name", tagDto.getName())
@@ -112,7 +115,8 @@ public class TagResource extends BaseResource {
                     .add("inherit_acl", tagDto.isInheritAcl())
                     .add("hidden", tagDto.isHidden())
                     .add("effective_hidden", tagDto.isEffectiveHidden())
-                    .add("is_container", tagDto.isContainer());
+                    .add("is_container", tagDto.isContainer())
+                    .add("writable", writable);
             if (tagDto.getOrder() != null) {
                 item.add("order", tagDto.getOrder());
             }
