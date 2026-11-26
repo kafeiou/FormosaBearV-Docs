@@ -25,8 +25,14 @@
       </li>
     </ol>
 
-    <div class="pull-right text-muted small" style="line-height: 28px;" ng-if="totalDocuments !== undefined">
-      <span translate="document.count" translate-values="{ count: totalDocuments }"></span>
+    <div class="pull-right" ng-if="tag && tag.id">
+      <a class="btn btn-xs btn-default"
+         ng-href="../api/tag/{{ tag.id }}/zip"
+         uib-tooltip="{{ 'tag.browse.download_zip_tooltip' | translate }}"
+         tooltip-append-to-body="true">
+        <span class="fas fa-file-archive text-primary"></span>
+        {{ 'tag.browse.download_zip' | translate }}
+      </a>
     </div>
   </div>
 

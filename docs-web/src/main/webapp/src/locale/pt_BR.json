@@ -288,6 +288,8 @@
     "browse": {
       "tree_title": "Categorias de Etiquetas",
       "tab_doc_list": "Lista de documentos",
+      "download_zip": "Baixar ZIP",
+      "download_zip_tooltip": "Empacotar arquivos permitidos desta etiqueta e subetiquetas em um ZIP com estrutura de pastas e _manifest.txt",
       "welcome_title": "Explorar Documentos e Arquivos por Etiqueta",
       "welcome_message": "Selecione uma etiqueta à esquerda para listar todos os documentos e arquivos associados.",
       "subtags": "Subetiquetas",

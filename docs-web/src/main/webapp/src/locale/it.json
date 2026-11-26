@@ -288,6 +288,8 @@
     "browse": {
       "tree_title": "Categorie di tag",
       "tab_doc_list": "Elenco documenti",
+      "download_zip": "Scarica ZIP",
+      "download_zip_tooltip": "Comprimi i file scaricabili di questo tag e dei sottotag in un archivio ZIP con struttura cartelle e _manifest.txt",
       "welcome_title": "Sfoglia documenti e file per tag",
       "welcome_message": "Seleziona un tag a sinistra per elencare tutti i documenti e i file associati.",
       "subtags": "Sotto-tag",

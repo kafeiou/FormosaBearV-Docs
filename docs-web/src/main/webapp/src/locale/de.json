@@ -288,6 +288,8 @@
     "browse": {
       "tree_title": "Tag-Kategorien",
       "tab_doc_list": "Dokumentenliste",
+      "download_zip": "Als ZIP herunterladen",
+      "download_zip_tooltip": "Herunterladbare Dateien dieses Tags und aller Unter-Tags als ZIP mit Ordnerstruktur und _manifest.txt verpacken",
       "welcome_title": "Dokumente & Dateien nach Tag durchsuchen",
       "welcome_message": "Bitte wählen Sie links einen Tag aus, um alle zugehörigen Dokumente und Dateien aufzulisten.",
       "subtags": "Unter-Tags",

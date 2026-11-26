@@ -846,6 +846,61 @@ public class TagResource extends BaseResource {
     }
 
     /**
+     * Streams a hierarchical ZIP archive of all downloadable files under this tag and its readable
+     * descendant subtags, plus a UTF-8 BOM _manifest.txt listing all readable documents and files.
+     */
+    @GET
+    @Path("{id: [a-z0-9\\-]+}/zip")
+    @Produces("application/zip")
+    public Response downloadTagZip(@PathParam("id") String id) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+
+        List<String> targetIdList = getTargetIdList(null);
+        AclDao aclDao = new AclDao();
+        if (!aclDao.checkPermission(id, PermType.READ, targetIdList)) {
+            throw new NotFoundException();
+        }
+
+        com.sismics.docs.core.service.TagZipExportService service = new com.sismics.docs.core.service.TagZipExportService();
+        com.sismics.docs.core.service.TagZipExportService.ExportPlan plan = service.preparePlan(
+                id,
+                targetIdList,
+                principal.getId(),
+                principal.getName(),
+                hasBaseFunction(BaseFunction.ADMIN)
+        );
+        if (plan == null) {
+            throw new NotFoundException();
+        }
+
+        String dateStamp = new java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.ROOT).format(new java.util.Date());
+        String rawZipName = com.sismics.docs.core.service.TagZipExportService.sanitizePathSegment(plan.rootTagName, "tag")
+                + "-" + dateStamp + ".zip";
+        String asciiZipName = rawZipName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        String encodedZipName;
+        try {
+            encodedZipName = java.net.URLEncoder.encode(rawZipName, java.nio.charset.StandardCharsets.UTF_8.name()).replace("+", "%20");
+        } catch (java.io.UnsupportedEncodingException e) {
+            encodedZipName = asciiZipName;
+        }
+
+        jakarta.ws.rs.core.StreamingOutput stream = output -> {
+            try {
+                service.writeZip(plan, output);
+            } catch (Exception e) {
+                throw new WebApplicationException(e);
+            }
+        };
+
+        return Response.ok(stream, "application/zip")
+                .header("Content-Disposition", "attachment; filename=\"" + asciiZipName + "\"; filename*=UTF-8''" + encodedZipName)
+                .header("Cache-Control", "no-store, no-cache")
+                .build();
+    }
+
+    /**
      * Lists readable documents directly attached to a specific tag (for tag-tree lazy expansion).
      */
     @GET

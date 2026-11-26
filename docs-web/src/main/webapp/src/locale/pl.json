@@ -288,6 +288,8 @@
     "browse": {
       "tree_title": "Kategorie etykiet",
       "tab_doc_list": "Lista dokumentów",
+      "download_zip": "Pobierz ZIP",
+      "download_zip_tooltip": "Spakuj pliki do pobrania z tego tagu i podtagów w archiwum ZIP ze strukturą folderów i _manifest.txt",
       "welcome_title": "Przeglądaj dokumenty i pliki według etykiet",
       "welcome_message": "Wybierz etykietę po lewej stronie, aby wyświetlić wszystkie powiązane dokumenty i pliki.",
       "subtags": "Podetykiety",

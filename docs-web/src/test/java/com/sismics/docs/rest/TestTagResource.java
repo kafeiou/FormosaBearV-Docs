@@ -1146,4 +1146,111 @@ public class TestTagResource extends BaseJerseyTest {
                 .post(Entity.form(new Form().param("tags", dccTagId)));
         Assert.assertEquals(Status.OK, Status.fromStatusCode(attachAllowed.getStatus()));
     }
+
+    /**
+     * Test hierarchical ZIP download under a tag with download permission filtering and _manifest.txt.
+     */
+    @Test
+    public void testTagHierarchyZipDownload() throws Exception {
+        clientUtil.createUser("zip_owner");
+        clientUtil.createUser("zip_reader");
+        String ownerToken = clientUtil.login("zip_owner");
+        String readerToken = clientUtil.login("zip_reader");
+        String adminToken = clientUtil.login("admin", "superSecure", false);
+
+        // Disable global file download so per-document allow_download is enforced
+        Response disableResp = target().path("/app/file_download").request()
+                .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                .post(Entity.form(new Form().param("enabled", "false")));
+        Assert.assertEquals(Status.OK, Status.fromStatusCode(disableResp.getStatus()));
+
+        try {
+            // Create Parent -> Child tags and grant zip_reader READ on Parent (inherited by Child)
+            String parentId = target().path("/tag").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                    .put(Entity.form(new Form().param("name", "ISO2026").param("color", "#3a87ad")), JsonObject.class)
+                    .getString("id");
+            String childId = target().path("/tag").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                    .put(Entity.form(new Form().param("name", "Validation").param("color", "#28a745").param("parent", parentId)), JsonObject.class)
+                    .getString("id");
+            target().path("/acl").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                    .put(Entity.form(new Form()
+                            .param("source", parentId)
+                            .param("perm", "READ")
+                            .param("target", "zip_reader")
+                            .param("type", "USER")), JsonObject.class);
+
+            // Create 2 documents under Child: one allow_download=true, one allow_download=false
+            String allowedDocId = target().path("/document").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                    .put(Entity.form(new Form()
+                            .param("title", "AllowedDoc")
+                            .param("language", "eng")
+                            .param("allow_download", "true")
+                            .param("tags", childId)), JsonObject.class)
+                    .getString("id");
+            String deniedDocId = target().path("/document").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                    .put(Entity.form(new Form()
+                            .param("title", "DeniedDoc")
+                            .param("language", "eng")
+                            .param("allow_download", "false")
+                            .param("tags", childId)), JsonObject.class)
+                    .getString("id");
+
+            // Upload 1 text file to each document
+            byte[] allowedBytes = "allowed-content".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            byte[] deniedBytes = "secret-no-download".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            org.glassfish.jersey.media.multipart.FormDataMultiPart mp1 = new org.glassfish.jersey.media.multipart.FormDataMultiPart();
+            mp1.field("id", allowedDocId);
+            mp1.bodyPart(new org.glassfish.jersey.media.multipart.file.StreamDataBodyPart("file",
+                    new java.io.ByteArrayInputStream(allowedBytes), "public.txt"));
+            target().path("/file").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                    .put(Entity.entity(mp1, org.glassfish.jersey.media.multipart.MultiPartMediaTypes.createFormData()), JsonObject.class);
+
+            org.glassfish.jersey.media.multipart.FormDataMultiPart mp2 = new org.glassfish.jersey.media.multipart.FormDataMultiPart();
+            mp2.field("id", deniedDocId);
+            mp2.bodyPart(new org.glassfish.jersey.media.multipart.file.StreamDataBodyPart("file",
+                    new java.io.ByteArrayInputStream(deniedBytes), "restricted.txt"));
+            target().path("/file").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                    .put(Entity.entity(mp2, org.glassfish.jersey.media.multipart.MultiPartMediaTypes.createFormData()), JsonObject.class);
+
+            // Download ZIP as zip_reader from Parent tag
+            Response zipResp = target().path("/tag/" + parentId + "/zip").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(zipResp.getStatus()));
+            byte[] zipBytes = zipResp.readEntity(byte[].class);
+
+            java.util.Map<String, String> entries = new java.util.HashMap<>();
+            try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(
+                    new java.io.ByteArrayInputStream(zipBytes), java.nio.charset.StandardCharsets.UTF_8)) {
+                java.util.zip.ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    entries.put(entry.getName(), new String(zis.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+                }
+            }
+
+            // Allowed file must be present under ISO2026/Validation/AllowedDoc/public.txt
+            Assert.assertTrue("Expected allowed file in hierarchical path", entries.containsKey("ISO2026/Validation/AllowedDoc/public.txt"));
+            Assert.assertEquals("allowed-content", entries.get("ISO2026/Validation/AllowedDoc/public.txt"));
+
+            // Denied file must NOT be packaged into the ZIP
+            Assert.assertFalse("Restricted file must not be included in ZIP", entries.containsKey("ISO2026/Validation/DeniedDoc/restricted.txt"));
+
+            // _manifest.txt must exist and list BOTH the included file and the skipped restricted file
+            Assert.assertTrue("Expected _manifest.txt in ZIP", entries.containsKey("_manifest.txt"));
+            String manifest = entries.get("_manifest.txt");
+            Assert.assertTrue(manifest.contains("[O] ISO2026/Validation/AllowedDoc/public.txt"));
+            Assert.assertTrue(manifest.contains("[X] ISO2026/Validation/DeniedDoc/restricted.txt"));
+        } finally {
+            target().path("/app/file_download").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)
+                    .post(Entity.form(new Form().param("enabled", "true")));
+        }
+    }
 }

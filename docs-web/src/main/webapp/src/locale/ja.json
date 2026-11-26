@@ -288,6 +288,8 @@
     "browse": {
       "tree_title": "タグ分類",
       "tab_doc_list": "ドキュメント一覧",
+      "download_zip": "ZIP で一括ダウンロード",
+      "download_zip_tooltip": "このタグと子タグ配下のダウンロード可能なファイルを階層構造のまま ZIP 化します（_manifest.txt 付き）",
       "welcome_title": "タグ別ドキュメント・ファイル一覧",
       "welcome_message": "左側のタグツリーからタグを選択すると、関連するドキュメントとファイルが表示されます。",
       "subtags": "子タグ",

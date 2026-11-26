@@ -9,6 +9,10 @@ This document details the notable changes, security enhancements, architecture i
 ## [v3.02-SNAPSHOT] (Unreleased)
 
 ### Added
+- **Tag Hierarchy ZIP Download with Manifest (`GET /api/tag/{id}/zip`, `#/tag/:id`)**:
+  - Added a one-click **Download ZIP** button in Tag Browse (`tag.view.html`, removing the misleading direct-only document count next to it) backed by `TagZipExportService` and `TagResource.downloadTagZip`.
+  - Streams downloadable files under the selected tag and its readable descendant subtags into a UTF-8 ZIP archive organized as `Tag/SubTag/DocumentTitle/FileName` (compatible with both encrypted and unencrypted storage, strictly honoring global `file_download` and per-document `allow_download` rules, preserving tag/document/file custom ordering).
+  - Always includes a UTF-8 BOM `_manifest.txt` with export summary header and aligned `[O]` / `[X]` status lines for every readable file (including skipped read-only or missing files), with 16-language translations and integration tests in `TestTagResource`.
 - **Storage & Database Integrity Scan & Selective Cleanup (`GET /api/app/integrity/scan`, `POST /api/app/integrity/clean`, `#/settings/monitoring`)**:
   - Added an admin-only two-step **Scan → Review & Select → Confirm Clean** tool in **Settings → Monitoring** (`StorageIntegrityService`, `AppResource`, `settings.monitoring.html`, `SettingsMonitoring.js`) detecting three mismatch categories: **orphaned historical versions** (`latest_version = false` with no active latest version), **DB file records missing physical files on disk** (with latest versions unchecked by default + warning banner), and **orphaned disk files** under `storage/`.
   - Selective cleanup permanently removes chosen mismatched DB records (soft-delete, Lucene index removal, derivative cleanup, user quota adjustment without cluttering Trash) and path-traversal-guarded (`CWE-22`) orphaned disk files; also updated `RebuildIndexAsyncListener.reprocessOcr()` to skip non-latest historical versions, with 16-language translations and integration tests in `TestAppResource`.

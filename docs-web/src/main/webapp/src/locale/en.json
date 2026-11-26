@@ -288,6 +288,8 @@
     "browse": {
       "tree_title": "Tag Categories",
       "tab_doc_list": "Document list",
+      "download_zip": "Download ZIP",
+      "download_zip_tooltip": "Package downloadable files under this tag and subtags into a ZIP with folder hierarchy and _manifest.txt",
       "welcome_title": "Browse Documents & Files by Tag",
       "welcome_message": "Please select a tag on the left to list all associated documents and files.",
       "subtags": "Sub-tags",

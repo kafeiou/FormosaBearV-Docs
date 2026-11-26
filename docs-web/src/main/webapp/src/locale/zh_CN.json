@@ -288,6 +288,8 @@
     "browse": {
       "tree_title": "标签分类",
       "tab_doc_list": "文档列表",
+      "download_zip": "打包下载 ZIP",
+      "download_zip_tooltip": "将此标签及子标签下允许下载的文件按标签目录结构打包为 ZIP（含 _manifest.txt 完整清单）",
       "welcome_title": "按标签浏览文档与文件",
       "welcome_message": "请从左侧点选标签，以列出该标签关联的所有文档与文件。",
       "subtags": "子标签",

@@ -9,6 +9,10 @@
 ## [v3.02-SNAPSHOT]（未發布）
 
 ### 新增功能 (Added)
+- **依標籤階層結構一鍵打包下載 ZIP（`GET /api/tag/{id}/zip`、`#/tag/:id`）**：
+  - 於標籤瀏覽頁頂部標題列新增「**打包下載 ZIP**」按鈕（同步移除旁側易造成誤導的單層文件數顯示），由新增的 `TagZipExportService` 與 `TagResource.downloadTagZip` 提供支援。
+  - 以純唯讀串流方式將所選標籤與所有可讀子標籤下允許下載的檔案，依 `標籤/子標籤/文件標題/檔名` 目錄結構打包為 UTF-8 ZIP（相容未加密與加密模式、嚴格遵守全域下載總開關與文件個別 `allow_download` 權限，並完整保留標籤／文件／檔案自訂順序）。
+  - 根目錄固定附帶 UTF-8 BOM 的 `_manifest.txt`，包含匯出摘要標頭與等寬對齊的 `[O]` / `[X]` 完整清單（含禁止下載或遺失而略過之可讀檔案），同步補齊 16 國語系與 `TestTagResource` 整合測試。
 - **資料一致性檢查與選擇性清理（`GET /api/app/integrity/scan`、`POST /api/app/integrity/clean`、`#/settings/monitoring`）**：
   - 於「**設定 → 監控**」新增限管理員使用的兩階段「**先掃描預覽 → 勾選確認 → 徹底清理**」工具（`StorageIntegrityService`、`AppResource`、`settings.monitoring.html`、`SettingsMonitoring.js`），可偵測三類不匹配項目：**孤兒歷史版本**（`latest_version = false` 且已無有效最新版）、**缺實體檔的資料庫紀錄**（最新版預設不勾選並顯示警示）、以及 **`storage/` 磁碟孤兒殘留檔**。
   - 選擇性清理會徹底移除勾選的資料庫異常紀錄（軟刪除、移出 Lucene 索引、刪除殘留衍生檔與校正配額，不進垃圾桶）並具路徑遍歷防呆（CWE-22）清理磁碟孤兒檔；同步更新 `RebuildIndexAsyncListener.reprocessOcr()` 跳過非最新版歷史紀錄，並補齊 16 國語系與 `TestAppResource` 整合測試。
