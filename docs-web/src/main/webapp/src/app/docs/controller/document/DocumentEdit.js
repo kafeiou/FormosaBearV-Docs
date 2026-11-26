@@ -3,7 +3,7 @@
 /**
  * Document edition controller.
  */
-angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $q, $http, $state, $stateParams, Restangular, $translate, User) {
+angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $q, $http, $state, $stateParams, $uibModal, Restangular, $translate, User) {
   // Alerts
   $scope.alerts = [];
 
@@ -199,6 +199,7 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
       } else {
         $scope.fileIsUploading = true;
         $rootScope.pageTitle = '0% - ' + $rootScope.appName;
+        var modalPromises = [];
         
         // Send a file from the input file array and return a promise
         var sendFile = function(key) {
@@ -243,17 +244,34 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
             // New file uploaded, increase used quota
             $rootScope.userInfo.storage_current += data.size;
           }, function(data) {
-            // Error uploading a file, we stop here
+            // Error uploading a file, record alert and continue remaining files
+            var respJson = data && data.responseJSON;
             $scope.alerts.unshift({
               type: 'danger',
               msg: $translate.instant('document.edit.document_' + ($scope.isEdit() ? 'edited' : 'added') + '_with_errors')
-                + (data.responseJSON && data.responseJSON.type === 'QuotaReached' ? (' - ' + $translate.instant('document.edit.quota_reached')) : '')
+                + (respJson && respJson.type === 'QuotaReached' ? (' - ' + $translate.instant('document.edit.quota_reached')) : '')
+                + (respJson && respJson.type === 'FileNameDuplicate' ? (' - ' + $translate.instant('document.default.upload_error_duplicate')) : '')
             });
-
-            // Reset view and title
-            $scope.fileIsUploading = false;
-            $scope.fileProgress = 0;
-            $rootScope.pageTitle = $rootScope.appName;
+            if (respJson && respJson.type === 'FileNameDuplicate') {
+              var modalDeferred = $q.defer();
+              modalPromises.push(modalDeferred.promise);
+              var modalInstance = $uibModal.open({
+                templateUrl: 'partial/docs/file.duplicate.modal.html',
+                size: 'md',
+                controller: ['$scope', '$uibModalInstance', function($mScope, $uibModalInstance) {
+                  $mScope.fileName = respJson.file_name || (file && file.name) || '';
+                  $mScope.duplicates = respJson.duplicates || [];
+                  $mScope.close = function() {
+                    $uibModalInstance.close();
+                  };
+                }]
+              });
+              modalInstance.result.then(function() {
+                modalDeferred.resolve();
+              }, function() {
+                modalDeferred.resolve();
+              });
+            }
           }, function(e) {
             var done = 1 - (e.total - e.loaded) / e.total;
             var chunk = 100 / _.size($scope.newFiles);
@@ -264,20 +282,25 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
           return deferred.promise;
         };
         
-        // Upload files sequentially
+        // Upload files sequentially; continue even if one file fails
         var key = 0;
         var then = function() {
           key++;
-          if ($scope.newFiles[key]) {
-            sendFile(key).then(then);
+          if ($scope.newFiles && $scope.newFiles[key]) {
+            sendFile(key).then(then, then);
           } else {
+            $scope.newFiles = [];
             $scope.fileIsUploading = false;
             $scope.fileProgress = 0;
             $rootScope.pageTitle = $rootScope.appName;
-            navigateNext();
+            if (modalPromises.length > 0) {
+              $q.all(modalPromises).then(navigateNext);
+            } else {
+              navigateNext();
+            }
           }
         };
-        sendFile(key).then(then);
+        sendFile(key).then(then, then);
       }
     });
   };

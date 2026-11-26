@@ -428,6 +428,20 @@ public class FileDao {
     }
 
     /**
+     * Get all active (non-deleted) file versions for the given document IDs,
+     * ordered by file order, version number, and creation date.
+     *
+     * @param documentIds Document IDs
+     * @return List of all active file versions
+     */
+    public List<File> getAllVersionsByDocumentsIds(Iterable<String> documentIds) {
+        EntityManager em = ThreadLocalContext.get().getEntityManager();
+        TypedQuery<File> q = em.createQuery("select f from File f where f.documentId in :documentIds and f.deleteDate is null order by f.order asc, f.version asc, f.createDate asc", File.class);
+        q.setParameter("documentIds", documentIds);
+        return q.getResultList();
+    }
+
+    /**
      * Get files count by documents IDs.
      *
      * @param documentIds Documents IDs

@@ -126,6 +126,9 @@ public class FileResource extends BaseResource {
         
         // Validate input data
         ValidationUtil.validateRequired(fileBodyPart, "file");
+        if (Strings.isNullOrEmpty(previousFileId)) {
+            previousFileId = null;
+        }
 
         // Get the document
         DocumentDto documentDto = null;
@@ -173,6 +176,10 @@ public class FileResource extends BaseResource {
           .add("status", "FileError")
           .add("type", e.getMessage())
           .add("message", e.getMessage());
+          if ("FileNameDuplicate".equals(e.getMessage())) {
+              response.add("file_name", JsonUtil.nullable(name));
+              response.add("duplicates", buildDuplicateFilesArray(principal.getId(), name));
+          }
           return Response.status(403).entity(response.build()).build();
         } catch (Exception e) {
           //throw new ServerException("FileError", "Error adding a file", e);
@@ -371,6 +378,8 @@ public class FileResource extends BaseResource {
               JsonObjectBuilder response = Json.createObjectBuilder()
               .add("status", "FileError")
               .add("type", "FileNameDuplicate")
+              .add("file_name", JsonUtil.nullable(name))
+              .add("duplicates", buildDuplicateFilesArray(file.getUserId(), name))
               .add("message", "UserID="+file.getUserId()+",name="+name);
               return Response.status(403).entity(response.build()).build();
             }
@@ -411,9 +420,8 @@ public class FileResource extends BaseResource {
                 .add("status", "ok")
                 .add("name", file.getName());
         if (privileged) {
-            java.nio.file.Path storedFile = ConfigUtil.isFileEncrypt()
-                    ? DirectoryUtil.getStorageDirectory(file).resolve(file.getId())
-                    : DirectoryUtil.getStorageDirectory(file).resolve(file.getName() != null ? file.getName() : file.getId());
+            java.nio.file.Path storedFile = DirectoryUtil.getStorageDirectory(file)
+                    .resolve(file.getName() != null ? file.getName() : file.getId());
             String relativePath = DirectoryUtil.getBaseDataDirectory().relativize(storedFile).toString().replace('\\', '/');
             response.add("storage_path", relativePath);
         }
@@ -1490,5 +1498,48 @@ public class FileResource extends BaseResource {
     private static boolean isActiveMime(String mimeType) {
         if (mimeType == null) return false;
         return ACTIVE_MIME_PREFIXES.stream().anyMatch(mimeType::startsWith);
+    }
+
+    private JsonArrayBuilder buildDuplicateFilesArray(String userId, String fileName) {
+        JsonArrayBuilder arr = Json.createArrayBuilder();
+        if (StringUtils.isEmpty(userId) || StringUtils.isEmpty(fileName)) {
+            return arr;
+        }
+        FileDao fileDao = new FileDao();
+        List<File> existing = fileDao.getByUserIdFileName(userId, StringUtils.abbreviate(fileName, 200));
+        if (existing == null || existing.isEmpty()) {
+            return arr;
+        }
+        DocumentDao documentDao = new DocumentDao();
+        com.sismics.docs.core.dao.TagDao tagDao = new com.sismics.docs.core.dao.TagDao();
+        List<String> targetIdList = getTargetIdList(null);
+        for (File dup : existing) {
+            JsonObjectBuilder obj = Json.createObjectBuilder()
+                    .add("file_id", dup.getId())
+                    .add("file_name", JsonUtil.nullable(dup.getName()))
+                    .add("create_date", dup.getCreateDate() != null ? dup.getCreateDate().getTime() : 0L);
+            if (!StringUtils.isEmpty(dup.getDocumentId())) {
+                obj.add("document_id", dup.getDocumentId());
+                Document doc = documentDao.getById(dup.getDocumentId());
+                if (doc != null) {
+                    obj.add("document_title", JsonUtil.nullable(doc.getTitle()));
+                }
+                List<com.sismics.docs.core.dao.dto.TagDto> docTags = tagDao.findByCriteria(
+                        new com.sismics.docs.core.dao.criteria.TagCriteria()
+                                .setTargetIdList(targetIdList)
+                                .setDocumentId(dup.getDocumentId()),
+                        null);
+                JsonArrayBuilder tagsArr = Json.createArrayBuilder();
+                for (com.sismics.docs.core.dao.dto.TagDto t : docTags) {
+                    tagsArr.add(Json.createObjectBuilder()
+                            .add("id", t.getId())
+                            .add("name", t.getName())
+                            .add("color", t.getColor()));
+                }
+                obj.add("tags", tagsArr);
+            }
+            arr.add(obj);
+        }
+        return arr;
     }
 }

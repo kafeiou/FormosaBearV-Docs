@@ -859,4 +859,126 @@ public class TestFileResource extends BaseJerseyTest {
         Assert.assertEquals(1, listJson.getJsonArray("files").size());
         Assert.assertEquals(fileId, listJson.getJsonArray("files").getJsonObject(0).getString("id"));
     }
+
+    /**
+     * Regression test: when file encryption is enabled (file.encrypt=true) and duplicate filenames
+     * are disallowed (file.duplicate=false), uploading a new version with the same filename (test.txt)
+     * must succeed without colliding on disk, and both v1 and v2 must remain independently readable
+     * (including backward compatibility when v1 resides at the legacy flat storage/test.txt path).
+     */
+    @Test
+    public void testEncryptedNewVersionSameFilename() throws Exception {
+        clientUtil.createUser("enc_ver_user");
+        String userToken = clientUtil.login("enc_ver_user");
+        String docId = clientUtil.createDocument(userToken);
+
+        com.sismics.docs.core.util.TransactionUtil.handle(() -> {
+            com.sismics.docs.core.dao.ConfigDao configDao = new com.sismics.docs.core.dao.ConfigDao();
+            configDao.update(com.sismics.docs.core.constant.ConfigType.FILE_ENCRYPT, "true");
+            configDao.update(com.sismics.docs.core.constant.ConfigType.FILE_DUPLICATE, "false");
+            com.sismics.docs.core.util.ConfigUtil.resetCache();
+        });
+
+        try {
+            // 1. Upload v1 of test.txt
+            byte[] v1Bytes = "encrypted-version-1-content".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            String v1Id;
+            try (FormDataMultiPart mp1 = new FormDataMultiPart()) {
+                mp1.field("id", docId);
+                mp1.bodyPart(new StreamDataBodyPart("file", new java.io.ByteArrayInputStream(v1Bytes), "test.txt"));
+                Response r1 = target().register(MultiPartFeature.class).path("/file").request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                        .put(Entity.entity(mp1, MediaType.MULTIPART_FORM_DATA_TYPE));
+                Assert.assertEquals(Status.OK, Status.fromStatusCode(r1.getStatus()));
+                v1Id = r1.readEntity(JsonObject.class).getString("id");
+            }
+
+            // Verify v1 is stored in isolated storage/{v1Id}/test.txt
+            Path v1Stored = DirectoryUtil.getBaseDataDirectory().resolve("storage/" + v1Id + "/test.txt");
+            Assert.assertTrue("v1 should be stored in isolated per-file directory", Files.exists(v1Stored));
+
+            // 2. Upload v2 of test.txt as a new version (same filename, previousFileId = v1Id)
+            byte[] v2Bytes = "encrypted-version-2-content-updated".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            String v2Id;
+            try (FormDataMultiPart mp2 = new FormDataMultiPart()) {
+                mp2.field("id", docId);
+                mp2.field("previousFileId", v1Id);
+                mp2.bodyPart(new StreamDataBodyPart("file", new java.io.ByteArrayInputStream(v2Bytes), "test.txt"));
+                Response r2 = target().register(MultiPartFeature.class).path("/file").request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                        .put(Entity.entity(mp2, MediaType.MULTIPART_FORM_DATA_TYPE));
+                Assert.assertEquals(Status.OK, Status.fromStatusCode(r2.getStatus()));
+                v2Id = r2.readEntity(JsonObject.class).getString("id");
+            }
+            Assert.assertNotEquals(v1Id, v2Id);
+
+            // Verify both v1 and v2 decrypt back to their distinct original contents
+            Response dl1 = target().path("/file/" + v1Id + "/data").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken).get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(dl1.getStatus()));
+            Assert.assertArrayEquals(v1Bytes, ByteStreams.toByteArray((InputStream) dl1.getEntity()));
+
+            Response dl2 = target().path("/file/" + v2Id + "/data").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken).get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(dl2.getStatus()));
+            Assert.assertArrayEquals(v2Bytes, ByteStreams.toByteArray((InputStream) dl2.getEntity()));
+
+            // 3. Simulate legacy flat storage/legacy_enc.txt for v1, then upload v2 with same filename
+            byte[] legacyV1Bytes = "legacy-flat-v1".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            String legacyV1Id;
+            try (FormDataMultiPart mpL1 = new FormDataMultiPart()) {
+                mpL1.field("id", docId);
+                mpL1.bodyPart(new StreamDataBodyPart("file", new java.io.ByteArrayInputStream(legacyV1Bytes), "legacy_enc.txt"));
+                Response rL1 = target().register(MultiPartFeature.class).path("/file").request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                        .put(Entity.entity(mpL1, MediaType.MULTIPART_FORM_DATA_TYPE));
+                Assert.assertEquals(Status.OK, Status.fromStatusCode(rL1.getStatus()));
+                legacyV1Id = rL1.readEntity(JsonObject.class).getString("id");
+            }
+            // Move legacy v1 to flat storage/legacy_enc.txt and remove its per-file folder
+            Path legacyPerFileDir = DirectoryUtil.getBaseDataDirectory().resolve("storage/" + legacyV1Id);
+            Path legacyFlatFile = DirectoryUtil.getBaseDataDirectory().resolve("storage/legacy_enc.txt");
+            Files.move(legacyPerFileDir.resolve("legacy_enc.txt"), legacyFlatFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            try (java.util.stream.Stream<Path> s = Files.list(legacyPerFileDir)) {
+                for (Path p : s.collect(java.util.stream.Collectors.toList())) {
+                    Files.deleteIfExists(p);
+                }
+            }
+            Files.deleteIfExists(legacyPerFileDir);
+
+            // Upload v2 with same filename legacy_enc.txt -> must succeed without colliding with flat file
+            byte[] legacyV2Bytes = "new-isolated-v2".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            String legacyV2Id;
+            try (FormDataMultiPart mpL2 = new FormDataMultiPart()) {
+                mpL2.field("id", docId);
+                mpL2.field("previousFileId", legacyV1Id);
+                mpL2.bodyPart(new StreamDataBodyPart("file", new java.io.ByteArrayInputStream(legacyV2Bytes), "legacy_enc.txt"));
+                Response rL2 = target().register(MultiPartFeature.class).path("/file").request()
+                        .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken)
+                        .put(Entity.entity(mpL2, MediaType.MULTIPART_FORM_DATA_TYPE));
+                Assert.assertEquals(Status.OK, Status.fromStatusCode(rL2.getStatus()));
+                legacyV2Id = rL2.readEntity(JsonObject.class).getString("id");
+            }
+
+            // Both legacy flat v1 and new isolated v2 must decrypt cleanly
+            Response dlL1 = target().path("/file/" + legacyV1Id + "/data").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken).get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(dlL1.getStatus()));
+            Assert.assertArrayEquals(legacyV1Bytes, ByteStreams.toByteArray((InputStream) dlL1.getEntity()));
+
+            Response dlL2 = target().path("/file/" + legacyV2Id + "/data").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, userToken).get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(dlL2.getStatus()));
+            Assert.assertArrayEquals(legacyV2Bytes, ByteStreams.toByteArray((InputStream) dlL2.getEntity()));
+
+            Files.deleteIfExists(legacyFlatFile);
+        } finally {
+            com.sismics.docs.core.util.TransactionUtil.handle(() -> {
+                com.sismics.docs.core.dao.ConfigDao configDao = new com.sismics.docs.core.dao.ConfigDao();
+                configDao.update(com.sismics.docs.core.constant.ConfigType.FILE_ENCRYPT, "false");
+                configDao.update(com.sismics.docs.core.constant.ConfigType.FILE_ENCRYPT_LOCKED, "false");
+                com.sismics.docs.core.util.ConfigUtil.resetCache();
+            });
+        }
+    }
 }

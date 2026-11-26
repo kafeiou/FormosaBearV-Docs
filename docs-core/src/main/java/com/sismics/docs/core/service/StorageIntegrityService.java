@@ -361,6 +361,16 @@ public class StorageIntegrityService {
             }
             return threeLevelDir;
         }
+        if (file != null && !Strings.isNullOrEmpty(file.getId())) {
+            Path perFileDir = baseDataDir.resolve("storage/" + file.getId()).toAbsolutePath().normalize();
+            if (Files.isDirectory(perFileDir)) {
+                return perFileDir;
+            }
+            if (!Strings.isNullOrEmpty(file.getName()) && Files.exists(baseDataDir.resolve("storage").resolve(file.getName()))) {
+                return baseDataDir.resolve("storage").toAbsolutePath().normalize();
+            }
+            return perFileDir;
+        }
         return baseDataDir.resolve("storage").toAbsolutePath().normalize();
     }
 

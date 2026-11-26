@@ -26,13 +26,32 @@
     </ol>
 
     <div class="pull-right" ng-if="tag && tag.id">
-      <a class="btn btn-xs btn-default"
-         ng-href="../api/tag/{{ tag.id }}/zip"
-         uib-tooltip="{{ 'tag.browse.download_zip_tooltip' | translate }}"
-         tooltip-append-to-body="true">
-        <span class="fas fa-file-archive text-primary"></span>
-        {{ 'tag.browse.download_zip' | translate }}
-      </a>
+      <div class="btn-group btn-group-xs" uib-dropdown>
+        <a class="btn btn-default"
+           ng-href="../api/tag/{{ tag.id }}/zip"
+           uib-tooltip="{{ 'tag.browse.download_zip_tooltip' | translate }}"
+           tooltip-append-to-body="true">
+          <span class="fas fa-file-archive text-primary"></span>
+          {{ 'tag.browse.download_zip' | translate }}
+        </a>
+        <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
+          <li>
+            <a ng-href="../api/tag/{{ tag.id }}/zip">
+              <span class="fas fa-file-archive text-primary"></span>
+              {{ 'tag.browse.download_zip_latest' | translate }}
+            </a>
+          </li>
+          <li>
+            <a ng-href="../api/tag/{{ tag.id }}/zip?include_versions=true">
+              <span class="fas fa-history text-info"></span>
+              {{ 'tag.browse.download_zip_with_history' | translate }}
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 

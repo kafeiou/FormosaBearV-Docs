@@ -1200,16 +1200,27 @@ public class TestTagResource extends BaseJerseyTest {
                             .param("tags", childId)), JsonObject.class)
                     .getString("id");
 
-            // Upload 1 text file to each document
-            byte[] allowedBytes = "allowed-content".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            // Upload 1 text file to each document (and a 2nd version of public.txt to test include_versions=true)
+            byte[] allowedBytesV1 = "allowed-content-v1".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            byte[] allowedBytesV2 = "allowed-content-v2".getBytes(java.nio.charset.StandardCharsets.UTF_8);
             byte[] deniedBytes = "secret-no-download".getBytes(java.nio.charset.StandardCharsets.UTF_8);
             org.glassfish.jersey.media.multipart.FormDataMultiPart mp1 = new org.glassfish.jersey.media.multipart.FormDataMultiPart();
             mp1.field("id", allowedDocId);
             mp1.bodyPart(new org.glassfish.jersey.media.multipart.file.StreamDataBodyPart("file",
-                    new java.io.ByteArrayInputStream(allowedBytes), "public.txt"));
+                    new java.io.ByteArrayInputStream(allowedBytesV1), "public.txt"));
+            String publicV1Id = target().path("/file").request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
+                    .put(Entity.entity(mp1, org.glassfish.jersey.media.multipart.MultiPartMediaTypes.createFormData()), JsonObject.class)
+                    .getString("id");
+
+            org.glassfish.jersey.media.multipart.FormDataMultiPart mp1v2 = new org.glassfish.jersey.media.multipart.FormDataMultiPart();
+            mp1v2.field("id", allowedDocId);
+            mp1v2.field("previousFileId", publicV1Id);
+            mp1v2.bodyPart(new org.glassfish.jersey.media.multipart.file.StreamDataBodyPart("file",
+                    new java.io.ByteArrayInputStream(allowedBytesV2), "public.txt"));
             target().path("/file").request()
                     .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
-                    .put(Entity.entity(mp1, org.glassfish.jersey.media.multipart.MultiPartMediaTypes.createFormData()), JsonObject.class);
+                    .put(Entity.entity(mp1v2, org.glassfish.jersey.media.multipart.MultiPartMediaTypes.createFormData()), JsonObject.class);
 
             org.glassfish.jersey.media.multipart.FormDataMultiPart mp2 = new org.glassfish.jersey.media.multipart.FormDataMultiPart();
             mp2.field("id", deniedDocId);
@@ -1219,7 +1230,7 @@ public class TestTagResource extends BaseJerseyTest {
                     .cookie(TokenBasedSecurityFilter.COOKIE_NAME, ownerToken)
                     .put(Entity.entity(mp2, org.glassfish.jersey.media.multipart.MultiPartMediaTypes.createFormData()), JsonObject.class);
 
-            // Download ZIP as zip_reader from Parent tag
+            // Download ZIP as zip_reader from Parent tag (latest versions only)
             Response zipResp = target().path("/tag/" + parentId + "/zip").request()
                     .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
                     .get();
@@ -1235,9 +1246,9 @@ public class TestTagResource extends BaseJerseyTest {
                 }
             }
 
-            // Allowed file must be present under ISO2026/Validation/AllowedDoc/public.txt
+            // Allowed latest file must be present under ISO2026/Validation/AllowedDoc/public.txt
             Assert.assertTrue("Expected allowed file in hierarchical path", entries.containsKey("ISO2026/Validation/AllowedDoc/public.txt"));
-            Assert.assertEquals("allowed-content", entries.get("ISO2026/Validation/AllowedDoc/public.txt"));
+            Assert.assertEquals("allowed-content-v2", entries.get("ISO2026/Validation/AllowedDoc/public.txt"));
 
             // Denied file must NOT be packaged into the ZIP
             Assert.assertFalse("Restricted file must not be included in ZIP", entries.containsKey("ISO2026/Validation/DeniedDoc/restricted.txt"));
@@ -1247,6 +1258,28 @@ public class TestTagResource extends BaseJerseyTest {
             String manifest = entries.get("_manifest.txt");
             Assert.assertTrue(manifest.contains("[O] ISO2026/Validation/AllowedDoc/public.txt"));
             Assert.assertTrue(manifest.contains("[X] ISO2026/Validation/DeniedDoc/restricted.txt"));
+
+            // Download ZIP with include_versions=true -> multi-version file gets (v1)/(v2), single-version stays plain
+            Response zipHistResp = target().path("/tag/" + parentId + "/zip")
+                    .queryParam("include_versions", "true")
+                    .request()
+                    .cookie(TokenBasedSecurityFilter.COOKIE_NAME, readerToken)
+                    .get();
+            Assert.assertEquals(Status.OK, Status.fromStatusCode(zipHistResp.getStatus()));
+            java.util.Map<String, String> histEntries = new java.util.HashMap<>();
+            try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(
+                    new java.io.ByteArrayInputStream(zipHistResp.readEntity(byte[].class)), java.nio.charset.StandardCharsets.UTF_8)) {
+                java.util.zip.ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    histEntries.put(entry.getName(), new String(zis.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+                }
+            }
+            Assert.assertEquals("allowed-content-v1", histEntries.get("ISO2026/Validation/AllowedDoc/public_#1.txt"));
+            Assert.assertEquals("allowed-content-v2", histEntries.get("ISO2026/Validation/AllowedDoc/public_#2.txt"));
+            String histManifest = histEntries.get("_manifest.txt");
+            Assert.assertTrue(histManifest.contains("[O] ISO2026/Validation/AllowedDoc/public_#1.txt"));
+            Assert.assertTrue(histManifest.contains("[O] ISO2026/Validation/AllowedDoc/public_#2.txt"));
+            Assert.assertTrue(histManifest.contains("[X] ISO2026/Validation/DeniedDoc/restricted.txt"));
         } finally {
             target().path("/app/file_download").request()
                     .cookie(TokenBasedSecurityFilter.COOKIE_NAME, adminToken)

@@ -279,7 +279,7 @@
 <h3>
   <span translate="settings.config.title_file_duplicate"></span>
   <span class="label" ng-class="{ 'label-success': app.file_duplicate, 'label-danger': !app.file_duplicate }">
-    {{ app.file_duplicate ? 'enabled' : 'disabled' | translate }}
+    {{ (app.file_duplicate ? 'settings.config.status_allowed' : 'settings.config.status_not_allowed') | translate }}
   </span>
 </h3>
 <p translate="settings.config.message_file_duplicate"></p>
@@ -316,7 +316,7 @@
 <h3>
   <span translate="settings.config.title_group_view_all"></span>
   <span class="label" ng-class="{ 'label-success': app.group_view_all, 'label-danger': !app.group_view_all }">
-    {{ (app.group_view_all ? 'enabled' : 'disabled') | translate }}
+    {{ (app.group_view_all ? 'settings.config.status_allowed' : 'settings.config.status_not_allowed') | translate }}
   </span>
 </h3>
 <p translate="settings.config.message_group_view_all"></p>

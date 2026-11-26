@@ -219,6 +219,14 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
 
     var uploadedfile = files[0];
     var previousFileId = file.id;
+    file._prevSnapshot = {
+      id: file.id,
+      name: file.name,
+      create_date: file.create_date,
+      mimetype: file.mimetype,
+      version: file.version,
+      version_label: file.version_label
+    };
     file.id = undefined;
     file.progress = 0;
     file.name = uploadedfile.name;
@@ -256,11 +264,11 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
         newfiles.push(newfile);
       });
 
-      // Uploading files sequentially
+      // Uploading files sequentially (continue even if one file fails)
       var key = 0;
       var then = function() {
         if (files[key]) {
-          $scope.uploadFile(files[key], newfiles[key++]).then(then);
+          $scope.uploadFile(files[key], newfiles[key++]).then(then, then);
         }
       };
       then();
@@ -287,6 +295,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
     })
     .success(function(data) {
       // Update local model with real data
+      delete newfile._prevSnapshot;
       newfile.id = data.id;
       newfile.size = data.size;
       newfile.processing = true;
@@ -299,12 +308,48 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
 
     })
     .error(function (data) {
-      newfile.name = $translate.instant('document.default.upload_error_duplicate')
       newfile.status = $translate.instant('document.view.content.upload_error');
-      if (data.type === 'QuotaReached') {
+      if (data && data.type === 'QuotaReached') {
         newfile.status += ' - ' + $translate.instant('document.view.content.upload_error_quota');
-      }else if (data.type=== 'FileNameDuplicate'){
+      } else if (data && data.type === 'FileNameDuplicate') {
         newfile.status += ' - ' + $translate.instant('document.default.upload_error_duplicate');
+        $uibModal.open({
+          templateUrl: 'partial/docs/file.duplicate.modal.html',
+          size: 'md',
+          controller: ['$scope', '$uibModalInstance', function($mScope, $uibModalInstance) {
+            $mScope.fileName = (data && data.file_name) || (file && file.name) || newfile.name;
+            $mScope.duplicates = (data && data.duplicates) || [];
+            $mScope.close = function() {
+              $uibModalInstance.close();
+            };
+          }]
+        });
+      }
+      if (newfile._prevSnapshot) {
+        var snap = newfile._prevSnapshot;
+        delete newfile._prevSnapshot;
+        newfile.id = snap.id;
+        newfile.name = snap.name;
+        newfile.create_date = snap.create_date;
+        newfile.mimetype = snap.mimetype;
+        newfile.version = snap.version;
+        newfile.version_label = snap.version_label;
+        if (!data || data.type !== 'FileNameDuplicate') {
+          $dialog.messageBox($translate.instant('document.view.content.upload_error'), newfile.status, [
+            { result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }
+          ]);
+        }
+      } else {
+        // Remove failed placeholder card so the UI does not stay stuck
+        var idx = $scope.files ? $scope.files.indexOf(newfile) : -1;
+        if (idx !== -1) {
+          $scope.files.splice(idx, 1);
+        }
+        if (!data || data.type !== 'FileNameDuplicate') {
+          $dialog.messageBox($translate.instant('document.view.content.upload_error'), newfile.status, [
+            { result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }
+          ]);
+        }
       }
     });
   };

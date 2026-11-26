@@ -852,7 +852,9 @@ public class TagResource extends BaseResource {
     @GET
     @Path("{id: [a-z0-9\\-]+}/zip")
     @Produces("application/zip")
-    public Response downloadTagZip(@PathParam("id") String id) {
+    public Response downloadTagZip(
+            @PathParam("id") String id,
+            @QueryParam("include_versions") @DefaultValue("false") boolean includeVersions) {
         if (!authenticate()) {
             throw new ForbiddenClientException();
         }
@@ -869,7 +871,8 @@ public class TagResource extends BaseResource {
                 targetIdList,
                 principal.getId(),
                 principal.getName(),
-                hasBaseFunction(BaseFunction.ADMIN)
+                hasBaseFunction(BaseFunction.ADMIN),
+                includeVersions
         );
         if (plan == null) {
             throw new NotFoundException();

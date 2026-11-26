@@ -127,6 +127,12 @@ public class TagZipExportService {
      */
     public ExportPlan preparePlan(String rootTagId, List<String> targetIdList,
                                   String principalId, String principalName, boolean isAdmin) {
+        return preparePlan(rootTagId, targetIdList, principalId, principalName, isAdmin, false);
+    }
+
+    public ExportPlan preparePlan(String rootTagId, List<String> targetIdList,
+                                  String principalId, String principalName, boolean isAdmin,
+                                  boolean includeVersions) {
         TagDao tagDao = new TagDao();
         List<TagDto> readableTags = tagDao.findByCriteria(
                 new TagCriteria().setTargetIdList(targetIdList), null);
@@ -189,7 +195,7 @@ public class TagZipExportService {
 
         traverseTag(rootTag, "", "", 0, childrenMap, visitedTags,
                 tagDao, documentDao, fileDao, userDao, targetIdList,
-                principalId, isAdmin, globalDownload, fileEncrypt, baseDataDir,
+                principalId, isAdmin, globalDownload, fileEncrypt, includeVersions, baseDataDir,
                 docCache, privateKeyCache, usedZipEntries, plan);
 
         return plan;
@@ -199,7 +205,7 @@ public class TagZipExportService {
                              Map<String, List<TagDto>> childrenMap, Set<String> visitedTags,
                              TagDao tagDao, DocumentDao documentDao, FileDao fileDao, UserDao userDao,
                              List<String> targetIdList, String principalId, boolean isAdmin,
-                             boolean globalDownload, boolean fileEncrypt, Path baseDataDir,
+                             boolean globalDownload, boolean fileEncrypt, boolean includeVersions, Path baseDataDir,
                              Map<String, Document> docCache, Map<String, String> privateKeyCache,
                              Set<String> usedZipEntries, ExportPlan plan) {
         if (!visitedTags.add(tag.getId())) {
@@ -219,7 +225,9 @@ public class TagZipExportService {
                 for (TagDao.TreeDocumentItem item : directDocs) {
                     docIds.add(item.getId());
                 }
-                List<File> allFiles = fileDao.getByDocumentsIds(docIds);
+                List<File> allFiles = includeVersions
+                        ? fileDao.getAllVersionsByDocumentsIds(docIds)
+                        : fileDao.getByDocumentsIds(docIds);
                 Map<String, List<File>> filesByDoc = new HashMap<>();
                 for (File f : allFiles) {
                     if (f.getDocumentId() != null) {
@@ -246,10 +254,25 @@ public class TagZipExportService {
                     plan.totalDocuments++;
 
                     List<File> docFiles = filesByDoc.getOrDefault(doc.getId(), Collections.emptyList());
-                    for (File file : docFiles) {
+                    List<File> orderedDocFiles = includeVersions ? orderAndFilterVersionGroups(docFiles) : docFiles;
+                    Map<String, Integer> groupSizes = new HashMap<>();
+                    if (includeVersions) {
+                        for (File f : orderedDocFiles) {
+                            String gk = Strings.isNullOrEmpty(f.getVersionId()) ? f.getId() : f.getVersionId();
+                            groupSizes.merge(gk, 1, Integer::sum);
+                        }
+                    }
+
+                    for (File file : orderedDocFiles) {
                         plan.totalFiles++;
                         String rawName = Strings.isNullOrEmpty(file.getName()) ? file.getId() : file.getName();
                         String safeFileName = sanitizeFileName(rawName, file.getId());
+                        if (includeVersions) {
+                            String gk = Strings.isNullOrEmpty(file.getVersionId()) ? file.getId() : file.getVersionId();
+                            if (groupSizes.getOrDefault(gk, 1) > 1) {
+                                safeFileName = appendVersionSuffix(safeFileName, file);
+                            }
+                        }
                         long fileSize = (file.getSize() != null && file.getSize() > 0) ? file.getSize() : 0L;
 
                         String displayEntryPath = zipFolderPath + "/" + docFolder + "/" + safeFileName;
@@ -301,9 +324,60 @@ public class TagZipExportService {
         for (TagDto child : children) {
             traverseTag(child, displayPath, zipFolderPath, depth + 1, childrenMap, visitedTags,
                     tagDao, documentDao, fileDao, userDao, targetIdList,
-                    principalId, isAdmin, globalDownload, fileEncrypt, baseDataDir,
+                    principalId, isAdmin, globalDownload, fileEncrypt, includeVersions, baseDataDir,
                     docCache, privateKeyCache, usedZipEntries, plan);
         }
+    }
+
+    /**
+     * Groups all active versions of a document by versionId, discards orphaned historical groups
+     * without an active latest version, and orders groups by their latest version's file order
+     * with versions sorted ascending inside each group.
+     */
+    private List<File> orderAndFilterVersionGroups(List<File> allDocFiles) {
+        Map<String, List<File>> groups = new LinkedHashMap<>();
+        Map<String, File> latestByGroup = new HashMap<>();
+        for (File f : allDocFiles) {
+            String gk = Strings.isNullOrEmpty(f.getVersionId()) ? f.getId() : f.getVersionId();
+            groups.computeIfAbsent(gk, k -> new ArrayList<>()).add(f);
+            if (f.isLatestVersion()) {
+                latestByGroup.put(gk, f);
+            }
+        }
+        List<String> validGroupKeys = new ArrayList<>();
+        for (String gk : groups.keySet()) {
+            if (latestByGroup.containsKey(gk)) {
+                validGroupKeys.add(gk);
+            }
+        }
+        validGroupKeys.sort(Comparator.comparingInt(gk -> {
+            File latest = latestByGroup.get(gk);
+            return (latest != null && latest.getOrder() != null) ? latest.getOrder() : Integer.MAX_VALUE;
+        }));
+        List<File> result = new ArrayList<>();
+        for (String gk : validGroupKeys) {
+            List<File> grp = groups.get(gk);
+            grp.sort(Comparator.comparingInt((File f) -> f.getVersion() != null ? f.getVersion() : 0)
+                    .thenComparingLong(f -> f.getCreateDate() != null ? f.getCreateDate().getTime() : 0L));
+            result.addAll(grp);
+        }
+        return result;
+    }
+
+    private static String appendVersionSuffix(String safeFileName, File file) {
+        int seq = (file.getVersion() != null ? file.getVersion() : 0) + 1;
+        String suffix = "_#" + seq;
+        if (!Strings.isNullOrEmpty(file.getVersionLabel()) && !file.getVersionLabel().trim().isEmpty()) {
+            String safeLabel = sanitizePathSegment(file.getVersionLabel().trim(), "");
+            if (!safeLabel.isEmpty()) {
+                suffix += "_" + safeLabel;
+            }
+        }
+        int dot = safeFileName.lastIndexOf('.');
+        if (dot > 0) {
+            return safeFileName.substring(0, dot) + suffix + safeFileName.substring(dot);
+        }
+        return safeFileName + suffix;
     }
 
     /**
@@ -407,6 +481,16 @@ public class TagZipExportService {
                 return twoLevelDir;
             }
             return threeLevelDir;
+        }
+        if (file != null && !Strings.isNullOrEmpty(file.getId())) {
+            Path perFileDir = baseDataDir.resolve("storage/" + file.getId()).toAbsolutePath().normalize();
+            if (Files.isDirectory(perFileDir)) {
+                return perFileDir;
+            }
+            if (!Strings.isNullOrEmpty(file.getName()) && Files.exists(baseDataDir.resolve("storage").resolve(file.getName()))) {
+                return baseDataDir.resolve("storage").toAbsolutePath().normalize();
+            }
+            return perFileDir;
         }
         return baseDataDir.resolve("storage").toAbsolutePath().normalize();
     }

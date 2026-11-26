@@ -110,12 +110,8 @@ public class FileUtil {
             }
         }
         try {
-            if (!ConfigUtil.isFileEncrypt()) {
-                deleteEmptyDirectoryUpwards(storageDir, DirectoryUtil.getBaseDataDirectory().resolve("storage"));
-            } else {
-                Files.deleteIfExists(storageDir);
-            }
-        } catch (IOException ignored) {
+            deleteEmptyDirectoryUpwards(storageDir, DirectoryUtil.getBaseDataDirectory().resolve("storage"));
+        } catch (Exception ignored) {
         }
     }
 
@@ -139,9 +135,7 @@ public class FileUtil {
                 }
             }
         }
-        if (!ConfigUtil.isFileEncrypt()) {
-            deleteEmptyDirectoryUpwards(deleteDir, DirectoryUtil.getBaseDataDirectory().resolve("delete/storage"));
-        }
+        deleteEmptyDirectoryUpwards(deleteDir, DirectoryUtil.getBaseDataDirectory().resolve("delete/storage"));
     }
 
     /**
@@ -159,9 +153,7 @@ public class FileUtil {
                 Files.deleteIfExists(src);
             }
         }
-        if (!ConfigUtil.isFileEncrypt()) {
-            deleteEmptyDirectoryUpwards(deleteDir, DirectoryUtil.getBaseDataDirectory().resolve("delete/storage"));
-        }
+        deleteEmptyDirectoryUpwards(deleteDir, DirectoryUtil.getBaseDataDirectory().resolve("delete/storage"));
     }
 
     /**
@@ -270,7 +262,7 @@ public class FileUtil {
         ConfigUtil.ensureFileEncryptLocked();
 
         // Save the file
-        Path storageDir = DirectoryUtil.getStorageDirectory(file).toAbsolutePath().normalize();
+        Path storageDir = DirectoryUtil.getCreateStorageDirectory(file).toAbsolutePath().normalize();
         Path path = storageDir.resolve(file.getName()).normalize();
         if (!path.startsWith(storageDir) || path.equals(storageDir)) {
             throw new IOException("Invalid file name");

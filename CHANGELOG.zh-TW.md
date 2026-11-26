@@ -9,9 +9,12 @@
 ## [v3.02-SNAPSHOT]（未發布）
 
 ### 新增功能 (Added)
-- **依標籤階層結構一鍵打包下載 ZIP（`GET /api/tag/{id}/zip`、`#/tag/:id`）**：
-  - 於標籤瀏覽頁頂部標題列新增「**打包下載 ZIP**」按鈕（同步移除旁側易造成誤導的單層文件數顯示），由新增的 `TagZipExportService` 與 `TagResource.downloadTagZip` 提供支援。
-  - 以純唯讀串流方式將所選標籤與所有可讀子標籤下允許下載的檔案，依 `標籤/子標籤/文件標題/檔名` 目錄結構打包為 UTF-8 ZIP（相容未加密與加密模式、嚴格遵守全域下載總開關與文件個別 `allow_download` 權限，並完整保留標籤／文件／檔案自訂順序）。
+- **重複檔名上傳定位視窗與防卡死復原（`FileResource.java`、`file.duplicate.modal.html`、`DocumentEdit.js`、`DocumentViewContent.js`）**：
+  - HTTP 403 `FileNameDuplicate` 回應新增回傳 `file_name` 與 `duplicates`（含 `file_id`、`file_name`、`document_id`、`document_title`、`tags`、`create_date`），前端於 16 國語系下彈出視窗顯示完整重複檔名、標籤與可點擊開啟之既有文件連結。
+  - 改善上傳失敗後的互動流程：多檔批次上傳遇單一失敗會繼續上傳其餘合法檔案；新增文件頁於關閉重複視窗後自動清空 `$scope.newFiles` 並跳轉進入剛建立的文件（避免停留原表單誤建重複文件）；文件檢視頁失敗時自動移除失效的佔位進度卡片。
+- **依標籤階層結構一鍵打包下載 ZIP（含歷史版本選項與清單，`GET /api/tag/{id}/zip`、`#/tag/:id`）**：
+  - 於標籤瀏覽頁頂部標題列新增「**打包下載 ZIP**」下拉選單（同步移除旁側易造成誤導的單層文件數顯示），提供「**僅下載最新版**」（預設）與「**含歷史版本**」（`?include_versions=true`），由 `FileDao.getAllVersionsByDocumentsIds`、`TagZipExportService` 與 `TagResource.downloadTagZip` 提供支援。
+  - 以純唯讀串流方式將所選標籤與所有可讀子標籤下允許下載的檔案，依 `標籤/子標籤/文件標題/檔名` 目錄結構打包為 UTF-8 ZIP（相容未加密與加密模式、嚴格遵守全域下載總開關與文件個別 `allow_download` 權限，並完整保留標籤／文件／檔案自訂順序）；僅有單一版本時維持原檔名，含多版本時同層命名為 `檔名_#1_1.0.副檔名`（有設定版本標籤）或 `檔名_#2.副檔名`（未設定版本標籤）。
   - 根目錄固定附帶 UTF-8 BOM 的 `_manifest.txt`，包含匯出摘要標頭與等寬對齊的 `[O]` / `[X]` 完整清單（含禁止下載或遺失而略過之可讀檔案），同步補齊 16 國語系與 `TestTagResource` 整合測試。
 - **資料一致性檢查與選擇性清理（`GET /api/app/integrity/scan`、`POST /api/app/integrity/clean`、`#/settings/monitoring`）**：
   - 於「**設定 → 監控**」新增限管理員使用的兩階段「**先掃描預覽 → 勾選確認 → 徹底清理**」工具（`StorageIntegrityService`、`AppResource`、`settings.monitoring.html`、`SettingsMonitoring.js`），可偵測三類不匹配項目：**孤兒歷史版本**（`latest_version = false` 且已無有效最新版）、**缺實體檔的資料庫紀錄**（最新版預設不勾選並顯示警示）、以及 **`storage/` 磁碟孤兒殘留檔**。
@@ -39,6 +42,8 @@
   - 不公開模式回傳 `Disallow: /` 並對所有回應加上 `X-Robots-Tag: noindex, nofollow, noarchive`；公開模式回傳 `Allow: /` 並一律排除 `/api/` 與 `/share.html`（`share.html` 另加上 `<meta name="robots" content="noindex, nofollow, noarchive">` 雙重保護分享連結）。
 
 ### 介面調整 (Changed)
+- **系統設定語意一致化（`settings.config.html`、16 國語系）**：
+  - 將「**重複檔案名稱上傳 (`file.duplicate`)**」與「**查看非自己所屬群組的成員**」兩項設定的標題、操作按鈕與狀態徽章由原本的「已啟用／未啟用」調整為語意更精準的「**允許／不允許**」，同步更新全部 16 國語系。
 - **「文件搜尋（`#/document`）」與「標籤文件管理（`#/tagadmin`）」工作區重新定位**：
   - 將 `#/document` 更名為「**文件搜尋**」（放大鏡圖示 `fa-search`），移除新增文件按鈕、重複的資料夾導覽／匯出工具列與易生誤會的「檔案快速上傳（`#quick-upload-zone`）」區塊，並同步調整 16 國語系的 `onboarding.step3.description` 導覽文案。
   - 將 `#/tagadmin` 更名為「**標籤文件管理**」並開放所有非訪客使用者進入：左側頂部改為等寬等高並排的「**＋ 新增標籤**」（可收合，僅標籤管理者可見）與「**＋ 新增文件**」（同畫面 `#/tagadmin/document-add`、含匯入 EML、自動預選目前可寫入標籤，建立完成後自動展開左樹對應標籤或「未貼標籤的文件」並平滑捲動聚焦，右側直接進入「文件檢視與檔案」）；合併「全部展開／全部收合」為單一切換按鈕（同步套用於 `tag.html` 與 `tag.admin.html`）、統一第二排按鈕配色，並讓無標籤管理權限的一般使用者點選文件時智慧預設開啟「文件檢視與檔案」。
@@ -49,6 +54,9 @@
   - 移除文件管理左側清單（`document.html`）與標籤瀏覽區右側文件卡片（`tag.view.html`）中每筆文件下方的標籤徽章區塊，讓文件列表更簡潔易讀；文件詳細頁、資料夾導覽與進階搜尋的標籤篩選維持不變。
 
 ### 修復與安全性強化 (Fixed & Hardened)
+- **加密模式修復 — 上傳同名檔案新版本撞檔失敗（`DirectoryUtil.java`、`FileUtil.java`、`StorageIntegrityService.java`、`TagZipExportService.java`、`FileResource.java`、`DocumentViewContent.js`）**：
+  - 修正檔案加密模式（`file.encrypt = true`）下對既有檔案上傳同名新版本（如 `test.txt`）時，因平鋪寫入 `storage/test.txt` 觸發 `FileAlreadyExistsException` 導致「上傳失敗」的問題；新增 `DirectoryUtil.getCreateStorageDirectory()` 將加密模式新建檔案／新版本獨立存放於 `storage/{fileId}/`，同時完整向下相容既有的舊平鋪檔案，且完全不影響非加密模式邏輯。
+  - 同步更新 `StorageIntegrityService` 與 `TagZipExportService` 唯讀路徑解析、於 `FileResource.add()` 正規化空字串 `previousFileId`、於 `DocumentViewContent.js` 補上 `uploadNewVersion` 失敗還原快照防呆，並新增 `TestFileResource#testEncryptedNewVersionSameFilename` 整合測試。
 - **權限強化 — 貼附與移除標籤強制檢查 `WRITE` 權限（`DocumentResource`、`TagResource`、`SelectTag`、`TagAdminDocument`）**：
   - `GET /api/tag/list` 新增回傳各標籤之 `writable` 欄位（支援上層 ACL 繼承判斷）；於 `PUT /api/document`、`POST /api/document/{id}` 與 `POST /api/document/{id}/tags` 強制驗證：新增貼附或移除任何可見標籤皆須具備該標籤之 **`PermType.WRITE`** 權限（僅具 `READ` 唯讀權限者回傳 `403 Forbidden`，未更動的唯讀標籤與隱藏標籤則自動保留）。
   - 新增／編輯文件表單的 `select-tag`（`writable-only="true"`）僅列出可寫入標籤並鎖定既有唯讀標籤徽章（不影響文件搜尋的進階篩選）；「標籤文件管理」快速貼標樹保留階層顯示但鎖定唯讀標籤勾選框並顯示鎖頭，同步補齊 `TestTagResource` 整合測試。

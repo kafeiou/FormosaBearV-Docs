@@ -86,9 +86,36 @@ public class DirectoryUtil {
                 }
                 return getDataSubDirectory("storage/" + file.getUserId() + "/" + file.getDocumentId() + "/" + file.getId());
             }
+        } else if (file != null && StringUtils.isNotBlank(file.getId())) {
+            Path perFileDir = getBaseDataDirectory().resolve("storage/" + file.getId());
+            if (Files.isDirectory(perFileDir)) {
+                return perFileDir;
+            }
+            if (StringUtils.isNotBlank(file.getName()) && Files.exists(getBaseDataDirectory().resolve("storage").resolve(file.getName()))) {
+                return getDataSubDirectory("storage");
+            }
+            return getDataSubDirectory("storage/" + file.getId());
         } else {
             return getDataSubDirectory("storage");
         }
+    }
+
+    /**
+     * Returns the target storage directory for creating a brand-new file or file version.
+     * In encrypted mode, always isolates new files under storage/{fileId} to avoid collisions
+     * with existing versions or legacy flat files sharing the same filename.
+     *
+     * @param file File entity being created
+     * @return Storage directory
+     */
+    public static Path getCreateStorageDirectory(File file) {
+        if (!ConfigUtil.isFileEncrypt()) {
+            return getStorageDirectory(file);
+        }
+        if (file != null && StringUtils.isNotBlank(file.getId())) {
+            return getDataSubDirectory("storage/" + file.getId());
+        }
+        return getDataSubDirectory("storage");
     }
 
     /**
@@ -113,9 +140,18 @@ public class DirectoryUtil {
           else{
             return getDataSubDirectory("delete/storage"+"/"+file.getUserId()+"/"+ file.getDocumentId()+"/"+file.getId());
           }
-        }        
-        else
-          return getDataSubDirectory("delete/storage");
+        } else if (file != null && StringUtils.isNotBlank(file.getId())) {
+            Path perFileDir = getBaseDataDirectory().resolve("delete/storage/" + file.getId());
+            if (Files.isDirectory(perFileDir)) {
+                return perFileDir;
+            }
+            if (StringUtils.isNotBlank(file.getName()) && Files.exists(getBaseDataDirectory().resolve("delete/storage").resolve(file.getName()))) {
+                return getDataSubDirectory("delete/storage");
+            }
+            return getDataSubDirectory("delete/storage/" + file.getId());
+        } else {
+            return getDataSubDirectory("delete/storage");
+        }
     }
     
     /**
