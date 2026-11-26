@@ -197,14 +197,11 @@
             <span class="fas text-info" ng-class="showTreeDocuments ? 'fa-eye-slash' : 'fa-eye'"></span> {{ (showTreeDocuments ? 'tag.admin_doc.hide_docs' : 'tag.admin_doc.show_docs') | translate }}
           </button>
         </div>
-        <div class="btn-group btn-group-xs pull-right">
-          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="toggleExpandAllTags()"
+        <div class="btn-group btn-group-xs pull-right" ng-if="hasAnyNestedTags()">
+          <button type="button" class="btn btn-default" ng-click="toggleExpandAllTags()"
                   uib-tooltip="{{ (areAllTagsExpanded() ? 'tag.collapse_all' : 'tag.expand_all') | translate }}">
             <span class="fas" ng-class="areAllTagsExpanded() ? 'fa-minus-square' : 'fa-plus-square'"></span>
             {{ (areAllTagsExpanded() ? 'tag.collapse_all' : 'tag.expand_all') | translate }}
-          </button>
-          <button type="button" class="btn btn-default" ng-click="openTagExportModal()" uib-tooltip="{{ 'tag.export.button' | translate }}">
-            <span class="fas fa-file-export text-success"></span> {{ 'tag.export.button' | translate }}
           </button>
         </div>
       </div>
