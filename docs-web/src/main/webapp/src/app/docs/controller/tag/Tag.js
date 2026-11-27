@@ -21,13 +21,37 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
       controller: 'ModalTagExport',
       resolve: {
         initialTagId: function() {
-          return $stateParams.id || null;
+          return $scope.getCurrentTagId() || $scope.getFocusRootId() || null;
         }
       }
     });
   };
 
-  // Guardrail for tagadmin routes: redirect non-authorized users to tag browser
+  // Retrieve tags
+  $scope.tags = [];
+  $scope.loadTags = function() {
+    var params = $rootScope.canManageTags ? { include_hidden: true } : {};
+    Restangular.one('tag/list').get(params).then(function(data) {
+      $scope.tags = data.tags;
+      $scope.showAddTag = !!$rootScope.canManageTags;
+      var currentTagId = $scope.getCurrentTagId();
+      if (currentTagId) {
+        $scope.expandAncestors(currentTagId);
+      }
+      var focusRootId = $scope.getFocusRootId();
+      if (focusRootId) {
+        $scope.expandedTags[focusRootId] = true;
+        if ($scope.showTreeDocuments) {
+          var bucket = $scope.tagDocs[focusRootId];
+          if (!bucket || !bucket.loaded) {
+            $scope.loadTagDocuments(focusRootId, false);
+          }
+        }
+      }
+    });
+  };
+
+  // Resolve user permissions for tagadmin routes before loading tags
   User.userInfo().then(function(userData) {
     var canManage = false;
     if (userData && !userData.anonymous) {
@@ -43,13 +67,15 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
       }
     }
     $rootScope.canManageTags = canManage;
-    if ($state.includes('tagadmin')) {
-      if (data.anonymous || data.username === 'guest') {
-        $state.go('tag.default');
-      } else if ($state.current.name === 'tagadmin.edit' && !canManage) {
-        $state.go('tagadmin.default');
+    $scope.showAddTag = canManage;
+    if ($state.includes('tagadmin') && userData && userData.username === 'guest') {
+      if ($state.current.name === 'tagadmin.documentAdd') {
+        $state.go('tagadmin.default', { focus: $scope.getFocusRootId() });
+      } else if ($state.current.name === 'tagadmin.document') {
+        $state.go('tagadmin.document.view.content', { id: $stateParams.id, focus: $scope.getFocusRootId() }, { location: 'replace' });
       }
     }
+    $scope.loadTags();
   });
 
   $scope.addTagFormOpen = false;
@@ -58,10 +84,16 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
   };
 
   $scope.getTagAdminAddDocHref = function() {
-    if ($state.current.name === 'tagadmin.edit' && $stateParams.id) {
-      return '#/tagadmin/document-add?tagId=' + encodeURIComponent($stateParams.id);
+    var params = [];
+    var currentTagId = $scope.getCurrentTagId();
+    if (currentTagId) {
+      params.push('tagId=' + encodeURIComponent(currentTagId));
     }
-    return '#/tagadmin/document-add';
+    var focusRootId = $scope.getFocusRootId();
+    if (focusRootId) {
+      params.push('focus=' + encodeURIComponent(focusRootId));
+    }
+    return '#/tagadmin/document-add' + (params.length ? '?' + params.join('&') : '');
   };
 
   $scope.importEml = function(file) {
@@ -81,7 +113,7 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
         return;
       }
       $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: data.id, tagIds: [], isNew: true });
-      $state.go('tagadmin.document.view.content', { id: data.id });
+      $state.go('tagadmin.document.view.content', { id: data.id, focus: $scope.getFocusRootId() });
     });
   };
 
@@ -99,20 +131,6 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
     }
   };
 
-  // Retrieve tags
-  $scope.tags = [];
-  $scope.loadTags = function() {
-    var params = $state.includes('tagadmin') ? { include_hidden: true } : {};
-    Restangular.one('tag/list').get(params).then(function(data) {
-      $scope.tags = data.tags;
-      $scope.showAddTag = !!$rootScope.canManageTags;
-      if ($stateParams.id) {
-        $scope.expandAncestors($stateParams.id);
-      }
-    });
-  };
-  $scope.loadTags();
-
   $scope.$watch(function() {
     return ($scope.getCurrentTagId() || '') + '|' + ($scope.getFocusRootId() || '');
   }, function() {
@@ -123,6 +141,12 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
     var focusRootId = $scope.getFocusRootId();
     if (focusRootId) {
       $scope.expandedTags[focusRootId] = true;
+      if ($scope.showTreeDocuments) {
+        var bucket = $scope.tagDocs[focusRootId];
+        if (!bucket || !bucket.loaded) {
+          $scope.loadTagDocuments(focusRootId, false);
+        }
+      }
     }
   });
 
@@ -130,6 +154,12 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
    * Returns the currently selected tag ID from UI-Router state params.
    */
   $scope.getCurrentTagId = function() {
+    if ($state.includes('tagadmin.document') || $state.current.name === 'tagadmin.documentAdd') {
+      return null;
+    }
+    if ($state.current.name === 'tagadmin.edit') {
+      return ($state.params && $state.params.id) || ($rootScope.$stateParams && $rootScope.$stateParams.id) || $stateParams.id || null;
+    }
     if ($state.includes('tag.document')) {
       return ($state.params && $state.params.tagId) || ($rootScope.$stateParams && $rootScope.$stateParams.tagId) || $stateParams.tagId || null;
     }
@@ -218,17 +248,50 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
     return '#/tag/' + tag.id;
   };
 
+  $scope.getAdminRootTags = function() {
+    return $scope.getBrowseRootTags();
+  };
+
+  $scope.getTagAdminHref = function(tag) {
+    if (!tag) {
+      return '#/tagadmin';
+    }
+    var focusRootId = $scope.getFocusRootId();
+    if (focusRootId) {
+      return '#/tagadmin/' + tag.id + '?focus=' + encodeURIComponent(focusRootId);
+    }
+    return '#/tagadmin/' + tag.id;
+  };
+
+  $scope.getTagAdminDocTabHref = function(docId, isView) {
+    if (!docId) {
+      return '#/tagadmin';
+    }
+    var base = isView ? ('#/tagadmin/document/' + docId + '/view/content') : ('#/tagadmin/document/' + docId);
+    var focusRootId = $scope.getFocusRootId();
+    if (focusRootId) {
+      return base + '?focus=' + encodeURIComponent(focusRootId);
+    }
+    return base;
+  };
+
   $scope.toggleFocusMode = function() {
+    if ($scope.isFocusMode()) {
+      $location.search('focus', null);
+      return;
+    }
     var currentId = $scope.getCurrentTagId();
     if (!currentId) {
       return;
     }
-    if ($scope.isFocusMode()) {
-      $location.search('focus', null);
-    } else {
-      $scope.expandedTags[currentId] = true;
-      $location.search('focus', currentId);
+    $scope.expandedTags[currentId] = true;
+    if ($scope.showTreeDocuments) {
+      var bucket = $scope.tagDocs[currentId];
+      if (!bucket || !bucket.loaded) {
+        $scope.loadTagDocuments(currentId, false);
+      }
     }
+    $location.search('focus', currentId);
   };
 
   /**
@@ -371,13 +434,13 @@ angular.module('docs').controller('Tag', function($scope, $rootScope, $state, $s
   };
 
   /**
-   * Build tag-admin document link preserving active mode (Tags vs Document View).
+   * Build tag-admin document link: default to Document View & Files for all users;
+   * if a non-guest user is already on the Quick Tagging tab, stay on Quick Tagging for batch tagging.
    */
   $scope.getTagAdminDocHref = function(docId) {
-    if (!$rootScope.canManageTags || $state.includes('tagadmin.document.view') || $state.includes('tagadmin.document.edit')) {
-      return '#/tagadmin/document/' + docId + '/view/content';
-    }
-    return '#/tagadmin/document/' + docId;
+    var isGuest = $rootScope.userInfo && $rootScope.userInfo.username === 'guest';
+    var stayInQuickTag = !isGuest && $state.current.name === 'tagadmin.document';
+    return $scope.getTagAdminDocTabHref(docId, !stayInQuickTag);
   };
 
   /**

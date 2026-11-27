@@ -25,14 +25,14 @@
   </ul>
 </script>
 
-<ul class="nav nav-tabs" style="margin-bottom: 15px;">
+<ul class="nav nav-tabs" style="margin-bottom: 15px;" ng-if="userInfo && userInfo.username != 'guest'">
   <li ng-class="{ active: $state.current.name === 'tagadmin.document' }">
-    <a ng-href="#/tagadmin/document/{{ $stateParams.id }}">
+    <a ng-href="{{ getTagAdminDocTabHref($stateParams.id, false) }}">
       <span class="fas fa-tags"></span> {{ 'tag.admin_doc.tab_tags' | translate }}
     </a>
   </li>
   <li ng-class="{ active: $state.includes('tagadmin.document.view') || $state.includes('tagadmin.document.edit') }">
-    <a ng-href="#/tagadmin/document/{{ $stateParams.id }}/view/content">
+    <a ng-href="{{ getTagAdminDocTabHref($stateParams.id, true) }}">
       <span class="fas fa-book tag-tree-doc-icon"></span> {{ 'tag.admin_doc.tab_document' | translate }}
     </a>
   </li>

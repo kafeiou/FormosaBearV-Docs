@@ -17,8 +17,35 @@
   </ul>
 </script>
 
-<div class="pull-right" ng-show="tag.writable">
+<div class="pull-right" style="display: flex; align-items: center; gap: 6px;">
+  <div class="btn-group" uib-dropdown ng-if="tag && tag.id">
+    <a class="btn btn-default"
+       ng-href="../api/tag/{{ tag.id }}/zip"
+       uib-tooltip="{{ 'tag.browse.download_zip_tooltip' | translate }}"
+       tooltip-append-to-body="true">
+      <span class="fas fa-file-archive text-primary"></span>
+      {{ 'tag.browse.download_zip' | translate }}
+    </a>
+    <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle>
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
+      <li>
+        <a ng-href="../api/tag/{{ tag.id }}/zip">
+          <span class="fas fa-file-archive text-primary"></span>
+          {{ 'tag.browse.download_zip_latest' | translate }}
+        </a>
+      </li>
+      <li>
+        <a ng-href="../api/tag/{{ tag.id }}/zip?include_versions=true">
+          <span class="fas fa-history text-info"></span>
+          {{ 'tag.browse.download_zip_with_history' | translate }}
+        </a>
+      </li>
+    </ul>
+  </div>
   <button class="btn btn-danger"
+          ng-show="tag.writable"
           ng-disabled="tag.plugin_protected || tag.plugin_in_use"
           ng-click="!tag.plugin_protected && !tag.plugin_in_use && deleteTag(tag)"
           uib-tooltip="{{ tag.plugin_protected ? '受外掛保護的標籤不可刪除' : (tag.plugin_in_use ? tag.plugin_ref_reason : '') }}"
@@ -28,7 +55,22 @@
 </div>
 
 <div class="page-header">
-  <h1>{{ tag.name }}&nbsp;</h1>
+  <h1>
+    <span class="fas fa-tag" ng-if="tag && tag.color" ng-style="{ 'color': tag.color }" style="font-size: 0.8em; margin-right: 6px;"></span>{{ tag.name }}&nbsp;
+  </h1>
+  <div class="text-muted small" ng-if="tag && tag.parent" style="margin-top: 4px;">
+    <span class="fas fa-sitemap mr-5"></span>{{ getTagBreadcrumb(tag.id) }}
+  </div>
+</div>
+
+<!-- Read-only tag summary card for regular users and guests -->
+<div class="well col-lg-8" ng-if="tag && !tag.writable">
+  <p ng-if="tag.description" style="margin-bottom: 0;">
+    <span class="fas fa-info-circle text-muted mr-5"></span>{{ tag.description }}
+  </p>
+  <p ng-if="!tag.description" class="text-muted" style="margin-bottom: 0;">
+    <span class="fas fa-tag mr-5" ng-style="{ 'color': tag.color }"></span>{{ getTagBreadcrumb(tag.id) || tag.name }}
+  </p>
 </div>
 
 <div class="alert alert-info" ng-if="tag.plugin_protected || tag.plugin_in_use">
@@ -151,7 +193,7 @@
   </form>
 </div>
 
-<div class="well col-lg-8">
+<div class="well col-lg-8" ng-show="tag.writable">
   <div ng-if="tag.parent && tag.inherit_acl">
     <h4>{{ 'tag.edit.inherited_acls_title' | translate }}</h4>
     <p class="text-muted small">{{ 'tag.edit.inherited_acls_help' | translate }}</p>

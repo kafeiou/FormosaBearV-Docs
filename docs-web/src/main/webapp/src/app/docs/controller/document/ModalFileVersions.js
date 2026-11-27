@@ -229,7 +229,7 @@ angular.module('docs').controller('ModalFileVersions', function ($scope, $rootSc
 
   $scope.openFile = function (verFile) {
     if ($state.includes('tagadmin.document')) {
-      $state.go('tagadmin.document.view.content.file', { id: $stateParams.id, fileId: verFile.id });
+      $state.go('tagadmin.document.view.content.file', { id: $stateParams.id, fileId: verFile.id, focus: $stateParams.focus });
     } else if ($state.includes('tag.document')) {
       $state.go('tag.document.view.content.file', { tagId: $stateParams.tagId, id: $stateParams.id, fileId: verFile.id, focus: $stateParams.focus });
     } else {

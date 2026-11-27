@@ -10,7 +10,7 @@ angular.module('docs').controller('Main', function($scope, $rootScope, $state, U
         location: 'replace'
       });
     } else {
-      $state.go('tag.default', {}, {
+      $state.go('tagadmin.default', {}, {
         location: 'replace'
       });
     }

@@ -76,7 +76,7 @@ angular.module('docs').controller('DocumentView', function ($scope, $rootScope, 
           }
           if ($state.includes('tagadmin.document')) {
             $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: document.id });
-            $state.go('tagadmin.default');
+            $state.go('tagadmin.default', { focus: $stateParams.focus });
           } else if ($state.includes('tag.document')) {
             $scope.$emit('tagBrowseDocumentDeleted', { documentId: document.id });
             $state.go('tag.view', { id: $stateParams.tagId, focus: $stateParams.focus });
@@ -198,7 +198,7 @@ angular.module('docs').controller('DocumentView', function ($scope, $rootScope, 
           $scope.loadDocuments();
         }
         if ($state.includes('tagadmin.document')) {
-          $state.go('tagadmin.default');
+          $state.go('tagadmin.default', { focus: $stateParams.focus });
         } else if ($state.includes('tag.document')) {
           $state.go('tag.view', { id: $stateParams.tagId, focus: $stateParams.focus });
         } else {

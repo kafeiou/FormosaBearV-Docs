@@ -6,15 +6,14 @@
       <span class="fas" ng-class="{ 'fa-caret-down': isTagExpanded(tag.id), 'fa-caret-right': !isTagExpanded(tag.id) }"></span>
     </span>
     <span class="tag-tree-toggle-placeholder" ng-if="!hasExpandableContent(tag)"></span>
-    <span class="fas fa-tag" ng-style="{ 'color': tag.color }"></span>
+    <span class="fas fa-tag" ng-style="{ 'color': tag.is_container ? '#999999' : tag.color }"></span>
     <span class="fas fa-eye-slash text-muted" ng-if="tag.hidden" uib-tooltip="{{ 'tag.hidden_tooltip' | translate }}" style="margin-left: 3px; font-size: 11px;"></span>
     <span class="fas fa-eye-slash text-muted" ng-if="!tag.hidden && tag.effective_hidden" uib-tooltip="{{ 'tag.effective_hidden_tooltip' | translate }}" style="margin-left: 3px; font-size: 11px; opacity: 0.55;"></span>
     <span class="fas fa-lock text-warning" ng-if="tag.inherit_acl === false" uib-tooltip="{{ 'tag.broken_inheritance' | translate }}" style="margin-left: 3px; font-size: 11px;"></span>
-    <a ng-if="canManageTags" href="#/tagadmin/{{ tag.id }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $state.current.name === 'tagadmin.edit' && $stateParams.id == tag.id }"
-       uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
+    <span ng-if="tag.is_container" class="text-muted" uib-tooltip="{{ 'tag.container_tooltip' | translate }}" style="cursor: not-allowed; font-weight: normal;">
       {{ tag.name }}
-    </a>
-    <a ng-if="!canManageTags" href ng-click="toggleTagExpand(tag.id, $event)"
+    </span>
+    <a ng-if="!tag.is_container" ng-href="{{ getTagAdminHref(tag) }}" ng-click="onTagClick(tag)" ng-class="{ 'active': $state.current.name === 'tagadmin.edit' && $stateParams.id == tag.id }"
        uib-tooltip="{{ getTagTooltip(tag) }}" tooltip-append-to-body="true">
       {{ tag.name }}
     </a>
@@ -189,17 +188,38 @@
         </div>
       </form>
 
-      <div class="clearfix mb-10" ng-if="tags.length > 0">
-        <div class="btn-group btn-group-xs pull-left">
+      <div class="clearfix mb-10" ng-if="tags.length > 0" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px;">
+        <div class="btn-group btn-group-xs">
           <button type="button" class="btn btn-default" ng-class="{ active: showTreeDocuments }"
                   ng-click="toggleShowTreeDocuments()"
-                  uib-tooltip="{{ (showTreeDocuments ? 'tag.admin_doc.hide_docs' : 'tag.admin_doc.show_docs') | translate }}">
+                  uib-tooltip="{{ (showTreeDocuments ? 'tag.admin_doc.hide_docs' : 'tag.admin_doc.show_docs') | translate }}"
+                  tooltip-append-to-body="true">
             <span class="fas text-info" ng-class="showTreeDocuments ? 'fa-eye-slash' : 'fa-eye'"></span> {{ (showTreeDocuments ? 'tag.admin_doc.hide_docs' : 'tag.admin_doc.show_docs') | translate }}
           </button>
         </div>
-        <div class="btn-group btn-group-xs pull-right" ng-if="hasAnyNestedTags()">
-          <button type="button" class="btn btn-default" ng-click="toggleExpandAllTags()"
-                  uib-tooltip="{{ (areAllTagsExpanded() ? 'tag.collapse_all' : 'tag.expand_all') | translate }}">
+        <div class="btn-group btn-group-xs">
+          <button type="button" class="btn" ng-if="getCurrentTagId() || isFocusMode()"
+                  ng-class="{ 'btn-info': !isFocusMode(), 'btn-warning': isFocusMode() }"
+                  ng-click="toggleFocusMode()"
+                  uib-tooltip="{{ (isFocusMode() ? 'tag.browse.show_all' : 'tag.browse.focus') | translate }}"
+                  tooltip-append-to-body="true">
+            <span class="fas" ng-class="{ 'fa-bullseye': !isFocusMode(), 'fa-undo': isFocusMode() }"></span>
+            {{ (isFocusMode() ? 'tag.browse.show_all' : 'tag.browse.focus') | translate }}
+          </button>
+          <a class="btn btn-default" ng-if="getCurrentTagId()"
+             ng-href="#/tagadmin/{{ getCurrentTagId() }}?focus={{ getCurrentTagId() }}" target="_blank" rel="noopener noreferrer"
+             uib-tooltip="{{ 'tag.browse.focus_new_tab' | translate }}"
+             tooltip-append-to-body="true">
+            <span class="fas fa-external-link-alt"></span>
+          </a>
+          <button type="button" class="btn btn-default" ng-click="openTagExportModal()"
+                  uib-tooltip="{{ 'tag.export.button' | translate }}"
+                  tooltip-append-to-body="true">
+            <span class="fas fa-file-export text-primary"></span> {{ 'tag.export.button' | translate }}
+          </button>
+          <button type="button" class="btn btn-default" ng-if="hasAnyNestedTags()" ng-click="toggleExpandAllTags()"
+                  uib-tooltip="{{ (areAllTagsExpanded() ? 'tag.collapse_all' : 'tag.expand_all') | translate }}"
+                  tooltip-append-to-body="true">
             <span class="fas" ng-class="areAllTagsExpanded() ? 'fa-minus-square' : 'fa-plus-square'"></span>
             {{ (areAllTagsExpanded() ? 'tag.collapse_all' : 'tag.expand_all') | translate }}
           </button>
@@ -207,9 +227,9 @@
       </div>
 
       <ul class="tag-tree">
-        <li ng-repeat="tag in getChildrenTags()" ng-include="'tag-admin-tree-item'"></li>
+        <li ng-repeat="tag in getAdminRootTags()" ng-include="'tag-admin-tree-item'"></li>
         <!-- Virtual folder for untagged documents -->
-        <li ng-if="showTreeDocuments" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e5e5;">
+        <li ng-if="showTreeDocuments && !isFocusMode() && userInfo && userInfo.username != 'guest'" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e5e5;">
           <div class="tag-tree-row">
             <span class="tag-tree-toggle pointer" ng-click="toggleUntaggedExpand($event)">
               <span class="fas" ng-class="{ 'fa-caret-down': untaggedExpanded, 'fa-caret-right': !untaggedExpanded }"></span>

@@ -184,7 +184,7 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
               tagIds: document.tags || [],
               isNew: !$scope.isEdit()
             });
-            $state.go('tagadmin.document.view.content', { id: data.id });
+            $state.go('tagadmin.document.view.content', { id: data.id, focus: $stateParams.focus });
           } else if ($state.includes('tag.document')) {
             $scope.$emit('tagAdminDocumentTagsUpdated', { documentId: data.id });
             $state.go('tag.document.view.content', { tagId: $stateParams.tagId, id: data.id, focus: $stateParams.focus });
@@ -310,12 +310,12 @@ angular.module('docs').controller('DocumentEdit', function($rootScope, $scope, $
    */
   $scope.cancel = function() {
     if ($state.includes('tagadmin.document')) {
-      $state.go('tagadmin.document.view.content', { id: $stateParams.id });
+      $state.go('tagadmin.document.view.content', { id: $stateParams.id, focus: $stateParams.focus });
     } else if ($state.current.name === 'tagadmin.documentAdd') {
-      if ($stateParams.tagId && $rootScope.canManageTags) {
-        $state.go('tagadmin.edit', { id: $stateParams.tagId });
+      if ($stateParams.tagId) {
+        $state.go('tagadmin.edit', { id: $stateParams.tagId, focus: $stateParams.focus });
       } else {
-        $state.go('tagadmin.default');
+        $state.go('tagadmin.default', { focus: $stateParams.focus });
       }
     } else if ($state.includes('tag.document')) {
       $state.go('tag.document.view.content', { tagId: $stateParams.tagId, id: $stateParams.id, focus: $stateParams.focus });

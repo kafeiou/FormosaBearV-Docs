@@ -43,107 +43,98 @@ angular.module('docs',
       abstract: true,
       views: {
         'page': {
-          templateUrl: 'partial/docs/tag.html',
-          controller: 'Tag'
+          template: '<div ui-view="tag"></div>'
         }
       }
     })
     .state('tag.default', {
-      url: '',
-      views: {
-        'tag': {
-          templateUrl: 'partial/docs/tag.default.html'
-        }
-      }
+      url: '?focus',
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.default', { focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tag.view', {
       url: '/:id?focus',
-      views: {
-        'tag': {
-          templateUrl: 'partial/docs/tag.view.html',
-          controller: 'TagView'
-        }
-      }
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.edit', { id: $stateParams.id, focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tag.view.file', {
       url: '/document/:docId/file/:fileId',
-      views: {
-        'file': {
-          controller: 'FileView'
-        }
-      }
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.document.view.content.file', { id: $stateParams.docId, fileId: $stateParams.fileId, focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tag.document', {
       url: '/:tagId/document/:id?focus',
       abstract: true,
       views: {
         'tag': {
-          templateUrl: 'partial/docs/tag.browse.document.html'
+          template: '<div ui-view="docview"></div>'
         }
       }
     })
     .state('tag.document.view', {
       url: '/view',
-      redirectTo: 'tag.document.view.content',
-      views: {
-        'docview': {
-          templateUrl: 'partial/docs/document.view.html',
-          controller: 'DocumentView'
-        }
-      }
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.document.view.content', { id: $stateParams.id, focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tag.document.view.content', {
       url: '/content',
-      views: {
-        'tab': {
-          templateUrl: 'partial/docs/document.view.content.html',
-          controller: 'DocumentViewContent'
-        }
-      }
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.document.view.content', { id: $stateParams.id, focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tag.document.view.content.file', {
       url: '/file/:fileId',
-      views: {
-        'file': {
-          controller: 'FileView'
-        }
-      }
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.document.view.content.file', { id: $stateParams.id, fileId: $stateParams.fileId, focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tag.document.view.workflow', {
       url: '/workflow',
-      views: {
-        'tab': {
-          templateUrl: 'partial/docs/document.view.workflow.html',
-          controller: 'DocumentViewWorkflow'
-        }
-      }
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.document.view.workflow', { id: $stateParams.id, focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tag.document.view.permissions', {
       url: '/permissions',
-      views: {
-        'tab': {
-          templateUrl: 'partial/docs/document.view.permissions.html',
-          controller: 'DocumentViewPermissions'
-        }
-      }
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.document.view.permissions', { id: $stateParams.id, focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tag.document.view.activity', {
       url: '/activity',
-      views: {
-        'tab': {
-          templateUrl: 'partial/docs/document.view.activity.html',
-          controller: 'DocumentViewActivity'
-        }
-      }
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.document.view.activity', { id: $stateParams.id, focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tag.document.edit', {
       url: '/edit?files',
-      views: {
-        'docview': {
-          templateUrl: 'partial/docs/document.edit.html',
-          controller: 'DocumentEdit'
-        }
-      }
+      onEnter: ['$state', '$stateParams', '$timeout', function($state, $stateParams, $timeout) {
+        $timeout(function() {
+          $state.go('tagadmin.document.edit', { id: $stateParams.id, files: $stateParams.files, focus: $stateParams.focus }, { location: 'replace' });
+        });
+      }]
     })
     .state('tagadmin', {
       url: '/tagadmin',
@@ -156,7 +147,7 @@ angular.module('docs',
       }
     })
     .state('tagadmin.default', {
-      url: '',
+      url: '?focus',
       views: {
         'tag': {
           templateUrl: 'partial/docs/tag.admin.default.html'
@@ -164,7 +155,7 @@ angular.module('docs',
       }
     })
     .state('tagadmin.documentAdd', {
-      url: '/document-add?tagId',
+      url: '/document-add?tagId&focus',
       views: {
         'tag': {
           templateUrl: 'partial/docs/document.edit.html',
@@ -173,7 +164,7 @@ angular.module('docs',
       }
     })
     .state('tagadmin.document', {
-      url: '/document/:id',
+      url: '/document/:id?focus',
       views: {
         'tag': {
           templateUrl: 'partial/docs/tag.admin.document.html',
@@ -245,7 +236,7 @@ angular.module('docs',
       }
     })
     .state('tagadmin.edit', {
-      url: '/:id',
+      url: '/:id?focus',
       views: {
         'tag': {
           templateUrl: 'partial/docs/tag.edit.html',

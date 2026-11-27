@@ -148,7 +148,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
     if ($($event.target).parents('.currently-dragging').length === 0) {
       $scope.openedFile = file;
       if ($state.includes('tagadmin.document')) {
-        $state.go('tagadmin.document.view.content.file', { id: $stateParams.id, fileId: file.id });
+        $state.go('tagadmin.document.view.content.file', { id: $stateParams.id, fileId: file.id, focus: $stateParams.focus });
       } else if ($state.includes('tag.document')) {
         $state.go('tag.document.view.content.file', { tagId: $stateParams.tagId, id: $stateParams.id, fileId: file.id, focus: $stateParams.focus });
       } else {
@@ -164,7 +164,7 @@ angular.module('docs').controller('DocumentViewContent', function ($scope, $root
     if ($state.includes('tagadmin.document')) {
       $scope.$emit('tagAdminDocumentFilesUpdated', { documentId: targetDocumentId || $stateParams.id });
       if (navigateToTarget && targetDocumentId && targetDocumentId !== $stateParams.id) {
-        $state.go('tagadmin.document.view.content', { id: targetDocumentId });
+        $state.go('tagadmin.document.view.content', { id: targetDocumentId, focus: $stateParams.focus });
         return;
       }
       $scope.loadFiles();

@@ -42,6 +42,10 @@
   - 不公開模式回傳 `Disallow: /` 並對所有回應加上 `X-Robots-Tag: noindex, nofollow, noarchive`；公開模式回傳 `Allow: /` 並一律排除 `/api/` 與 `/share.html`（`share.html` 另加上 `<meta name="robots" content="noindex, nofollow, noarchive">` 雙重保護分享連結）。
 
 ### 介面調整 (Changed)
+- **合併「標籤（`#/tag`）」與「標籤文件管理（`#/tagadmin`）」為單一主工作區（`index.html`、`app.js`、`Tag.js`、`tag.admin.html`、`tag.edit.html`、`tag.admin.document.html`、`Main.js`、`Login.js`）**：
+  - 頂部導覽列合併為單一入口「**標籤文件管理**」（`#/tagadmin`）並開放包含 `guest` 在內的所有角色使用；左上角 Logo 與登入後首頁同步指向 `#/tagadmin`，所有舊 `#/tag/...` 連結自動重導向至對應 `#/tagadmin/...` 並保留 `?focus=` 參數。
+  - 將**專注模式**（`?focus=<tagId>`，檢視文件時亦可一鍵「顯示全部」退出專注，並含「新分頁專注開啟」）與**匯出報表**（`ModalTagExport`）整合進左側緊湊工具列；專注與訪客模式自動隱藏「未貼標籤的文件」虛擬資料夾，且文件檢視／編輯／刪除／檔案預覽與歷史版本切換全程保留 `focus` 狀態（`DocumentEdit.js`、`DocumentView.js`、`DocumentViewContent.js`、`ModalFileVersions.js`）。
+  - 於 `tag.edit.html` 標題列右上角加入所有具讀權使用者皆可使用的「**打包下載 ZIP**」下拉選單（僅下載最新版／含歷史版本）；一般使用者與 `guest` 顯示精簡標籤摘要卡（不顯示 ACL 權限名單與編輯表單）；所有人（含管理者）點選左樹文件預設開啟「**文件檢視與檔案**」（若已位於「標籤管理」分頁再點其他文件則維持連續貼標），且僅標籤管理者載入 `include_hidden=true`。
 - **系統設定語意一致化（`settings.config.html`、16 國語系）**：
   - 將「**重複檔案名稱上傳 (`file.duplicate`)**」與「**查看非自己所屬群組的成員**」兩項設定的標題、操作按鈕與狀態徽章由原本的「已啟用／未啟用」調整為語意更精準的「**允許／不允許**」，同步更新全部 16 國語系。
 - **「文件搜尋（`#/document`）」與「標籤文件管理（`#/tagadmin`）」工作區重新定位**：
